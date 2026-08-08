@@ -1,0 +1,318 @@
+<!DOCTYPE html>
+
+<html lang="pt-BR"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>ArqLearn - Quiz Session</title>
+<!-- Material Symbols Outlined -->
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<!-- Google Fonts -->
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@400;600;700&amp;family=Inter:wght@400;500&amp;family=JetBrains+Mono:wght@500;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<!-- Tailwind CSS -->
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<!-- Tailwind Config injected from Style Guidance -->
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+                    "surface-bright": "#f8f9ff",
+                    "on-primary-container": "#b2d4ff",
+                    "on-tertiary-fixed": "#002204",
+                    "on-surface-variant": "#42474f",
+                    "inverse-surface": "#27313f",
+                    "surface-container-high": "#dee9fc",
+                    "secondary": "#8f4e0f",
+                    "on-secondary-container": "#753c00",
+                    "muted-text": "#6B7280",
+                    "surface-dim": "#d0dbed",
+                    "blueprint-grid": "#E5E7EB",
+                    "outline": "#727780",
+                    "inverse-on-surface": "#eaf1ff",
+                    "surface-tint": "#34618f",
+                    "tertiary-fixed-dim": "#88d982",
+                    "surface-container": "#e6eeff",
+                    "tertiary-fixed": "#a3f69c",
+                    "secondary-fixed-dim": "#ffb780",
+                    "on-error-container": "#93000a",
+                    "error-container": "#ffdad6",
+                    "surface-variant": "#d9e3f6",
+                    "on-background": "#121c2a",
+                    "tertiary": "#004e10",
+                    "on-secondary-fixed-variant": "#6f3800",
+                    "on-tertiary": "#ffffff",
+                    "on-tertiary-container": "#92e58c",
+                    "on-tertiary-fixed-variant": "#005312",
+                    "secondary-container": "#fda864",
+                    "on-secondary-fixed": "#2f1400",
+                    "outline-variant": "#c2c7d0",
+                    "tertiary-container": "#156820",
+                    "on-primary-fixed-variant": "#164976",
+                    "on-surface": "#121c2a",
+                    "error-red": "#B00020",
+                    "primary-fixed": "#d1e4ff",
+                    "primary-container": "#2e5c8a",
+                    "inverse-primary": "#9fcafe",
+                    "on-error": "#ffffff",
+                    "error": "#ba1a1a",
+                    "secondary-fixed": "#ffdcc4",
+                    "surface-container-highest": "#d9e3f6",
+                    "surface-gray": "#F3F4F6",
+                    "on-primary": "#ffffff",
+                    "background": "#f8f9ff",
+                    "surface-container-low": "#eff4ff",
+                    "on-primary-fixed": "#001d36",
+                    "primary-fixed-dim": "#9fcafe",
+                    "on-secondary": "#ffffff",
+                    "surface": "#f8f9ff",
+                    "surface-container-lowest": "#ffffff",
+                    "primary": "#0e4471"
+            },
+            "borderRadius": {
+                    "DEFAULT": "0.25rem",
+                    "lg": "0.5rem",
+                    "xl": "0.75rem",
+                    "full": "9999px"
+            },
+            "spacing": {
+                    "base": "4px",
+                    "xl": "32px",
+                    "lg": "24px",
+                    "xs": "8px",
+                    "section": "48px",
+                    "sm": "12px",
+                    "md": "16px",
+                    "container-max": "1120px"
+            },
+            "fontFamily": {
+                    "display-lg": [
+                            "Hanken Grotesk"
+                    ],
+                    "body-md": [
+                            "Inter"
+                    ],
+                    "headline-md": [
+                            "Hanken Grotesk"
+                    ],
+                    "question-sm": [
+                            "Hanken Grotesk"
+                    ],
+                    "body-lg": [
+                            "Inter"
+                    ],
+                    "body-sm": [
+                            "Inter"
+                    ],
+                    "question-lg": [
+                            "Hanken Grotesk"
+                    ],
+                    "stats-num": [
+                            "JetBrains Mono"
+                    ],
+                    "label-caps": [
+                            "JetBrains Mono"
+                    ]
+            },
+            "fontSize": {
+                    "display-lg": [
+                            "28px",
+                            {
+                                    "lineHeight": "36px",
+                                    "fontWeight": "700"
+                            }
+                    ],
+                    "body-md": [
+                            "15px",
+                            {
+                                    "lineHeight": "22px",
+                                    "fontWeight": "400"
+                            }
+                    ],
+                    "headline-md": [
+                            "24px",
+                            {
+                                    "lineHeight": "32px",
+                                    "fontWeight": "700"
+                            }
+                    ],
+                    "question-sm": [
+                            "18px",
+                            {
+                                    "lineHeight": "24px",
+                                    "fontWeight": "600"
+                            }
+                    ],
+                    "body-lg": [
+                            "16px",
+                            {
+                                    "lineHeight": "24px",
+                                    "fontWeight": "400"
+                            }
+                    ],
+                    "body-sm": [
+                            "14px",
+                            {
+                                    "lineHeight": "20px",
+                                    "fontWeight": "400"
+                            }
+                    ],
+                    "question-lg": [
+                            "20px",
+                            {
+                                    "lineHeight": "28px",
+                                    "fontWeight": "600"
+                            }
+                    ],
+                    "stats-num": [
+                            "22px",
+                            {
+                                    "lineHeight": "28px",
+                                    "fontWeight": "700"
+                            }
+                    ],
+                    "label-caps": [
+                            "12px",
+                            {
+                                    "lineHeight": "16px",
+                                    "letterSpacing": "0.05em",
+                                    "fontWeight": "500"
+                            }
+                    ]
+            }
+          },
+        },
+      }
+    </script>
+<style>
+        /* Drafting accents */
+        .drafting-grid {
+            background-image: 
+                linear-gradient(to right, #E5E7EB 1px, transparent 1px),
+                linear-gradient(to bottom, #E5E7EB 1px, transparent 1px);
+            background-size: 24px 24px;
+        }
+        
+        .answer-card {
+            transition: all 0.2s ease-in-out;
+            cursor: pointer;
+        }
+        
+        .answer-card:hover {
+            border-color: #0e4471;
+            background-color: #f8f9ff;
+        }
+        
+        .answer-card.selected {
+            border-color: #0e4471;
+            border-width: 2px;
+            background-color: #eaf1ff;
+        }
+        
+        /* Progress tube */
+        .progress-tube {
+            box-shadow: inset 0 2px 4px rgba(0,0,0,0.1);
+        }
+    </style>
+</head>
+<body class="bg-background text-on-background font-body-md antialiased min-h-screen flex flex-col drafting-grid">
+<!-- Note: TopAppBar and BottomNavBar are suppressed here as this is a linear/transactional task (a Quiz session), 
+         which implies a temporary departure from the main navigation flow. Progressive disclosure prioritizes the content canvas. -->
+<!-- Header: Progress & Gamification Stats -->
+<header class="w-full flex items-center justify-between p-md max-w-container-max mx-auto backdrop-blur-md bg-surface-bright/80 sticky top-0 z-10 border-b border-blueprint-grid">
+<!-- Close / Exit Lesson -->
+<button class="text-outline hover:text-primary transition-colors flex items-center justify-center p-2 rounded-full hover:bg-surface-gray">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 0;">close</span>
+</button>
+<!-- Lesson Progress Bar -->
+<div class="flex-1 mx-lg">
+<div class="h-1.5 w-full bg-surface-gray rounded-full overflow-hidden progress-tube border border-blueprint-grid">
+<div class="h-full bg-primary rounded-full" style="width: 65%;"></div>
+</div>
+</div>
+<!-- Gamification Stats -->
+<div class="flex items-center space-x-md">
+<div class="flex items-center space-x-xs">
+<span class="material-symbols-outlined text-secondary" style="font-variation-settings: 'FILL' 1;">favorite</span>
+<span class="font-stats-num text-stats-num text-secondary">3</span>
+</div>
+<div class="flex items-center space-x-xs">
+<span class="material-symbols-outlined text-secondary-container" style="font-variation-settings: 'FILL' 1;">diamond</span>
+<span class="font-stats-num text-stats-num text-secondary-container">120</span>
+</div>
+</div>
+</header>
+<!-- Main Content Canvas -->
+<main class="flex-1 w-full max-w-2xl mx-auto p-lg flex flex-col justify-center pb-section">
+<!-- Question Section -->
+<div class="mb-xl text-center space-y-md">
+<h1 class="font-headline-md text-headline-md text-on-surface">
+                Qual destes elementos é característico do estilo Gótico?
+            </h1>
+</div>
+<!-- Architectural Context Image Placeholder -->
+<div class="mb-lg w-full h-48 md:h-64 rounded-xl overflow-hidden border-2 border-outline-variant bg-surface-gray relative group">
+<img class="w-full h-full object-cover opacity-90 group-hover:opacity-100 transition-opacity" data-alt="A highly detailed architectural elevation drawing of a classic Gothic cathedral facade. The drawing features intricate line work, pointed arches, ribbed vaults, and flying buttresses. It is presented in a modern light-mode aesthetic, utilizing precise 2px drafting strokes in deep blue on a pristine white background. A subtle, technical grid pattern underlays the image, reinforcing the educational and professional architectural context." src="https://lh3.googleusercontent.com/aida-public/AB6AXuBfGGWwIa221gFr28OI4ULyIvf_qIlIdviU8d0rMxTs7tjnACJ6HQbIm9tuG48i435bGrzTTg-oCSu5VbHlzyLMeIc1Z1NEXOtOlZfv0_tMnT7H6Zh_l5bKU2-OIbapC9If1OWGaz25-Cv_KV5ZQff4nMS0b1Wa6DCh3D8aq-dMAa7VLqg38vM97851trI4uo7-hcYWOzhQneleM2zggLsdNgiZQrT-gFcx0LsZ_xBvZqdx9wx7sYXouw"/>
+<!-- Technical Accent -->
+<div class="absolute bottom-2 right-2 bg-white/90 px-2 py-1 rounded text-[10px] font-label-caps text-outline border border-blueprint-grid">
+                FIG. 1: ELEVAÇÃO
+            </div>
+</div>
+<!-- Answer Options (Bento Grid inspired) -->
+<div class="grid grid-cols-1 md:grid-cols-2 gap-md w-full">
+<button class="answer-card w-full p-md min-h-[80px] bg-white border border-blueprint-grid rounded-xl flex items-center justify-between text-left group">
+<span class="font-question-sm text-question-sm text-on-surface group-hover:text-primary transition-colors">Arco Pleno</span>
+<span class="material-symbols-outlined text-outline group-hover:text-primary transition-colors" style="font-variation-settings: 'FILL' 0;">architecture</span>
+</button>
+<button class="answer-card w-full p-md min-h-[80px] bg-white border border-blueprint-grid rounded-xl flex items-center justify-between text-left group selected">
+<span class="font-question-sm text-question-sm text-primary font-bold">Arcos Ogivais</span>
+<span class="material-symbols-outlined text-primary" style="font-variation-settings: 'FILL' 1;">check_circle</span>
+</button>
+<button class="answer-card w-full p-md min-h-[80px] bg-white border border-blueprint-grid rounded-xl flex items-center justify-between text-left group">
+<span class="font-question-sm text-question-sm text-on-surface group-hover:text-primary transition-colors">Pilastras Jônicas</span>
+<span class="material-symbols-outlined text-outline group-hover:text-primary transition-colors" style="font-variation-settings: 'FILL' 0;">account_balance</span>
+</button>
+<button class="answer-card w-full p-md min-h-[80px] bg-white border border-blueprint-grid rounded-xl flex items-center justify-between text-left group">
+<span class="font-question-sm text-question-sm text-on-surface group-hover:text-primary transition-colors">Cúpulas Geodésicas</span>
+<span class="material-symbols-outlined text-outline group-hover:text-primary transition-colors" style="font-variation-settings: 'FILL' 0;">language</span>
+</button>
+</div>
+</main>
+<!-- Fixed Bottom Action Area (Gamification CTA) -->
+<div class="fixed bottom-0 left-0 w-full p-lg bg-surface-bright border-t border-blueprint-grid shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.05)] z-20">
+<div class="max-w-2xl mx-auto flex justify-between items-center">
+<button class="px-lg py-sm border-2 border-primary text-primary font-body-md font-bold rounded-lg hover:bg-inverse-on-surface transition-colors">
+                Pular
+            </button>
+<button class="px-xl py-sm bg-secondary text-white font-body-md font-bold rounded-lg border-b-4 border-on-secondary-container hover:translate-y-[2px] hover:border-b-2 active:translate-y-[4px] active:border-b-0 transition-all shadow-md">
+                Verificar
+            </button>
+</div>
+</div>
+<!-- Script for basic interaction demo -->
+<script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const cards = document.querySelectorAll('.answer-card');
+            cards.forEach(card => {
+                card.addEventListener('click', function() {
+                    // Remove selected from all
+                    cards.forEach(c => {
+                        c.classList.remove('selected');
+                        const icon = c.querySelector('.material-symbols-outlined');
+                        // Reset icon to default based on content if needed, but for simplicity here we just toggle the visual state
+                        if(c !== this && c.classList.contains('selected')) {
+                             icon.style.fontVariationSettings = "'FILL' 0";
+                        }
+                    });
+                    
+                    // Add to clicked
+                    this.classList.add('selected');
+                    // In a real app, you'd swap the icon to a checkmark here dynamically
+                });
+            });
+        });
+    </script>
+</body></html>

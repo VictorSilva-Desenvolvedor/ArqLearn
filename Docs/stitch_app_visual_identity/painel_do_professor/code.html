@@ -1,0 +1,366 @@
+<!DOCTYPE html>
+
+<html class="light" lang="pt-BR"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Painel do Professor - ArqLearn</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@400;600;700&amp;family=Inter:wght@400;500;600&amp;family=JetBrains+Mono:wght@400;500;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "secondary-fixed": "#ffdcc4",
+                        "inverse-on-surface": "#eaf1ff",
+                        "surface-variant": "#d9e3f6",
+                        "inverse-primary": "#9fcafe",
+                        "primary-container": "#2e5c8a",
+                        "secondary-container": "#fda864",
+                        "muted-text": "#6B7280",
+                        "tertiary-fixed": "#a3f69c",
+                        "error": "#ba1a1a",
+                        "on-secondary-fixed": "#2f1400",
+                        "on-secondary-fixed-variant": "#6f3800",
+                        "error-red": "#B00020",
+                        "on-tertiary-fixed-variant": "#005312",
+                        "primary": "#0e4471",
+                        "outline": "#727780",
+                        "tertiary-container": "#156820",
+                        "on-primary": "#ffffff",
+                        "surface-container-lowest": "#ffffff",
+                        "surface-bright": "#f8f9ff",
+                        "blueprint-grid": "#E5E7EB",
+                        "surface-dim": "#d0dbed",
+                        "on-error": "#ffffff",
+                        "surface-container-low": "#eff4ff",
+                        "on-secondary": "#ffffff",
+                        "surface-tint": "#34618f",
+                        "surface-container": "#e6eeff",
+                        "error-container": "#ffdad6",
+                        "on-tertiary-container": "#92e58c",
+                        "secondary": "#8f4e0f",
+                        "primary-fixed-dim": "#9fcafe",
+                        "tertiary": "#004e10",
+                        "outline-variant": "#c2c7d0",
+                        "surface-container-highest": "#d9e3f6",
+                        "secondary-fixed-dim": "#ffb780",
+                        "primary-fixed": "#d1e4ff",
+                        "on-surface-variant": "#42474f",
+                        "background": "#f8f9ff",
+                        "on-primary-container": "#b2d4ff",
+                        "on-error-container": "#93000a",
+                        "on-secondary-container": "#753c00",
+                        "on-surface": "#121c2a",
+                        "inverse-surface": "#27313f",
+                        "tertiary-fixed-dim": "#88d982",
+                        "surface-gray": "#F3F4F6",
+                        "on-tertiary": "#ffffff",
+                        "surface": "#f8f9ff",
+                        "on-primary-fixed-variant": "#164976",
+                        "surface-container-high": "#dee9fc",
+                        "on-tertiary-fixed": "#002204",
+                        "on-primary-fixed": "#001d36",
+                        "on-background": "#121c2a"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                    "spacing": {
+                        "xs": "8px",
+                        "xl": "32px",
+                        "container-max": "1120px",
+                        "section": "48px",
+                        "md": "16px",
+                        "lg": "24px",
+                        "base": "4px",
+                        "sm": "12px"
+                    },
+                    "fontFamily": {
+                        "question-sm": ["Hanken Grotesk"],
+                        "stats-num": ["JetBrains Mono"],
+                        "headline-md": ["Hanken Grotesk"],
+                        "body-md": ["Inter"],
+                        "display-lg": ["Hanken Grotesk"],
+                        "question-lg": ["Hanken Grotesk"],
+                        "body-sm": ["Inter"],
+                        "label-caps": ["JetBrains Mono"],
+                        "body-lg": ["Inter"]
+                    },
+                    "fontSize": {
+                        "question-sm": ["18px", { "lineHeight": "24px", "fontWeight": "600" }],
+                        "stats-num": ["22px", { "lineHeight": "28px", "fontWeight": "700" }],
+                        "headline-md": ["24px", { "lineHeight": "32px", "fontWeight": "700" }],
+                        "body-md": ["15px", { "lineHeight": "22px", "fontWeight": "400" }],
+                        "display-lg": ["28px", { "lineHeight": "36px", "fontWeight": "700" }],
+                        "question-lg": ["20px", { "lineHeight": "28px", "fontWeight": "600" }],
+                        "body-sm": ["14px", { "lineHeight": "20px", "fontWeight": "400" }],
+                        "label-caps": ["12px", { "lineHeight": "16px", "letterSpacing": "0.05em", "fontWeight": "500" }],
+                        "body-lg": ["16px", { "lineHeight": "24px", "fontWeight": "400" }]
+                    }
+                }
+            }
+        }
+    </script>
+<style>
+        .blueprint-bg {
+            background-color: #f8f9ff;
+            background-image: 
+                linear-gradient(rgba(229, 231, 235, 0.5) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(229, 231, 235, 0.5) 1px, transparent 1px);
+            background-size: 20px 20px;
+        }
+    </style>
+</head>
+<body class="bg-background text-on-background blueprint-bg min-h-screen flex flex-col md:flex-row antialiased">
+<!-- Sidebar Navigation (Desktop) -->
+<aside class="hidden md:flex flex-col w-64 bg-surface-container-lowest border-r-2 border-outline-variant h-screen fixed top-0 left-0 z-40">
+<div class="p-lg border-b-2 border-outline-variant flex items-center gap-sm">
+<span class="material-symbols-outlined text-primary font-bold text-3xl">architecture</span>
+<span class="font-display-lg text-display-lg text-primary">ArqLearn</span>
+</div>
+<nav class="flex-1 py-md px-sm flex flex-col gap-xs">
+<!-- Active Item -->
+<a class="flex items-center gap-sm px-md py-sm bg-primary-container text-on-primary-container rounded-lg font-label-caps text-label-caps" href="#">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">dashboard</span>
+                Painel
+            </a>
+<!-- Inactive Items -->
+<a class="flex items-center gap-sm px-md py-sm text-on-surface-variant hover:bg-surface-container hover:text-primary transition-colors rounded-lg font-label-caps text-label-caps" href="#">
+<span class="material-symbols-outlined">group</span>
+                Minhas Turmas
+            </a>
+<a class="flex items-center gap-sm px-md py-sm text-on-surface-variant hover:bg-surface-container hover:text-primary transition-colors rounded-lg font-label-caps text-label-caps" href="#">
+<span class="material-symbols-outlined">assignment</span>
+                Atividades
+            </a>
+<a class="flex items-center gap-sm px-md py-sm text-on-surface-variant hover:bg-surface-container hover:text-primary transition-colors rounded-lg font-label-caps text-label-caps" href="#">
+<span class="material-symbols-outlined">bar_chart</span>
+                Relatórios
+            </a>
+</nav>
+<div class="p-lg border-t-2 border-outline-variant">
+<div class="flex items-center gap-sm">
+<div class="w-10 h-10 rounded-full bg-primary-fixed flex items-center justify-center text-primary font-bold">
+                    PF
+                </div>
+<div>
+<p class="font-body-md text-body-md font-semibold">Prof. Fernandes</p>
+<p class="font-body-sm text-body-sm text-on-surface-variant">Sair</p>
+</div>
+</div>
+</div>
+</aside>
+<!-- Top App Bar (Mobile) -->
+<header class="md:hidden bg-surface-bright text-primary font-display-lg text-display-lg border-b-2 border-outline-variant flex justify-between items-center px-lg py-md w-full sticky top-0 z-30">
+<div class="flex items-center gap-sm">
+<span class="material-symbols-outlined text-primary font-bold">architecture</span>
+<span class="font-bold">ArqLearn</span>
+</div>
+<div class="flex items-center gap-sm">
+<span class="material-symbols-outlined text-on-surface-variant">menu</span>
+</div>
+</header>
+<!-- Main Content Area -->
+<main class="flex-1 md:ml-64 p-sm md:p-lg lg:p-xl w-full max-w-container-max mx-auto overflow-y-auto pb-32 md:pb-lg">
+<!-- Header Section -->
+<div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-section gap-sm">
+<div>
+<h1 class="font-headline-md text-headline-md text-on-background">Painel de Análise</h1>
+<p class="font-body-md text-body-md text-on-surface-variant">Visão geral do desempenho e engajamento das turmas.</p>
+</div>
+<div class="flex gap-sm">
+<button class="px-md py-sm rounded-lg border-2 border-primary text-primary hover:bg-surface-container font-label-caps text-label-caps flex items-center gap-xs transition-colors">
+<span class="material-symbols-outlined text-sm">download</span>
+                    Exportar
+                </button>
+<select class="px-md py-sm rounded-lg border-2 border-outline-variant bg-surface-container-lowest font-label-caps text-label-caps text-on-surface focus:border-primary focus:ring-0">
+<option>Todas as Turmas</option>
+<option>Turma A - Estruturas</option>
+<option>Turma B - Urbanismo</option>
+</select>
+</div>
+</div>
+<!-- Key Metrics Grid -->
+<div class="grid grid-cols-2 md:grid-cols-4 gap-md mb-section">
+<!-- Metric 1 -->
+<div class="bg-surface-gray border border-outline-variant rounded-lg p-md hover:border-primary hover:bg-inverse-on-surface transition-all">
+<div class="flex items-center gap-xs mb-sm text-on-surface-variant">
+<span class="material-symbols-outlined text-sm">school</span>
+<span class="font-label-caps text-label-caps">Total de Alunos</span>
+</div>
+<div class="font-stats-num text-stats-num text-primary">142</div>
+<div class="font-body-sm text-body-sm text-tertiary mt-xs flex items-center gap-xs">
+<span class="material-symbols-outlined text-xs">arrow_upward</span> 5% este mês
+                </div>
+</div>
+<!-- Metric 2 -->
+<div class="bg-surface-gray border border-outline-variant rounded-lg p-md hover:border-primary hover:bg-inverse-on-surface transition-all">
+<div class="flex items-center gap-xs mb-sm text-on-surface-variant">
+<span class="material-symbols-outlined text-sm">local_fire_department</span>
+<span class="font-label-caps text-label-caps">Média de Ofensiva</span>
+</div>
+<div class="font-stats-num text-stats-num text-secondary-container">14 dias</div>
+<div class="font-body-sm text-body-sm text-tertiary mt-xs flex items-center gap-xs">
+<span class="material-symbols-outlined text-xs">arrow_upward</span> 2 dias
+                </div>
+</div>
+<!-- Metric 3 -->
+<div class="bg-surface-gray border border-outline-variant rounded-lg p-md hover:border-primary hover:bg-inverse-on-surface transition-all">
+<div class="flex items-center gap-xs mb-sm text-on-surface-variant">
+<span class="material-symbols-outlined text-sm">track_changes</span>
+<span class="font-label-caps text-label-caps">Precisão Média</span>
+</div>
+<div class="font-stats-num text-stats-num text-primary">78%</div>
+<div class="font-body-sm text-body-sm text-error mt-xs flex items-center gap-xs">
+<span class="material-symbols-outlined text-xs">arrow_downward</span> 3% em Estruturas
+                </div>
+</div>
+<!-- Metric 4 -->
+<div class="bg-surface-gray border border-outline-variant rounded-lg p-md hover:border-primary hover:bg-inverse-on-surface transition-all">
+<div class="flex items-center gap-xs mb-sm text-on-surface-variant">
+<span class="material-symbols-outlined text-sm">assignment_late</span>
+<span class="font-label-caps text-label-caps">Questões Pendentes</span>
+</div>
+<div class="font-stats-num text-stats-num text-error-red">12</div>
+<div class="font-body-sm text-body-sm text-on-surface-variant mt-xs flex items-center gap-xs">
+                    Para revisão manual
+                </div>
+</div>
+</div>
+<!-- Bento Grid Layout for Complex Data -->
+<div class="grid grid-cols-1 lg:grid-cols-3 gap-md mb-section">
+<!-- Weak Topics Analysis (Span 2 cols on Desktop) -->
+<div class="lg:col-span-2 bg-surface-container-lowest border-2 border-outline-variant rounded-xl p-lg">
+<div class="flex justify-between items-center mb-md">
+<h2 class="font-question-lg text-question-lg text-on-background">Tópicos Fracos (Atenção Necessária)</h2>
+<button class="text-primary font-label-caps text-label-caps hover:underline">Ver Todos</button>
+</div>
+<div class="space-y-sm">
+<!-- Topic Item -->
+<div class="flex items-center justify-between p-sm border border-outline-variant rounded-lg bg-surface-bright">
+<div class="flex items-center gap-sm">
+<div class="w-10 h-10 rounded bg-error-container text-on-error-container flex items-center justify-center">
+<span class="material-symbols-outlined">foundation</span>
+</div>
+<div>
+<h3 class="font-question-sm text-question-sm text-on-surface">Cálculo de Fundações</h3>
+<p class="font-body-sm text-body-sm text-on-surface-variant">Turma A • 45% de erro</p>
+</div>
+</div>
+<button class="px-sm py-xs bg-primary text-on-primary rounded font-label-caps text-label-caps hover:bg-surface-tint transition-colors">Revisar Módulo</button>
+</div>
+<!-- Topic Item -->
+<div class="flex items-center justify-between p-sm border border-outline-variant rounded-lg bg-surface-bright">
+<div class="flex items-center gap-sm">
+<div class="w-10 h-10 rounded bg-secondary-fixed text-on-secondary-fixed flex items-center justify-center">
+<span class="material-symbols-outlined">straighten</span>
+</div>
+<div>
+<h3 class="font-question-sm text-question-sm text-on-surface">Escala e Proporção</h3>
+<p class="font-body-sm text-body-sm text-on-surface-variant">Turma B • 38% de erro</p>
+</div>
+</div>
+<button class="px-sm py-xs bg-primary text-on-primary rounded font-label-caps text-label-caps hover:bg-surface-tint transition-colors">Revisar Módulo</button>
+</div>
+</div>
+</div>
+<!-- Engagement Trends Mini-Chart -->
+<div class="bg-surface-container-lowest border-2 border-outline-variant rounded-xl p-lg flex flex-col">
+<div class="flex justify-between items-center mb-md">
+<h2 class="font-question-lg text-question-lg text-on-background">Engajamento Semanal</h2>
+</div>
+<div class="flex-1 relative flex items-end justify-between pt-lg">
+<!-- Faux Bar Chart using Tailwind -->
+<div class="w-1/6 bg-primary-fixed h-1/4 rounded-t-sm mx-1 relative group">
+<div class="absolute -top-6 left-1/2 -translate-x-1/2 opacity-0 group-hover:opacity-100 bg-inverse-surface text-inverse-on-surface font-label-caps text-label-caps px-2 py-1 rounded text-[10px] transition-opacity">Seg</div>
+</div>
+<div class="w-1/6 bg-primary-fixed h-2/4 rounded-t-sm mx-1 relative group">
+<div class="absolute -top-6 left-1/2 -translate-x-1/2 opacity-0 group-hover:opacity-100 bg-inverse-surface text-inverse-on-surface font-label-caps text-label-caps px-2 py-1 rounded text-[10px] transition-opacity">Ter</div>
+</div>
+<div class="w-1/6 bg-primary h-3/4 rounded-t-sm mx-1 relative group shadow-[0_4px_10px_rgba(14,68,113,0.3)]">
+<div class="absolute -top-6 left-1/2 -translate-x-1/2 opacity-0 group-hover:opacity-100 bg-inverse-surface text-inverse-on-surface font-label-caps text-label-caps px-2 py-1 rounded text-[10px] transition-opacity">Qua</div>
+</div>
+<div class="w-1/6 bg-primary-fixed h-1/2 rounded-t-sm mx-1 relative group">
+<div class="absolute -top-6 left-1/2 -translate-x-1/2 opacity-0 group-hover:opacity-100 bg-inverse-surface text-inverse-on-surface font-label-caps text-label-caps px-2 py-1 rounded text-[10px] transition-opacity">Qui</div>
+</div>
+<div class="w-1/6 bg-secondary-container h-full rounded-t-sm mx-1 relative group">
+<div class="absolute -top-6 left-1/2 -translate-x-1/2 opacity-0 group-hover:opacity-100 bg-inverse-surface text-inverse-on-surface font-label-caps text-label-caps px-2 py-1 rounded text-[10px] transition-opacity">Sex</div>
+</div>
+</div>
+<div class="mt-sm border-t border-outline-variant pt-sm flex justify-between font-label-caps text-label-caps text-on-surface-variant">
+<span>Pico na Sexta (Entrega)</span>
+</div>
+</div>
+</div>
+<!-- Review Queue Table -->
+<div class="bg-surface-container-lowest border-2 border-outline-variant rounded-xl overflow-hidden mb-section">
+<div class="p-lg border-b border-outline-variant bg-surface-bright flex justify-between items-center">
+<h2 class="font-question-lg text-question-lg text-on-background flex items-center gap-sm">
+<span class="material-symbols-outlined">playlist_add_check</span>
+                    Fila de Revisão de Questões
+                </h2>
+</div>
+<div class="overflow-x-auto">
+<table class="w-full text-left border-collapse">
+<thead>
+<tr class="bg-surface-gray border-b border-outline-variant font-label-caps text-label-caps text-on-surface-variant">
+<th class="p-sm font-medium">Aluno</th>
+<th class="p-sm font-medium">Questão ID</th>
+<th class="p-sm font-medium">Tópico</th>
+<th class="p-sm font-medium">Status</th>
+<th class="p-sm font-medium text-right">Ação</th>
+</tr>
+</thead>
+<tbody class="font-body-sm text-body-sm text-on-surface">
+<tr class="border-b border-outline-variant hover:bg-surface-container-low transition-colors">
+<td class="p-sm font-medium">Ana Clara S.</td>
+<td class="p-sm font-stats-num text-stats-num text-sm text-primary">#Q-842</td>
+<td class="p-sm">Isostática</td>
+<td class="p-sm"><span class="px-2 py-1 bg-error-container text-on-error-container rounded text-xs font-semibold">Dúvida Reportada</span></td>
+<td class="p-sm text-right">
+<button class="text-primary hover:text-surface-tint font-label-caps text-label-caps underline">Analisar</button>
+</td>
+</tr>
+<tr class="border-b border-outline-variant hover:bg-surface-container-low transition-colors">
+<td class="p-sm font-medium">João Pedro M.</td>
+<td class="p-sm font-stats-num text-stats-num text-sm text-primary">#Q-105</td>
+<td class="p-sm">História da Arte</td>
+<td class="p-sm"><span class="px-2 py-1 bg-surface-container-highest text-on-surface-variant rounded text-xs font-semibold">Resposta Discursiva</span></td>
+<td class="p-sm text-right">
+<button class="text-primary hover:text-surface-tint font-label-caps text-label-caps underline">Avaliar</button>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+</main>
+<!-- Bottom Nav Bar (Mobile Only, based on JSON shared component structure but adapted for Teacher context if needed, though prompt implies a specific destination, standard navigation usually applies to students. I will provide a teacher variant of the bottom nav to satisfy mobile responsiveness constraints while keeping semantic relevance). -->
+<nav class="md:hidden fixed bottom-0 left-0 w-full z-50 flex justify-around items-center px-md pb-safe pt-xs bg-surface-lowest border-t-2 border-outline-variant shadow-md rounded-t-xl bg-surface-container-lowest">
+<!-- Active -->
+<a class="flex flex-col items-center justify-center bg-primary-container text-on-primary-container rounded-xl px-4 py-1 active:scale-90 transition-all tap-highlight-transparent" href="#">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">dashboard</span>
+<span class="font-label-caps text-label-caps mt-1">Painel</span>
+</a>
+<!-- Inactive -->
+<a class="flex flex-col items-center justify-center text-on-surface-variant px-4 py-1 hover:text-primary active:scale-90 transition-all tap-highlight-transparent" href="#">
+<span class="material-symbols-outlined">group</span>
+<span class="font-label-caps text-label-caps mt-1">Turmas</span>
+</a>
+<a class="flex flex-col items-center justify-center text-on-surface-variant px-4 py-1 hover:text-primary active:scale-90 transition-all tap-highlight-transparent" href="#">
+<span class="material-symbols-outlined">assignment</span>
+<span class="font-label-caps text-label-caps mt-1">Revisão</span>
+</a>
+<a class="flex flex-col items-center justify-center text-on-surface-variant px-4 py-1 hover:text-primary active:scale-90 transition-all tap-highlight-transparent" href="#">
+<span class="material-symbols-outlined">person</span>
+<span class="font-label-caps text-label-caps mt-1">Perfil</span>
+</a>
+</nav>
+</body></html>

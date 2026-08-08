@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+
+<html lang="pt-BR"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>ArqLearn - Modo Infinito</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@400;600;700&amp;family=Inter:wght@400;500;600&amp;family=JetBrains+Mono:wght@500;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "secondary-container": "#fda864",
+                        "on-surface": "#121c2a",
+                        "on-primary": "#ffffff",
+                        "on-background": "#121c2a",
+                        "surface-dim": "#d0dbed",
+                        "on-secondary-fixed-variant": "#6f3800",
+                        "on-secondary": "#ffffff",
+                        "on-primary-container": "#b2d4ff",
+                        "error": "#ba1a1a",
+                        "on-tertiary-fixed-variant": "#005312",
+                        "surface-container-high": "#dee9fc",
+                        "error-container": "#ffdad6",
+                        "on-tertiary-container": "#92e58c",
+                        "on-secondary-fixed": "#2f1400",
+                        "tertiary": "#004e10",
+                        "surface-container-low": "#eff4ff",
+                        "primary-fixed": "#d1e4ff",
+                        "on-primary-fixed": "#001d36",
+                        "tertiary-container": "#156820",
+                        "inverse-on-surface": "#eaf1ff",
+                        "error-red": "#B00020",
+                        "surface-gray": "#F3F4F6",
+                        "secondary": "#8f4e0f",
+                        "surface-container": "#e6eeff",
+                        "on-tertiary": "#ffffff",
+                        "surface-bright": "#f8f9ff",
+                        "surface": "#f8f9ff",
+                        "surface-variant": "#d9e3f6",
+                        "inverse-primary": "#9fcafe",
+                        "surface-tint": "#34618f",
+                        "secondary-fixed-dim": "#ffb780",
+                        "secondary-fixed": "#ffdcc4",
+                        "on-primary-fixed-variant": "#164976",
+                        "surface-container-highest": "#d9e3f6",
+                        "outline-variant": "#c2c7d0",
+                        "on-tertiary-fixed": "#002204",
+                        "blueprint-grid": "#E5E7EB",
+                        "tertiary-fixed": "#a3f69c",
+                        "on-surface-variant": "#42474f",
+                        "muted-text": "#6B7280",
+                        "inverse-surface": "#27313f",
+                        "primary-container": "#2e5c8a",
+                        "tertiary-fixed-dim": "#88d982",
+                        "background": "#f8f9ff",
+                        "primary-fixed-dim": "#9fcafe",
+                        "primary": "#0e4471",
+                        "on-error-container": "#93000a",
+                        "on-secondary-container": "#753c00",
+                        "outline": "#727780",
+                        "surface-container-lowest": "#ffffff",
+                        "on-error": "#ffffff"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                    "spacing": {
+                        "section": "48px",
+                        "container-max": "1120px",
+                        "base": "4px",
+                        "md": "16px",
+                        "sm": "12px",
+                        "xl": "32px",
+                        "lg": "24px",
+                        "xs": "8px"
+                    },
+                    "fontFamily": {
+                        "label-caps": ["JetBrains Mono"],
+                        "body-sm": ["Inter"],
+                        "body-lg": ["Inter"],
+                        "display-lg": ["Hanken Grotesk"],
+                        "question-lg": ["Hanken Grotesk"],
+                        "question-sm": ["Hanken Grotesk"],
+                        "body-md": ["Inter"],
+                        "stats-num": ["JetBrains Mono"],
+                        "headline-md": ["Hanken Grotesk"]
+                    },
+                    "fontSize": {
+                        "label-caps": ["12px", { "lineHeight": "16px", "letterSpacing": "0.05em", "fontWeight": "500" }],
+                        "body-sm": ["14px", { "lineHeight": "20px", "fontWeight": "400" }],
+                        "body-lg": ["16px", { "lineHeight": "24px", "fontWeight": "400" }],
+                        "display-lg": ["28px", { "lineHeight": "36px", "fontWeight": "700" }],
+                        "question-lg": ["20px", { "lineHeight": "28px", "fontWeight": "600" }],
+                        "question-sm": ["18px", { "lineHeight": "24px", "fontWeight": "600" }],
+                        "body-md": ["15px", { "lineHeight": "22px", "fontWeight": "400" }],
+                        "stats-num": ["22px", { "lineHeight": "28px", "fontWeight": "700" }],
+                        "headline-md": ["24px", { "lineHeight": "32px", "fontWeight": "700" }]
+                    }
+                }
+            }
+        }
+    </script>
+<style>
+        .blueprint-bg {
+            background-color: #f8f9ff;
+            background-image: 
+                linear-gradient(#E5E7EB 1px, transparent 1px),
+                linear-gradient(90deg, #E5E7EB 1px, transparent 1px);
+            background-size: 20px 20px;
+        }
+        .technical-stroke {
+            stroke-width: 2px;
+            stroke: currentColor;
+            fill: none;
+        }
+    </style>
+</head>
+<body class="bg-background text-on-surface font-body-lg min-h-screen pb-[80px] md:pb-0 pt-[72px]">
+<!-- TopAppBar -->
+<header class="fixed top-0 w-full z-50 bg-surface-bright border-b-2 border-outline-variant flex justify-between items-center px-lg py-md h-[72px]">
+<div class="flex items-center gap-xs">
+<span class="material-symbols-outlined text-primary" style="font-variation-settings: 'FILL' 0;">architecture</span>
+<h1 class="font-display-lg text-display-lg font-bold text-primary tracking-tight">ArqLearn</h1>
+</div>
+<div class="flex items-center gap-sm">
+<div class="bg-surface-container px-sm py-xs rounded-lg flex items-center gap-xs border border-outline-variant">
+<span class="material-symbols-outlined text-secondary-container text-[20px]" style="font-variation-settings: 'FILL' 1;">local_fire_department</span>
+<span class="font-stats-num text-stats-num text-primary font-bold">520 XP</span>
+</div>
+</div>
+</header>
+<!-- Main Content Canvas -->
+<main class="w-full max-w-container-max mx-auto px-md md:px-lg mt-lg blueprint-bg min-h-[calc(100vh-140px)] rounded-xl border border-outline-variant shadow-sm relative overflow-hidden flex flex-col">
+<!-- Challenge Header -->
+<div class="p-lg border-b-2 border-outline-variant bg-surface-bright flex flex-col md:flex-row justify-between items-start md:items-center gap-md">
+<div>
+<div class="flex items-center gap-xs mb-xs">
+<span class="material-symbols-outlined text-error-red text-[24px]" style="font-variation-settings: 'FILL' 1;">warning</span>
+<span class="font-label-caps text-label-caps text-error-red uppercase tracking-widest border border-error-red/30 px-2 py-1 rounded bg-error-container">Dificuldade Elevada</span>
+</div>
+<h2 class="font-headline-md text-headline-md text-on-surface">Modo Infinito: Sistemas Estruturais</h2>
+</div>
+<div class="flex flex-col items-end gap-xs w-full md:w-auto">
+<span class="font-label-caps text-label-caps text-muted-text uppercase">Questão Atual</span>
+<div class="flex items-baseline gap-xs">
+<span class="font-stats-num text-[32px] font-bold text-primary">42</span>
+<span class="font-stats-num text-stats-num text-outline">/100</span>
+</div>
+<div class="w-full md:w-32 h-1 bg-surface-container rounded-full mt-1">
+<div class="h-full bg-primary rounded-full w-[42%]"></div>
+</div>
+</div>
+</div>
+<!-- Question Area -->
+<div class="p-lg md:p-xl flex-grow flex flex-col items-center justify-center relative">
+<!-- Technical Illustration Placeholder -->
+<div class="w-full max-w-[600px] mb-lg bg-white border-2 border-outline-variant rounded-xl p-md shadow-sm">
+<div class="bg-cover bg-center w-full h-48 md:h-64 rounded-lg border border-blueprint-grid" data-alt="A highly detailed, technical black and white architectural blueprint of a complex steel roof truss system. The drawing should feature precise lines, callouts with measurements, and intricate connection details. It should look like a professional CAD drawing used for structural engineering, set against a crisp white background with a very subtle pale blue grid. The style is modern, rigid, and strictly technical." style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuBPYBl1-APv9v9RSDJqO8U_p8P7fPngYQPdJv4CFP46MYkTfbzukXVIK9ktc1GGHvoTRSdOfrYLl8Gr53fYHgw5nuQZ-8RLQeAp_nqOWV060X0RkCssMB7arUXKbgbuOMkFIUGHT7-Po-axT0UdXsBvGAv6FB7Kvif8Fbr5iiU170iNlUqkh_X1AB-GMZbU9-gpl2eYhY63CEZ9mhQebqgaXpk0hvaPy56XTNZ8XaqZZfSWi4hBzjrYzg')"></div>
+</div>
+<!-- Question Text -->
+<div class="max-w-[700px] text-center mb-xl">
+<p class="font-question-lg text-question-lg text-on-surface">
+                    Na análise de uma treliça espacial metálica para uma cobertura de grandes vãos (ex: 60m), qual das seguintes opções descreve corretamente o comportamento dominante dos banzos inferiores sob ação de cargas gravitacionais verticais descendentes, assumindo apoios simples nas extremidades?
+                </p>
+</div>
+<!-- Answer Options -->
+<div class="w-full max-w-[600px] flex flex-col gap-sm">
+<button class="w-full text-left bg-surface-bright border border-outline-variant rounded-xl p-md hover:bg-surface-container-low transition-colors group flex items-start gap-md min-h-[72px]">
+<div class="w-8 h-8 rounded-full border-2 border-outline-variant flex items-center justify-center shrink-0 mt-1 font-label-caps text-label-caps text-outline group-hover:border-primary group-hover:text-primary transition-colors">A</div>
+<span class="font-body-lg text-body-lg text-on-surface">Eles estão predominantemente sujeitos a esforços de compressão axial, exigindo verificação de flambagem global e local.</span>
+</button>
+<button class="w-full text-left bg-surface-bright border border-outline-variant rounded-xl p-md hover:bg-surface-container-low transition-colors group flex items-start gap-md min-h-[72px]">
+<div class="w-8 h-8 rounded-full border-2 border-outline-variant flex items-center justify-center shrink-0 mt-1 font-label-caps text-label-caps text-outline group-hover:border-primary group-hover:text-primary transition-colors">B</div>
+<span class="font-body-lg text-body-lg text-on-surface">Eles atuam primariamente em tração pura, transferindo as cargas cortantes diretamente para os apoios sem momentos fletores significativos.</span>
+</button>
+<!-- Active/Selected State Example -->
+<button class="w-full text-left bg-surface-container border-2 border-primary rounded-xl p-md flex items-start gap-md min-h-[72px] shadow-sm relative overflow-hidden">
+<div class="absolute inset-0 bg-primary/5 pointer-events-none"></div>
+<div class="w-8 h-8 rounded-full border-2 border-primary bg-primary text-on-primary flex items-center justify-center shrink-0 mt-1 font-label-caps text-label-caps z-10">C</div>
+<span class="font-body-lg text-body-lg text-on-surface font-medium z-10">Eles sofrem flexo-compressão complexa devido à interação com as diagonais secundárias e o vento de sucção.</span>
+</button>
+<button class="w-full text-left bg-surface-bright border border-outline-variant rounded-xl p-md hover:bg-surface-container-low transition-colors group flex items-start gap-md min-h-[72px]">
+<div class="w-8 h-8 rounded-full border-2 border-outline-variant flex items-center justify-center shrink-0 mt-1 font-label-caps text-label-caps text-outline group-hover:border-primary group-hover:text-primary transition-colors">D</div>
+<span class="font-body-lg text-body-lg text-on-surface">Eles permanecem neutros, servindo apenas para contraventamento transversal, enquanto os banzos superiores suportam todas as cargas.</span>
+</button>
+</div>
+<!-- Action Area -->
+<div class="w-full max-w-[600px] flex justify-between items-center mt-xl pt-md border-t-2 border-outline-variant border-dashed">
+<button class="font-label-caps text-label-caps text-error border-2 border-error/50 hover:bg-error-container/30 px-lg py-sm rounded-lg transition-colors flex items-center gap-xs uppercase">
+<span class="material-symbols-outlined text-[18px]">close</span>
+                    Desistir
+                </button>
+<button class="bg-primary text-on-primary font-label-caps text-label-caps px-xl py-sm rounded-lg hover:bg-primary/90 transition-colors uppercase tracking-wide flex items-center gap-xs shadow-sm">
+                    Confirmar
+                    <span class="material-symbols-outlined text-[18px]">check</span>
+</button>
+</div>
+</div>
+</main>
+<!-- BottomNavBar (Mobile Only) -->
+<nav class="md:hidden fixed bottom-0 left-0 w-full z-50 bg-surface-lowest border-t-2 border-outline-variant rounded-t-xl shadow-md flex justify-around items-center px-md pb-safe pt-xs pb-2 h-[80px]">
+<!-- Home (Inactive) -->
+<a class="flex flex-col items-center justify-center text-on-surface-variant px-4 py-1 tap-highlight-transparent active:scale-90 transition-all hover:text-primary" href="#">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 0;">home</span>
+<span class="font-label-caps text-[10px] mt-1">Home</span>
+</a>
+<!-- Explorar (Active - representing the 'Infinito' mode area) -->
+<a class="flex flex-col items-center justify-center bg-primary-container text-on-primary-container rounded-xl px-4 py-1 tap-highlight-transparent active:scale-90 transition-all" href="#">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">explore</span>
+<span class="font-label-caps text-[10px] mt-1">Explorar</span>
+</a>
+<!-- Liga (Inactive) -->
+<a class="flex flex-col items-center justify-center text-on-surface-variant px-4 py-1 tap-highlight-transparent active:scale-90 transition-all hover:text-primary" href="#">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 0;">leaderboard</span>
+<span class="font-label-caps text-[10px] mt-1">Liga</span>
+</a>
+<!-- Perfil (Inactive) -->
+<a class="flex flex-col items-center justify-center text-on-surface-variant px-4 py-1 tap-highlight-transparent active:scale-90 transition-all hover:text-primary" href="#">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 0;">person</span>
+<span class="font-label-caps text-[10px] mt-1">Perfil</span>
+</a>
+</nav>
+</body></html>

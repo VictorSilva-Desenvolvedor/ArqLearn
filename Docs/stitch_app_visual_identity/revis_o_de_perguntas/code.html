@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+
+<html lang="pt-br"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Revisão de Perguntas - ArqLearn</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@400;600;700&amp;family=Inter:wght@400;500&amp;family=JetBrains+Mono:wght@500;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "secondary-fixed": "#ffdcc4",
+                        "inverse-on-surface": "#eaf1ff",
+                        "surface-variant": "#d9e3f6",
+                        "inverse-primary": "#9fcafe",
+                        "primary-container": "#2e5c8a",
+                        "secondary-container": "#fda864",
+                        "muted-text": "#6B7280",
+                        "tertiary-fixed": "#a3f69c",
+                        "error": "#ba1a1a",
+                        "on-secondary-fixed": "#2f1400",
+                        "on-secondary-fixed-variant": "#6f3800",
+                        "error-red": "#B00020",
+                        "on-tertiary-fixed-variant": "#005312",
+                        "primary": "#0e4471",
+                        "outline": "#727780",
+                        "tertiary-container": "#156820",
+                        "on-primary": "#ffffff",
+                        "surface-container-lowest": "#ffffff",
+                        "surface-bright": "#f8f9ff",
+                        "blueprint-grid": "#E5E7EB",
+                        "surface-dim": "#d0dbed",
+                        "on-error": "#ffffff",
+                        "surface-container-low": "#eff4ff",
+                        "on-secondary": "#ffffff",
+                        "surface-tint": "#34618f",
+                        "surface-container": "#e6eeff",
+                        "error-container": "#ffdad6",
+                        "on-tertiary-container": "#92e58c",
+                        "secondary": "#8f4e0f",
+                        "primary-fixed-dim": "#9fcafe",
+                        "tertiary": "#004e10",
+                        "outline-variant": "#c2c7d0",
+                        "surface-container-highest": "#d9e3f6",
+                        "secondary-fixed-dim": "#ffb780",
+                        "primary-fixed": "#d1e4ff",
+                        "on-surface-variant": "#42474f",
+                        "background": "#f8f9ff",
+                        "on-primary-container": "#b2d4ff",
+                        "on-error-container": "#93000a",
+                        "on-secondary-container": "#753c00",
+                        "on-surface": "#121c2a",
+                        "inverse-surface": "#27313f",
+                        "tertiary-fixed-dim": "#88d982",
+                        "surface-gray": "#F3F4F6",
+                        "on-tertiary": "#ffffff",
+                        "surface": "#f8f9ff",
+                        "on-primary-fixed-variant": "#164976",
+                        "surface-container-high": "#dee9fc",
+                        "on-tertiary-fixed": "#002204",
+                        "on-primary-fixed": "#001d36",
+                        "on-background": "#121c2a"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                    "spacing": {
+                        "xs": "8px",
+                        "xl": "32px",
+                        "container-max": "1120px",
+                        "section": "48px",
+                        "md": "16px",
+                        "lg": "24px",
+                        "base": "4px",
+                        "sm": "12px"
+                    },
+                    "fontFamily": {
+                        "question-sm": ["Hanken Grotesk"],
+                        "stats-num": ["JetBrains Mono"],
+                        "headline-md": ["Hanken Grotesk"],
+                        "body-md": ["Inter"],
+                        "display-lg": ["Hanken Grotesk"],
+                        "question-lg": ["Hanken Grotesk"],
+                        "body-sm": ["Inter"],
+                        "label-caps": ["JetBrains Mono"],
+                        "body-lg": ["Inter"]
+                    },
+                    "fontSize": {
+                        "question-sm": ["18px", { "lineHeight": "24px", "fontWeight": "600" }],
+                        "stats-num": ["22px", { "lineHeight": "28px", "fontWeight": "700" }],
+                        "headline-md": ["24px", { "lineHeight": "32px", "fontWeight": "700" }],
+                        "body-md": ["15px", { "lineHeight": "22px", "fontWeight": "400" }],
+                        "display-lg": ["28px", { "lineHeight": "36px", "fontWeight": "700" }],
+                        "question-lg": ["20px", { "lineHeight": "28px", "fontWeight": "600" }],
+                        "body-sm": ["14px", { "lineHeight": "20px", "fontWeight": "400" }],
+                        "label-caps": ["12px", { "lineHeight": "16px", "letterSpacing": "0.05em", "fontWeight": "500" }],
+                        "body-lg": ["16px", { "lineHeight": "24px", "fontWeight": "400" }]
+                    }
+                }
+            }
+        }
+    </script>
+<style>
+        .blueprint-bg {
+            background-color: #f8f9ff;
+            background-image: 
+                linear-gradient(#E5E7EB 1px, transparent 1px),
+                linear-gradient(90deg, #E5E7EB 1px, transparent 1px);
+            background-size: 20px 20px;
+        }
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .icon-fill {
+            font-variation-settings: 'FILL' 1;
+        }
+    </style>
+</head>
+<body class="bg-background text-on-surface blueprint-bg font-body-md min-h-screen pb-32">
+<!-- TopAppBar -->
+<header class="bg-surface-bright dark:bg-on-background docked full-width top-0 border-b-2 border-outline-variant dark:border-outline flat no shadows flex justify-between items-center px-lg py-md w-full sticky z-40 bg-opacity-90 backdrop-blur-md">
+<div class="flex items-center gap-xs">
+<span class="material-symbols-outlined text-primary dark:text-primary-fixed" data-icon="architecture">architecture</span>
+<span class="font-display-lg text-display-lg font-bold text-primary dark:text-primary-fixed">ArqLearn</span>
+</div>
+<div>
+<!-- Suppressing trailing action (XP) on teacher dashboard -->
+</div>
+</header>
+<!-- Main Canvas -->
+<main class="max-w-container-max mx-auto px-md md:px-lg py-lg space-y-lg">
+<!-- Header -->
+<div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-md border-b border-blueprint-grid pb-md">
+<div>
+<h1 class="font-headline-md text-headline-md text-primary">Revisão de Perguntas</h1>
+<p class="font-body-sm text-body-sm text-muted-text mt-base">Trilha: Introdução ao BIM • 12 perguntas na fila</p>
+</div>
+<div class="flex items-center gap-sm">
+<span class="font-stats-num text-stats-num text-secondary-container">03</span>
+<span class="font-label-caps text-label-caps text-muted-text">Rejeitadas</span>
+<div class="h-6 w-px bg-outline-variant mx-2"></div>
+<span class="font-stats-num text-stats-num text-tertiary-container">09</span>
+<span class="font-label-caps text-label-caps text-muted-text">Aprovadas</span>
+</div>
+</div>
+<!-- Queue Container -->
+<div class="space-y-lg">
+<!-- Card 1 -->
+<article class="bg-surface-container-lowest border border-blueprint-grid rounded-lg p-lg shadow-sm">
+<div class="flex justify-between items-start mb-md">
+<div class="flex items-center gap-sm">
+<span class="bg-surface-variant text-on-surface-variant font-label-caps text-label-caps px-2 py-1 rounded">Múltipla Escolha</span>
+<span class="border border-outline text-outline font-label-caps text-label-caps px-2 py-1 rounded">Dificuldade: Média</span>
+</div>
+<button class="text-muted-text hover:text-primary transition-colors">
+<span class="material-symbols-outlined" data-icon="more_vert">more_vert</span>
+</button>
+</div>
+<h3 class="font-question-lg text-question-lg text-on-surface mb-md">Qual a principal diferença entre um modelo CAD tradicional e um modelo BIM?</h3>
+<div class="space-y-sm mb-lg">
+<div class="flex items-center gap-sm p-sm border border-blueprint-grid rounded-lg">
+<span class="font-label-caps text-label-caps text-muted-text w-6">A</span>
+<p class="font-body-md text-body-md text-on-surface">BIM utiliza apenas modelos 3D, enquanto CAD usa 2D.</p>
+</div>
+<div class="flex items-center gap-sm p-sm border-2 border-primary bg-surface-container-low rounded-lg relative">
+<span class="material-symbols-outlined text-primary absolute right-sm top-sm icon-fill" data-icon="check_circle">check_circle</span>
+<span class="font-label-caps text-label-caps text-primary w-6 font-bold">B</span>
+<p class="font-body-md text-body-md text-on-surface font-medium">BIM embute informações de dados nos elementos (paredes, portas), não apenas geometria.</p>
+</div>
+<div class="flex items-center gap-sm p-sm border border-blueprint-grid rounded-lg">
+<span class="font-label-caps text-label-caps text-muted-text w-6">C</span>
+<p class="font-body-md text-body-md text-on-surface">Modelos BIM são sempre mais pesados para renderizar.</p>
+</div>
+</div>
+<div class="bg-surface-bright border border-blueprint-grid p-sm rounded-lg mb-lg">
+<h4 class="font-label-caps text-label-caps text-muted-text mb-base flex items-center gap-xs">
+<span class="material-symbols-outlined text-[16px]" data-icon="format_quote">format_quote</span> Fonte/Excert
+                    </h4>
+<p class="font-body-sm text-body-sm text-on-surface-variant italic">"A transição do CAD para o BIM representa uma mudança do desenho para a modelagem da informação da construção, onde um elemento gráfico de 'parede' também contém dados sobre seu material, custo e transmitância térmica." - Capítulo 2, pg 45.</p>
+</div>
+<div class="flex flex-wrap gap-md justify-end border-t border-blueprint-grid pt-md">
+<button class="px-lg py-sm rounded-lg font-body-sm text-body-sm font-semibold border-2 border-error-red text-error-red hover:bg-error-container transition-colors flex items-center gap-xs">
+<span class="material-symbols-outlined text-[18px]" data-icon="close">close</span> Rejeitar
+                    </button>
+<button class="px-lg py-sm rounded-lg font-body-sm text-body-sm font-semibold border-2 border-primary text-primary hover:bg-surface-container-low transition-colors flex items-center gap-xs">
+<span class="material-symbols-outlined text-[18px]" data-icon="edit">edit</span> Editar
+                    </button>
+<button class="px-lg py-sm rounded-lg font-body-sm text-body-sm font-semibold bg-tertiary-container text-on-tertiary-container hover:bg-tertiary transition-colors flex items-center gap-xs">
+<span class="material-symbols-outlined text-[18px]" data-icon="check">check</span> Aprovar
+                    </button>
+</div>
+</article>
+<!-- Card 2 -->
+<article class="bg-surface-container-lowest border border-blueprint-grid rounded-lg p-lg shadow-sm">
+<div class="flex justify-between items-start mb-md">
+<div class="flex items-center gap-sm">
+<span class="bg-surface-variant text-on-surface-variant font-label-caps text-label-caps px-2 py-1 rounded">Verdadeiro/Falso</span>
+<span class="border border-outline text-outline font-label-caps text-label-caps px-2 py-1 rounded">Dificuldade: Baixa</span>
+</div>
+</div>
+<h3 class="font-question-lg text-question-lg text-on-surface mb-md">No conceito de LOD (Level of Development), o LOD 100 refere-se a um modelo "As-Built".</h3>
+<div class="space-y-sm mb-lg">
+<div class="flex items-center gap-sm p-sm border border-blueprint-grid rounded-lg">
+<span class="font-label-caps text-label-caps text-muted-text w-6">A</span>
+<p class="font-body-md text-body-md text-on-surface">Verdadeiro</p>
+</div>
+<div class="flex items-center gap-sm p-sm border-2 border-primary bg-surface-container-low rounded-lg relative">
+<span class="material-symbols-outlined text-primary absolute right-sm top-sm icon-fill" data-icon="check_circle">check_circle</span>
+<span class="font-label-caps text-label-caps text-primary w-6 font-bold">B</span>
+<p class="font-body-md text-body-md text-on-surface font-medium">Falso</p>
+</div>
+</div>
+<div class="bg-surface-bright border border-blueprint-grid p-sm rounded-lg mb-lg">
+<h4 class="font-label-caps text-label-caps text-muted-text mb-base flex items-center gap-xs">
+<span class="material-symbols-outlined text-[16px]" data-icon="info">info</span> Justificativa
+                    </h4>
+<p class="font-body-sm text-body-sm text-on-surface-variant">LOD 100 é o nível conceitual (design de massa). LOD 500 é tipicamente o "As-Built" ou modelo de operação.</p>
+</div>
+<div class="flex flex-wrap gap-md justify-end border-t border-blueprint-grid pt-md">
+<button class="px-lg py-sm rounded-lg font-body-sm text-body-sm font-semibold border-2 border-error-red text-error-red hover:bg-error-container transition-colors flex items-center gap-xs">
+<span class="material-symbols-outlined text-[18px]" data-icon="close">close</span> Rejeitar
+                    </button>
+<button class="px-lg py-sm rounded-lg font-body-sm text-body-sm font-semibold border-2 border-primary text-primary hover:bg-surface-container-low transition-colors flex items-center gap-xs">
+<span class="material-symbols-outlined text-[18px]" data-icon="edit">edit</span> Editar
+                    </button>
+<button class="px-lg py-sm rounded-lg font-body-sm text-body-sm font-semibold bg-tertiary-container text-on-tertiary-container hover:bg-tertiary transition-colors flex items-center gap-xs">
+<span class="material-symbols-outlined text-[18px]" data-icon="check">check</span> Aprovar
+                    </button>
+</div>
+</article>
+</div>
+</main>
+<!-- Footer Action -->
+<div class="fixed bottom-0 left-0 w-full z-50 bg-surface-container-lowest border-t border-blueprint-grid p-md md:p-lg flex justify-between items-center shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.05)]">
+<div class="hidden md:block">
+<p class="font-body-sm text-body-sm text-muted-text">Progresso: 2/12 perguntas revisadas</p>
+</div>
+<button class="w-full md:w-auto px-xl py-sm bg-secondary-container text-on-secondary-container font-headline-md text-[18px] rounded-lg shadow-sm border-b-2 border-secondary hover:bg-secondary-fixed transition-colors flex justify-center items-center gap-sm">
+<span class="material-symbols-outlined" data-icon="publish">publish</span> Publicar Trilha
+        </button>
+</div>
+</body></html>

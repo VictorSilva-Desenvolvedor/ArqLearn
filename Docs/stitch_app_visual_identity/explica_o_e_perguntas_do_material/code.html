@@ -1,0 +1,224 @@
+<!DOCTYPE html><html lang="pt-BR"><head>
+<meta charset="utf-8">
+<meta content="width=device-width, initial-scale=1.0" name="viewport">
+<title>Explicação de Perguntas - ArqLearn</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@400;600;700&amp;family=Inter:wght@400;500&amp;family=JetBrains+Mono:wght@500;700&amp;display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                            "inverse-primary": "#9fcafe",
+                            "outline-variant": "#c2c7d0",
+                            "surface-container-highest": "#d9e3f6",
+                            "on-secondary-fixed": "#2f1400",
+                            "secondary-fixed": "#ffdcc4",
+                            "primary-container": "#2e5c8a",
+                            "inverse-surface": "#27313f",
+                            "on-surface-variant": "#42474f",
+                            "surface-container-lowest": "#ffffff",
+                            "on-primary": "#ffffff",
+                            "on-secondary-container": "#753c00",
+                            "surface-tint": "#34618f",
+                            "surface-container": "#e6eeff",
+                            "on-error-container": "#93000a",
+                            "on-tertiary-fixed-variant": "#005312",
+                            "surface": "#f8f9ff",
+                            "error-red": "#B00020",
+                            "primary-fixed": "#d1e4ff",
+                            "secondary": "#8f4e0f",
+                            "error": "#ba1a1a",
+                            "error-container": "#ffdad6",
+                            "surface-dim": "#d0dbed",
+                            "on-primary-fixed": "#001d36",
+                            "tertiary-container": "#156820",
+                            "on-secondary-fixed-variant": "#6f3800",
+                            "background": "#f8f9ff",
+                            "primary": "#0e4471",
+                            "blueprint-grid": "#E5E7EB",
+                            "on-tertiary": "#ffffff",
+                            "surface-gray": "#F3F4F6",
+                            "outline": "#727780",
+                            "secondary-container": "#fda864",
+                            "on-secondary": "#ffffff",
+                            "on-primary-fixed-variant": "#164976",
+                            "tertiary": "#004e10",
+                            "on-tertiary-fixed": "#002204",
+                            "on-primary-container": "#b2d4ff",
+                            "muted-text": "#6B7280",
+                            "secondary-fixed-dim": "#ffb780",
+                            "surface-bright": "#f8f9ff",
+                            "surface-container-low": "#eff4ff",
+                            "on-error": "#ffffff",
+                            "inverse-on-surface": "#eaf1ff",
+                            "primary-fixed-dim": "#9fcafe",
+                            "tertiary-fixed": "#a3f69c",
+                            "surface-container-high": "#dee9fc",
+                            "on-background": "#121c2a",
+                            "surface-variant": "#d9e3f6",
+                            "on-surface": "#121c2a",
+                            "tertiary-fixed-dim": "#88d982",
+                            "on-tertiary-container": "#92e58c"
+                    },
+                    "borderRadius": {
+                            "DEFAULT": "0.25rem",
+                            "lg": "0.5rem",
+                            "xl": "0.75rem",
+                            "full": "9999px"
+                    },
+                    "spacing": {
+                            "lg": "24px",
+                            "xs": "8px",
+                            "base": "4px",
+                            "sm": "12px",
+                            "xl": "32px",
+                            "container-max": "1120px",
+                            "section": "48px",
+                            "md": "16px"
+                    },
+                    "fontFamily": {
+                            "question-sm": ["Hanken Grotesk"],
+                            "headline-md": ["Hanken Grotesk"],
+                            "body-md": ["Inter"],
+                            "label-caps": ["JetBrains Mono"],
+                            "body-lg": ["Inter"],
+                            "stats-num": ["JetBrains Mono"],
+                            "question-lg": ["Hanken Grotesk"],
+                            "body-sm": ["Inter"],
+                            "display-lg": ["Hanken Grotesk"]
+                    },
+                    "fontSize": {
+                            "question-sm": ["18px", {"lineHeight": "24px", "fontWeight": "600"}],
+                            "headline-md": ["24px", {"lineHeight": "32px", "fontWeight": "700"}],
+                            "body-md": ["15px", {"lineHeight": "22px", "fontWeight": "400"}],
+                            "label-caps": ["12px", {"lineHeight": "16px", "letterSpacing": "0.05em", "fontWeight": "500"}],
+                            "body-lg": ["16px", {"lineHeight": "24px", "fontWeight": "400"}],
+                            "stats-num": ["22px", {"lineHeight": "28px", "fontWeight": "700"}],
+                            "question-lg": ["20px", {"lineHeight": "28px", "fontWeight": "600"}],
+                            "body-sm": ["14px", {"lineHeight": "20px", "fontWeight": "400"}],
+                            "display-lg": ["28px", {"lineHeight": "36px", "fontWeight": "700"}]
+                    }
+                }
+            }
+        }
+    </script>
+<style>
+        .blueprint-bg {
+            background-image: 
+                linear-gradient(to right, #E5E7EB 1px, transparent 1px),
+                linear-gradient(to bottom, #E5E7EB 1px, transparent 1px);
+            background-size: 20px 20px;
+        }
+        .drafting-stroke {
+            border: 2px solid #E5E7EB;
+        }
+    </style>
+</head>
+<body class="bg-surface blueprint-bg text-on-surface font-body-md h-screen flex flex-col antialiased">
+<!-- TopAppBar -->
+<header class="bg-surface-bright border-b-2 border-outline-variant flex justify-between items-center px-lg py-md w-full sticky top-0 z-10 backdrop-blur-md bg-opacity-90"><div class="flex items-center gap-xs">
+<span class="material-symbols-outlined text-primary font-display-lg text-display-lg" data-icon="architecture" data-weight="fill" style="font-variation-settings: 'FILL' 1;">architecture</span>
+<h1 class="font-display-lg text-display-lg font-bold text-primary tracking-tight">ArqLearn</h1>
+</div>
+<div class="flex flex-col items-center bg-surface-container-low px-sm py-xs rounded-lg border border-outline-variant shadow-sm">
+<span class="font-stats-num text-stats-num text-primary">520</span>
+<span class="font-label-caps text-label-caps text-muted-text uppercase">XP</span>
+</div></header>
+<!-- Main Content Area (Chat/Q&A) -->
+<main class="flex-grow flex flex-col max-w-container-max mx-auto w-full p-md md:p-lg gap-md overflow-y-auto mb-20 md:mb-0 pb-32">
+<!-- Document Source Snippet -->
+<div class="bg-surface-container-lowest border-2 border-outline-variant rounded-lg p-sm shadow-sm self-center w-full max-w-2xl relative">
+<div class="absolute -top-3 left-4 bg-surface-container-lowest px-2 font-label-caps text-label-caps text-muted-text border border-outline-variant rounded">
+                Trecho do Documento - Capítulo 4.2
+            </div>
+<p class="font-body-sm text-body-sm text-on-surface-variant italic mt-2 border-l-2 border-primary pl-xs">
+                "...a associação do concreto, eficiente na resistência à compressão, com a armadura de aço, que absorve os esforços de tração, permite a concepção de estruturas para vencer grandes vãos livres com seções transversais otimizadas."
+            </p>
+</div>
+<!-- User Question -->
+<div class="flex flex-col items-end w-full mt-lg">
+<div class="bg-primary text-on-primary rounded-xl rounded-tr-none p-sm max-w-[85%] md:max-w-[70%] shadow-md border-2 border-primary-container">
+<p class="font-question-sm text-question-sm">Por que o concreto armado é preferido em grandes vãos?</p>
+</div>
+<span class="font-label-caps text-label-caps text-muted-text mt-1 mr-2">Você</span>
+</div>
+<!-- System Explanation -->
+<div class="flex flex-col items-start w-full mt-sm">
+<div class="flex items-center gap-2 mb-2 ml-2">
+<span class="material-symbols-outlined text-secondary" data-icon="lightbulb" style="font-variation-settings: 'FILL' 1;">lightbulb</span>
+<span class="font-label-caps text-label-caps text-secondary font-bold uppercase tracking-wider">Explicação Detalhada</span>
+</div>
+<div class="bg-surface-container-lowest border-2 border-outline-variant rounded-xl rounded-tl-none p-md max-w-[90%] md:max-w-[75%] shadow-sm flex flex-col gap-sm">
+<p class="font-body-lg text-body-lg text-on-surface">
+                    A preferência pelo concreto armado em grandes vãos deve-se à combinação complementar das propriedades mecânicas de seus dois materiais constituintes:
+                </p>
+<div class="grid grid-cols-1 md:grid-cols-2 gap-sm mt-xs">
+<!-- Concrete Card -->
+<div class="bg-surface-gray border border-outline-variant rounded p-sm flex flex-col gap-xs items-center text-center">
+<span class="material-symbols-outlined text-outline text-3xl" data-icon="view_comfy">view_comfy</span>
+<h4 class="font-label-caps text-label-caps font-bold text-on-surface">Concreto</h4>
+<p class="font-body-sm text-body-sm text-on-surface-variant">
+                            Excelente resistência à <strong>compressão</strong>. Suporta grandes cargas esmagadoras, mas é frágil quando puxado (tração).
+                        </p>
+</div>
+<!-- Steel Card -->
+<div class="bg-surface-gray border border-outline-variant rounded p-sm flex flex-col gap-xs items-center text-center">
+<span class="material-symbols-outlined text-primary text-3xl" data-icon="horizontal_rule">horizontal_rule</span>
+<h4 class="font-label-caps text-label-caps font-bold text-on-surface">Aço (Armadura)</h4>
+<p class="font-body-sm text-body-sm text-on-surface-variant">
+                            Alta resistência à <strong>tração</strong>. Absorve as forças que tendem a esticar a peça estrutural, evitando fissuras e rupturas.
+                        </p>
+</div>
+</div>
+<div class="mt-xs bg-surface-container-low border border-primary-fixed p-sm rounded-lg">
+<p class="font-body-md text-body-md">
+<strong>Em resumo:</strong> Em um grande vão (como uma longa viga de ponte), a parte inferior da estrutura sofre forte tração (onde o aço atua) e a parte superior sofre compressão (onde o concreto atua). Essa sinergia permite criar estruturas mais esbeltas e econômicas do que usar apenas um material.
+                    </p>
+</div>
+</div>
+</div>
+</main>
+<!-- Bottom Input Area -->
+<div class="fixed bottom-0 left-0 w-full bg-surface-bright border-t-2 border-outline-variant p-sm pb-safe-offset shadow-md z-40 hidden md:block">
+<div class="max-w-container-max mx-auto flex items-center gap-sm">
+<input class="flex-grow bg-surface-container-lowest border border-outline-variant rounded-lg px-md py-sm font-body-md text-on-surface focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-colors" placeholder="Pergunte algo sobre o material..." type="text">
+<button class="bg-primary text-on-primary rounded-lg p-sm flex items-center justify-center hover:bg-primary-container transition-colors active:scale-95 drafting-stroke border-primary-container">
+<span class="material-symbols-outlined" data-icon="send">send</span>
+</button>
+</div>
+</div>
+<!-- BottomNavBar (Mobile Only) -->
+<nav class="fixed bottom-0 left-0 w-full z-50 flex justify-around items-center px-md pb-safe pt-xs bg-surface-lowest rounded-t-xl border-t-2 border-outline-variant shadow-md md:hidden">
+<a class="flex flex-col items-center justify-center text-on-surface-variant hover:text-primary px-4 py-1 tap-highlight-transparent active:scale-90 transition-all" href="#">
+<span class="material-symbols-outlined" data-icon="home">home</span>
+<span class="font-label-caps text-label-caps">Home</span>
+</a>
+<a class="flex flex-col items-center justify-center bg-primary-container text-on-primary-container rounded-xl px-4 py-1 tap-highlight-transparent active:scale-90 transition-all" href="#">
+<span class="material-symbols-outlined" data-icon="explore" style="font-variation-settings: 'FILL' 1;">explore</span>
+<span class="font-label-caps text-label-caps font-bold">Explorar</span>
+</a>
+<a class="flex flex-col items-center justify-center text-on-surface-variant hover:text-primary px-4 py-1 tap-highlight-transparent active:scale-90 transition-all" href="#">
+<span class="material-symbols-outlined" data-icon="leaderboard">leaderboard</span>
+<span class="font-label-caps text-label-caps">Liga</span>
+</a>
+<a class="flex flex-col items-center justify-center text-on-surface-variant hover:text-primary px-4 py-1 tap-highlight-transparent active:scale-90 transition-all" href="#">
+<span class="material-symbols-outlined" data-icon="person">person</span>
+<span class="font-label-caps text-label-caps">Perfil</span>
+</a>
+</nav>
+<!-- Mobile Input Area (Pushed up above Bottom Nav) -->
+<div class="fixed bottom-16 left-0 w-full bg-surface-bright border-t border-outline-variant p-xs z-40 md:hidden bg-opacity-95 backdrop-blur-sm">
+<div class="flex items-center gap-xs">
+<input class="flex-grow bg-surface-container-lowest border border-outline-variant rounded-md px-sm py-2 font-body-sm text-on-surface focus:border-primary focus:ring-1 focus:ring-primary outline-none" placeholder="Pergunte algo..." type="text">
+<button class="bg-primary text-on-primary rounded-md p-2 flex items-center justify-center active:scale-95">
+<span class="material-symbols-outlined text-sm" data-icon="send">send</span>
+</button>
+</div>
+</div>
+
+
+</body></html>
