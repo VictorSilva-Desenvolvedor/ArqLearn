@@ -1,0 +1,13 @@
+{
+  "name": "arqlearn",
+  "private": true,
+  "description": "ArqLearn — monorepo dos apps cliente (web + mobile). Backend Go vive em /services, fora deste workspace.",
+  "workspaces": [
+    "apps/web",
+    "apps/mobile"
+  ],
+  "scripts": {
+    "web": "npm run dev --workspace=apps/web",
+    "mobile": "npm run start --workspace=apps/mobile"
+  }
+}
