@@ -1,0 +1,33 @@
+# --- Go (services/) ---
+/services/**/bin/
+/services/**/*.exe
+/services/**/*.test
+/services/**/*.out
+/services/**/tmp/
+
+# --- Node / JS (apps/) ---
+node_modules/
+.next/
+out/
+dist/
+build/
+.expo/
+.expo-shared/
+.turbo/
+*.tsbuildinfo
+npm-debug.log*
+
+# --- Env / secrets ---
+.env
+.env.*
+!.env.example
+
+# --- Material de referência não distribuível (grades curriculares, apostilas etc.) ---
+/Docs/ignorar/
+
+# --- OS / editor ---
+.DS_Store
+Thumbs.db
+.vscode/*
+!.vscode/extensions.json
+.idea/
