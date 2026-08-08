@@ -1,0 +1,393 @@
+<!DOCTYPE html>
+
+<html class="light" lang="pt-BR"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>ArqLearn - Home</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@400;600;700&amp;family=Inter:wght@400;500;600&amp;family=JetBrains+Mono:wght@500;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+                    "surface-bright": "#f8f9ff",
+                    "on-primary-container": "#b2d4ff",
+                    "on-tertiary-fixed": "#002204",
+                    "on-surface-variant": "#42474f",
+                    "inverse-surface": "#27313f",
+                    "surface-container-high": "#dee9fc",
+                    "secondary": "#8f4e0f",
+                    "on-secondary-container": "#753c00",
+                    "muted-text": "#6B7280",
+                    "surface-dim": "#d0dbed",
+                    "blueprint-grid": "#E5E7EB",
+                    "outline": "#727780",
+                    "inverse-on-surface": "#eaf1ff",
+                    "surface-tint": "#34618f",
+                    "tertiary-fixed-dim": "#88d982",
+                    "surface-container": "#e6eeff",
+                    "tertiary-fixed": "#a3f69c",
+                    "secondary-fixed-dim": "#ffb780",
+                    "on-error-container": "#93000a",
+                    "error-container": "#ffdad6",
+                    "surface-variant": "#d9e3f6",
+                    "on-background": "#121c2a",
+                    "tertiary": "#004e10",
+                    "on-secondary-fixed-variant": "#6f3800",
+                    "on-tertiary": "#ffffff",
+                    "on-tertiary-container": "#92e58c",
+                    "on-tertiary-fixed-variant": "#005312",
+                    "secondary-container": "#fda864",
+                    "on-secondary-fixed": "#2f1400",
+                    "outline-variant": "#c2c7d0",
+                    "tertiary-container": "#156820",
+                    "on-primary-fixed-variant": "#164976",
+                    "on-surface": "#121c2a",
+                    "error-red": "#B00020",
+                    "primary-fixed": "#d1e4ff",
+                    "primary-container": "#2e5c8a",
+                    "inverse-primary": "#9fcafe",
+                    "on-error": "#ffffff",
+                    "error": "#ba1a1a",
+                    "secondary-fixed": "#ffdcc4",
+                    "surface-container-highest": "#d9e3f6",
+                    "surface-gray": "#F3F4F6",
+                    "on-primary": "#ffffff",
+                    "background": "#f8f9ff",
+                    "surface-container-low": "#eff4ff",
+                    "on-primary-fixed": "#001d36",
+                    "primary-fixed-dim": "#9fcafe",
+                    "on-secondary": "#ffffff",
+                    "surface": "#f8f9ff",
+                    "surface-container-lowest": "#ffffff",
+                    "primary": "#0e4471"
+            },
+            "borderRadius": {
+                    "DEFAULT": "0.25rem",
+                    "lg": "0.5rem",
+                    "xl": "0.75rem",
+                    "full": "9999px"
+            },
+            "spacing": {
+                    "base": "4px",
+                    "xl": "32px",
+                    "lg": "24px",
+                    "xs": "8px",
+                    "section": "48px",
+                    "sm": "12px",
+                    "md": "16px",
+                    "container-max": "1120px"
+            },
+            "fontFamily": {
+                    "display-lg": [
+                            "Hanken Grotesk"
+                    ],
+                    "body-md": [
+                            "Inter"
+                    ],
+                    "headline-md": [
+                            "Hanken Grotesk"
+                    ],
+                    "question-sm": [
+                            "Hanken Grotesk"
+                    ],
+                    "body-lg": [
+                            "Inter"
+                    ],
+                    "body-sm": [
+                            "Inter"
+                    ],
+                    "question-lg": [
+                            "Hanken Grotesk"
+                    ],
+                    "stats-num": [
+                            "JetBrains Mono"
+                    ],
+                    "label-caps": [
+                            "JetBrains Mono"
+                    ]
+            },
+            "fontSize": {
+                    "display-lg": [
+                            "28px",
+                            {
+                                    "lineHeight": "36px",
+                                    "fontWeight": "700"
+                            }
+                    ],
+                    "body-md": [
+                            "15px",
+                            {
+                                    "lineHeight": "22px",
+                                    "fontWeight": "400"
+                            }
+                    ],
+                    "headline-md": [
+                            "24px",
+                            {
+                                    "lineHeight": "32px",
+                                    "fontWeight": "700"
+                            }
+                    ],
+                    "question-sm": [
+                            "18px",
+                            {
+                                    "lineHeight": "24px",
+                                    "fontWeight": "600"
+                            }
+                    ],
+                    "body-lg": [
+                            "16px",
+                            {
+                                    "lineHeight": "24px",
+                                    "fontWeight": "400"
+                            }
+                    ],
+                    "body-sm": [
+                            "14px",
+                            {
+                                    "lineHeight": "20px",
+                                    "fontWeight": "400"
+                            }
+                    ],
+                    "question-lg": [
+                            "20px",
+                            {
+                                    "lineHeight": "28px",
+                                    "fontWeight": "600"
+                            }
+                    ],
+                    "stats-num": [
+                            "22px",
+                            {
+                                    "lineHeight": "28px",
+                                    "fontWeight": "700"
+                            }
+                    ],
+                    "label-caps": [
+                            "12px",
+                            {
+                                    "lineHeight": "16px",
+                                    "letterSpacing": "0.05em",
+                                    "fontWeight": "500"
+                            }
+                    ]
+            }
+        },
+        },
+      }
+    </script>
+<style>
+        body {
+            background-color: #f8f9ff;
+            background-image: 
+                linear-gradient(to right, #E5E7EB 1px, transparent 1px),
+                linear-gradient(to bottom, #E5E7EB 1px, transparent 1px);
+            background-size: 24px 24px;
+            background-attachment: fixed;
+        }
+        .technical-stroke {
+            border: 2px solid #0e4471;
+        }
+        .gamified-shadow {
+            box-shadow: 0 4px 6px -1px rgba(14, 68, 113, 0.1), 0 2px 4px -1px rgba(14, 68, 113, 0.06);
+        }
+        .blueprint-dashed-line {
+            background-image: linear-gradient(#0e4471 33%, rgba(255,255,255,0) 0%);
+            background-position: right;
+            background-size: 2px 12px;
+            background-repeat: repeat-y;
+        }
+        .tube-progress::-webkit-progress-value {
+            background: #8f4e0f;
+            border-radius: 9999px;
+        }
+        .tube-progress::-webkit-progress-bar {
+            background: #E5E7EB;
+            border-radius: 9999px;
+        }
+        .tube-progress {
+            appearance: none;
+            border-radius: 9999px;
+        }
+    </style>
+</head>
+<body class="text-on-background min-h-screen pb-[90px]">
+<!-- TopAppBar -->
+<header class="sticky top-0 z-40 bg-surface-bright/90 backdrop-blur-md border-b-2 border-outline-variant shadow-sm w-full">
+<div class="flex justify-between items-center px-lg py-md w-full max-w-container-max mx-auto">
+<div class="flex items-center gap-xs">
+<span class="material-symbols-outlined text-primary font-bold text-display-lg" style="font-variation-settings: 'FILL' 1;">architecture</span>
+<h1 class="font-display-lg text-display-lg font-bold text-primary">ArqLearn</h1>
+</div>
+<div class="flex items-center gap-md">
+<!-- Gamification Stats -->
+<div class="hidden md:flex items-center gap-sm bg-surface-gray rounded-full px-sm py-1 border border-outline-variant">
+<div class="flex items-center gap-1">
+<span class="material-symbols-outlined text-secondary" style="font-variation-settings: 'FILL' 1;">local_fire_department</span>
+<span class="font-stats-num text-stats-num text-secondary">12</span>
+</div>
+<div class="w-px h-4 bg-outline-variant"></div>
+<div class="flex items-center gap-1">
+<span class="material-symbols-outlined text-error-red" style="font-variation-settings: 'FILL' 1;">favorite</span>
+<span class="font-stats-num text-stats-num text-error-red">5</span>
+</div>
+<div class="w-px h-4 bg-outline-variant"></div>
+<div class="flex items-center gap-1">
+<span class="material-symbols-outlined text-primary" style="font-variation-settings: 'FILL' 1;">diamond</span>
+<span class="font-stats-num text-stats-num text-primary">340</span>
+</div>
+</div>
+<div class="flex items-center gap-xs text-primary font-bold cursor-pointer hover:bg-surface-container transition-colors p-1 rounded-md">
+<span class="font-label-caps text-label-caps uppercase">520 XP</span>
+<img alt="User Avatar" class="w-8 h-8 rounded-full border-2 border-primary object-cover" data-alt="A highly detailed close-up portrait of an architecture student smiling. The lighting is soft and natural, typical of a bright design studio. The style is modern, professional, and slightly corporate, fitting a high-quality educational app avatar." src="https://lh3.googleusercontent.com/aida-public/AB6AXuCxtPn5gtakS3TKhLh-F-7ZjonuK5Fnc2etGlXn1nJlxDvFnC3QOI673T1VQ4H6c_eop5sflU1jLILP29vPLkMHrldLBm3EwbfW-71d4SoD93pVjv28biU5LcLV-KvCSLBn-qeo0qg7FcTjryDi8Xac_rzsYFI7lTLpAWwSODad_yEt8_QqKRfGHmTg_d6dPsonTpRkigKFfXGA0uIoNkZLpCmaV48z3nltaqVpFC550QU197AmQ6PorA"/>
+</div>
+</div>
+</div>
+<!-- Mobile Quick Stats Bar -->
+<div class="md:hidden flex justify-around items-center bg-surface-gray py-2 border-t border-outline-variant">
+<div class="flex items-center gap-1">
+<span class="material-symbols-outlined text-secondary text-sm" style="font-variation-settings: 'FILL' 1;">local_fire_department</span>
+<span class="font-stats-num text-sm font-bold text-secondary">12</span>
+</div>
+<div class="flex items-center gap-1">
+<span class="material-symbols-outlined text-error-red text-sm" style="font-variation-settings: 'FILL' 1;">favorite</span>
+<span class="font-stats-num text-sm font-bold text-error-red">5</span>
+</div>
+<div class="flex items-center gap-1">
+<span class="material-symbols-outlined text-primary text-sm" style="font-variation-settings: 'FILL' 1;">diamond</span>
+<span class="font-stats-num text-sm font-bold text-primary">340</span>
+</div>
+</div>
+</header>
+<main class="max-w-container-max mx-auto px-lg md:px-lg py-section">
+<!-- Daily Goal Progress -->
+<section class="mb-section bg-surface-bright border-2 border-outline-variant rounded-xl p-md flex flex-col md:flex-row items-center justify-between gap-md relative overflow-hidden">
+<!-- Draft accent -->
+<div class="absolute top-0 right-0 w-32 h-32 opacity-5 pointer-events-none">
+<span class="material-symbols-outlined text-[120px] text-primary" style="font-variation-settings: 'FILL' 0;">straighten</span>
+</div>
+<div class="flex-1 w-full z-10">
+<h2 class="font-question-sm text-question-sm text-on-surface mb-xs">Meta Diária</h2>
+<div class="flex items-center gap-sm w-full">
+<progress class="tube-progress w-full h-3" max="50" value="30"></progress>
+<span class="font-stats-num text-body-sm text-on-surface-variant whitespace-nowrap">30 / 50 XP</span>
+</div>
+</div>
+<div class="z-10 w-full md:w-auto">
+<button class="w-full md:w-auto bg-primary text-on-primary font-headline-md text-[16px] py-sm px-xl rounded-xl hover:bg-primary-container transition-colors technical-stroke shadow-sm">
+                    Revisar Erros
+                </button>
+</div>
+</section>
+<!-- The Learning Map -->
+<section class="relative flex flex-col items-center max-w-md mx-auto">
+<!-- Unit 1: Completed -->
+<div class="w-full mb-12">
+<div class="flex items-center justify-between mb-sm px-4">
+<h3 class="font-headline-md text-headline-md text-on-surface">Unidade 1</h3>
+<span class="font-label-caps text-label-caps text-primary bg-primary-fixed px-2 py-1 rounded">CONCLUÍDO</span>
+</div>
+<div class="bg-surface-gray border-2 border-primary rounded-xl p-md mb-xs">
+<p class="font-body-md text-body-md text-on-surface-variant font-bold">Fundamentos de Arquitetura</p>
+</div>
+<div class="relative flex flex-col items-center">
+<!-- Path Line -->
+<div class="absolute top-8 bottom-[-48px] w-[2px] bg-primary z-0"></div>
+<!-- Nodes -->
+<div class="flex justify-center w-full z-10 my-4 relative left-[-40px]">
+<button class="w-16 h-16 rounded-full bg-primary text-on-primary technical-stroke flex items-center justify-center hover:scale-105 transition-transform gamified-shadow">
+<span class="material-symbols-outlined text-3xl" style="font-variation-settings: 'FILL' 1;">check</span>
+</button>
+</div>
+<div class="flex justify-center w-full z-10 my-4 relative left-[40px]">
+<button class="w-16 h-16 rounded-full bg-primary text-on-primary technical-stroke flex items-center justify-center hover:scale-105 transition-transform gamified-shadow">
+<span class="material-symbols-outlined text-3xl" style="font-variation-settings: 'FILL' 1;">check</span>
+</button>
+</div>
+<div class="flex justify-center w-full z-10 my-4 relative">
+<button class="w-20 h-20 rounded-xl bg-primary text-on-primary technical-stroke flex flex-col items-center justify-center hover:scale-105 transition-transform gamified-shadow rotate-45">
+<span class="material-symbols-outlined text-4xl -rotate-45" style="font-variation-settings: 'FILL' 1;">emoji_events</span>
+</button>
+</div>
+</div>
+</div>
+<!-- Unit 2: Current -->
+<div class="w-full mb-12 relative">
+<div class="flex items-center justify-between mb-sm px-4">
+<h3 class="font-headline-md text-headline-md text-on-surface">Unidade 2</h3>
+<span class="font-label-caps text-label-caps text-secondary bg-secondary-fixed px-2 py-1 rounded">EM ANDAMENTO</span>
+</div>
+<div class="bg-surface-bright border-2 border-secondary rounded-xl p-md mb-xs gamified-shadow">
+<p class="font-body-md text-body-md text-secondary font-bold">História da Arquitetura</p>
+<p class="font-body-sm text-body-sm text-on-surface-variant mt-1">Grécia e Roma Antiga</p>
+</div>
+<div class="relative flex flex-col items-center">
+<!-- Dashed Path Line -->
+<div class="absolute top-8 bottom-[-48px] w-[2px] blueprint-dashed-line z-0"></div>
+<!-- Current Active Node -->
+<div class="flex flex-col items-center justify-center w-full z-10 my-6 relative">
+<!-- Floating CTA -->
+<div class="absolute -top-12 bg-surface-bright border-2 border-secondary text-secondary font-label-caps px-3 py-1 rounded-lg shadow-md animate-bounce flex flex-col items-center">
+                            Continuar lição
+                            <div class="w-0 h-0 border-l-[6px] border-l-transparent border-r-[6px] border-r-transparent border-t-[8px] border-t-secondary absolute -bottom-[10px]"></div>
+</div>
+<button class="w-20 h-20 rounded-full bg-secondary text-on-primary border-4 border-surface-bright shadow-[0_0_0_2px_#8f4e0f] flex items-center justify-center hover:scale-105 transition-transform">
+<span class="material-symbols-outlined text-4xl" style="font-variation-settings: 'FILL' 1;">account_balance</span>
+</button>
+</div>
+<!-- Locked Nodes in Current Unit -->
+<div class="flex justify-center w-full z-10 my-4 relative left-[40px]">
+<button class="w-16 h-16 rounded-full bg-surface-gray text-outline border-2 border-outline-variant flex items-center justify-center cursor-not-allowed">
+<span class="material-symbols-outlined text-3xl" style="font-variation-settings: 'FILL' 1;">castle</span>
+</button>
+</div>
+</div>
+</div>
+<!-- Unit 3: Locked -->
+<div class="w-full opacity-60">
+<div class="flex items-center justify-between mb-sm px-4">
+<h3 class="font-headline-md text-headline-md text-on-surface-variant">Unidade 3</h3>
+<span class="font-label-caps text-label-caps text-outline bg-surface-gray px-2 py-1 rounded border border-outline-variant">BLOQUEADO</span>
+</div>
+<div class="bg-surface-gray border border-outline-variant rounded-xl p-md mb-xs">
+<p class="font-body-md text-body-md text-on-surface-variant font-bold">Urbanismo</p>
+</div>
+<div class="relative flex flex-col items-center">
+<div class="flex justify-center w-full z-10 my-4 relative">
+<button class="w-16 h-16 rounded-full bg-surface-gray text-outline border-2 border-outline-variant flex items-center justify-center cursor-not-allowed">
+<span class="material-symbols-outlined text-3xl" style="font-variation-settings: 'FILL' 1;">location_city</span>
+</button>
+</div>
+</div>
+</div>
+</section>
+</main>
+<!-- BottomNavBar -->
+<nav class="fixed bottom-0 left-0 w-full z-50 flex justify-around items-center px-md pb-safe pt-xs bg-surface-lowest dark:bg-on-background rounded-t-xl border-t-2 border-outline-variant dark:border-outline shadow-md md:hidden">
+<!-- Active Tab: Home -->
+<a class="flex flex-col items-center justify-center bg-primary-container dark:bg-primary text-on-primary-container dark:text-on-primary rounded-xl px-4 py-1 tap-highlight-transparent active:scale-90 transition-all" href="#">
+<span class="material-symbols-outlined mb-1 text-2xl" style="font-variation-settings: 'FILL' 1;">home</span>
+<span class="font-label-caps text-label-caps">Home</span>
+</a>
+<!-- Inactive Tab: Explorar -->
+<a class="flex flex-col items-center justify-center text-on-surface-variant dark:text-surface-variant px-4 py-1 hover:text-primary dark:hover:text-primary-fixed tap-highlight-transparent active:scale-90 transition-all" href="#">
+<span class="material-symbols-outlined mb-1 text-2xl" style="font-variation-settings: 'FILL' 0;">explore</span>
+<span class="font-label-caps text-label-caps">Explorar</span>
+</a>
+<!-- Inactive Tab: Liga -->
+<a class="flex flex-col items-center justify-center text-on-surface-variant dark:text-surface-variant px-4 py-1 hover:text-primary dark:hover:text-primary-fixed tap-highlight-transparent active:scale-90 transition-all" href="#">
+<span class="material-symbols-outlined mb-1 text-2xl" style="font-variation-settings: 'FILL' 0;">leaderboard</span>
+<span class="font-label-caps text-label-caps">Liga</span>
+</a>
+<!-- Inactive Tab: Perfil -->
+<a class="flex flex-col items-center justify-center text-on-surface-variant dark:text-surface-variant px-4 py-1 hover:text-primary dark:hover:text-primary-fixed tap-highlight-transparent active:scale-90 transition-all" href="#">
+<span class="material-symbols-outlined mb-1 text-2xl" style="font-variation-settings: 'FILL' 0;">person</span>
+<span class="font-label-caps text-label-caps">Perfil</span>
+</a>
+</nav>
+</body></html>

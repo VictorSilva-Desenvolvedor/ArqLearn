@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+
+<html lang="pt-BR"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Resumo da Lição - ArqLearn</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@400;600;700&amp;family=Inter:wght@400;500;600&amp;family=JetBrains+Mono:wght@500;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "secondary-fixed": "#ffdcc4",
+                        "inverse-on-surface": "#eaf1ff",
+                        "surface-variant": "#d9e3f6",
+                        "inverse-primary": "#9fcafe",
+                        "primary-container": "#2e5c8a",
+                        "secondary-container": "#fda864",
+                        "muted-text": "#6B7280",
+                        "tertiary-fixed": "#a3f69c",
+                        "error": "#ba1a1a",
+                        "on-secondary-fixed": "#2f1400",
+                        "on-secondary-fixed-variant": "#6f3800",
+                        "error-red": "#B00020",
+                        "on-tertiary-fixed-variant": "#005312",
+                        "primary": "#0e4471",
+                        "outline": "#727780",
+                        "tertiary-container": "#156820",
+                        "on-primary": "#ffffff",
+                        "surface-container-lowest": "#ffffff",
+                        "surface-bright": "#f8f9ff",
+                        "blueprint-grid": "#E5E7EB",
+                        "surface-dim": "#d0dbed",
+                        "on-error": "#ffffff",
+                        "surface-container-low": "#eff4ff",
+                        "on-secondary": "#ffffff",
+                        "surface-tint": "#34618f",
+                        "surface-container": "#e6eeff",
+                        "error-container": "#ffdad6",
+                        "on-tertiary-container": "#92e58c",
+                        "secondary": "#8f4e0f",
+                        "primary-fixed-dim": "#9fcafe",
+                        "tertiary": "#004e10",
+                        "outline-variant": "#c2c7d0",
+                        "surface-container-highest": "#d9e3f6",
+                        "secondary-fixed-dim": "#ffb780",
+                        "primary-fixed": "#d1e4ff",
+                        "on-surface-variant": "#42474f",
+                        "background": "#f8f9ff",
+                        "on-primary-container": "#b2d4ff",
+                        "on-error-container": "#93000a",
+                        "on-secondary-container": "#753c00",
+                        "on-surface": "#121c2a",
+                        "inverse-surface": "#27313f",
+                        "tertiary-fixed-dim": "#88d982",
+                        "surface-gray": "#F3F4F6",
+                        "on-tertiary": "#ffffff",
+                        "surface": "#f8f9ff",
+                        "on-primary-fixed-variant": "#164976",
+                        "surface-container-high": "#dee9fc",
+                        "on-tertiary-fixed": "#002204",
+                        "on-primary-fixed": "#001d36",
+                        "on-background": "#121c2a"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                    "spacing": {
+                        "xs": "8px",
+                        "xl": "32px",
+                        "container-max": "1120px",
+                        "section": "48px",
+                        "md": "16px",
+                        "lg": "24px",
+                        "base": "4px",
+                        "sm": "12px"
+                    },
+                    "fontFamily": {
+                        "question-sm": ["Hanken Grotesk"],
+                        "stats-num": ["JetBrains Mono"],
+                        "headline-md": ["Hanken Grotesk"],
+                        "body-md": ["Inter"],
+                        "display-lg": ["Hanken Grotesk"],
+                        "question-lg": ["Hanken Grotesk"],
+                        "body-sm": ["Inter"],
+                        "label-caps": ["JetBrains Mono"],
+                        "body-lg": ["Inter"]
+                    },
+                    "fontSize": {
+                        "question-sm": ["18px", { "lineHeight": "24px", "fontWeight": "600" }],
+                        "stats-num": ["22px", { "lineHeight": "28px", "fontWeight": "700" }],
+                        "headline-md": ["24px", { "lineHeight": "32px", "fontWeight": "700" }],
+                        "body-md": ["15px", { "lineHeight": "22px", "fontWeight": "400" }],
+                        "display-lg": ["28px", { "lineHeight": "36px", "fontWeight": "700" }],
+                        "question-lg": ["20px", { "lineHeight": "28px", "fontWeight": "600" }],
+                        "body-sm": ["14px", { "lineHeight": "20px", "fontWeight": "400" }],
+                        "label-caps": ["12px", { "lineHeight": "16px", "letterSpacing": "0.05em", "fontWeight": "500" }],
+                        "body-lg": ["16px", { "lineHeight": "24px", "fontWeight": "400" }]
+                    }
+                }
+            }
+        }
+    </script>
+<style>
+        body {
+            background-color: theme('colors.background');
+            background-image: linear-gradient(theme('colors.blueprint-grid') 1px, transparent 1px),
+            linear-gradient(90deg, theme('colors.blueprint-grid') 1px, transparent 1px);
+            background-size: 20px 20px;
+        }
+        .ambient-shadow {
+            box-shadow: 0 10px 25px -5px rgba(14, 68, 113, 0.1), 0 8px 10px -6px rgba(14, 68, 113, 0.1);
+        }
+        .gamification-btn {
+            border-bottom-width: 4px;
+            border-bottom-color: #d97706; /* darker shade of orange for 3D effect */
+        }
+        .gamification-btn:active {
+            border-bottom-width: 0px;
+            transform: translateY(4px);
+        }
+    </style>
+</head>
+<body class="text-on-background min-h-screen flex flex-col items-center justify-center p-md md:p-lg">
+<div class="w-full max-w-[400px] bg-surface-container-lowest border border-outline-variant rounded-xl p-lg ambient-shadow flex flex-col gap-xl relative overflow-hidden">
+<!-- Header -->
+<div class="text-center flex flex-col items-center gap-xs">
+<span class="material-symbols-outlined text-tertiary-container" style="font-size: 64px; font-variation-settings: 'FILL' 1;">
+                check_circle
+            </span>
+<h1 class="font-display-lg text-display-lg text-primary">Lição Concluída!</h1>
+<p class="font-body-md text-body-md text-on-surface-variant">Excelente progresso, Arquiteto!</p>
+</div>
+<!-- Stats Grid -->
+<div class="grid grid-cols-2 gap-md">
+<!-- XP Card -->
+<div class="bg-surface-gray border border-outline-variant rounded-lg p-md flex flex-col items-center gap-xs">
+<span class="material-symbols-outlined text-secondary-container" style="font-size: 32px; font-variation-settings: 'FILL' 1;">
+                    bolt
+                </span>
+<span class="font-label-caps text-label-caps text-muted-text uppercase">Total XP</span>
+<span class="font-stats-num text-stats-num text-primary">+25</span>
+</div>
+<!-- Accuracy Card -->
+<div class="bg-surface-gray border border-outline-variant rounded-lg p-md flex flex-col items-center gap-xs">
+<span class="material-symbols-outlined text-primary" style="font-size: 32px;">
+                    architecture
+                </span>
+<span class="font-label-caps text-label-caps text-muted-text uppercase">Precisão</span>
+<span class="font-stats-num text-stats-num text-primary">85%</span>
+</div>
+<!-- Streak Card -->
+<div class="bg-surface-gray border border-outline-variant rounded-lg p-md flex flex-col items-center gap-xs">
+<span class="material-symbols-outlined text-error" style="font-size: 32px; font-variation-settings: 'FILL' 1;">
+                    local_fire_department
+                </span>
+<span class="font-label-caps text-label-caps text-muted-text uppercase">Ofensiva</span>
+<span class="font-stats-num text-stats-num text-primary">12 Dias</span>
+</div>
+<!-- Gems Card -->
+<div class="bg-surface-gray border border-outline-variant rounded-lg p-md flex flex-col items-center gap-xs">
+<span class="material-symbols-outlined text-tertiary-container" style="font-size: 32px; font-variation-settings: 'FILL' 1;">
+                    diamond
+                </span>
+<span class="font-label-caps text-label-caps text-muted-text uppercase">Gemas</span>
+<span class="font-stats-num text-stats-num text-primary">+5</span>
+</div>
+</div>
+<!-- Lesson Progress (Thin Line) -->
+<div class="flex flex-col gap-xs">
+<div class="flex justify-between font-label-caps text-label-caps text-muted-text">
+<span>Progresso do Módulo</span>
+<span>75%</span>
+</div>
+<div class="h-1 w-full bg-surface-variant rounded-full overflow-hidden">
+<div class="h-full bg-primary w-3/4"></div>
+</div>
+</div>
+<!-- CTA -->
+<button class="w-full bg-secondary-container text-on-secondary-container font-headline-md text-headline-md py-md rounded-xl gamification-btn flex items-center justify-center gap-xs transition-all">
+<span>Continuar para o Mapa</span>
+<span class="material-symbols-outlined">arrow_forward</span>
+</button>
+</div>
+</body></html>
