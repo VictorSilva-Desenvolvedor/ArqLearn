@@ -200,25 +200,23 @@ divergir do que está descrito aqui, atualize esta seção — não deixe o mapa
 - **Mensageria: Amazon SQS/SNS** — já gratuita nesta fase (free tier permanente cobre o volume atual),
   sem equivalente a trocar.
 - **IA (decisão revista em 08/2026 — NÃO é mais Anthropic/Claude):** critério fechado com o usuário foi
-  "sem cartão de crédito pra funcionar" — Claude e OpenAI foram descartados porque a chave de API de
-  ambos só funciona (ou só é emitida, no caso da OpenAI) com cartão cadastrado, mesmo tendo crédito
-  grátis inicial. Ficou: **Gemini** (Google AI Studio, tier grátis, sem cartão — `GEMINI_API_KEY`) para
-  geração de perguntas (`services/ai-content-pipeline/internal/geminiclient`, lê texto/imagem
-  nativamente) e **Groq** (tier grátis, sem cartão — `GROQ_API_KEY`) para "explique melhor"
-  (`services/monolith/internal/groqclient`, escolhido pela latência baixa — é uma chamada síncrona que
-  o usuário está esperando responder). `DEEPSEEK_API_KEY` está salva mas é só crédito de teste (5M
-  tokens/30 dias, não permanente) — a chave atual está com saldo zero (testado ao vivo, HTTP 402
-  "Insufficient Balance"), precisa resolver no dashboard do DeepSeek antes de usar. `OPENAI_API_KEY`
-  está salva mas **não é usada em lugar nenhum do código** — decisão pendente com o usuário sobre usá-la
-  mesmo exigindo cartão. Ver Estrategia_Bootstrap §4 (ainda descreve o cenário antigo com Claude — não
-  atualizado nesta revisão).
+  "sem cartão de crédito pra funcionar". Claude e OpenAI foram descartados porque a chave de API de ambos
+  só funciona (ou só é emitida, no caso da OpenAI) com cartão cadastrado, mesmo tendo crédito grátis
+  inicial. **DeepSeek também foi descartado** — testado ao vivo, autentica mas devolve `402 Insufficient
+  Balance` na geração; o usuário confirmou no próprio dashboard do DeepSeek que uso real exige cartão,
+  mesmo com o crédito inicial. Ficou: **Gemini** (Google AI Studio, tier grátis, sem cartão —
+  `GEMINI_API_KEY`) para geração de perguntas (`services/ai-content-pipeline/internal/geminiclient`, lê
+  texto/imagem nativamente) e **Groq** (tier grátis, sem cartão — `GROQ_API_KEY`) para "explique melhor"
+  (`services/monolith/internal/groqclient`, escolhido pela latência baixa — é uma chamada síncrona que o
+  usuário está esperando responder). `OPENAI_API_KEY` está salva mas **não é usada em lugar nenhum do
+  código** — decisão pendente com o usuário sobre usá-la mesmo exigindo cartão. Ver Estrategia_Bootstrap
+  §4 para o racional completo da divisão Gemini/Groq.
 - Infra alvo: Terraform, GitHub Actions, Helm. GitHub Actions já é usado desde já (free tier); Terraform/
   Helm só entram na graduação para a arquitetura-alvo.
 
 **Pendência futura — não decidir sem o usuário:**
 - API Gateway: Kong ou AWS API Gateway.
-- Se a chave da OpenAI deve ser usada em algo (hoje não é, ver bullet de IA acima) e se/quando resolver o
-  saldo zero do DeepSeek para ele virar algo além de crédito de teste pontual.
+- Se a chave da OpenAI deve ser usada em algo (hoje não é, ver bullet de IA acima).
 
 ## Convenções de código
 

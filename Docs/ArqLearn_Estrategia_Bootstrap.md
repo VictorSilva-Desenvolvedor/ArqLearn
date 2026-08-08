@@ -14,6 +14,7 @@ lá aos poucos, sem custo de infraestrutura antes de haver tração real**.
 |---|---|---|---|
 | 1.0 | 08/08/2026 | Equipe de Arquitetura | Versão inicial — estratégia de custo mínimo para a fase de validação |
 | 1.1 | 08/08/2026 | Equipe de Arquitetura | §4 revista — provedor de IA trocado de Anthropic/Claude para Gemini + Groq (critério "sem cartão", ver `CLAUDE.md`) |
+| 1.2 | 08/08/2026 | Equipe de Arquitetura | §4 — remove DeepSeek da divisão: testado ao vivo (`402 Insufficient Balance`) e confirmado pelo usuário que uso real exige cartão, mesmo com o crédito inicial |
 
 ---
 
@@ -91,9 +92,10 @@ cartão** nesta fase, dividindo por tarefa entre dois provedores com tier gráti
   open-weight (Llama 3.3 70B), mas com latência muito menor (~100ms) que importa numa chamada síncrona
   que o usuário está esperando responder. Volume mais alto, exigência de qualidade menor (é reforço
   ancorado no material já mostrado, não geração do zero).
-- **DeepSeek** (`DEEPSEEK_API_KEY`) — só crédito de teste (5M tokens/30 dias, sem cartão pra começar, mas
-  cartão obrigatório depois que o crédito acaba). Não é um terceiro pilar permanente equivalente aos dois
-  acima; serve para um lote pontual de geração ou para prototipagem, não para depender dele todo mês.
+- **DeepSeek foi avaliado e descartado** *(v1.2)* — na prática, a chave autenticava mas toda chamada de
+  geração retornava `402 Insufficient Balance`; o usuário confirmou no dashboard do DeepSeek que uso real
+  exige cartão cadastrado, mesmo com o crédito inicial anunciado. Não usar de novo sem revisitar essa
+  decisão.
 - **Custo real da divisão em dois provedores:** dois SDKs, dois system prompts pra calibrar (o mesmo
   texto não rende igual em modelo diferente), duas chaves/dashboard de billing — aceitável aqui porque os
   dois perfis de uso (baixo volume/alta exigência vs. alto volume/latência crítica) são genuinely
