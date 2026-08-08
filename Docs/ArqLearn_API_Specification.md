@@ -3,7 +3,7 @@
 
 Especificação de referência dos endpoints REST expostos pelo API Gateway.
 
-Versão 1.6 | Agosto de 2026
+Versão 1.7 | Agosto de 2026
 Documento complementar ao SAD e ao TDD do ArqLearn v1.0
 
 > **Sobre esta versão:** versão em Markdown, mantida como fonte da verdade a partir de agora (ver
@@ -21,6 +21,7 @@ Documento complementar ao SAD e ao TDD do ArqLearn v1.0
 | 1.4 | 08/08/2026 | Equipe de Engenharia | Adiciona `LESSON_NOT_FOUND`, encontrado ao implementar `POST /v1/lessons/{lesson_id}/session` e `/answers` |
 | 1.5 | 08/08/2026 | Equipe de Engenharia | `question.options` passa a `{id, label}[]` (id estável, não texto) e `answer` passa a ser esse id; `lesson.order` adicionado — os três encontrados ao integrar com o app web já em construção |
 | 1.6 | 08/08/2026 | Equipe de Engenharia | Adiciona `POST /v1/lessons/{lesson_id}/questions/{question_id}/explain` ("explique melhor", Persona Prompt §5) e o erro `AI_PROVIDER_ERROR` — primeiro endpoint que chama um provedor de IA de forma síncrona (Groq) |
+| 1.7 | 08/08/2026 | Equipe de Engenharia | Nota em §7: geração de pergunta por IA já funciona de ponta a ponta (Gemini), mas por CLI direto no banco — não pelos endpoints `/uploads/{upload_id}/questions` desta seção, que continuam stub porque dependem de uma coleção `uploads` nunca desenhada. Nenhum contrato mudou |
 
 ---
 
@@ -392,6 +393,13 @@ para aquele upload (paginado, ver §2.4).
 ```
 
 ## 7. Ingestion Service
+
+> **v1.7 — todas as rotas desta seção continuam stub.** A geração de pergunta por IA (Gemini) já funciona
+> de ponta a ponta, mas fora deste contrato: `cmd/generate-questions`/`cmd/review-questions`
+> (`ai-content-pipeline`) escrevem/aprovam direto em `questions`/`lessons`/`tracks.units` no MongoDB, por
+> CLI. Os endpoints abaixo dependem de uma coleção `uploads` que nunca foi desenhada em
+> `Database_Design.md` — não implementar contra eles sem antes desenhar esse schema. Ver `CLAUDE.md`
+> para o fluxo real que existe hoje.
 
 **`POST /v1/uploads`** — Inicia um upload. Retorna uma URL pré-assinada para envio direto ao object
 storage (S3), evitando proxy do binário pela API.

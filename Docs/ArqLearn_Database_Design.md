@@ -3,7 +3,7 @@
 
 Modelo de dados detalhado: esquema relacional, documentos, vetores, cache e estratégias de persistência.
 
-Versão 1.7 | Agosto de 2026
+Versão 1.8 | Agosto de 2026
 Documento complementar ao SAD e ao TDD do ArqLearn v1.0
 
 > **Sobre esta versão:** versão em Markdown, mantida como fonte da verdade a partir de agora (ver
@@ -22,6 +22,7 @@ Documento complementar ao SAD e ao TDD do ArqLearn v1.0
 | 1.5 | 08/08/2026 | Equipe de Engenharia / Dados | Adiciona índice `{user_id: 1, lesson_id: 1}` em `user_progress`, encontrado ao implementar `GET /v1/tracks/{track_id}/lessons` |
 | 1.6 | 08/08/2026 | Equipe de Engenharia / Dados | Adiciona `explanation` a `questions` (já exigido pelo Persona Prompt, nunca persistido) e a coleção `practice_sessions` (TTL) — ambos encontrados ao implementar `POST /v1/lessons/{lesson_id}/session` e `/answers` |
 | 1.7 | 08/08/2026 | Equipe de Engenharia / Dados | Documenta que `lesson.order` e `question.options[].id` são derivados na API, não campos do banco — encontrado ao integrar com o app web já em construção |
+| 1.8 | 08/08/2026 | Equipe de Engenharia / Dados | Adiciona `confidence` a `questions` (já exigido pelo Persona Prompt §4.6-4.7 na geração, nunca persistido) — encontrado ao implementar `cmd/generate-questions`/`cmd/review-questions` (`ai-content-pipeline`); sem o campo, quem revisa não vê a autoavaliação de confiança do modelo |
 
 ---
 
@@ -277,11 +278,17 @@ CREATE INDEX idx_gamevents_user_time ON gamification_events(user_id, created_at 
   "correct_answer": "Lei de Zoneamento",
   "explanation": "string curta, citando o raciocínio a partir do trecho-fonte",
   "difficulty": "medium",
+  "confidence": "high | medium | low",
   "source_upload_id": "uuid | null",
   "source_excerpt_ref": { "page": 12 },
   "review_status": "approved"
 }
 ```
+
+> **v1.8 — `confidence`.** Autoavaliação do modelo na geração (Persona Prompt §4, pontos 6-7) — `low`
+> deveria ir obrigatoriamente para revisão humana antes de publicar. Existia na saída estruturada da IA
+> desde sempre, mas nunca tinha sido persistida; sem o campo, `cmd/review-questions` não tinha como
+> mostrar pra quem revisa o quão confiante o modelo estava.
 
 > **v1.6:** campo `explanation` adicionado — o Persona Prompt (`ArqLearn_IA_Persona_System_Prompt.md`
 > §4, ponto 6) já exige esse campo na geração desde a v1.0, mas ele nunca tinha sido persistido no

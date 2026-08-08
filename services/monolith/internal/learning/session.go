@@ -134,7 +134,13 @@ func handleStartSession(pool *pgxpool.Pool, mongoDB *mongo.Database) http.Handle
 			return
 		}
 
-		qcur, err := mongoDB.Collection("questions").Find(r.Context(), bson.M{"_id": bson.M{"$in": l.QuestionIDs}})
+		// review_status: "approved" — sem isso, uma pergunta ainda não revisada (gerada por IA,
+		// ver ai-content-pipeline/cmd/generate-questions) apareceria numa sessão real como
+		// qualquer outra. Ver Docs/CLAUDE.md.
+		qcur, err := mongoDB.Collection("questions").Find(r.Context(), bson.M{
+			"_id":           bson.M{"$in": l.QuestionIDs},
+			"review_status": "approved",
+		})
 		if err != nil {
 			apierror.Write(w, http.StatusInternalServerError, "INTERNAL_ERROR", "Falha ao consultar perguntas.")
 			return

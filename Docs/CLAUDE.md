@@ -77,25 +77,48 @@ estrutura real já criada no repositório, não um plano:**
                               convenção do mock do frontend. Gravar description no Mongo é
                               inofensivo (Go ignora campo bson desconhecido), mas não esperar que
                               apareça em GET /v1/tracks até alguém decidir formalizar o campo nos
-                              três lugares. (4) `review_status` de `questions` (Database Design
-                              §4.3) NÃO é filtrado em nenhum lugar do código hoje —
-                              `handleStartSession` busca perguntas só por
-                              `_id: {$in: l.QuestionIDs}`, sem checar `review_status`. Uma pergunta
-                              `pending` aparece numa sessão real exatamente como uma `approved`.
-                              `seeds/002_maquetes_licoes_perguntas.js` grava as 20 perguntas de
-                              Maquetes como `pending` de propósito (nunca foram revisadas por
-                              humano), mas isso hoje é só metadado — não filtra nada. Implementar
-                              esse filtro antes de tratar `review_status` como controle de
-                              publicação de verdade. (5) Saída do Gemini (geminiclient.
-                              GenerateQuestions) NÃO garante `correct_answer` idêntico a um item
-                              de `options[]`, mesmo com responseSchema — confirmado ao vivo: numa
-                              chamada de teste real, uma pergunta veio com correct_answer faltando
-                              uma palavra em relação à option correspondente. Se isso for gravado
-                              como está, correctOptionID() (session.go) não acha a opção certa e
-                              toda resposta do usuário pra aquela pergunta é avaliada como errada.
+                              três lugares. (4) **[RESOLVIDO]** `review_status` de `questions`
+                              (Database Design §4.3) agora É filtrado —
+                              `handleStartSession` só busca `review_status: "approved"`. As 20
+                              perguntas de Maquetes seguem `pending` (nunca revisadas) até alguém
+                              rodar `cmd/review-questions` nelas — não aparecem em sessão real
+                              enquanto isso. Não reintroduzir uma busca de pergunta sem esse
+                              filtro. (5) Saída do Gemini (geminiclient.GenerateQuestions) NÃO
+                              garante `correct_answer` idêntico a um item de `options[]`, mesmo com
+                              responseSchema — confirmado ao vivo: numa chamada de teste real, uma
+                              pergunta veio com correct_answer faltando uma palavra em relação à
+                              option correspondente. Se isso for gravado como está,
+                              correctOptionID() (session.go) não acha a opção certa e toda resposta
+                              do usuário pra aquela pergunta é avaliada como errada.
                               geminiclient.Validate() confere esse e outros invariantes — SEMPRE
-                              rodar antes de aceitar output do modelo como publicável (nunca
-                              gravar direto no Mongo sem passar por ele).
+                              rodar antes de aceitar output do modelo como publicável (nunca gravar
+                              direto no Mongo sem passar por ele — `cmd/generate-questions` já faz
+                              isso automaticamente). (6) `GeneratedQuestion.Confidence` também não
+                              estava sendo persistido no Mongo por `cmd/generate-questions` — só
+                              descoberto rodando `cmd/review-questions` de verdade e vendo o campo
+                              vazio na tela. Corrigido; qualquer novo campo de
+                              `geminiclient.GeneratedQuestion` precisa ser explicitamente incluído
+                              no `bson.M` do `InsertOne`, o compilador não avisa se você esquecer.
+
+                              **Fluxo de criação de pergunta (geração → revisão → publicação):**
+                              ```
+                              GEMINI_API_KEY=... MONGODB_URI=... go run ./cmd/generate-questions \
+                                -text=pagina.txt -page=N -count=N \
+                                -track-id=<trilha já existente> -lesson-id=<nova ou existente> -lesson-title="..."
+                              MONGODB_URI=... go run ./cmd/review-questions -lesson-id=<a mesma>
+                              ```
+                              `generate-questions` grava tudo como `pending` (nunca `approved`
+                              diretamente) e garante lição/unidade da trilha; só
+                              `review-questions` (aprovação manual, um a um) promove pra
+                              `approved` — esse é o único jeito de uma pergunta ficar jogável. A
+                              trilha (`-track-id`) precisa já existir (ver seeds/); a lição é
+                              criada se ainda não existir. Sem upload real (S3/OCR/RAG) ainda —
+                              texto-fonte é colado à mão, extraído manualmente; ingestão real
+                              (estágios 1-3 do pipeline, SAD §9.1-9.3), edição de pergunta via CLI
+                              e o fluxo de revisão baseado em `/uploads/{id}/questions` (API Spec
+                              §7, depende de uma coleção `uploads` que não existe) continuam fora
+                              de escopo — não construir sem decisão explícita, é trabalho
+                              significativo (S3, presigned URL, OCR/Tesseract, RAG/pgvector).
                             - gamification: algorithms.go tem calcularXP/Nivel/AtualizarSRS/
                               AtualizarStreak como funções puras testadas (algorithms_test.go),
                               usadas por learning — as rotas HTTP deste pacote (/v1/gamification/*)
@@ -126,10 +149,11 @@ estrutura real já criada no repositório, não um plano:**
                           função generateQuestions() em si continua stub porque os estágios 1-3
                           (extração/RAG) não existem ainda pra alimentá-la com texto de verdade
                           dentro do fluxo de evento. Usável hoje fora desse fluxo via
-                          `go run ./cmd/generate-questions -text=arquivo.txt -page=N -count=N`
-                          (texto colado manualmente, saída em JSON validada por
-                          geminiclient.Validate() antes de imprimir). cmd/worker/main.go ainda não
-                          consome SQS de verdade — TODO explícito no código.)
+                          cmd/generate-questions (texto colado manualmente) + cmd/review-questions
+                          (aprovação manual) — ver fluxo completo documentado no bloco do pacote
+                          `learning` do monolith acima (pendência #6). internal/store abre a
+                          conexão Mongo pros dois CLIs. cmd/worker/main.go ainda não consome SQS de
+                          verdade — TODO explícito no código.)
 /apps
   /web    (Next.js — App Router, TypeScript, Tailwind v4. Tokens de
            blueprint_narrative/DESIGN.md portados para src/app/globals.css via @theme; fontes
