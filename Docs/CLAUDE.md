@@ -74,7 +74,16 @@ estrutura real já criada no repositório, não um plano:**
                               convenção do mock do frontend. Gravar description no Mongo é
                               inofensivo (Go ignora campo bson desconhecido), mas não esperar que
                               apareça em GET /v1/tracks até alguém decidir formalizar o campo nos
-                              três lugares.
+                              três lugares. (4) `review_status` de `questions` (Database Design
+                              §4.3) NÃO é filtrado em nenhum lugar do código hoje —
+                              `handleStartSession` busca perguntas só por
+                              `_id: {$in: l.QuestionIDs}`, sem checar `review_status`. Uma pergunta
+                              `pending` aparece numa sessão real exatamente como uma `approved`.
+                              `seeds/002_maquetes_licoes_perguntas.js` grava as 20 perguntas de
+                              Maquetes como `pending` de propósito (nunca foram revisadas por
+                              humano), mas isso hoje é só metadado — não filtra nada. Implementar
+                              esse filtro antes de tratar `review_status` como controle de
+                              publicação de verdade.
                             - gamification: algorithms.go tem calcularXP/Nivel/AtualizarSRS/
                               AtualizarStreak como funções puras testadas (algorithms_test.go),
                               usadas por learning — as rotas HTTP deste pacote (/v1/gamification/*)
