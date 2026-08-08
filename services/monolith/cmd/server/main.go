@@ -21,6 +21,7 @@ import (
 	"arqlearn/monolith/internal/db"
 	"arqlearn/monolith/internal/documentdb"
 	"arqlearn/monolith/internal/gamification"
+	"arqlearn/monolith/internal/groqclient"
 	"arqlearn/monolith/internal/ingestion"
 	"arqlearn/monolith/internal/learning"
 	"arqlearn/monolith/internal/notifications"
@@ -52,6 +53,10 @@ func main() {
 	}
 
 	verifier := authmiddleware.NewVerifier(os.Getenv("SUPABASE_URL"), os.Getenv("SUPABASE_PUBLISHABLE_KEY"))
+	groq := groqclient.New(os.Getenv("GROQ_API_KEY"))
+	if !groq.Enabled() {
+		log.Print("aviso: GROQ_API_KEY ausente — POST /v1/lessons/{lesson_id}/questions/{question_id}/explain responderá 503")
+	}
 
 	mux := http.NewServeMux()
 
@@ -59,7 +64,7 @@ func main() {
 	mux.HandleFunc("GET /ready", handleReady(pool, mongoClient))
 
 	users.RegisterRoutes(mux, pool, verifier)
-	learning.RegisterRoutes(mux, pool, mongoDB, verifier)
+	learning.RegisterRoutes(mux, pool, mongoDB, verifier, groq)
 	gamification.RegisterRoutes(mux)
 	ingestion.RegisterRoutes(mux)
 	notifications.RegisterRoutes(mux)
