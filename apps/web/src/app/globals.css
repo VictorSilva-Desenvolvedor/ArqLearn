@@ -1,0 +1,119 @@
+@import "tailwindcss";
+
+/*
+ * Design tokens do ArqLearn ("Blueprint Narrative"), portados de
+ * Docs/stitch_app_visual_identity/blueprint_narrative/DESIGN.md — a mesma fonte usada
+ * para gerar as 17 telas de referência em Docs/stitch_app_visual_identity/*\/code.html.
+ * Não redefinir esses valores localmente em componentes; sempre consumir via classe
+ * utilitária Tailwind (ex.: bg-primary, text-on-surface, font-display-lg).
+ */
+@theme {
+  /* Cores — superfícies */
+  --color-surface: #f8f9ff;
+  --color-surface-dim: #d0dbed;
+  --color-surface-bright: #f8f9ff;
+  --color-surface-container-lowest: #ffffff;
+  --color-surface-container-low: #eff4ff;
+  --color-surface-container: #e6eeff;
+  --color-surface-container-high: #dee9fc;
+  --color-surface-container-highest: #d9e3f6;
+  --color-on-surface: #121c2a;
+  --color-on-surface-variant: #42474f;
+  --color-inverse-surface: #27313f;
+  --color-inverse-on-surface: #eaf1ff;
+  --color-outline: #727780;
+  --color-outline-variant: #c2c7d0;
+  --color-surface-tint: #34618f;
+  --color-surface-variant: #d9e3f6;
+  --color-surface-gray: #f3f4f6;
+  --color-blueprint-grid: #e5e7eb;
+
+  /* Cores — primária (navegação, botões primários, cabeçalhos) */
+  --color-primary: #0e4471;
+  --color-on-primary: #ffffff;
+  --color-primary-container: #2e5c8a;
+  --color-on-primary-container: #b2d4ff;
+  --color-inverse-primary: #9fcafe;
+  --color-primary-fixed: #d1e4ff;
+  --color-primary-fixed-dim: #9fcafe;
+  --color-on-primary-fixed: #001d36;
+  --color-on-primary-fixed-variant: #164976;
+
+  /* Cores — secundária (camada de gamificação: XP, streak, recompensas) */
+  --color-secondary: #8f4e0f;
+  --color-on-secondary: #ffffff;
+  --color-secondary-container: #fda864;
+  --color-on-secondary-container: #753c00;
+  --color-secondary-fixed: #ffdcc4;
+  --color-secondary-fixed-dim: #ffb780;
+  --color-on-secondary-fixed: #2f1400;
+  --color-on-secondary-fixed-variant: #6f3800;
+
+  /* Cores — terciária (camada de validação: sucesso/progresso concluído) */
+  --color-tertiary: #004e10;
+  --color-on-tertiary: #ffffff;
+  --color-tertiary-container: #156820;
+  --color-on-tertiary-container: #92e58c;
+  --color-tertiary-fixed: #a3f69c;
+  --color-tertiary-fixed-dim: #88d982;
+  --color-on-tertiary-fixed: #002204;
+  --color-on-tertiary-fixed-variant: #005312;
+
+  /* Cores — erro */
+  --color-error: #ba1a1a;
+  --color-on-error: #ffffff;
+  --color-error-container: #ffdad6;
+  --color-on-error-container: #93000a;
+  --color-error-red: #b00020;
+
+  /* Cores — fundo e texto muted */
+  --color-background: #f8f9ff;
+  --color-on-background: #121c2a;
+  --color-muted-text: #6b7280;
+
+  /* Tipografia — famílias */
+  --font-display: "Hanken Grotesk", sans-serif;
+  --font-body: "Inter", sans-serif;
+  --font-label: "JetBrains Mono", monospace;
+
+  /* Tipografia — estilos nomeados (tamanho + altura de linha; peso via font-bold/semibold) */
+  --text-display-lg: 28px;
+  --text-display-lg--line-height: 36px;
+  --text-headline-md: 24px;
+  --text-headline-md--line-height: 32px;
+  --text-question-lg: 20px;
+  --text-question-lg--line-height: 28px;
+  --text-question-sm: 18px;
+  --text-question-sm--line-height: 24px;
+  --text-body-lg: 16px;
+  --text-body-lg--line-height: 24px;
+  --text-body-md: 15px;
+  --text-body-md--line-height: 22px;
+  --text-body-sm: 14px;
+  --text-body-sm--line-height: 20px;
+  --text-label-caps: 12px;
+  --text-label-caps--line-height: 16px;
+  --text-stats-num: 22px;
+  --text-stats-num--line-height: 28px;
+
+  /* Raio de borda */
+  --radius-sm: 0.25rem;
+  --radius-md: 0.75rem;
+  --radius-lg: 1rem;
+  --radius-xl: 1.5rem;
+
+  /* Espaçamento nomeado (além da escala numérica padrão do Tailwind) */
+  --spacing-xs: 8px;
+  --spacing-sm: 12px;
+  --spacing-md: 16px;
+  --spacing-lg: 24px;
+  --spacing-xl: 32px;
+  --spacing-section: 48px;
+  --spacing-container-max: 1120px;
+}
+
+body {
+  background: var(--color-background);
+  color: var(--color-on-background);
+  font-family: var(--font-body);
+}
