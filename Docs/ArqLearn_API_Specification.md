@@ -3,7 +3,7 @@
 
 Especificação de referência dos endpoints REST expostos pelo API Gateway.
 
-Versão 1.5 | Agosto de 2026
+Versão 1.6 | Agosto de 2026
 Documento complementar ao SAD e ao TDD do ArqLearn v1.0
 
 > **Sobre esta versão:** versão em Markdown, mantida como fonte da verdade a partir de agora (ver
@@ -20,6 +20,7 @@ Documento complementar ao SAD e ao TDD do ArqLearn v1.0
 | 1.3 | 08/08/2026 | Equipe de Engenharia | Remove Auth Service próprio — registro/login/refresh/OAuth passam a ser Supabase Auth direto do cliente; toda rota desta API agora exige token Supabase válido |
 | 1.4 | 08/08/2026 | Equipe de Engenharia | Adiciona `LESSON_NOT_FOUND`, encontrado ao implementar `POST /v1/lessons/{lesson_id}/session` e `/answers` |
 | 1.5 | 08/08/2026 | Equipe de Engenharia | `question.options` passa a `{id, label}[]` (id estável, não texto) e `answer` passa a ser esse id; `lesson.order` adicionado — os três encontrados ao integrar com o app web já em construção |
+| 1.6 | 08/08/2026 | Equipe de Engenharia | Adiciona `POST /v1/lessons/{lesson_id}/questions/{question_id}/explain` ("explique melhor", Persona Prompt §5) e o erro `AI_PROVIDER_ERROR` — primeiro endpoint que chama um provedor de IA de forma síncrona (Groq) |
 
 ---
 
@@ -263,6 +264,21 @@ ativa.
 > posição só na hora de montar a resposta da API, nunca persistido.
 
 Erros: `404 SESSION_NOT_FOUND` · `410 SESSION_EXPIRED`
+
+**`POST /v1/lessons/{lesson_id}/questions/{question_id}/explain`** *(v1.6)* — "Explique melhor": aprofunda,
+sob demanda, a explicação curta já devolvida por `POST .../answers` (Persona Prompt §5, "Se o usuário
+pedir para 'explicar melhor'"). Chamada síncrona a um provedor de IA (Groq, escolhido pela baixa
+latência) — distinta da explicação curta em `explicacao`, que é pré-gerada na criação da pergunta e não
+tem custo de IA por resposta errada.
+
+```json
+// Request body (opcional)
+{ "selected_option_id": "string (id da opção que o usuário escolheu, ex.: \"b\") — opcional, enriquece a resposta" }
+
+// Response 200
+{ "deep_explanation": "string" }
+```
+Erros: `404 QUESTION_NOT_FOUND` · `502 AI_PROVIDER_ERROR` · `503 SERVICE_UNAVAILABLE` (sem provedor de IA configurado)
 
 **`GET /v1/progress/summary`** — Resumo agregado de progresso do usuário, usado no dashboard pessoal e
 como base para o painel do professor.
@@ -525,6 +541,7 @@ completos a detalhar no TDD quando a implementação desses três recursos come�
 | `FORBIDDEN_ROLE` | 403 | Usuário sem papel/permissão para o recurso. |
 | `TRACK_NOT_FOUND` | 404 | Trilha inexistente ou sem acesso. |
 | `LESSON_NOT_FOUND` | 404 | Lição inexistente. *(v1.4)* |
+| `QUESTION_NOT_FOUND` | 404 | Pergunta inexistente. *(v1.6)* |
 | `LESSON_NO_HEARTS_LEFT` | 409 | Sem vidas disponíveis para iniciar sessão. |
 | `SESSION_NOT_FOUND` | 404 | Sessão de prática (ou de Modo Infinito, v1.1) inexistente. |
 | `SESSION_EXPIRED` | 410 | Sessão expirada por inatividade (>30 min). |
@@ -536,6 +553,7 @@ completos a detalhar no TDD quando a implementação desses três recursos come�
 | `NO_STREAK_FREEZE_AVAILABLE` | 409 | Sem congeladores de streak disponíveis. |
 | `INSUFFICIENT_GEMS` | 402 | Saldo de gemas insuficiente para a compra. |
 | `RATE_LIMITED` | 429 | Limite de requisições excedido. |
+| `AI_PROVIDER_ERROR` | 502 | Falha ao chamar o provedor de IA configurado (ex.: Groq em `.../explain`). *(v1.6)* |
 
 *Tabela — Catálogo consolidado de códigos de erro da API.*
 

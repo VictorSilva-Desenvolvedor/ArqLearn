@@ -55,10 +55,13 @@ estrutura real já criada no repositório, não um plano:**
                           domínio em /internal:
                             - users: perfil (GET /v1/users/me real, Postgres via internal/db).
                             - learning: GET /v1/tracks, GET /v1/tracks/{track_id}/lessons, POST
-                              .../session e POST .../answers reais (session.go/answers.go) —
-                              cruza MongoDB (lessons/questions/user_progress/practice_sessions)
-                              com Postgres (user_gamification), chamando internal/gamification
-                              para calcularXP/SRS/streak. practice_sessions tem TTL de 30min
+                              .../session, POST .../answers e POST
+                              .../questions/{question_id}/explain reais (session.go/answers.go/
+                              explain.go) — cruza MongoDB (lessons/questions/user_progress/
+                              practice_sessions) com Postgres (user_gamification), chamando
+                              internal/gamification para calcularXP/SRS/streak e
+                              internal/groqclient (Groq, "explique melhor") pra aprofundamento
+                              sob demanda (API Spec §6, v1.6). practice_sessions tem TTL de 30min
                               (Database Design §4.4.1); Modo Infinito/Resumo/Chat ainda stub.
                               Três pegadinhas de contrato encontradas ao integrar com apps/web,
                               já corrigidas nos dois lados — não reintroduzir: (1) question.options
@@ -83,7 +86,16 @@ estrutura real já criada no repositório, não um plano:**
                               Maquetes como `pending` de propósito (nunca foram revisadas por
                               humano), mas isso hoje é só metadado — não filtra nada. Implementar
                               esse filtro antes de tratar `review_status` como controle de
-                              publicação de verdade.
+                              publicação de verdade. (5) Saída do Gemini (geminiclient.
+                              GenerateQuestions) NÃO garante `correct_answer` idêntico a um item
+                              de `options[]`, mesmo com responseSchema — confirmado ao vivo: numa
+                              chamada de teste real, uma pergunta veio com correct_answer faltando
+                              uma palavra em relação à option correspondente. Se isso for gravado
+                              como está, correctOptionID() (session.go) não acha a opção certa e
+                              toda resposta do usuário pra aquela pergunta é avaliada como errada.
+                              geminiclient.Validate() confere esse e outros invariantes — SEMPRE
+                              rodar antes de aceitar output do modelo como publicável (nunca
+                              gravar direto no Mongo sem passar por ele).
                             - gamification: algorithms.go tem calcularXP/Nivel/AtualizarSRS/
                               AtualizarStreak como funções puras testadas (algorithms_test.go),
                               usadas por learning — as rotas HTTP deste pacote (/v1/gamification/*)
@@ -108,9 +120,16 @@ estrutura real já criada no repositório, não um plano:**
                           vai aparecer onde não existe.)
   /ai-content-pipeline  (Go — módulo próprio, go.mod "arqlearn/ai-content-pipeline". Processo
                           assíncrono separado — já nasce desacoplado por fila no SAD §9, não
-                          muda nesta fase. internal/pipeline define os 6 estágios do SAD §9.1–9.6
-                          como funções stub; cmd/worker/main.go ainda não consome SQS de verdade
-                          — TODO explícito no código.)
+                          muda nesta fase. internal/pipeline define os 6 estágios do SAD §9.1–9.6;
+                          o motor de chamada de IA do estágio 4 (geração de perguntas) já é real
+                          — internal/geminiclient, testado ao vivo contra a API do Gemini — mas a
+                          função generateQuestions() em si continua stub porque os estágios 1-3
+                          (extração/RAG) não existem ainda pra alimentá-la com texto de verdade
+                          dentro do fluxo de evento. Usável hoje fora desse fluxo via
+                          `go run ./cmd/generate-questions -text=arquivo.txt -page=N -count=N`
+                          (texto colado manualmente, saída em JSON validada por
+                          geminiclient.Validate() antes de imprimir). cmd/worker/main.go ainda não
+                          consome SQS de verdade — TODO explícito no código.)
 /apps
   /web    (Next.js — App Router, TypeScript, Tailwind v4. Tokens de
            blueprint_narrative/DESIGN.md portados para src/app/globals.css via @theme; fontes
@@ -180,13 +199,26 @@ divergir do que está descrito aqui, atualize esta seção — não deixe o mapa
   tier, ainda não conectado).
 - **Mensageria: Amazon SQS/SNS** — já gratuita nesta fase (free tier permanente cobre o volume atual),
   sem equivalente a trocar.
-- IA: API Anthropic (modelo Claude) para geração/revisão de perguntas via RAG — único item sem
-  equivalente 100% gratuito, ver Estrategia_Bootstrap §4 para como minimizar custo.
+- **IA (decisão revista em 08/2026 — NÃO é mais Anthropic/Claude):** critério fechado com o usuário foi
+  "sem cartão de crédito pra funcionar" — Claude e OpenAI foram descartados porque a chave de API de
+  ambos só funciona (ou só é emitida, no caso da OpenAI) com cartão cadastrado, mesmo tendo crédito
+  grátis inicial. Ficou: **Gemini** (Google AI Studio, tier grátis, sem cartão — `GEMINI_API_KEY`) para
+  geração de perguntas (`services/ai-content-pipeline/internal/geminiclient`, lê texto/imagem
+  nativamente) e **Groq** (tier grátis, sem cartão — `GROQ_API_KEY`) para "explique melhor"
+  (`services/monolith/internal/groqclient`, escolhido pela latência baixa — é uma chamada síncrona que
+  o usuário está esperando responder). `DEEPSEEK_API_KEY` está salva mas é só crédito de teste (5M
+  tokens/30 dias, não permanente) — a chave atual está com saldo zero (testado ao vivo, HTTP 402
+  "Insufficient Balance"), precisa resolver no dashboard do DeepSeek antes de usar. `OPENAI_API_KEY`
+  está salva mas **não é usada em lugar nenhum do código** — decisão pendente com o usuário sobre usá-la
+  mesmo exigindo cartão. Ver Estrategia_Bootstrap §4 (ainda descreve o cenário antigo com Claude — não
+  atualizado nesta revisão).
 - Infra alvo: Terraform, GitHub Actions, Helm. GitHub Actions já é usado desde já (free tier); Terraform/
   Helm só entram na graduação para a arquitetura-alvo.
 
 **Pendência futura — não decidir sem o usuário:**
 - API Gateway: Kong ou AWS API Gateway.
+- Se a chave da OpenAI deve ser usada em algo (hoje não é, ver bullet de IA acima) e se/quando resolver o
+  saldo zero do DeepSeek para ele virar algo além de crédito de teste pontual.
 
 ## Convenções de código
 

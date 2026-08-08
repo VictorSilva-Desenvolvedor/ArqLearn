@@ -64,6 +64,13 @@ func structureRAG(event ContentUploaded) error {
 
 // Estágio 4 — Geração de Perguntas via LLM (SAD §9.4), seguindo estritamente
 // Docs/ArqLearn_IA_Persona_System_Prompt.md (fidelidade ao trecho-fonte, sem alucinar).
+//
+// O motor de chamada ao LLM já existe e funciona de verdade — internal/geminiclient,
+// testado ao vivo contra a API do Gemini e utilizável hoje via
+// `go run ./cmd/generate-questions` (texto solto, fora do fluxo de evento). O que falta pra
+// esta função deixar de ser stub é só o que os estágios 1-3 deveriam entregar (texto extraído
+// de content_chunks, Database Design §5) — ainda não existe extração real nem RAG, então não há
+// texto-fonte de verdade pra passar pro client aqui dentro do fluxo content.uploaded.
 func generateQuestions(event ContentUploaded) error {
 	log.Printf("pipeline: [4/6] generateQuestions upload_id=%s", event.UploadID)
 	return nil

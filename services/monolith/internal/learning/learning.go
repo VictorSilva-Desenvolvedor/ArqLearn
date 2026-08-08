@@ -18,14 +18,16 @@ import (
 
 	"arqlearn/monolith/internal/apierror"
 	"arqlearn/monolith/internal/authmiddleware"
+	"arqlearn/monolith/internal/groqclient"
 )
 
-func RegisterRoutes(mux *http.ServeMux, pool *pgxpool.Pool, mongoDB *mongo.Database, verifier *authmiddleware.Verifier) {
+func RegisterRoutes(mux *http.ServeMux, pool *pgxpool.Pool, mongoDB *mongo.Database, verifier *authmiddleware.Verifier, groq *groqclient.Client) {
 	// Trilhas e progresso — API Spec §6
 	mux.Handle("GET /v1/tracks", verifier.Middleware(http.HandlerFunc(handleListTracks(mongoDB))))
 	mux.Handle("GET /v1/tracks/{track_id}/lessons", verifier.Middleware(http.HandlerFunc(handleListTrackLessons(mongoDB))))
 	mux.Handle("POST /v1/lessons/{lesson_id}/session", verifier.Middleware(http.HandlerFunc(handleStartSession(pool, mongoDB))))
 	mux.Handle("POST /v1/lessons/{lesson_id}/answers", verifier.Middleware(http.HandlerFunc(handleSubmitAnswer(pool, mongoDB))))
+	mux.Handle("POST /v1/lessons/{lesson_id}/questions/{question_id}/explain", verifier.Middleware(http.HandlerFunc(handleExplainQuestion(mongoDB, groq))))
 	mux.Handle("GET /v1/progress/summary", verifier.Middleware(http.HandlerFunc(apierror.NotImplemented)))
 
 	// Modo Infinito — API Spec §6.1

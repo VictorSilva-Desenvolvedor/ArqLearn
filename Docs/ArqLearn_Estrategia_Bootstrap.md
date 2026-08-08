@@ -13,6 +13,7 @@ lá aos poucos, sem custo de infraestrutura antes de haver tração real**.
 | Versão | Data | Autor | Descrição |
 |---|---|---|---|
 | 1.0 | 08/08/2026 | Equipe de Arquitetura | Versão inicial — estratégia de custo mínimo para a fase de validação |
+| 1.1 | 08/08/2026 | Equipe de Arquitetura | §4 revista — provedor de IA trocado de Anthropic/Claude para Gemini + Groq (critério "sem cartão", ver `CLAUDE.md`) |
 
 ---
 
@@ -73,15 +74,30 @@ por trás tem 1 processo ou 8.
 
 *Tabela 1 — Substituição de camada por opção gratuita e o gatilho para migrar ao alvo do SAD.*
 
-## 4. Pipeline de IA — custo por natureza variável (não é 100% grátis)
+## 4. Pipeline de IA — dividido por tarefa entre dois provedores gratuitos, sem cartão
 
-O AI Content Pipeline (SAD §9) é o único ponto que **não** dá para zerar completamente, porque chamadas a
-LLM são cobradas por token. Mas dá para minimizar bastante nesta fase:
+*(v1.1 — revisão da decisão original desta seção, que previa Anthropic/Claude com custo por token.
+Critério fechado com o usuário: excluir qualquer provedor que exija cartão cadastrado pra funcionar —
+isso descartou Claude e OpenAI, ver `CLAUDE.md` para os detalhes de cada teste.)*
 
-- **Escolha de modelo por tarefa** (já previsto como mitigação de risco no SAD §19): usar o modelo mais
-  barato da família Claude disponível no momento para etapas de menor complexidade (validação de
-  formato, segunda checagem heurística) e reservar o modelo mais capaz apenas para a geração de perguntas
-  em si, onde a qualidade importa de verdade.
+Ao contrário do que a v1.0 desta seção previa, hoje dá para operar o pipeline de IA **sem custo e sem
+cartão** nesta fase, dividindo por tarefa entre dois provedores com tier grátis genuíno:
+
+- **Geração de perguntas** (SAD §9.4) → **Gemini** (Google AI Studio, `GEMINI_API_KEY`) — lê texto/imagem
+  nativamente (útil para PDF com foto/diagrama) e tem saída JSON estruturada confiável. Baixo volume
+  (lote esporádico), mas é o ativo mais importante do produto — por isso vale usar o modelo com melhor
+  compreensão multimodal disponível de graça, mesmo que a chamada em si seja mais lenta.
+- **"Explique melhor" / chat sob demanda** (Persona Prompt §5) → **Groq** (`GROQ_API_KEY`) — modelos
+  open-weight (Llama 3.3 70B), mas com latência muito menor (~100ms) que importa numa chamada síncrona
+  que o usuário está esperando responder. Volume mais alto, exigência de qualidade menor (é reforço
+  ancorado no material já mostrado, não geração do zero).
+- **DeepSeek** (`DEEPSEEK_API_KEY`) — só crédito de teste (5M tokens/30 dias, sem cartão pra começar, mas
+  cartão obrigatório depois que o crédito acaba). Não é um terceiro pilar permanente equivalente aos dois
+  acima; serve para um lote pontual de geração ou para prototipagem, não para depender dele todo mês.
+- **Custo real da divisão em dois provedores:** dois SDKs, dois system prompts pra calibrar (o mesmo
+  texto não rende igual em modelo diferente), duas chaves/dashboard de billing — aceitável aqui porque os
+  dois perfis de uso (baixo volume/alta exigência vs. alto volume/latência crítica) são genuinely
+  diferentes, não é separação só por separar.
 - **OCR**: começar com **Tesseract** (open source, self-hosted, roda no mesmo processo/contêiner do
   monólito) em vez de uma API de OCR paga. Qualidade inferior a uma API comercial, mas suficiente para
   validar o produto com poucos uploads.
