@@ -25,6 +25,7 @@ import (
 	"arqlearn/monolith/internal/ingestion"
 	"arqlearn/monolith/internal/learning"
 	"arqlearn/monolith/internal/notifications"
+	"arqlearn/monolith/internal/objectstorage"
 	"arqlearn/monolith/internal/users"
 )
 
@@ -58,6 +59,14 @@ func main() {
 		log.Print("aviso: GROQ_API_KEY ausente — POST /v1/lessons/{lesson_id}/questions/{question_id}/explain responderá 503")
 	}
 
+	r2 := objectstorage.New(
+		os.Getenv("R2_ACCOUNT_ID"), os.Getenv("R2_ACCESS_KEY_ID"), os.Getenv("R2_SECRET_ACCESS_KEY"),
+		os.Getenv("R2_S3_ENDPOINT"), os.Getenv("R2_BUCKET_NAME"),
+	)
+	if !r2.Enabled() {
+		log.Print("aviso: credenciais R2 ausentes — POST /v1/uploads responderá 503")
+	}
+
 	mux := http.NewServeMux()
 
 	mux.HandleFunc("GET /health", handleHealth)
@@ -66,7 +75,7 @@ func main() {
 	users.RegisterRoutes(mux, pool, verifier)
 	learning.RegisterRoutes(mux, pool, mongoDB, verifier, groq)
 	gamification.RegisterRoutes(mux)
-	ingestion.RegisterRoutes(mux)
+	ingestion.RegisterRoutes(mux, pool, verifier, r2)
 	notifications.RegisterRoutes(mux)
 	analytics.RegisterRoutes(mux)
 
