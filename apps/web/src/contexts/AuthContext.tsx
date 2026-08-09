@@ -53,27 +53,29 @@ export interface AuthContextValue {
 // via Supabase Auth (única fonte de verdade pra contas de aluno reais, ex.: Maria) e a conta
 // mockada por cookie arqlearn_mock_account (única forma de ver as telas de professor/admin, que
 // ainda não têm conta real — ver login page). Sessão real tem prioridade sobre a mockada quando
-// as duas existem. `initialAccountId` vem do cookie lido no servidor em app/layout.tsx, pra SSR e
-// primeira renderização do cliente concordarem no caminho mockado (evita flash/hydration
-// mismatch); o caminho real não tem essa otimização ainda — a primeira renderização mostra
-// `user: null` até o useEffect resolver a sessão do Supabase e buscar o perfil real.
+// as duas existem. `initialAccountId`/`initialMe` vêm do servidor (app/layout.tsx, que já lê o
+// cookie mockado e busca o perfil real se houver sessão) — os dois casos concordam com SSR desde
+// o primeiro render do cliente, sem janela de `user: null` (useAuth(), usado por TopAppBar e
+// outros, parte do princípio de que uma rota protegida sempre tem usuário).
 export const AuthContext = createContext<AuthContextValue | null>(null);
 
 export function AuthProvider({
   children,
   initialAccountId,
+  initialMe,
 }: {
   children: ReactNode;
   initialAccountId: string | null;
+  initialMe: MeResponse | null;
 }) {
   const router = useRouter();
   const initialAccount = getAccountById(initialAccountId);
 
   const [accountId, setAccountId] = useState<MockAccountId | null>(initialAccount?.id ?? null);
-  const [isRealSession, setIsRealSession] = useState(false);
-  const [realUser, setRealUser] = useState<User | null>(null);
+  const [isRealSession, setIsRealSession] = useState(Boolean(initialMe));
+  const [realUser, setRealUser] = useState<User | null>(initialMe?.user ?? null);
   const [gamification, setGamification] = useState<GamificationProfile>(
-    gamificationForAccount(initialAccount?.id),
+    initialMe?.gamification ?? gamificationForAccount(initialAccount?.id),
   );
   // Patch local sobre o User da sessão ativa (nome/fuso editados em Configurações) — não muta
   // fixture/perfil compartilhado, só a sessão atual; reseta ao trocar de conta/sessão.

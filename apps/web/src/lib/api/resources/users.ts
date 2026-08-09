@@ -13,9 +13,12 @@ export interface MeResponse {
 
 // ATENÇÃO: usa next/headers — só pode ser importado por Server Components (páginas em
 // app/**/page.tsx), nunca por um arquivo "use client". Hoje só Home/Liga/Perfil chamam isto.
-// accessToken vem de lib/supabase/server.ts#getServerAccessToken (sessão real da requisição).
+// accessToken vem de lib/supabase/server.ts#getServerAccessToken (sessão real da requisição) —
+// exige token mesmo com o recurso marcado como real: sem sessão real (conta mockada de
+// demonstração, sem UI pra chegar nela hoje mas o caminho continua existindo no código), chamar
+// o backend sem Authorization só devolveria 401. Cai no mock nesse caso em vez de estourar erro.
 export async function getMe(accessToken?: string): Promise<MeResponse> {
-  if (isResourceReal("users")) {
+  if (isResourceReal("users") && accessToken) {
     return apiFetch<MeResponse>("/v1/users/me", undefined, accessToken);
   }
   const cookieStore = await cookies();
