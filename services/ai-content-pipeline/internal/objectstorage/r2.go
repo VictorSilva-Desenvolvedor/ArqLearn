@@ -40,6 +40,26 @@ func (c *Client) Enabled() bool {
 	return c != nil
 }
 
+// Upload grava o objeto direto no bucket — usado por cmd/ingest-file, que roda como operação de
+// backend confiável (não é o caminho de upload do usuário final, que usa a URL pré-assinada
+// gerada por services/monolith/internal/objectstorage.PresignUpload).
+func (c *Client) Upload(ctx context.Context, key, contentType string, data []byte) error {
+	if !c.Enabled() {
+		return fmt.Errorf("objectstorage: R2 não configurado")
+	}
+
+	_, err := c.s3.PutObject(ctx, &s3.PutObjectInput{
+		Bucket:      aws.String(c.bucket),
+		Key:         aws.String(key),
+		ContentType: aws.String(contentType),
+		Body:        bytes.NewReader(data),
+	})
+	if err != nil {
+		return fmt.Errorf("objectstorage: falha ao subir %q: %w", key, err)
+	}
+	return nil
+}
+
 // Download baixa o objeto inteiro pra memória — arquivos de estudo (PDF/slide) nesta fase são
 // pequenos o bastante pra isso ser seguro; revisitar com streaming se um upload grande demais
 // aparecer na prática (ver UPLOAD_TOO_LARGE na API Spec, que já limita o tamanho no momento do
