@@ -39,9 +39,14 @@ type chatMessage struct {
 	Content string `json:"content"`
 }
 
+type responseFormat struct {
+	Type string `json:"type"`
+}
+
 type chatRequest struct {
-	Model    string        `json:"model"`
-	Messages []chatMessage `json:"messages"`
+	Model          string          `json:"model"`
+	Messages       []chatMessage   `json:"messages"`
+	ResponseFormat *responseFormat `json:"response_format,omitempty"`
 }
 
 type chatResponse struct {
@@ -55,17 +60,33 @@ type chatResponse struct {
 
 // Complete envia um system+user prompt e devolve o texto da resposta do modelo.
 func (c *Client) Complete(ctx context.Context, systemPrompt, userPrompt string) (string, error) {
+	return c.complete(ctx, systemPrompt, userPrompt, false)
+}
+
+// CompleteJSON é como Complete, mas força o modelo a responder com um objeto JSON válido
+// (Groq aceita response_format:json_object no mesmo shape da OpenAI Chat Completions API,
+// confirmado ao vivo). O prompt ainda precisa descrever o schema esperado — isso só garante que
+// a saída *parseia* como JSON, não a forma exata dele.
+func (c *Client) CompleteJSON(ctx context.Context, systemPrompt, userPrompt string) (string, error) {
+	return c.complete(ctx, systemPrompt, userPrompt, true)
+}
+
+func (c *Client) complete(ctx context.Context, systemPrompt, userPrompt string, jsonMode bool) (string, error) {
 	if !c.Enabled() {
 		return "", fmt.Errorf("groqclient: GROQ_API_KEY não configurada")
 	}
 
-	reqBody, err := json.Marshal(chatRequest{
+	chatReq := chatRequest{
 		Model: defaultModel,
 		Messages: []chatMessage{
 			{Role: "system", Content: systemPrompt},
 			{Role: "user", Content: userPrompt},
 		},
-	})
+	}
+	if jsonMode {
+		chatReq.ResponseFormat = &responseFormat{Type: "json_object"}
+	}
+	reqBody, err := json.Marshal(chatReq)
 	if err != nil {
 		return "", err
 	}

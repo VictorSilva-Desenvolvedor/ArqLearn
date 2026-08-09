@@ -36,11 +36,11 @@ func RegisterRoutes(mux *http.ServeMux, pool *pgxpool.Pool, mongoDB *mongo.Datab
 	mux.Handle("POST /v1/infinite-mode/sessions/{session_id}/end", verifier.Middleware(http.HandlerFunc(handleEndInfiniteMode(mongoDB))))
 
 	// Resumo Inteligente — API Spec §6.2
-	mux.Handle("GET /v1/uploads/{upload_id}/summary", verifier.Middleware(http.HandlerFunc(apierror.NotImplemented)))
+	mux.Handle("GET /v1/uploads/{upload_id}/summary", verifier.Middleware(http.HandlerFunc(handleUploadSummary(pool, mongoDB, groq))))
 
 	// Chat sobre Material — API Spec §6.3
-	mux.Handle("POST /v1/uploads/{upload_id}/chat", verifier.Middleware(http.HandlerFunc(apierror.NotImplemented)))
-	mux.Handle("GET /v1/uploads/{upload_id}/chat", verifier.Middleware(http.HandlerFunc(apierror.NotImplemented)))
+	mux.Handle("POST /v1/uploads/{upload_id}/chat", verifier.Middleware(http.HandlerFunc(handlePostMaterialChat(pool, mongoDB, groq))))
+	mux.Handle("GET /v1/uploads/{upload_id}/chat", verifier.Middleware(http.HandlerFunc(handleGetMaterialChatHistory(mongoDB))))
 }
 
 // track espelha a coleção "tracks" (Database Design §4.1).
