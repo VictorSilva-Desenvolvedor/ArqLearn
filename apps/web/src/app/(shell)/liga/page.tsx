@@ -1,3 +1,4 @@
+import { getServerAccessToken } from "@/lib/supabase/server";
 import { getMe } from "@/lib/api/resources/users";
 import { getLeague } from "@/lib/api/resources/gamification";
 import { Icon } from "@/components/ui/Icon";
@@ -12,7 +13,10 @@ const tierLabel: Record<string, string> = {
 };
 
 export default async function LeaguePage() {
-  const [{ user }, league] = await Promise.all([getMe(), getLeague()]);
+  const accessToken = await getServerAccessToken();
+  // getLeague() continua mockado — /v1/gamification/league ainda é stub no backend (ver
+  // Docs/CLAUDE.md), não dá pra ligar de verdade ainda.
+  const [{ user }, league] = await Promise.all([getMe(accessToken), getLeague()]);
 
   return (
     <div className="max-w-2xl mx-auto px-lg py-section flex flex-col gap-md">

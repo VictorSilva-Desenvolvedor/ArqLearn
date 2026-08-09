@@ -13,9 +13,10 @@ export interface MeResponse {
 
 // ATENÇÃO: usa next/headers — só pode ser importado por Server Components (páginas em
 // app/**/page.tsx), nunca por um arquivo "use client". Hoje só Home/Liga/Perfil chamam isto.
-export async function getMe(): Promise<MeResponse> {
+// accessToken vem de lib/supabase/server.ts#getServerAccessToken (sessão real da requisição).
+export async function getMe(accessToken?: string): Promise<MeResponse> {
   if (isResourceReal("users")) {
-    return apiFetch<MeResponse>("/v1/users/me");
+    return apiFetch<MeResponse>("/v1/users/me", undefined, accessToken);
   }
   const cookieStore = await cookies();
   const accountId = cookieStore.get(ACCOUNT_COOKIE)?.value;

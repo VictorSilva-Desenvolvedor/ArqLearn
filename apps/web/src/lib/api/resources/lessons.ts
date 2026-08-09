@@ -6,9 +6,13 @@ import { mockGamificationProfile } from "../mocks/fixtures/gamification";
 import { answerMockSession, createMockSession } from "../mocks/fixtures/quizSessions";
 import type { AnswerResult, LessonSession, Paginated, TrackLesson } from "@/types/api";
 
-export async function listTrackLessons(trackId: string): Promise<Paginated<TrackLesson>> {
+// accessToken (opcional) é pra chamadas server-side (ver lib/supabase/server.ts#getServerAccessToken).
+export async function listTrackLessons(
+  trackId: string,
+  accessToken?: string,
+): Promise<Paginated<TrackLesson>> {
   if (isResourceReal("lessons")) {
-    return apiFetch<Paginated<TrackLesson>>(`/v1/tracks/${trackId}/lessons`);
+    return apiFetch<Paginated<TrackLesson>>(`/v1/tracks/${trackId}/lessons`, undefined, accessToken);
   }
 
   const lessons = mockLessonsByTrack[trackId];

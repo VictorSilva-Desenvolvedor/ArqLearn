@@ -25,8 +25,13 @@ export function setAccessTokenProvider(provider: () => string | null): void {
   getAccessToken = provider;
 }
 
-export async function apiFetch<T>(path: string, init?: RequestInit): Promise<T> {
-  const token = getAccessToken();
+// accessToken explícito é pra Server Components (Home/Liga/Perfil, ver
+// lib/supabase/server.ts#getServerAccessToken) — o provider acima é um estado global de módulo,
+// seguro só no browser (uma aba = uma sessão). No servidor, múltiplas requisições de usuários
+// diferentes compartilhariam esse mesmo módulo, então cada Server Component busca o token da
+// própria requisição (via cookies()) e passa aqui explicitamente em vez de depender do provider.
+export async function apiFetch<T>(path: string, init?: RequestInit, accessToken?: string): Promise<T> {
+  const token = accessToken ?? getAccessToken();
   const response = await fetch(`${API_BASE_URL}${path}`, {
     ...init,
     headers: {
