@@ -57,3 +57,31 @@ export async function submitAnswer(
   const result = answerMockSession(payload.session_id, payload.question_id, payload.answer);
   return mockDelay(result, 300);
 }
+
+export interface ExplainQuestionPayload {
+  selected_option_id?: string;
+}
+
+export interface ExplainQuestionResponse {
+  deep_explanation: string;
+}
+
+// API Spec §6, v1.6 — "explique melhor", chamada síncrona ao Groq (services/monolith/internal/
+// groqclient). Sem mock dedicado: modo demonstração devolve um texto fixo em vez de tentar
+// simular uma resposta de IA.
+export async function explainQuestion(
+  lessonId: string,
+  questionId: string,
+  payload: ExplainQuestionPayload,
+): Promise<ExplainQuestionResponse> {
+  if (isResourceReal("lessons")) {
+    return apiFetch<ExplainQuestionResponse>(`/v1/lessons/${lessonId}/questions/${questionId}/explain`, {
+      method: "POST",
+      body: JSON.stringify(payload),
+    });
+  }
+  return mockDelay(
+    { deep_explanation: "Explicação aprofundada não disponível no modo demonstração." },
+    300,
+  );
+}

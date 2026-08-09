@@ -29,9 +29,13 @@ export default function LessonSessionPage() {
         total={quiz.totalQuestions}
         hearts={quiz.hearts}
         gems={quiz.gems}
+        lessonId={lessonId}
       />
       <QuestionCard
         prompt={quiz.currentQuestion.prompt}
+        type={quiz.currentQuestion.type}
+        difficulty={quiz.currentQuestion.difficulty}
+        imageUrl={quiz.currentQuestion.image_url}
         options={quiz.currentQuestion.options}
         selectedOptionId={quiz.selectedOptionId}
         revealed={quiz.revealed}
@@ -43,10 +47,15 @@ export default function LessonSessionPage() {
           revealed={quiz.revealed}
           isCorrect={quiz.lastResult?.correct ?? false}
           explanation={quiz.lastResult?.explicacao ?? ""}
-          canVerify={quiz.selectedOptionId !== null}
+          xpDailyCapReached={quiz.lastResult?.xp_daily_cap_reached ?? false}
+          canVerify={Boolean(quiz.selectedOptionId?.trim())}
           onSkip={quiz.skip}
           onVerify={quiz.verify}
           onContinue={quiz.continueNext}
+          deepExplanation={quiz.deepExplanation}
+          explainLoading={quiz.explainLoading}
+          explainError={quiz.explainError}
+          onExplainMore={quiz.explainMore}
         />
       )}
       <NoHeartsDialog open={noHeartsOpen} onOpenChange={() => router.push("/")} />
