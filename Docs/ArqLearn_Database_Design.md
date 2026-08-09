@@ -3,7 +3,7 @@
 
 Modelo de dados detalhado: esquema relacional, documentos, vetores, cache e estratégias de persistência.
 
-Versão 1.8 | Agosto de 2026
+Versão 1.10 | Agosto de 2026
 Documento complementar ao SAD e ao TDD do ArqLearn v1.0
 
 > **Sobre esta versão:** versão em Markdown, mantida como fonte da verdade a partir de agora (ver
@@ -24,6 +24,7 @@ Documento complementar ao SAD e ao TDD do ArqLearn v1.0
 | 1.7 | 08/08/2026 | Equipe de Engenharia / Dados | Documenta que `lesson.order` e `question.options[].id` são derivados na API, não campos do banco — encontrado ao integrar com o app web já em construção |
 | 1.8 | 08/08/2026 | Equipe de Engenharia / Dados | Adiciona `confidence` a `questions` (já exigido pelo Persona Prompt §4.6-4.7 na geração, nunca persistido) — encontrado ao implementar `cmd/generate-questions`/`cmd/review-questions` (`ai-content-pipeline`); sem o campo, quem revisa não vê a autoavaliação de confiança do modelo |
 | 1.9 | 09/08/2026 | Equipe de Engenharia / Dados | Adiciona a tabela `uploads` (Postgres) — nunca desenhada até então, deixava `content_chunks.upload_id` sem FK real. Ingestão real (R2 + extração de PDF + chunking + embeddings) implementada e testada ao vivo ponta a ponta |
+| 1.10 | 09/08/2026 | Equipe de Engenharia / Dados | Documenta o schema real de `infinite_mode_sessions` (§4.4.2) — o índice já listado em §4.5 desde a v1.1 era especulativo (`{user_id, status}`, campo `status` nunca existiu) e nunca tinha sido criado de fato; implementação real do Modo Infinito usa TTL sobre `expires_at`, mesmo padrão de `practice_sessions` |
 
 ---
 
@@ -255,7 +256,7 @@ CREATE INDEX idx_gamevents_user_time ON gamification_events(user_id, created_at 
   "_id": "lesson_1",
   "track_id": "track_urbanismo_101",
   "title": "Zoneamento e Uso do Solo",
-  "difficulty": "easy" | "medium" | "hard",
+  "difficulty": "easy" | "medium" | "hard" | "impossible",
   "question_ids": ["q_001", "q_002", "q_003"],
   "estimated_minutes": 6
 }
@@ -359,6 +360,34 @@ de `SESSION_NOT_FOUND` vs `SESSION_EXPIRED`.
 > aqui para não silenciar a divergência com o texto do SAD RF-09 ("reintroduzindo perguntas erradas ou
 > antigas").
 
+### 4.4.2 Coleção: `infinite_mode_sessions` *(v1.9)*
+
+Estado efêmero de uma sessão de Modo Infinito (`POST /v1/infinite-mode/sessions` e sub-rotas, API
+Spec §6.1) — mesmo motivo de `practice_sessions` (§4.4.1) existir: os endpoints já eram
+documentados desde a v1.1, mas nunca foi definido onde o estado vive até a implementação real.
+Schema efetivamente implementado diverge do índice que já estava listado em §4.5 antes desta
+versão (`{user_id, status}` — especulativo, nunca existiu campo `status`); corrigido abaixo.
+
+```json
+{
+  "_id": "uuid",
+  "user_id": "uuid",
+  "topic": "maquetes",
+  "shown_question_ids": ["q_001", "q_002"],
+  "questions_answered": 2,
+  "correct_count": 1,
+  "total_time_ms": 8500,
+  "total_xp_earned": 45,
+  "created_at": "datetime",
+  "expires_at": "datetime"
+}
+```
+
+Mesmo padrão de expiração de `practice_sessions`: TTL de 30 minutos sobre `expires_at`
+(`expireAfterSeconds: 0`), sem job de limpeza dedicado. `shown_question_ids` evita repetir
+pergunta dentro da mesma sessão; quando o pool de perguntas aprovadas do tópico se esgota,
+`next_question` sai ausente da resposta (API Spec §6.1) e o cliente trata como fim natural.
+
 ### 4.5 Estratégia de Indexação (MongoDB)
 
 | Coleção | Índices |
@@ -367,7 +396,7 @@ de `SESSION_NOT_FOUND` vs `SESSION_EXPIRED`.
 | `lessons` | `{track_id: 1}` — recuperação ordenada das lições de uma trilha. |
 | `questions` | `{lesson_id: 1, review_status: 1}` — fila de revisão e composição de sessão. |
 | `user_progress` | `{user_id: 1, "srs_state.next_review_at": 1}` (composto) — consulta de itens vencidos para repetição espaçada. `{user_id: 1, lesson_id: 1}` (composto, adicionado ao implementar `GET /v1/tracks/{track_id}/lessons`) — monta o `progress_status` de todas as lições de uma trilha para o usuário autenticado sem varrer a coleção inteira. *(v1.5)* |
-| `infinite_mode_sessions` | `{user_id: 1, status: 1}` — recuperar sessão ativa do usuário. *(v1.1)* |
+| `infinite_mode_sessions` | `{expires_at: 1}` (TTL, `expireAfterSeconds: 0`) — mesmo padrão de `practice_sessions`. *(v1.1, corrigido na v1.9 — ver §4.4.2)* |
 | `content_summaries` | `{upload_id: 1}` (único) — um resumo ativo por upload. *(v1.1)* |
 | `material_chat_messages` | `{upload_id: 1, user_id: 1, created_at: 1}` — histórico ordenado por thread. *(v1.1)* |
 | `practice_sessions` | `{expires_at: 1}` (TTL, `expireAfterSeconds: 0`) — autolimpeza de sessões abandonadas. *(v1.6)* |

@@ -31,9 +31,9 @@ func RegisterRoutes(mux *http.ServeMux, pool *pgxpool.Pool, mongoDB *mongo.Datab
 	mux.Handle("GET /v1/progress/summary", verifier.Middleware(http.HandlerFunc(handleProgressSummary(mongoDB))))
 
 	// Modo Infinito — API Spec §6.1
-	mux.Handle("POST /v1/infinite-mode/sessions", verifier.Middleware(http.HandlerFunc(apierror.NotImplemented)))
-	mux.Handle("POST /v1/infinite-mode/sessions/{session_id}/answers", verifier.Middleware(http.HandlerFunc(apierror.NotImplemented)))
-	mux.Handle("POST /v1/infinite-mode/sessions/{session_id}/end", verifier.Middleware(http.HandlerFunc(apierror.NotImplemented)))
+	mux.Handle("POST /v1/infinite-mode/sessions", verifier.Middleware(http.HandlerFunc(handleStartInfiniteMode(mongoDB))))
+	mux.Handle("POST /v1/infinite-mode/sessions/{session_id}/answers", verifier.Middleware(http.HandlerFunc(handleInfiniteModeAnswer(pool, mongoDB))))
+	mux.Handle("POST /v1/infinite-mode/sessions/{session_id}/end", verifier.Middleware(http.HandlerFunc(handleEndInfiniteMode(mongoDB))))
 
 	// Resumo Inteligente — API Spec §6.2
 	mux.Handle("GET /v1/uploads/{upload_id}/summary", verifier.Middleware(http.HandlerFunc(apierror.NotImplemented)))
