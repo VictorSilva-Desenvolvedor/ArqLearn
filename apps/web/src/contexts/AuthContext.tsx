@@ -1,6 +1,7 @@
 "use client";
 
 import { createContext, useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
+import { usePathname } from "next/navigation";
 import {
   gamificationForAccount,
   getAccountById,
@@ -67,11 +68,18 @@ export function AuthProvider({
   initialAccountId: string | null;
   initialMe: MeResponse | null;
 }) {
+  const pathname = usePathname();
   const initialAccount = getAccountById(initialAccountId);
 
   const [accountId, setAccountId] = useState<MockAccountId | null>(initialAccount?.id ?? null);
   const [isRealSession, setIsRealSession] = useState(Boolean(initialMe));
   const [realUser, setRealUser] = useState<User | null>(initialMe?.user ?? null);
+  // true assim que sabemos de verdade se há sessão (real ou mockada) — sincronamente já true
+  // quando o servidor entregou uma das duas via SSR (initialMe/initialAccount). Some por rede de
+  // segurança pro caso (ainda não totalmente diagnosticado ao vivo) em que o servidor não vê a
+  // mesma sessão que o cliente Supabase vê: enquanto isso, mostra um loading em vez de renderizar
+  // useAuth() consumers com user ainda indefinido.
+  const [isResolved, setIsResolved] = useState(Boolean(initialMe) || Boolean(initialAccount));
   const [gamification, setGamification] = useState<GamificationProfile>(
     initialMe?.gamification ?? gamificationForAccount(initialAccount?.id),
   );
@@ -94,6 +102,7 @@ export function AuthProvider({
         setAccessTokenProvider(() => null);
         setIsRealSession(false);
         setRealUser(null);
+        setIsResolved(true);
         return;
       }
 
@@ -110,6 +119,8 @@ export function AuthProvider({
         // sessão marcada como real (não cai pro mock) e deixa o perfil null, em vez de mostrar
         // dado inventado pra uma pessoa real.
         if (requestIdRef.current === requestId) setRealUser(null);
+      } finally {
+        if (requestIdRef.current === requestId) setIsResolved(true);
       }
     }
 
@@ -195,6 +206,18 @@ export function AuthProvider({
   const mockAccount = accountId ? getAccountById(accountId) : null;
   const baseUser = isRealSession ? realUser : (mockAccount?.user ?? null);
 
+  // Rede de segurança: se depois de resolvido não há usuário nenhum (nem real nem mockado) numa
+  // rota que não é /login, o proxy.ts deveria ter barrado antes — mas se por algum motivo o
+  // cliente e o servidor discordarem sobre a sessão (cookie que o proxy validou mas o cliente
+  // Supabase não reconhece, por exemplo), isso força a ida pro login em vez de deixar
+  // useAuth() explodindo pra sempre numa página que nunca vai ter usuário.
+  useEffect(() => {
+    if (isResolved && !baseUser && pathname !== "/login") {
+      // eslint-disable-next-line @next/next/no-location-assign-relative-destination -- deliberado, ver comentário acima
+      window.location.href = "/login";
+    }
+  }, [isResolved, baseUser, pathname]);
+
   const value = useMemo<AuthContextValue>(
     () => ({
       user: baseUser ? { ...baseUser, ...userPatch } : null,
@@ -227,5 +250,18 @@ export function AuthProvider({
     ],
   );
 
-  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
+  // /login nunca tem usuário mesmo resolvido — não faz sentido segurar ela atrás do loading.
+  const shouldWait = !isResolved && pathname !== "/login";
+
+  return (
+    <AuthContext.Provider value={value}>
+      {shouldWait ? (
+        <div className="min-h-screen flex items-center justify-center bg-background">
+          <div className="animate-pulse rounded-full h-10 w-10 bg-surface-container" />
+        </div>
+      ) : (
+        children
+      )}
+    </AuthContext.Provider>
+  );
 }
