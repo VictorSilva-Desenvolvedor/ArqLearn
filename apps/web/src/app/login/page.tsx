@@ -1,13 +1,11 @@
 "use client";
 
 import { useContext, useState, type FormEvent } from "react";
-import { useRouter } from "next/navigation";
 import { AuthContext } from "@/contexts/AuthContext";
 import { Icon } from "@/components/ui/Icon";
 import { Button } from "@/components/ui/Button";
 
 export default function LoginPage() {
-  const router = useRouter();
   const auth = useContext(AuthContext);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -24,7 +22,12 @@ export default function LoginPage() {
       setError("E-mail ou senha inválidos.");
       return;
     }
-    router.push(result.landingPath);
+    // Navegação forçada (não router.push) — o layout raiz (app/layout.tsx) só busca a sessão
+    // real no servidor durante um carregamento completo de página; um router.push de cliente
+    // reaproveita o cache de rotas do Next.js e o layout não re-executa com o cookie novo,
+    // deixando useAuth() (TopAppBar etc.) explodir num user ainda null. Descoberto ao vivo — o
+    // AuthProvider.initialMe corrigia só o primeiro carregamento, não o login em si.
+    window.location.href = result.landingPath;
   };
 
   return (

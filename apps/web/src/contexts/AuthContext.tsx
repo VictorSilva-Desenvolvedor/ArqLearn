@@ -1,7 +1,6 @@
 "use client";
 
 import { createContext, useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
-import { useRouter } from "next/navigation";
 import {
   gamificationForAccount,
   getAccountById,
@@ -68,7 +67,6 @@ export function AuthProvider({
   initialAccountId: string | null;
   initialMe: MeResponse | null;
 }) {
-  const router = useRouter();
   const initialAccount = getAccountById(initialAccountId);
 
   const [accountId, setAccountId] = useState<MockAccountId | null>(initialAccount?.id ?? null);
@@ -167,11 +165,13 @@ export function AuthProvider({
     // que rastrear qual modo está ligado antes de decidir o que limpar.
     void createClient().auth.signOut();
     clearAccountCookie();
-    setAccountId(null);
-    setIsRealSession(false);
-    setRealUser(null);
-    router.push("/login");
-  }, [router, setAccountId, setIsRealSession, setRealUser]);
+    // Navegação forçada (não router.push) — mesmo motivo do login (ver app/login/page.tsx): um
+    // router.push reaproveita o layout raiz já renderizado, e a sessão real "morta" só some do
+    // cookie, não do estado que o SSR já tinha capturado. Um reload completo garante que
+    // app/layout.tsx rebusca do zero (sem sessão) e o app inteiro reflete o logout de verdade.
+    // eslint-disable-next-line @next/next/no-location-assign-relative-destination -- deliberado, ver comentário acima
+    window.location.href = "/login";
+  }, []);
 
   const updateGamification = useCallback((patch: Partial<GamificationProfile>) => {
     setGamification((current) => {
