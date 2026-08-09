@@ -2,6 +2,7 @@ package learning
 
 import (
 	"encoding/json"
+	"log"
 	"net/http"
 	"time"
 
@@ -157,6 +158,13 @@ func handleSubmitAnswer(pool *pgxpool.Pool, mongoDB *mongo.Database) http.Handle
 		if err != nil {
 			apierror.Write(w, http.StatusInternalServerError, "INTERNAL_ERROR", "Falha ao atualizar gamificação.")
 			return
+		}
+
+		// Não bloqueia a resposta se falhar — Liga é secundária ao XP/streak/vidas em si, que já
+		// foram gravados acima. Só loga; o pior caso é o XP desta resposta não aparecer no
+		// ranking semanal, não perder o XP de verdade (esse já está em user_gamification).
+		if err := gamification.AddWeeklyXP(r.Context(), pool, userID, xpResult.XPConcedido); err != nil {
+			log.Printf("aviso: falha ao somar XP semanal de liga (user_id=%s): %v", userID, err)
 		}
 
 		// --- MongoDB: SRS + status da lição (por lição, não por pergunta — ver Database Design §4.4.1) ---
