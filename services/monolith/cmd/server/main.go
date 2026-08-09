@@ -78,7 +78,7 @@ func main() {
 	learning.RegisterRoutes(mux, pool, mongoDB, verifier, groq)
 	gamification.RegisterRoutes(mux, pool, verifier)
 	ingestion.RegisterRoutes(mux, pool, verifier, r2)
-	notifications.RegisterRoutes(mux)
+	notifications.RegisterRoutes(mux, pool, mongoDB, verifier)
 	analytics.RegisterRoutes(mux)
 
 	// Sem isso, qualquer chamada feita direto do browser (client-side) pro backend real é

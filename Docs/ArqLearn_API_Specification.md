@@ -3,7 +3,7 @@
 
 Especificação de referência dos endpoints REST expostos pelo API Gateway.
 
-Versão 1.10 | Agosto de 2026
+Versão 1.12 | Agosto de 2026
 Documento complementar ao SAD e ao TDD do ArqLearn v1.0
 
 > **Sobre esta versão:** versão em Markdown, mantida como fonte da verdade a partir de agora (ver
@@ -25,6 +25,8 @@ Documento complementar ao SAD e ao TDD do ArqLearn v1.0
 | 1.8 | 09/08/2026 | Equipe de Engenharia | §7: `POST /v1/uploads`, `POST /v1/uploads/{upload_id}/complete` e `GET /v1/uploads/{upload_id}` deixam de ser stub — implementados contra a tabela `uploads` (Postgres) real e testados ao vivo. `GET/PATCH .../questions` continuam stub. Nenhum contrato mudou |
 | 1.9 | 09/08/2026 | Equipe de Engenharia | §6.1: decisão de "sem geração dedicada" revisada a pedido do usuário — tópico `"maquetes"` passa a gerar lotes novos em segundo plano, persistidos como lição permanente. Endpoints deixam de ser stub. Adiciona campo `level` na resposta de `/answers` |
 | 1.10 | 09/08/2026 | Equipe de Engenharia | §7: adiciona `GET /v1/uploads` (listagem, paginada) — endpoint novo, não existia em nenhuma versão anterior. Fecha a lacuna que deixava a tela "Meus Materiais" do Explorar sem alternativa a não ser mock (ver `Docs/PENDENCIAS_WEB_REAL.md`) |
+| 1.11 | 09/08/2026 | Equipe de Engenharia | §9: `GET /v1/notifications` e `PATCH /v1/notifications/preferences` deixam de ser stub — implementados contra a nova coleção `notifications` (MongoDB) e as colunas `push_enabled`/`email_enabled` de `users` (Postgres). Lista de notificações real, mas legitimamente vazia hoje (nenhum gatilho escreve nela ainda). Nenhum contrato mudou |
+| 1.12 | 09/08/2026 | Equipe de Engenharia | §3.2: adiciona `hearts_next_at` ao `GamificationProfile` (a pedido do usuário) — vidas agora regeneram sozinhas com o tempo (TDD §5.4, novo); `hearts_current` nunca fazia isso antes |
 
 ---
 
@@ -527,6 +529,13 @@ Erros: `409 NO_STREAK_FREEZE_AVAILABLE`
 Erros: `402 INSUFFICIENT_GEMS` · `404 ITEM_NOT_FOUND`
 
 ## 9. Notifications Service
+
+> **v1.11 — os dois endpoints abaixo são reais** (implementados contra a coleção `notifications`,
+> MongoDB, nova — nenhum schema existia antes — e as colunas `push_enabled`/`email_enabled` de
+> `users`, Postgres). `GET /v1/notifications` legitimamente devolve lista vazia hoje: nenhum
+> gatilho (streak em risco, promoção de liga etc.) escreve nessa coleção ainda — depende de jobs
+> agendados que não existem, mesmo motivo de `cmd/worker` não consumir fila real (ver
+> `Docs/CLAUDE.md`). Ver `Docs/PENDENCIAS_WEB_REAL.md`.
 
 **`GET /v1/notifications`** — Lista notificações in-app do usuário, mais recentes primeiro.
 
