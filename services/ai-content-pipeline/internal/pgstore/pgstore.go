@@ -58,6 +58,41 @@ func InsertChunk(ctx context.Context, pool *pgxpool.Pool, uploadID, sourceType, 
 	return nil
 }
 
+// Chunk é um trecho de content_chunks já extraído/embeddado, pronto pra virar texto-fonte de
+// geração de pergunta (ver cmd/generate-questions -upload-id).
+type Chunk struct {
+	Page int
+	Text string
+}
+
+const chunksForUploadQuery = `
+	SELECT text_content, (source_ref->>'page')::int
+	FROM content_chunks
+	WHERE upload_id = $1
+	ORDER BY (source_ref->>'page')::int
+`
+
+// ChunksForUpload lista todos os chunks de um upload, em ordem de página. Sem busca por
+// similaridade (embedding <=>) — um upload processado inteiro cabe em poucos chunks/páginas
+// nesta fase, buscar todos já basta (ver plano de ingestão real, Fase 7).
+func ChunksForUpload(ctx context.Context, pool *pgxpool.Pool, uploadID string) ([]Chunk, error) {
+	rows, err := pool.Query(ctx, chunksForUploadQuery, uploadID)
+	if err != nil {
+		return nil, fmt.Errorf("pgstore: falha ao consultar chunks do upload %s: %w", uploadID, err)
+	}
+	defer rows.Close()
+
+	var chunks []Chunk
+	for rows.Next() {
+		var c Chunk
+		if err := rows.Scan(&c.Text, &c.Page); err != nil {
+			return nil, fmt.Errorf("pgstore: falha ao ler chunk: %w", err)
+		}
+		chunks = append(chunks, c)
+	}
+	return chunks, rows.Err()
+}
+
 // formatVector serializa pro formato textual que o pgvector aceita em input/cast ("[0.1,0.2,...]")
 // — evita puxar uma dependência extra (github.com/pgvector/pgvector-go) só pra isso.
 func formatVector(v []float32) string {
