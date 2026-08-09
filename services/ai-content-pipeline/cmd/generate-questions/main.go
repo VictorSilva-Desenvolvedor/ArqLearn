@@ -1,7 +1,12 @@
-// Command generate-questions chama internal/geminiclient com um texto-fonte solto, fora do fluxo
-// de evento content.uploaded (que depende dos estágios 1-3, ainda stub — ver
-// internal/pipeline/pipeline.go). Uso enquanto a extração/RAG reais não existem: cola aqui o
-// texto de uma página já extraída manualmente.
+// Command generate-questions chama internal/geminiclient com texto-fonte real, fora do fluxo de
+// evento content.uploaded (que depende dos estágios 1-3, ainda sem consumidor de fila real — ver
+// internal/pipeline/pipeline.go e cmd/worker). Dois modos de texto-fonte:
+//
+//   - -upload-id: busca os chunks reais já extraídos/embeddados em content_chunks (Postgres,
+//     ver cmd/ingest-file) pro upload indicado — uma pergunta por chunk/página, source_upload_id
+//     preenchido de verdade (fecha Docs/PENDENCIAS_IA.md #3).
+//   - -text: modo antigo, cola um texto já extraído manualmente (trilha curada sem upload, como
+//     Maquetes hoje) — source_upload_id continua null.
 //
 // Grava as perguntas válidas direto no MongoDB. confidence "high" vai direto pra "approved" (já
 // jogável, sem revisão humana — decisão do usuário, ver Docs/PENDENCIAS_IA.md #5); "medium"/"low"
@@ -14,6 +19,10 @@
 //	GEMINI_API_KEY=... MONGODB_URI=... go run ./cmd/generate-questions \
 //	  -text=pagina.txt -page=7 -count=5 \
 //	  -track-id=track_s02_maquetes -lesson-id=lesson_maquetes_u1 -lesson-title="Unidade 1"
+//
+//	GEMINI_API_KEY=... MONGODB_URI=... DATABASE_URL=... go run ./cmd/generate-questions \
+//	  -upload-id=<uuid de uploads.id> -count=5 \
+//	  -track-id=track_s02_maquetes -lesson-id=lesson_maquetes_u5 -lesson-title="Unidade 5"
 package main
 
 import (
@@ -30,47 +39,55 @@ import (
 	"go.mongodb.org/mongo-driver/v2/mongo/options"
 
 	"arqlearn/ai-content-pipeline/internal/geminiclient"
+	"arqlearn/ai-content-pipeline/internal/pgstore"
 	"arqlearn/ai-content-pipeline/internal/store"
 )
 
 func main() {
-	textPath := flag.String("text", "", "caminho do arquivo de texto-fonte (obrigatório)")
-	page := flag.Int("page", 1, "número da página de origem, ecoado em source_page")
-	count := flag.Int("count", 5, "quantidade de perguntas a gerar")
+	textPath := flag.String("text", "", "caminho do arquivo de texto-fonte (modo manual — mutuamente exclusivo com -upload-id)")
+	uploadID := flag.String("upload-id", "", "uploads.id (uuid) — busca chunks reais em content_chunks (modo RAG — mutuamente exclusivo com -text)")
+	page := flag.Int("page", 1, "número da página de origem no modo -text, ecoado em source_page (ignorado no modo -upload-id, que usa a página real de cada chunk)")
+	count := flag.Int("count", 5, "quantidade de perguntas a gerar por chunk/página")
 	trackID := flag.String("track-id", "", "_id da trilha (tracks) — precisa já existir (obrigatório)")
 	lessonID := flag.String("lesson-id", "", "_id da lição (lessons) — cria se não existir (obrigatório)")
 	lessonTitle := flag.String("lesson-title", "", "título da lição/unidade, usado só ao criar")
 	flag.Parse()
 
-	if *textPath == "" || *trackID == "" || *lessonID == "" {
-		log.Fatal("uso: generate-questions -text=arquivo.txt -page=N -count=N -track-id=... -lesson-id=... [-lesson-title=\"...\"]")
+	if (*textPath == "") == (*uploadID == "") {
+		log.Fatal("informe exatamente um de -text ou -upload-id")
+	}
+	if *trackID == "" || *lessonID == "" {
+		log.Fatal("uso: generate-questions (-text=arquivo.txt -page=N | -upload-id=uuid) -count=N -track-id=... -lesson-id=... [-lesson-title=\"...\"]")
 	}
 
 	apiKey := os.Getenv("GEMINI_API_KEY")
 	if apiKey == "" {
 		log.Fatal("GEMINI_API_KEY não configurada no ambiente")
 	}
-
-	textBytes, err := os.ReadFile(*textPath)
-	if err != nil {
-		log.Fatalf("falha ao ler %s: %v", *textPath, err)
-	}
-
 	client := geminiclient.New(apiKey)
-	questions, err := client.GenerateQuestions(context.Background(), string(textBytes), *page, *count)
+
+	sourceChunks, err := loadSourceChunks(*textPath, *uploadID, *page)
 	if err != nil {
-		log.Fatal(quotaHint(err))
+		log.Fatal(err)
 	}
 
-	valid := make([]geminiclient.GeneratedQuestion, 0, len(questions))
-	for i, q := range questions {
-		if err := geminiclient.Validate(q); err != nil {
-			log.Printf("AVISO: pergunta %d/%d reprovada na validação, descartada — %v", i+1, len(questions), err)
-			continue
+	var valid []geminiclient.GeneratedQuestion
+	var total int
+	for _, chunk := range sourceChunks {
+		questions, err := client.GenerateQuestions(context.Background(), chunk.Text, chunk.Page, *count)
+		if err != nil {
+			log.Fatal(quotaHint(err))
 		}
-		valid = append(valid, q)
+		total += len(questions)
+		for i, q := range questions {
+			if err := geminiclient.Validate(q); err != nil {
+				log.Printf("AVISO: pergunta %d/%d (página %d) reprovada na validação, descartada — %v", i+1, len(questions), chunk.Page, err)
+				continue
+			}
+			valid = append(valid, q)
+		}
 	}
-	log.Printf("%d/%d perguntas passaram na validação estrutural (ver SAD §9.5)", len(valid), len(questions))
+	log.Printf("%d/%d perguntas passaram na validação estrutural (ver SAD §9.5)", len(valid), total)
 	if len(valid) == 0 {
 		log.Fatal("nenhuma pergunta válida gerada — nada foi gravado no banco")
 	}
@@ -85,6 +102,11 @@ func main() {
 
 	if err := ensureTrackExists(ctx, db, *trackID); err != nil {
 		log.Fatal(err)
+	}
+
+	var sourceUploadID any
+	if *uploadID != "" {
+		sourceUploadID = *uploadID
 	}
 
 	now := time.Now().UTC()
@@ -110,7 +132,7 @@ func main() {
 			"explanation":        q.Explanation,
 			"difficulty":         q.Difficulty,
 			"confidence":         q.Confidence,
-			"source_upload_id":   nil,
+			"source_upload_id":   sourceUploadID,
 			"source_excerpt_ref": bson.M{"page": q.SourcePage},
 			"review_status":      reviewStatus,
 			"created_at":         now,
@@ -131,6 +153,46 @@ func main() {
 
 	log.Printf("%d perguntas gravadas em lesson_id=%s, track_id=%s (%d auto-aprovadas por confidence=high, %d aguardando cmd/review-questions)",
 		len(newQuestionIDs), *lessonID, *trackID, autoApproved, len(newQuestionIDs)-autoApproved)
+}
+
+type sourceChunk struct {
+	Page int
+	Text string
+}
+
+// loadSourceChunks resolve o texto-fonte pro modo escolhido — -text vira um único chunk manual;
+// -upload-id busca todos os chunks reais já extraídos/embeddados (cmd/ingest-file) daquele
+// upload, em ordem de página.
+func loadSourceChunks(textPath, uploadID string, page int) ([]sourceChunk, error) {
+	if textPath != "" {
+		textBytes, err := os.ReadFile(textPath)
+		if err != nil {
+			return nil, fmt.Errorf("falha ao ler %s: %w", textPath, err)
+		}
+		return []sourceChunk{{Page: page, Text: string(textBytes)}}, nil
+	}
+
+	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+	defer cancel()
+	pool, err := pgstore.Connect(ctx, os.Getenv("DATABASE_URL"))
+	if err != nil {
+		return nil, fmt.Errorf("falha ao conectar no Postgres: %w", err)
+	}
+	defer pool.Close()
+
+	chunks, err := pgstore.ChunksForUpload(ctx, pool, uploadID)
+	if err != nil {
+		return nil, err
+	}
+	if len(chunks) == 0 {
+		return nil, fmt.Errorf("nenhum chunk encontrado em content_chunks pro upload_id=%s — rode cmd/ingest-file primeiro", uploadID)
+	}
+
+	result := make([]sourceChunk, len(chunks))
+	for i, c := range chunks {
+		result[i] = sourceChunk{Page: c.Page, Text: c.Text}
+	}
+	return result, nil
 }
 
 func ensureTrackExists(ctx context.Context, db *mongo.Database, trackID string) error {
