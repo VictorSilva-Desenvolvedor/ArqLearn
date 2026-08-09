@@ -76,7 +76,7 @@ func main() {
 
 	users.RegisterRoutes(mux, pool, verifier)
 	learning.RegisterRoutes(mux, pool, mongoDB, verifier, groq)
-	gamification.RegisterRoutes(mux)
+	gamification.RegisterRoutes(mux, pool, verifier)
 	ingestion.RegisterRoutes(mux, pool, verifier, r2)
 	notifications.RegisterRoutes(mux)
 	analytics.RegisterRoutes(mux)
