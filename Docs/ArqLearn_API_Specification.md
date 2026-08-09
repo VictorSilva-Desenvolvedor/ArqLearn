@@ -296,6 +296,12 @@ como base para o painel do professor.
 
 ### 6.1 Modo Infinito *(v1.1)*
 
+> **Decisão (Docs/PENDENCIAS_IA.md #7):** Modo Infinito não tem geração de pergunta dedicada — reaproveita
+> o mesmo pool de `questions` com `review_status: "approved"`, filtrando por `tracks.topic` igual ao
+> `topic` pedido. Nenhuma pergunta é gerada especificamente para esta sessão; a "infinitude" vem de
+> repetir/misturar o pool existente, não de geração sob demanda. Ainda stub — endpoints abaixo continuam
+> `501 NOT_IMPLEMENTED`.
+
 **`POST /v1/infinite-mode/sessions`** — Inicia uma sessão de Modo Infinito para um tópico.
 
 ```json
