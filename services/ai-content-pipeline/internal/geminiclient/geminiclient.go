@@ -14,8 +14,10 @@ import (
 )
 
 const (
-	baseURL      = "https://generativelanguage.googleapis.com/v1beta/models"
-	defaultModel = "gemini-flash-lite-latest" // alias que o Google mantém apontado pro modelo lite atual — não fixar versão (2.5/3.1/... muda com frequência)
+	baseURL        = "https://generativelanguage.googleapis.com/v1beta/models"
+	defaultModel   = "gemini-flash-lite-latest" // alias que o Google mantém apontado pro modelo lite atual — não fixar versão (2.5/3.1/... muda com frequência)
+	embeddingModel = "gemini-embedding-001"
+	embeddingDims  = 1536 // bate com content_chunks.embedding VECTOR(1536), Database Design §5
 )
 
 type Client struct {
@@ -174,6 +176,69 @@ func (c *Client) GenerateQuestions(ctx context.Context, sourceText string, sourc
 		return nil, fmt.Errorf("geminiclient: JSON de perguntas inválido: %w", err)
 	}
 	return questions, nil
+}
+
+type embedRequest struct {
+	Model                 string  `json:"model"`
+	Content               content `json:"content"`
+	OutputDimensionality  int     `json:"outputDimensionality"`
+}
+
+type embedResponse struct {
+	Embedding *struct {
+		Values []float32 `json:"values"`
+	} `json:"embedding"`
+	Error *struct {
+		Message string `json:"message"`
+	} `json:"error"`
+}
+
+// Embed gera o vetor de embedding de um chunk de texto (1 página, ver internal/pdfextract) pra
+// gravar em content_chunks.embedding (Database Design §5, pgvector VECTOR(1536)) — confirmado ao
+// vivo que outputDimensionality:1536 devolve exatamente 1536 valores em embedding.values.
+func (c *Client) Embed(ctx context.Context, text string) ([]float32, error) {
+	if !c.Enabled() {
+		return nil, fmt.Errorf("geminiclient: GEMINI_API_KEY não configurada")
+	}
+
+	reqBody, err := json.Marshal(embedRequest{
+		Model:                "models/" + embeddingModel,
+		Content:              content{Parts: []part{{Text: text}}},
+		OutputDimensionality: embeddingDims,
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	url := fmt.Sprintf("%s/%s:embedContent?key=%s", baseURL, embeddingModel, c.apiKey)
+	req, err := http.NewRequestWithContext(ctx, http.MethodPost, url, bytes.NewReader(reqBody))
+	if err != nil {
+		return nil, err
+	}
+	req.Header.Set("Content-Type", "application/json")
+
+	resp, err := c.httpClient.Do(req)
+	if err != nil {
+		return nil, fmt.Errorf("geminiclient: requisição de embedding falhou: %w", err)
+	}
+	defer resp.Body.Close()
+
+	body, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return nil, err
+	}
+
+	var parsed embedResponse
+	if err := json.Unmarshal(body, &parsed); err != nil {
+		return nil, fmt.Errorf("geminiclient: resposta de embedding inválida (status %d): %w", resp.StatusCode, err)
+	}
+	if parsed.Error != nil {
+		return nil, fmt.Errorf("geminiclient: %s", parsed.Error.Message)
+	}
+	if parsed.Embedding == nil || len(parsed.Embedding.Values) != embeddingDims {
+		return nil, fmt.Errorf("geminiclient: embedding com dimensão inesperada (esperado %d)", embeddingDims)
+	}
+	return parsed.Embedding.Values, nil
 }
 
 // Validate confere invariantes estruturais que o responseSchema NÃO garante — descoberto na
