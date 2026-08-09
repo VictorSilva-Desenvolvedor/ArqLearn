@@ -27,28 +27,41 @@
   contra as respostas reais geradas nesta sessão), mas faltavam as regras de guardrail do §8/§9
   (direitos autorais, não forçar geração com conteúdo insuficiente) — adicionadas ao `systemPrompt` do
   `geminiclient`. Header do Persona Prompt atualizado (não referencia mais "Anthropic API").
+- **Ingestão real** (08/2026, decisão do usuário: construir agora) — cobre o que estava nas pendências #1-#3
+  originais. Fechado ponta a ponta e testado ao vivo em cada etapa: tabela `uploads` (Postgres,
+  `migrations/0002_uploads`, FK real em `content_chunks.upload_id`); `internal/objectstorage` (R2,
+  S3-compatible) nos dois módulos; `POST/GET /v1/uploads` reais no monolith; `internal/pdfextract`
+  (extração pura Go, sem OCR); `geminiclient.Embed()` (1536 dim, confirmado bater com
+  `content_chunks.embedding`); `internal/pgstore` gravando chunk+embedding; `cmd/ingest-file` (CLI
+  ponta a ponta); `cmd/generate-questions -upload-id` gerando pergunta de RAG real, com
+  `source_upload_id` preenchido de verdade (fecha a antiga pendência #3 — perguntas geradas via `-text`
+  solto continuam com `source_upload_id: null`, sem plano de retrofit, o rastreamento real ali é
+  `source_excerpt_ref.page`). Único elo pendente: ver pendência #1 abaixo (R2 não habilitado).
 
 ## Pendências
 
-### 1. Ingestão real — EM ANDAMENTO
-Decisão do usuário (08/2026): construir agora, não adiar mais. Cobre o que estava nas pendências #2 e #3
-originais (schema de `uploads`, S3/R2, OCR Tesseract, chunking/embeddings em `content_chunks`) — sendo
-planejado como próximo passo desta mesma conversa (plan mode).
+### 1. R2 não habilitado na conta Cloudflare — bloqueia o upload real de arquivo
+A API do Cloudflare (`GET /accounts/{id}/r2/buckets`) devolve `10042: Please enable R2 through the
+Cloudflare Dashboard` — confirmado que não é só a API de gerência: o próprio endpoint S3 do bucket
+(`PutObject`/`GetObject`) falha com `TLS handshake failure`, testado com `curl` e com o cliente HTTP nativo
+do Go (não é bug de ambiente Windows/curl). Presign de URL (`PresignUpload`) funciona normalmente porque é
+cálculo local, sem round-trip — só a escrita/leitura do objeto em si depende do R2 estar habilitado. Ação
+necessária: habilitar R2 no painel da Cloudflare (pode pedir cartão cadastrado mesmo pro tier grátis, sem
+cobrança até passar de 10GB) e criar o bucket `arqlearn-uploads` (nome já reservado em `R2_BUCKET_NAME` no
+`.env`). Depois disso, rodar `cmd/ingest-file` contra um PDF real de `Docs/ignorar/` pra fechar o teste
+ponta a ponta que ficou pendente (todas as outras etapas — extração, embedding, gravação em
+`content_chunks`, geração de pergunta via `-upload-id` — já foram validadas ao vivo com dados semeados
+manualmente, contornando só a etapa de upload).
 
 ### 2. Política de dados do tier grátis do Gemini — decisão consciente, não bloqueante
 Google pode usar input/output do tier grátis pra treinar modelo. Isso deixou de ser hipotético: com a
-ingestão real (item 1), material do próprio usuário passa a fluir pelo Gemini de verdade. Decisão: manter
-Gemini free tier mesmo assim, consistente com o critério "sem cartão" que o usuário reafirmou várias
-vezes nesta sessão (Vertex AI resolveria a política de dados, mas exige billing GCP). Se isso incomodar,
-revisitar — não é uma decisão silenciosa, foi sinalizada explicitamente.
+ingestão real (pendência #1 acima resolvida no código, só falta o R2), material do próprio usuário passa a
+fluir pelo Gemini de verdade assim que um upload real for processado. Decisão: manter Gemini free tier
+mesmo assim, consistente com o critério "sem cartão" que o usuário reafirmou várias vezes nesta sessão
+(Vertex AI resolveria a política de dados, mas exige billing GCP). Se isso incomodar, revisitar — não é
+uma decisão silenciosa, foi sinalizada explicitamente.
 
-### 3. `source_upload_id` — deixa de ser sempre `null` quando a ingestão real existir
-Antes era "aceitável deixar `null` pra sempre"; com a ingestão real entrando em construção, perguntas
-geradas a partir de um upload de verdade devem carregar o `upload_id` real. Perguntas já publicadas via
-CLI solto (sem upload) continuam com `null` — não há plano de retrofit pra elas, e está tudo bem, o
-rastreamento real está em `source_excerpt_ref.page`.
-
-### 4. Sem monitoramento de quota dos tiers grátis
+### 3. Sem monitoramento de quota dos tiers grátis
 Gemini e Groq têm limite de requisições/tokens por dia (a pesquisa já mostrou que o Google cortou a quota
 grátis em ~50-80% em dez/2025 — pode mudar de novo sem aviso). Mitigação mínima adicionada:
 `cmd/generate-questions` agora reconhece erro de quota/rate-limit e imprime uma dica clara em vez de só

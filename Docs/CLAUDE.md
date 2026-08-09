@@ -113,18 +113,28 @@ estrutura real já criada no repositório, não um plano:**
                               `review-questions` (aprovação manual, um a um) promove pra
                               `approved` — esse é o único jeito de uma pergunta ficar jogável. A
                               trilha (`-track-id`) precisa já existir (ver seeds/); a lição é
-                              criada se ainda não existir. Sem upload real (S3/OCR/RAG) ainda —
-                              texto-fonte é colado à mão, extraído manualmente; ingestão real
-                              (estágios 1-3 do pipeline, SAD §9.1-9.3), edição de pergunta via CLI
-                              e o fluxo de revisão baseado em `/uploads/{id}/questions` (API Spec
-                              §7, depende de uma coleção `uploads` que não existe) continuam fora
-                              de escopo — não construir sem decisão explícita, é trabalho
-                              significativo (S3, presigned URL, OCR/Tesseract, RAG/pgvector).
+                              criada se ainda não existir. `generate-questions` aceita `-text=` (texto
+                              colado à mão, trilha curada sem upload — Maquetes hoje) OU `-upload-id=`
+                              (RAG real: busca todos os chunks de `content_chunks` daquele upload,
+                              gera uma pergunta por chunk, grava `source_upload_id` de verdade —
+                              ver bloco do `ai-content-pipeline` abaixo pro fluxo completo de
+                              ingestão). `POST/GET /v1/uploads` (ver pacote `ingestion` abaixo) são
+                              reais; `GET/PATCH .../questions` (revisão de pergunta por upload pela
+                              própria API, não pelo CLI) e edição de pergunta via CLI continuam
+                              fora de escopo.
+                            - ingestion: `POST /v1/uploads`, `POST /v1/uploads/{upload_id}/complete`
+                              e `GET /v1/uploads/{upload_id}` são reais — gravam/leem a tabela
+                              `uploads` (Postgres, `migrations/0002_uploads`) e geram a URL
+                              pré-assinada via `internal/objectstorage` (R2, S3-compatible, AWS SDK
+                              v2). `GET/PATCH .../questions` continuam stub. Upload real de arquivo
+                              (PUT na URL pré-assinada) depende do bucket R2 estar habilitado na
+                              conta Cloudflare — ver `Docs/PENDENCIAS_IA.md` #1; presign funciona
+                              sempre (é cálculo local, sem round-trip pro R2).
                             - gamification: algorithms.go tem calcularXP/Nivel/AtualizarSRS/
                               AtualizarStreak como funções puras testadas (algorithms_test.go),
                               usadas por learning — as rotas HTTP deste pacote (/v1/gamification/*)
                               continuam stub.
-                            - ingestion, notifications, analytics: stub.
+                            - notifications, analytics: stub.
                           Toda rota sem menção acima é stub 501 NOT_IMPLEMENTED via
                           internal/apierror — ver ArqLearn_API_Specification.md para o contrato
                           real de cada uma antes de implementar. internal/authmiddleware valida o
@@ -144,17 +154,29 @@ estrutura real já criada no repositório, não um plano:**
                           vai aparecer onde não existe.)
   /ai-content-pipeline  (Go — módulo próprio, go.mod "arqlearn/ai-content-pipeline". Processo
                           assíncrono separado — já nasce desacoplado por fila no SAD §9, não
-                          muda nesta fase. internal/pipeline define os 6 estágios do SAD §9.1–9.6;
-                          o motor de chamada de IA do estágio 4 (geração de perguntas) já é real
-                          — internal/geminiclient, testado ao vivo contra a API do Gemini — mas a
-                          função generateQuestions() em si continua stub porque os estágios 1-3
-                          (extração/RAG) não existem ainda pra alimentá-la com texto de verdade
-                          dentro do fluxo de evento. Usável hoje fora desse fluxo via
-                          cmd/generate-questions (texto colado manualmente) + cmd/review-questions
-                          (aprovação manual) — ver fluxo completo documentado no bloco do pacote
-                          `learning` do monolith acima (pendência #6). internal/store abre a
-                          conexão Mongo pros dois CLIs. cmd/worker/main.go ainda não consome SQS de
-                          verdade — TODO explícito no código.)
+                          muda nesta fase. internal/pipeline define os 6 estágios do SAD §9.1–9.6
+                          como stub — Run(ContentUploaded) nunca é chamado de verdade porque
+                          cmd/worker não consome fila real ainda (TODO explícito no código); a
+                          ingestão real roda por CLI operacional em vez de por evento, mesmo
+                          espírito de cmd/generate-questions (ver abaixo). internal/pdfextract
+                          extrai texto de PDF (pure Go, github.com/ledongthuc/pdf, sem OCR —
+                          PDFs escaneados/imagem não são suportados nesta fase, ver
+                          PENDENCIAS_IA.md); 1 página = 1 chunk. internal/geminiclient tem
+                          GenerateQuestions() (geração) e Embed() (gemini-embedding-001,
+                          outputDimensionality:1536 — confirmado ao vivo que bate com
+                          content_chunks.embedding VECTOR(1536)). internal/pgstore conecta no
+                          mesmo Postgres do monolith (simple protocol mode, mesmo motivo do
+                          pooler Supavisor — ver internal/db no bloco do monolith acima) e grava
+                          chunk+embedding em content_chunks. internal/objectstorage (R2,
+                          S3-compatible) tem Upload() e Download() — diferente do lado monolith,
+                          que só tem PresignUpload() (o usuário final nunca fala direto com este
+                          módulo). cmd/ingest-file roda o fluxo completo ponta a ponta (sobe pro
+                          R2 → extrai → embedda → grava chunks) contra um PDF local; testado ao
+                          vivo em cada etapa, exceto a escrita no R2 em si, que depende do bucket
+                          existir (ver PENDENCIAS_IA.md #1 — R2 ainda não habilitado na conta
+                          Cloudflare). cmd/generate-questions (ver bloco do pacote `learning`
+                          acima) e cmd/review-questions (aprovação manual) fecham o ciclo.
+                          internal/store abre a conexão Mongo pros CLIs que gravam pergunta.)
 /apps
   /web    (Next.js — App Router, TypeScript, Tailwind v4. Tokens de
            blueprint_narrative/DESIGN.md portados para src/app/globals.css via @theme; fontes
