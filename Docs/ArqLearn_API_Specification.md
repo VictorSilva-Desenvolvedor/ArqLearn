@@ -3,7 +3,7 @@
 
 Especificação de referência dos endpoints REST expostos pelo API Gateway.
 
-Versão 1.12 | Agosto de 2026
+Versão 1.13 | Agosto de 2026
 Documento complementar ao SAD e ao TDD do ArqLearn v1.0
 
 > **Sobre esta versão:** versão em Markdown, mantida como fonte da verdade a partir de agora (ver
@@ -27,6 +27,7 @@ Documento complementar ao SAD e ao TDD do ArqLearn v1.0
 | 1.10 | 09/08/2026 | Equipe de Engenharia | §7: adiciona `GET /v1/uploads` (listagem, paginada) — endpoint novo, não existia em nenhuma versão anterior. Fecha a lacuna que deixava a tela "Meus Materiais" do Explorar sem alternativa a não ser mock (ver `Docs/PENDENCIAS_WEB_REAL.md`) |
 | 1.11 | 09/08/2026 | Equipe de Engenharia | §9: `GET /v1/notifications` e `PATCH /v1/notifications/preferences` deixam de ser stub — implementados contra a nova coleção `notifications` (MongoDB) e as colunas `push_enabled`/`email_enabled` de `users` (Postgres). Lista de notificações real, mas legitimamente vazia hoje (nenhum gatilho escreve nela ainda). Nenhum contrato mudou |
 | 1.12 | 09/08/2026 | Equipe de Engenharia | §3.2: adiciona `hearts_next_at` ao `GamificationProfile` (a pedido do usuário) — vidas agora regeneram sozinhas com o tempo (TDD §5.4, novo); `hearts_current` nunca fazia isso antes |
+| 1.13 | 09/08/2026 | Equipe de Engenharia | §6.2/§6.3: `GET /v1/uploads/{upload_id}/summary`, `POST /v1/uploads/{upload_id}/chat` e `GET .../chat` deixam de ser stub — implementados contra `content_chunks` (pgvector) e as coleções `content_summaries`/`material_chat_messages` (ambas já desenhadas desde a v1.1). Testado ao vivo com upload/chunks semeados manualmente (sem depender do bloqueio de R2, ver `Docs/PENDENCIAS_IA.md` #1) — em produção, indisponível até existir upload real processado. Nenhum contrato mudou |
 
 ---
 
@@ -368,6 +369,14 @@ Erros: `404 SESSION_NOT_FOUND`
 
 ### 6.2 Resumo Inteligente *(v1.1)*
 
+> **v1.13 — real** (Groq, mesmo provedor de §5.3 "explique melhor", escolhido pela mesma razão:
+> chamada síncrona que o usuário está esperando responder). Consome `content_chunks` (pgvector,
+> Database Design §5) — RAG simplificado, sem busca por similaridade ainda (usa todos os chunks do
+> upload, mesma decisão de `cmd/generate-questions -upload-id=`). Cacheado em `content_summaries`
+> (Database Design §4.7) — só gera uma vez por upload. Testado ao vivo com upload/chunks semeados
+> manualmente no banco; em produção fica indisponível até um upload real terminar de processar
+> (bloqueado por R2, ver `Docs/PENDENCIAS_IA.md` #1) — não é uma limitação deste endpoint.
+
 **`GET /v1/uploads/{upload_id}/summary`** — Retorna o resumo estruturado gerado por IA para o upload.
 Gera sob demanda na primeira chamada se ainda não existir (processamento síncrono só é aceitável se o
 upload já estiver `ready_for_review`/`published` — caso contrário retorna 409).
@@ -386,6 +395,12 @@ upload já estiver `ready_for_review`/`published` — caso contrário retorna 40
 Erros: `404 UPLOAD_NOT_FOUND` · `409 UPLOAD_NOT_READY`
 
 ### 6.3 Chat sobre Material *(v1.1)*
+
+> **v1.13 — os três endpoints abaixo são reais** (Groq, JSON mode — o modelo sinaliza
+> `in_scope: false` quando a pergunta foge do material, o que vira `422 QUESTION_OUT_OF_SCOPE`,
+> Persona Prompt §7.2). Mesmo RAG simplificado de §6.2 (todos os chunks do upload). Histórico
+> persistido em `material_chat_messages` (Database Design §4.8). Mesma ressalva de §6.2: real e
+> testado, mas sem upload real de usuário até o R2 ser habilitado.
 
 **`POST /v1/uploads/{upload_id}/chat`** — Envia uma pergunta em linguagem natural sobre o material.
 Resposta ancorada por RAG ao conteúdo do próprio upload.
