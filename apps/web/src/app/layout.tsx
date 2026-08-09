@@ -2,7 +2,14 @@ import type { Metadata } from "next";
 import { cookies } from "next/headers";
 import { Hanken_Grotesk, Inter, JetBrains_Mono } from "next/font/google";
 import { AuthProvider } from "@/contexts/AuthContext";
+import { ThemeProvider } from "@/contexts/ThemeContext";
+import { ToastProvider } from "@/contexts/ToastContext";
+import { LevelUpCelebration } from "@/components/features/gamification/LevelUpCelebration";
+import { Toast } from "@/components/ui/Toast";
 import { ACCOUNT_COOKIE } from "@/lib/auth/constants";
+import { THEME_COOKIE } from "@/lib/theme/constants";
+import { getServerAccessToken } from "@/lib/supabase/server";
+import { getMe } from "@/lib/api/resources/users";
 import "./globals.css";
 
 const hankenGrotesk = Hanken_Grotesk({
@@ -31,6 +38,15 @@ export const metadata: Metadata = {
 export default async function RootLayout({ children }: LayoutProps<"/">) {
   const cookieStore = await cookies();
   const initialAccountId = cookieStore.get(ACCOUNT_COOKIE)?.value ?? null;
+  const initialTopic = cookieStore.get(THEME_COOKIE)?.value ?? null;
+
+  // Busca a sessão real (se existir) aqui, uma vez, pro primeiro render do cliente já vir com
+  // `user` preenchido — sem isso, toda sessão real teria uma janela client-side com `user: null`
+  // até o useEffect do AuthContext resolver, e useAuth() (usado por TopAppBar e outros) explode
+  // nesse meio-tempo achando que é uma rota desprotegida. Conta mockada nunca teve esse problema
+  // porque já vinha síncrona via initialAccountId.
+  const accessToken = await getServerAccessToken();
+  const initialMe = accessToken ? await getMe(accessToken).catch(() => null) : null;
 
   return (
     <html
@@ -45,7 +61,13 @@ export default async function RootLayout({ children }: LayoutProps<"/">) {
         />
       </head>
       <body className="min-h-full flex flex-col">
-        <AuthProvider initialAccountId={initialAccountId}>{children}</AuthProvider>
+        <ToastProvider>
+          <AuthProvider initialAccountId={initialAccountId} initialMe={initialMe}>
+            <ThemeProvider initialTopic={initialTopic}>{children}</ThemeProvider>
+            <LevelUpCelebration />
+          </AuthProvider>
+          <Toast />
+        </ToastProvider>
       </body>
     </html>
   );

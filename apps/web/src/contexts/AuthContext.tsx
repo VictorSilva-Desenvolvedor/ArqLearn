@@ -18,6 +18,12 @@ interface MeResponse {
   gamification: GamificationProfile;
 }
 
+function landingPathForRole(role: User["role"]): string {
+  if (role === "teacher") return "/painel";
+  if (role === "admin") return "/admin";
+  return "/";
+}
+
 export interface AuthContextValue {
   user: User | null;
   gamification: GamificationProfile;
@@ -27,9 +33,13 @@ export interface AuthContextValue {
   // POST /v1/gamification/streak/freeze. Rastreado à parte, igual ao patch de User.
   streakFreezesAvailable: number;
   adjustStreakFreezes: (delta: number) => void;
-  // Sessão real (Supabase Auth) — usar isto pro login de verdade (ex.: Maria, aluna real).
-  // Retorna uma mensagem de erro legível, ou null se deu certo.
-  loginWithPassword: (email: string, password: string) => Promise<string | null>;
+  // Sessão real (Supabase Auth) — usar isto pro login de verdade (Maria/Marina/Admin, todas
+  // contas reais agora). error null = deu certo; landingPath é pra onde a página de login deve
+  // navegar em caso de sucesso (varia por papel — teacher/admin não caem no "/" do aluno).
+  loginWithPassword: (
+    email: string,
+    password: string,
+  ) => Promise<{ error: string | null; landingPath: string }>;
   isRealSession: boolean;
   // Modo demonstração (sem Supabase) — só pra professor/admin, que ainda não têm conta real.
   switchAccount: (accountId: MockAccountId) => void;
@@ -43,27 +53,29 @@ export interface AuthContextValue {
 // via Supabase Auth (única fonte de verdade pra contas de aluno reais, ex.: Maria) e a conta
 // mockada por cookie arqlearn_mock_account (única forma de ver as telas de professor/admin, que
 // ainda não têm conta real — ver login page). Sessão real tem prioridade sobre a mockada quando
-// as duas existem. `initialAccountId` vem do cookie lido no servidor em app/layout.tsx, pra SSR e
-// primeira renderização do cliente concordarem no caminho mockado (evita flash/hydration
-// mismatch); o caminho real não tem essa otimização ainda — a primeira renderização mostra
-// `user: null` até o useEffect resolver a sessão do Supabase e buscar o perfil real.
+// as duas existem. `initialAccountId`/`initialMe` vêm do servidor (app/layout.tsx, que já lê o
+// cookie mockado e busca o perfil real se houver sessão) — os dois casos concordam com SSR desde
+// o primeiro render do cliente, sem janela de `user: null` (useAuth(), usado por TopAppBar e
+// outros, parte do princípio de que uma rota protegida sempre tem usuário).
 export const AuthContext = createContext<AuthContextValue | null>(null);
 
 export function AuthProvider({
   children,
   initialAccountId,
+  initialMe,
 }: {
   children: ReactNode;
   initialAccountId: string | null;
+  initialMe: MeResponse | null;
 }) {
   const router = useRouter();
   const initialAccount = getAccountById(initialAccountId);
 
   const [accountId, setAccountId] = useState<MockAccountId | null>(initialAccount?.id ?? null);
-  const [isRealSession, setIsRealSession] = useState(false);
-  const [realUser, setRealUser] = useState<User | null>(null);
+  const [isRealSession, setIsRealSession] = useState(Boolean(initialMe));
+  const [realUser, setRealUser] = useState<User | null>(initialMe?.user ?? null);
   const [gamification, setGamification] = useState<GamificationProfile>(
-    gamificationForAccount(initialAccount?.id),
+    initialMe?.gamification ?? gamificationForAccount(initialAccount?.id),
   );
   // Patch local sobre o User da sessão ativa (nome/fuso editados em Configurações) — não muta
   // fixture/perfil compartilhado, só a sessão atual; reseta ao trocar de conta/sessão.
@@ -115,10 +127,22 @@ export function AuthProvider({
 
   const loginWithPassword = useCallback(async (email: string, password: string) => {
     const supabase = createClient();
-    const { error } = await supabase.auth.signInWithPassword({ email, password });
-    // onAuthStateChange (efeito acima) cuida de buscar o perfil real após o login — aqui só
-    // reporta erro de credencial pro formulário.
-    return error?.message ?? null;
+    const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+    if (error || !data.session) {
+      return { error: error?.message ?? "Falha no login.", landingPath: "/" };
+    }
+
+    // Busca o papel aqui (não só espera o onAuthStateChange do efeito acima) porque a página de
+    // login precisa saber pra onde navegar assim que o login der certo — teacher/admin não devem
+    // cair no "/" do aluno. O efeito acima roda de qualquer forma em paralelo (evento SIGNED_IN)
+    // e deixa o estado consistente; essa segunda leitura aqui é redundante mas inofensiva.
+    setAccessTokenProvider(() => data.session.access_token);
+    try {
+      const me = await apiFetch<MeResponse>("/v1/users/me");
+      return { error: null, landingPath: landingPathForRole(me.user.role) };
+    } catch {
+      return { error: "Login feito, mas não foi possível carregar seu perfil.", landingPath: "/" };
+    }
   }, []);
 
   const switchAccount = useCallback((id: MockAccountId) => {

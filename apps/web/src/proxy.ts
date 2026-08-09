@@ -4,17 +4,13 @@ import { ACCOUNT_COOKIE } from "@/lib/auth/constants";
 import { getAccountById } from "@/lib/api/mocks/fixtures/accounts";
 import { refreshSupabaseSession } from "@/lib/supabase/middleware";
 
-// Rotas restritas a professor+admin, e a admin sozinho. Tudo que não está aqui só exige
-// qualquer sessão logada (real ou conta mockada de demonstração).
-const TEACHER_OR_ADMIN_PREFIXES = ["/painel", "/revisao"];
-const ADMIN_ONLY_PREFIXES = ["/admin"];
-
-// Dois jeitos de estar "logado" nesta fase: sessão real do Supabase Auth (ex.: Maria, aluna) ou
-// a conta mockada de demonstração (professor/admin — sem conta real ainda, ver
-// Docs/CLAUDE.md). O papel (role) só existe de verdade em `users.role` (Postgres), que o Proxy
-// não consulta (Next.js recomenda só checagem otimista aqui, sem ida ao banco) — então rotas
-// restritas a professor/admin só reconhecem o papel vindo da conta mockada; uma sessão real
-// tentando acessar `/painel`/`/admin` cai no landingPath padrão (aluno), nunca é liberada.
+// Dois jeitos de estar "logado" nesta fase: sessão real do Supabase Auth (Maria, Marina, Admin —
+// ver Docs/CLAUDE.md) ou a conta mockada de demonstração (fallback pra quem ainda não tem conta
+// real). Proxy só faz a checagem OTIMISTA de autenticação (existe sessão?) — não decide papel
+// aqui. O papel (`users.role`, Postgres) exige ida ao banco pra sessão real, e a documentação do
+// Next.js é explícita: isso não deve rodar no Proxy (roda em toda rota, inclusive prefetch) — vai
+// no Data Access Layer de cada página/layout protegido (ver app/(teacher)/layout.tsx e
+// app/admin/layout.tsx, que chamam GET /v1/users/me e redirecionam se o papel não bater).
 export async function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
@@ -23,31 +19,16 @@ export async function proxy(request: NextRequest) {
   const mockAccount = getAccountById(accountId);
 
   const isAuthenticated = Boolean(realUser) || Boolean(mockAccount);
-  const landingPath = mockAccount?.landingPath ?? "/";
 
   if (pathname === "/login") {
     if (isAuthenticated) {
-      return NextResponse.redirect(new URL(landingPath, request.url));
+      return NextResponse.redirect(new URL(mockAccount?.landingPath ?? "/", request.url));
     }
     return supabaseResponse;
   }
 
   if (!isAuthenticated) {
     return NextResponse.redirect(new URL("/login", request.url));
-  }
-
-  const role = mockAccount?.user.role ?? null;
-
-  if (ADMIN_ONLY_PREFIXES.some((prefix) => pathname.startsWith(prefix)) && role !== "admin") {
-    return NextResponse.redirect(new URL(landingPath, request.url));
-  }
-
-  if (
-    TEACHER_OR_ADMIN_PREFIXES.some((prefix) => pathname.startsWith(prefix)) &&
-    role !== "teacher" &&
-    role !== "admin"
-  ) {
-    return NextResponse.redirect(new URL(landingPath, request.url));
   }
 
   return supabaseResponse;
