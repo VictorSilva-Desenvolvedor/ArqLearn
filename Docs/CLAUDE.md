@@ -26,6 +26,7 @@ referência para trabalho novo.
 | `Docs/ArqLearn_Documento_Tecnico_Design.docx` (UX) | Arquitetura de informação, fluxos de tela, tokens de design, especificação visual da gamificação | Antes de implementar UI em `apps/mobile`/`apps/web` |
 | `Docs/stitch_app_visual_identity/` | Identidade visual completa (17/17 telas — ver `PENDENCIAS_TELAS.md`): logo, telas de alta fidelidade em `code.html`/`screen.png`, tokens em `blueprint_narrative/DESIGN.md` | Ao construir componentes visuais — usar como referência de layout/cor/tipografia, não copiar o HTML estático direto para produção |
 | `Docs/ArqLearn_Estrategia_Bootstrap.md` | Topologia gratuita/de baixo custo para a fase de 5–20 usuários (Fases 0–2 do roadmap), tabela de substituição por camada, gatilhos de graduação para a arquitetura-alvo | **Sempre, nesta fase** — antes de escolher onde/como implantar qualquer coisa |
+| `Docs/PENDENCIAS_IA.md` | Lista de trabalho — decisões abertas, escopo deliberadamente deixado de fora, riscos operacionais sem mitigação, tudo relacionado a Gemini/Groq | Antes de expandir o uso de IA (nova feature, novo provedor, ingestão real) — conferir se já não é uma pendência conhecida |
 
 **Nota sobre "TDD":** dois documentos usam esse nome de formas diferentes. O
 `ArqLearn_TDD_Technical_Design_Document.md` (linha acima) é o TDD no sentido "Technical Design Document"
