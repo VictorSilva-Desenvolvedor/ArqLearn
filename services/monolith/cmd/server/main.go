@@ -10,6 +10,7 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"strings"
 	"time"
 
 	"github.com/jackc/pgx/v5/pgxpool"
@@ -18,6 +19,7 @@ import (
 
 	"arqlearn/monolith/internal/analytics"
 	"arqlearn/monolith/internal/authmiddleware"
+	"arqlearn/monolith/internal/corsmiddleware"
 	"arqlearn/monolith/internal/db"
 	"arqlearn/monolith/internal/documentdb"
 	"arqlearn/monolith/internal/gamification"
@@ -79,15 +81,39 @@ func main() {
 	notifications.RegisterRoutes(mux)
 	analytics.RegisterRoutes(mux)
 
+	// Sem isso, qualquer chamada feita direto do browser (client-side) pro backend real é
+	// bloqueada no preflight — ver internal/corsmiddleware. CORS_ALLOWED_ORIGINS vazio = sem
+	// origem liberada nenhuma (comportamento anterior); "*" não é aceito de propósito, a lista
+	// precisa ser explícita.
+	corsOrigins := splitAndTrim(os.Getenv("CORS_ALLOWED_ORIGINS"))
+	if len(corsOrigins) == 0 {
+		log.Print("aviso: CORS_ALLOWED_ORIGINS ausente — chamadas client-side de apps/web ficarão bloqueadas pelo navegador")
+	}
+	handler := corsmiddleware.New(corsOrigins)(mux)
+
 	port := os.Getenv("PORT")
 	if port == "" {
 		port = "8080"
 	}
 
 	log.Printf("arqlearn monolith ouvindo em :%s", port)
-	if err := http.ListenAndServe(":"+port, mux); err != nil {
+	if err := http.ListenAndServe(":"+port, handler); err != nil {
 		log.Fatal(err)
 	}
+}
+
+func splitAndTrim(csv string) []string {
+	if csv == "" {
+		return nil
+	}
+	parts := strings.Split(csv, ",")
+	result := make([]string, 0, len(parts))
+	for _, p := range parts {
+		if trimmed := strings.TrimSpace(p); trimmed != "" {
+			result = append(result, trimmed)
+		}
+	}
+	return result
 }
 
 func handleHealth(w http.ResponseWriter, r *http.Request) {
