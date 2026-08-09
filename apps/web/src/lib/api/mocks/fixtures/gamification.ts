@@ -13,9 +13,11 @@ export const mockGamificationProfile: GamificationProfile = {
 };
 
 export const mockAchievementUnlocks: Achievement[] = [
-  { type: "fundacoes_mestre", unlocked_at: "2026-06-01T10:00:00Z" },
-  { type: "urbanismo_explorador", unlocked_at: "2026-06-15T10:00:00Z" },
-  { type: "paisagismo_iniciante", unlocked_at: "2026-07-02T10:00:00Z" },
+  { type: "primeira_licao", unlocked_at: "2026-06-01T10:00:00Z" },
+  { type: "licao_perfeita", unlocked_at: "2026-06-01T10:05:00Z" },
+  { type: "licoes_completas_1", unlocked_at: "2026-06-05T10:00:00Z" },
+  { type: "licoes_completas_2", unlocked_at: "2026-06-15T10:00:00Z" },
+  { type: "streak_dias_1", unlocked_at: "2026-06-20T10:00:00Z" },
 ];
 
 // Regra da tela (Docs/stitch_app_visual_identity/liga_semanal/code.html): top 10 promovem,

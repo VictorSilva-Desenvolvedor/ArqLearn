@@ -3,7 +3,7 @@
 
 Modelo de dados detalhado: esquema relacional, documentos, vetores, cache e estratégias de persistência.
 
-Versão 1.11 | Agosto de 2026
+Versão 1.15 | Agosto de 2026
 Documento complementar ao SAD e ao TDD do ArqLearn v1.0
 
 > **Sobre esta versão:** versão em Markdown, mantida como fonte da verdade a partir de agora (ver
@@ -26,6 +26,7 @@ Documento complementar ao SAD e ao TDD do ArqLearn v1.0
 | 1.9 | 09/08/2026 | Equipe de Engenharia / Dados | Adiciona a tabela `uploads` (Postgres) — nunca desenhada até então, deixava `content_chunks.upload_id` sem FK real. Ingestão real (R2 + extração de PDF + chunking + embeddings) implementada e testada ao vivo ponta a ponta |
 | 1.10 | 09/08/2026 | Equipe de Engenharia / Dados | Documenta o schema real de `infinite_mode_sessions` (§4.4.2) — o índice já listado em §4.5 desde a v1.1 era especulativo (`{user_id, status}`, campo `status` nunca existiu) e nunca tinha sido criado de fato; implementação real do Modo Infinito usa TTL sobre `expires_at`, mesmo padrão de `practice_sessions` |
 | 1.11 | 09/08/2026 | Equipe de Engenharia / Dados | Adiciona `notifications_enabled`, `push_enabled` e `email_enabled` a `users` (Postgres, migrations 0003/0005) e a coleção `notifications` (§4.4.3) — `GET /v1/notifications` e `PATCH /v1/users/me/notification-preferences` reais, mas a coleção fica legitimamente vazia até existir algum job que insira notificação de verdade |
+| 1.15 | 09/08/2026 | Equipe de Engenharia / Dados | Adiciona 15 contadores vitalícios a `user_gamification` (migrations/0006, a pedido do usuário) — nenhum contador cumulativo existia antes, só saldos atuais (xp_total/gems), que não servem pra checar limiar tipo "responda 100 perguntas ao todo". `achievements` (schema inalterado desde v1.0) passa a ser gravada de verdade pela primeira vez — catálogo completo em `internal/gamification/achievements.go` |
 
 ---
 
@@ -146,7 +147,26 @@ CREATE TABLE user_gamification (
   hearts_current SMALLINT NOT NULL DEFAULT 5 CHECK (hearts_current BETWEEN 0 AND 5),
   hearts_updated_at TIMESTAMPTZ NOT NULL DEFAULT now(),
   gems INTEGER NOT NULL DEFAULT 0 CHECK (gems >= 0),
-  streak_freezes_available SMALLINT NOT NULL DEFAULT 0
+  streak_freezes_available SMALLINT NOT NULL DEFAULT 0,
+  -- Contadores vitalícios (migrations/0006, v1.15) — usados só pra avaliar condição de
+  -- desbloqueio de conquistas (tabela `achievements` abaixo); nenhum outro lugar do produto lê
+  -- estas colunas. Nunca resetam (diferente de xp_today), cada um incrementado no handler da
+  -- ação correspondente.
+  lessons_completed_total INTEGER NOT NULL DEFAULT 0,
+  answers_correct_total INTEGER NOT NULL DEFAULT 0,
+  perfect_lessons_total INTEGER NOT NULL DEFAULT 0,
+  explain_used_total INTEGER NOT NULL DEFAULT 0,
+  infinite_questions_total INTEGER NOT NULL DEFAULT 0,
+  infinite_correct_streak_current INTEGER NOT NULL DEFAULT 0,
+  infinite_correct_streak_best INTEGER NOT NULL DEFAULT 0,
+  infinite_sessions_total INTEGER NOT NULL DEFAULT 0,
+  shop_purchases_total INTEGER NOT NULL DEFAULT 0,
+  gems_spent_total INTEGER NOT NULL DEFAULT 0,
+  uploads_total INTEGER NOT NULL DEFAULT 0,
+  summaries_generated_total INTEGER NOT NULL DEFAULT 0,
+  material_chat_messages_total INTEGER NOT NULL DEFAULT 0,
+  bug_reports_total INTEGER NOT NULL DEFAULT 0,
+  bug_reports_resolved_total INTEGER NOT NULL DEFAULT 0
 );
 
 CREATE TABLE leagues (
@@ -165,6 +185,11 @@ CREATE TABLE league_members (
 );
 CREATE INDEX idx_league_members_ranking ON league_members(league_id, xp_this_week DESC);
 
+-- Schema inalterado desde a v1.0 — o que mudou na v1.15 foi o código que grava aqui (nada
+-- gravava antes). Conquistas em nível (ex.: "infinito_sem_erros_1".."_5") são uma linha por
+-- nível, não uma coluna "tier" — UNIQUE(user_id, type) trata cada nível como desbloqueio
+-- independente. Catálogo completo (condições, níveis, recompensas) em
+-- services/monolith/internal/gamification/achievements.go — não duplicado aqui.
 CREATE TABLE achievements (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,

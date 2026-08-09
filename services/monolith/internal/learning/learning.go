@@ -27,13 +27,13 @@ func RegisterRoutes(mux *http.ServeMux, pool *pgxpool.Pool, mongoDB *mongo.Datab
 	mux.Handle("GET /v1/tracks/{track_id}/lessons", verifier.Middleware(http.HandlerFunc(handleListTrackLessons(mongoDB))))
 	mux.Handle("POST /v1/lessons/{lesson_id}/session", verifier.Middleware(http.HandlerFunc(handleStartSession(pool, mongoDB))))
 	mux.Handle("POST /v1/lessons/{lesson_id}/answers", verifier.Middleware(http.HandlerFunc(handleSubmitAnswer(pool, mongoDB))))
-	mux.Handle("POST /v1/lessons/{lesson_id}/questions/{question_id}/explain", verifier.Middleware(http.HandlerFunc(handleExplainQuestion(mongoDB, groq))))
+	mux.Handle("POST /v1/lessons/{lesson_id}/questions/{question_id}/explain", verifier.Middleware(http.HandlerFunc(handleExplainQuestion(pool, mongoDB, groq))))
 	mux.Handle("GET /v1/progress/summary", verifier.Middleware(http.HandlerFunc(handleProgressSummary(mongoDB))))
 
 	// Modo Infinito — API Spec §6.1
 	mux.Handle("POST /v1/infinite-mode/sessions", verifier.Middleware(http.HandlerFunc(handleStartInfiniteMode(mongoDB))))
 	mux.Handle("POST /v1/infinite-mode/sessions/{session_id}/answers", verifier.Middleware(http.HandlerFunc(handleInfiniteModeAnswer(pool, mongoDB))))
-	mux.Handle("POST /v1/infinite-mode/sessions/{session_id}/end", verifier.Middleware(http.HandlerFunc(handleEndInfiniteMode(mongoDB))))
+	mux.Handle("POST /v1/infinite-mode/sessions/{session_id}/end", verifier.Middleware(http.HandlerFunc(handleEndInfiniteMode(pool, mongoDB))))
 
 	// Resumo Inteligente — API Spec §6.2
 	mux.Handle("GET /v1/uploads/{upload_id}/summary", verifier.Middleware(http.HandlerFunc(handleUploadSummary(pool, mongoDB, groq))))

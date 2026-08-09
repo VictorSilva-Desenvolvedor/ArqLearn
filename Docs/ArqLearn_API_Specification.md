@@ -3,7 +3,7 @@
 
 Especificação de referência dos endpoints REST expostos pelo API Gateway.
 
-Versão 1.13 | Agosto de 2026
+Versão 1.16 | Agosto de 2026
 Documento complementar ao SAD e ao TDD do ArqLearn v1.0
 
 > **Sobre esta versão:** versão em Markdown, mantida como fonte da verdade a partir de agora (ver
@@ -28,6 +28,7 @@ Documento complementar ao SAD e ao TDD do ArqLearn v1.0
 | 1.11 | 09/08/2026 | Equipe de Engenharia | §9: `GET /v1/notifications` e `PATCH /v1/notifications/preferences` deixam de ser stub — implementados contra a nova coleção `notifications` (MongoDB) e as colunas `push_enabled`/`email_enabled` de `users` (Postgres). Lista de notificações real, mas legitimamente vazia hoje (nenhum gatilho escreve nela ainda). Nenhum contrato mudou |
 | 1.12 | 09/08/2026 | Equipe de Engenharia | §3.2: adiciona `hearts_next_at` ao `GamificationProfile` (a pedido do usuário) — vidas agora regeneram sozinhas com o tempo (TDD §5.4, novo); `hearts_current` nunca fazia isso antes |
 | 1.13 | 09/08/2026 | Equipe de Engenharia | §6.2/§6.3: `GET /v1/uploads/{upload_id}/summary`, `POST /v1/uploads/{upload_id}/chat` e `GET .../chat` deixam de ser stub — implementados contra `content_chunks` (pgvector) e as coleções `content_summaries`/`material_chat_messages` (ambas já desenhadas desde a v1.1). Testado ao vivo com upload/chunks semeados manualmente (sem depender do bloqueio de R2, ver `Docs/PENDENCIAS_IA.md` #1) — em produção, indisponível até existir upload real processado. Nenhum contrato mudou |
+| 1.16 | 09/08/2026 | Equipe de Engenharia | §8: `achievements` em `GET /v1/gamification/me` passa a ser preenchido de verdade — desde a v1.0 a tabela existia mas nada nunca gravava nela. Catálogo de ~44 conquistas (a pedido do usuário) cobrindo lições, Modo Infinito, streak, Loja, Materiais e relatos de bug, a maioria em 5 níveis progressivos; cada desbloqueio credita XP/gemas uma única vez. Nenhum contrato mudou — resposta já era `{type, unlocked_at}[]` |
 
 ---
 
@@ -503,6 +504,12 @@ gerada.
 Erros: `409 QUESTION_ALREADY_REVIEWED`
 
 ## 8. Gamification Service
+
+> **v1.16 — `achievements` é real.** Catálogo completo (tipos, condições de desbloqueio, níveis,
+> recompensas) vive em `services/monolith/internal/gamification/achievements.go` — não neste
+> documento, pra não duplicar a fonte da verdade. `title`/`description`/`icon` de cada conquista
+> são conteúdo do cliente (`apps/web/src/lib/gamification/achievementCatalog.ts`), a API só
+> devolve `{type, unlocked_at}` como sempre documentado.
 
 **`GET /v1/gamification/me`** — Retorna o `GamificationProfile` completo do usuário.
 

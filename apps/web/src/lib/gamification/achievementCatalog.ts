@@ -8,36 +8,162 @@ export interface AchievementCatalogEntry {
   gems_reward: number;
 }
 
-// A API só devolve {type, unlocked_at} — título/descrição/ícone/recompensas exibidos são
-// conteúdo do cliente, mapeado por tipo (igual a um catálogo de conquistas versionado no app).
+// Recompensa por nível de conquista repetível (índice 0 = nível 1) — espelha exatamente
+// tierXPRewards/tierGemsRewards em services/monolith/internal/gamification/achievements.go. Se
+// um valor mudar de um lado, muda do outro — os dois lados não têm como compartilhar código (Go
+// vs TypeScript), então isso é conferido manualmente por enquanto.
+const tierXP = [20, 40, 80, 150, 300];
+const tierGems = [5, 8, 15, 25, 50];
+
+// tier() monta as 5 entradas de uma família repetível (ex.: "infinito_sem_erros_1".."_5") — cada
+// "type" precisa bater exatamente com o gerado por tierFamilies em achievements.go
+// (`fmt.Sprintf("%s_%d", base, i+1)`).
+function tier(
+  base: string,
+  icon: string,
+  thresholds: [number, number, number, number, number],
+  describe: (threshold: number) => string,
+  title: (level: number) => string,
+): Record<AchievementType, AchievementCatalogEntry> {
+  const entries: Record<AchievementType, AchievementCatalogEntry> = {};
+  thresholds.forEach((threshold, i) => {
+    entries[`${base}_${i + 1}`] = {
+      title: title(i + 1),
+      description: describe(threshold),
+      icon,
+      xp_reward: tierXP[i],
+      gems_reward: tierGems[i],
+    };
+  });
+  return entries;
+}
+
+// A API só devolve {type, unlocked_at} — título/descrição (a "dica" de como desbloquear)/ícone/
+// recompensas exibidos são conteúdo do cliente, mapeado por tipo. Cada "type" aqui precisa ter um
+// espelho exato do lado do backend (internal/gamification/achievements.go) — é lá que a condição
+// de desbloqueio de verdade é avaliada; este catálogo só decide o que mostrar quando ela bate.
 export const achievementCatalog: Record<AchievementType, AchievementCatalogEntry> = {
-  fundacoes_mestre: {
-    title: "Mestre das Estruturas",
-    description:
-      "Você completou 5 lições consecutivas sobre fundações e vigas sem errar nenhuma questão.",
-    icon: "foundation",
-    xp_reward: 50,
-    gems_reward: 10,
-  },
-  urbanismo_explorador: {
-    title: "Explorador Urbano",
-    description: "Você concluiu sua primeira trilha de Urbanismo.",
-    icon: "location_city",
-    xp_reward: 40,
-    gems_reward: 8,
-  },
-  paisagismo_iniciante: {
-    title: "Semente Verde",
-    description: "Você iniciou sua jornada em Paisagismo.",
-    icon: "park",
-    xp_reward: 30,
-    gems_reward: 5,
+  // --- Prática de lições ---
+  primeira_licao: {
+    title: "Primeiro Passo",
+    description: "Complete sua primeira lição em qualquer trilha.",
+    icon: "school",
+    xp_reward: 10,
+    gems_reward: 2,
   },
   licao_perfeita: {
     title: "Precisão Cirúrgica",
-    description: "Você completou uma lição inteira sem errar nenhuma questão.",
+    description: "Complete uma lição inteira sem errar nenhuma questão.",
     icon: "verified",
     xp_reward: 25,
     gems_reward: 5,
+  },
+  explique_melhor: {
+    title: "Curioso(a) de Plantão",
+    description: "Use o botão \"Explique melhor\" pela primeira vez, numa questão que errou.",
+    icon: "psychology",
+    xp_reward: 15,
+    gems_reward: 3,
+  },
+  ...tier(
+    "licoes_completas",
+    "menu_book",
+    [5, 15, 30, 60, 100],
+    (n) => `Complete ${n} lições ao todo, em qualquer trilha.`,
+    (level) => `Estudante Dedicado ${level}`,
+  ),
+  ...tier(
+    "respostas_certas",
+    "check_circle",
+    [50, 150, 300, 600, 1000],
+    (n) => `Acerte ${n} perguntas ao todo, em qualquer lição.`,
+    (level) => `Sabe Tudo ${level}`,
+  ),
+
+  // --- Modo Infinito ---
+  infinito_10_perguntas: {
+    title: "Sem Parar",
+    description: "Responda 10 perguntas no Modo Infinito (ao todo, em qualquer sessão).",
+    icon: "all_inclusive",
+    xp_reward: 15,
+    gems_reward: 3,
+  },
+  ...tier(
+    "infinito_sem_erros",
+    "target",
+    [10, 25, 50, 100, 200],
+    (n) => `Acerte ${n} perguntas seguidas sem errar no Modo Infinito.`,
+    (level) => `Mira Certeira ${level}`,
+  ),
+  ...tier(
+    "infinito_sessoes",
+    "replay",
+    [10, 25, 50, 100, 200],
+    (n) => `Jogue o Modo Infinito ${n} vezes (encerrando a sessão com pelo menos 1 pergunta respondida).`,
+    (level) => `Maratonista ${level}`,
+  ),
+
+  // --- Streak ---
+  ...tier(
+    "streak_dias",
+    "local_fire_department",
+    [7, 14, 30, 60, 100],
+    (n) => `Mantenha uma sequência de ${n} dias seguidos estudando.`,
+    (level) => `Chama Acesa ${level}`,
+  ),
+
+  // --- Loja ---
+  primeira_compra: {
+    title: "Primeira Compra",
+    description: "Compre seu primeiro item na Loja da Arquiteta.",
+    icon: "storefront",
+    xp_reward: 15,
+    gems_reward: 3,
+  },
+  ...tier(
+    "gemas_gastas",
+    "diamond",
+    [50, 150, 300, 600, 1000],
+    (n) => `Gaste ${n} gemas ao todo na Loja.`,
+    (level) => `Cliente Fiel ${level}`,
+  ),
+
+  // --- Materiais (Resumo/Chat) ---
+  primeiro_material: {
+    title: "Primeiro Material",
+    description: "Envie seu primeiro material de estudo pra o ArqLearn.",
+    icon: "upload_file",
+    xp_reward: 15,
+    gems_reward: 3,
+  },
+  primeiro_resumo: {
+    title: "Resumo na Mão",
+    description: "Gere seu primeiro Resumo Inteligente a partir de um material enviado.",
+    icon: "summarize",
+    xp_reward: 15,
+    gems_reward: 3,
+  },
+  ...tier(
+    "chat_material",
+    "forum",
+    [5, 15, 30, 60, 100],
+    (n) => `Faça ${n} perguntas no Chat sobre um material enviado.`,
+    (level) => `Conversador ${level}`,
+  ),
+
+  // --- Comunidade ---
+  primeiro_bug: {
+    title: "Olho de Águia",
+    description: "Relate seu primeiro bug encontrado no app (tela \"Ajuda e Bugs\").",
+    icon: "bug_report",
+    xp_reward: 15,
+    gems_reward: 3,
+  },
+  bug_corrigido: {
+    title: "Contribuidor",
+    description: "Tenha um bug ou sugestão que você relatou marcado como corrigido/implementado.",
+    icon: "task_alt",
+    xp_reward: 30,
+    gems_reward: 10,
   },
 };

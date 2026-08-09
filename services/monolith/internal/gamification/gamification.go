@@ -6,6 +6,7 @@ package gamification
 import (
 	"context"
 	"encoding/json"
+	"log"
 	"net/http"
 	"time"
 
@@ -393,9 +394,27 @@ func handleShopPurchase(pool *pgxpool.Pool) http.HandlerFunc {
 			return
 		}
 
+		// Contadores de conquista somados dentro da mesma transação (atômico com o débito de
+		// gemas acima) — só avaliados/gravados como achievement depois do commit confirmado.
+		counters, err := scanCounters(tx.QueryRow(r.Context(), `
+			UPDATE user_gamification SET
+				shop_purchases_total = shop_purchases_total + 1,
+				gems_spent_total = gems_spent_total + $2
+			WHERE user_id = $1
+			RETURNING `+counterColumns, userID, priceGems))
+		if err != nil {
+			apierror.Write(w, http.StatusInternalServerError, "INTERNAL_ERROR", "Falha ao atualizar contadores.")
+			return
+		}
+
 		if err := tx.Commit(r.Context()); err != nil {
 			apierror.Write(w, http.StatusInternalServerError, "INTERNAL_ERROR", "Falha ao concluir compra.")
 			return
+		}
+
+		// Best-effort, mesmo padrão de AddWeeklyXP — a compra já está confirmada acima.
+		if _, err := EvaluateAndUnlock(r.Context(), pool, userID, counters); err != nil {
+			log.Printf("aviso: falha ao avaliar conquistas (user_id=%s): %v", userID, err)
 		}
 
 		resp := purchaseResponse{GemsRestantes: gemsRestantes}
