@@ -1,7 +1,11 @@
+import { getServerAccessToken } from "@/lib/supabase/server";
 import { getMe } from "@/lib/api/resources/users";
 import { getGamificationProfile } from "@/lib/api/resources/gamification";
+import { getProgressSummary } from "@/lib/api/resources/progress";
 import { ProfileHeader } from "@/components/features/profile/ProfileHeader";
 import { ProfileStatsGrid } from "@/components/features/profile/ProfileStatsGrid";
+import { ProgressSummaryCard } from "@/components/features/profile/ProgressSummaryCard";
+import { StreakFreezeCard } from "@/components/features/profile/StreakFreezeCard";
 import { AchievementGrid } from "@/components/features/profile/AchievementGrid";
 import { ProfileMenuLink } from "@/components/features/profile/ProfileMenuLink";
 import { Avatar } from "@/components/ui/Avatar";
@@ -11,7 +15,8 @@ import { LogoutMenuLink } from "@/components/features/profile/LogoutMenuLink";
 const roleLabel: Record<string, string> = { teacher: "Professor", admin: "Administrador" };
 
 export default async function ProfilePage() {
-  const { user } = await getMe();
+  const accessToken = await getServerAccessToken();
+  const { user } = await getMe(accessToken);
   const isStudent = user.role === "student";
 
   // Professor/admin não têm progresso de gamificação nesta fase — evita mostrar o perfil do
@@ -32,26 +37,33 @@ export default async function ProfilePage() {
           exclusivo da experiência do aluno.
         </p>
         <div className="flex flex-col gap-sm">
+          <ProfileMenuLink href="/perfil/configuracoes" icon="settings" label="Configurações" />
           <LogoutMenuLink />
         </div>
       </div>
     );
   }
 
-  const gamification = await getGamificationProfile();
+  // Ambos continuam mockados — /v1/gamification/me e /v1/progress/summary ainda são stub no
+  // backend (ver Docs/CLAUDE.md); XP/nível/streak básicos reais já aparecem em ProfileHeader
+  // (vêm de `user` acima, que é getMe() real).
+  const [gamification, progress] = await Promise.all([getGamificationProfile(), getProgressSummary()]);
 
   return (
     <div className="max-w-2xl mx-auto px-lg py-section flex flex-col gap-lg">
-      <ProfileHeader name={user.name} level={gamification.level} />
+      <ProfileHeader name={user.name} level={gamification.level} xpTotal={gamification.xp_total} />
       <ProfileStatsGrid
+        xpTotal={gamification.xp_total}
         streakCurrent={gamification.streak_current}
         streakBest={gamification.streak_best}
         gems={gamification.gems}
       />
+      <ProgressSummaryCard summary={progress} />
+      <StreakFreezeCard />
       <AchievementGrid unlocked={gamification.achievements} />
       <div className="flex flex-col gap-sm">
         <ProfileMenuLink href="/loja" icon="storefront" label="Loja" />
-        <ProfileMenuLink icon="settings" label="Configurações" />
+        <ProfileMenuLink href="/perfil/configuracoes" icon="settings" label="Configurações" />
         <LogoutMenuLink />
       </div>
     </div>

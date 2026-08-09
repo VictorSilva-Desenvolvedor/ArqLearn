@@ -11,7 +11,12 @@ export interface ListTracksParams {
   cursor?: string;
 }
 
-export async function listTracks(params: ListTracksParams = {}): Promise<Paginated<Track>> {
+// accessToken (opcional) é pra chamadas server-side (ver lib/supabase/server.ts#getServerAccessToken)
+// — chamadas client-side omitem e caem no provider de lib/api/http.ts.
+export async function listTracks(
+  params: ListTracksParams = {},
+  accessToken?: string,
+): Promise<Paginated<Track>> {
   if (isResourceReal("tracks")) {
     const qs = new URLSearchParams(
       Object.entries(params).reduce<Record<string, string>>((acc, [key, value]) => {
@@ -19,7 +24,7 @@ export async function listTracks(params: ListTracksParams = {}): Promise<Paginat
         return acc;
       }, {}),
     ).toString();
-    return apiFetch<Paginated<Track>>(`/v1/tracks${qs ? `?${qs}` : ""}`);
+    return apiFetch<Paginated<Track>>(`/v1/tracks${qs ? `?${qs}` : ""}`, undefined, accessToken);
   }
 
   const filtered = mockTracks.filter((track) => {

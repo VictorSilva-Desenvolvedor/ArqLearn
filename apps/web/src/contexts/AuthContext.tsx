@@ -1,27 +1,52 @@
 "use client";
 
-import { createContext, useCallback, useMemo, useState, type ReactNode } from "react";
+import { createContext, useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { useRouter } from "next/navigation";
 import {
   gamificationForAccount,
   getAccountById,
   type MockAccountId,
 } from "@/lib/api/mocks/fixtures/accounts";
+import { levelForXp } from "@/lib/api/mocks/fixtures/levelCurve";
 import { clearAccountCookie, setAccountCookie } from "@/lib/auth/clientSession";
+import { createClient } from "@/lib/supabase/client";
+import { apiFetch, setAccessTokenProvider } from "@/lib/api/http";
 import type { GamificationProfile, User } from "@/types/api";
+
+interface MeResponse {
+  user: User;
+  gamification: GamificationProfile;
+}
 
 export interface AuthContextValue {
   user: User | null;
   gamification: GamificationProfile;
   updateGamification: (patch: Partial<GamificationProfile>) => void;
+  updateUser: (patch: Partial<User>) => void;
+  // GamificationProfile (contrato real) não tem esse campo — só aparece na resposta de
+  // POST /v1/gamification/streak/freeze. Rastreado à parte, igual ao patch de User.
+  streakFreezesAvailable: number;
+  adjustStreakFreezes: (delta: number) => void;
+  // Sessão real (Supabase Auth) — usar isto pro login de verdade (ex.: Maria, aluna real).
+  // Retorna uma mensagem de erro legível, ou null se deu certo.
+  loginWithPassword: (email: string, password: string) => Promise<string | null>;
+  isRealSession: boolean;
+  // Modo demonstração (sem Supabase) — só pra professor/admin, que ainda não têm conta real.
   switchAccount: (accountId: MockAccountId) => void;
   logout: () => void;
+  // Spec §6: celebração dedicada ao subir de nível. Null quando não há level-up pendente.
+  justLeveledUpTo: number | null;
+  dismissLevelUp: () => void;
 }
 
-// Sessão mockada, agora com troca de conta real (aluno/professor/admin) — sem Supabase, o
-// cookie arqlearn_mock_account é só o que o middleware usa pra proteger rota por papel.
-// `initialAccountId` vem do cookie lido no servidor em app/layout.tsx, pra SSR e primeira
-// renderização do cliente concordarem (evita flash/hydration mismatch).
+// Duas fontes de sessão coexistem nesta fase (ver Docs/PENDENCIAS_IA.md e CLAUDE.md): sessão real
+// via Supabase Auth (única fonte de verdade pra contas de aluno reais, ex.: Maria) e a conta
+// mockada por cookie arqlearn_mock_account (única forma de ver as telas de professor/admin, que
+// ainda não têm conta real — ver login page). Sessão real tem prioridade sobre a mockada quando
+// as duas existem. `initialAccountId` vem do cookie lido no servidor em app/layout.tsx, pra SSR e
+// primeira renderização do cliente concordarem no caminho mockado (evita flash/hydration
+// mismatch); o caminho real não tem essa otimização ainda — a primeira renderização mostra
+// `user: null` até o useEffect resolver a sessão do Supabase e buscar o perfil real.
 export const AuthContext = createContext<AuthContextValue | null>(null);
 
 export function AuthProvider({
@@ -35,40 +60,147 @@ export function AuthProvider({
   const initialAccount = getAccountById(initialAccountId);
 
   const [accountId, setAccountId] = useState<MockAccountId | null>(initialAccount?.id ?? null);
+  const [isRealSession, setIsRealSession] = useState(false);
+  const [realUser, setRealUser] = useState<User | null>(null);
   const [gamification, setGamification] = useState<GamificationProfile>(
     gamificationForAccount(initialAccount?.id),
   );
+  // Patch local sobre o User da sessão ativa (nome/fuso editados em Configurações) — não muta
+  // fixture/perfil compartilhado, só a sessão atual; reseta ao trocar de conta/sessão.
+  const [userPatch, setUserPatch] = useState<Partial<User>>({});
+  const [streakFreezesAvailable, setStreakFreezesAvailable] = useState(0);
+  const [justLeveledUpTo, setJustLeveledUpTo] = useState<number | null>(null);
 
-  const switchAccount = useCallback(
-    (id: MockAccountId) => {
-      setAccountCookie(id);
-      setAccountId(id);
-      setGamification(gamificationForAccount(id));
-    },
-    [setAccountId, setGamification],
-  );
+  // Evita aplicar a resposta de uma sessão antiga se o usuário trocar de sessão rápido demais
+  // (ex.: logout seguido de login) — só a chamada mais recente pode atualizar o estado.
+  const requestIdRef = useRef(0);
 
-  const logout = useCallback(() => {
-    clearAccountCookie();
-    setAccountId(null);
-    router.push("/login");
-  }, [router, setAccountId]);
+  useEffect(() => {
+    const supabase = createClient();
 
-  const updateGamification = useCallback((patch: Partial<GamificationProfile>) => {
-    setGamification((current) => ({ ...current, ...patch }));
+    async function syncFromSession(session: { access_token: string } | null) {
+      const requestId = ++requestIdRef.current;
+      if (!session) {
+        setAccessTokenProvider(() => null);
+        setIsRealSession(false);
+        setRealUser(null);
+        return;
+      }
+
+      setAccessTokenProvider(() => session.access_token);
+      setIsRealSession(true);
+      try {
+        const me = await apiFetch<MeResponse>("/v1/users/me");
+        if (requestIdRef.current !== requestId) return; // sessão trocou de novo enquanto buscava
+        setRealUser(me.user);
+        setGamification(me.gamification);
+        setUserPatch({});
+      } catch {
+        // Sessão real válida mas GET /v1/users/me falhou (backend fora do ar, etc) — mantém a
+        // sessão marcada como real (não cai pro mock) e deixa o perfil null, em vez de mostrar
+        // dado inventado pra uma pessoa real.
+        if (requestIdRef.current === requestId) setRealUser(null);
+      }
+    }
+
+    supabase.auth.getSession().then(({ data }) => syncFromSession(data.session));
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((_event, session) => {
+      syncFromSession(session);
+    });
+
+    return () => subscription.unsubscribe();
   }, []);
 
-  const account = accountId ? getAccountById(accountId) : null;
+  const loginWithPassword = useCallback(async (email: string, password: string) => {
+    const supabase = createClient();
+    const { error } = await supabase.auth.signInWithPassword({ email, password });
+    // onAuthStateChange (efeito acima) cuida de buscar o perfil real após o login — aqui só
+    // reporta erro de credencial pro formulário.
+    return error?.message ?? null;
+  }, []);
+
+  const switchAccount = useCallback((id: MockAccountId) => {
+    setAccountCookie(id);
+    setAccountId(id);
+    setGamification(gamificationForAccount(id));
+    setUserPatch({});
+    setStreakFreezesAvailable(0);
+    setJustLeveledUpTo(null);
+  }, [setAccountId, setGamification, setUserPatch, setStreakFreezesAvailable, setJustLeveledUpTo]);
+
+  const updateUser = useCallback((patch: Partial<User>) => {
+    setUserPatch((current) => ({ ...current, ...patch }));
+  }, []);
+
+  const adjustStreakFreezes = useCallback((delta: number) => {
+    setStreakFreezesAvailable((current) => Math.max(0, current + delta));
+  }, []);
+
+  const logout = useCallback(() => {
+    // Desloga dos dois jeitos possíveis, mesmo que só um esteja ativo — mais simples e seguro do
+    // que rastrear qual modo está ligado antes de decidir o que limpar.
+    void createClient().auth.signOut();
+    clearAccountCookie();
+    setAccountId(null);
+    setIsRealSession(false);
+    setRealUser(null);
+    router.push("/login");
+  }, [router, setAccountId, setIsRealSession, setRealUser]);
+
+  const updateGamification = useCallback((patch: Partial<GamificationProfile>) => {
+    setGamification((current) => {
+      // xp_total muda -> recalcula o nível como o servidor faria (nunca no componente
+      // consumidor). Se o caller já mandou `level` explícito, respeita e não recalcula.
+      const nextLevel =
+        patch.xp_total !== undefined && patch.level === undefined
+          ? levelForXp(patch.xp_total)
+          : (patch.level ?? current.level);
+      if (nextLevel > current.level) {
+        setJustLeveledUpTo(nextLevel);
+      }
+      return { ...current, ...patch, level: nextLevel };
+    });
+  }, []);
+
+  const dismissLevelUp = useCallback(() => {
+    setJustLeveledUpTo(null);
+  }, []);
+
+  const mockAccount = accountId ? getAccountById(accountId) : null;
+  const baseUser = isRealSession ? realUser : (mockAccount?.user ?? null);
 
   const value = useMemo<AuthContextValue>(
     () => ({
-      user: account?.user ?? null,
+      user: baseUser ? { ...baseUser, ...userPatch } : null,
       gamification,
       updateGamification,
+      updateUser,
+      streakFreezesAvailable,
+      adjustStreakFreezes,
+      loginWithPassword,
+      isRealSession,
       switchAccount,
       logout,
+      justLeveledUpTo,
+      dismissLevelUp,
     }),
-    [account, gamification, updateGamification, switchAccount, logout],
+    [
+      baseUser,
+      userPatch,
+      gamification,
+      updateGamification,
+      updateUser,
+      streakFreezesAvailable,
+      adjustStreakFreezes,
+      loginWithPassword,
+      isRealSession,
+      switchAccount,
+      logout,
+      justLeveledUpTo,
+      dismissLevelUp,
+    ],
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
