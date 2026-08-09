@@ -14,6 +14,7 @@ import (
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
+	"log"
 	"net/http"
 	"strconv"
 	"strings"
@@ -25,6 +26,7 @@ import (
 
 	"arqlearn/monolith/internal/apierror"
 	"arqlearn/monolith/internal/authmiddleware"
+	"arqlearn/monolith/internal/gamification"
 	"arqlearn/monolith/internal/objectstorage"
 )
 
@@ -123,6 +125,12 @@ func handleCreateUpload(pool *pgxpool.Pool, r2 *objectstorage.Client) http.Handl
 		if err != nil {
 			apierror.Write(w, http.StatusInternalServerError, "INTERNAL_ERROR", "Falha ao gerar URL de upload.")
 			return
+		}
+
+		if counters, err := gamification.BumpCounters(r.Context(), pool, userID, gamification.CounterDeltas{Uploads: 1}); err != nil {
+			log.Printf("aviso: falha ao atualizar contador de uploads (user_id=%s): %v", userID, err)
+		} else if _, err := gamification.EvaluateAndUnlock(r.Context(), pool, userID, counters); err != nil {
+			log.Printf("aviso: falha ao avaliar conquistas (user_id=%s): %v", userID, err)
 		}
 
 		writeJSON(w, http.StatusCreated, createUploadResponse{

@@ -259,6 +259,14 @@ func handleInfiniteModeAnswer(pool *pgxpool.Pool, mongoDB *mongo.Database) http.
 			return
 		}
 
+		// Conquistas do Modo Infinito (sequência sem errar, total de perguntas) — best-effort,
+		// mesmo padrão de AddWeeklyXP acima.
+		if counters, err := gamification.BumpInfiniteAnswerCounters(r.Context(), pool, userID, correct); err != nil {
+			log.Printf("aviso: falha ao atualizar contadores de conquista do Modo Infinito (user_id=%s): %v", userID, err)
+		} else if _, err := gamification.EvaluateAndUnlock(r.Context(), pool, userID, counters); err != nil {
+			log.Printf("aviso: falha ao avaliar conquistas (user_id=%s): %v", userID, err)
+		}
+
 		resp := map[string]any{
 			"correct":              correct,
 			"xp_ganho":             xpResult.XPConcedido,
@@ -273,7 +281,7 @@ func handleInfiniteModeAnswer(pool *pgxpool.Pool, mongoDB *mongo.Database) http.
 	}
 }
 
-func handleEndInfiniteMode(mongoDB *mongo.Database) http.HandlerFunc {
+func handleEndInfiniteMode(pool *pgxpool.Pool, mongoDB *mongo.Database) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		if mongoDB == nil {
 			apierror.Write(w, http.StatusServiceUnavailable, "SERVICE_UNAVAILABLE", "Serviço indisponível.")
@@ -303,6 +311,15 @@ func handleEndInfiniteMode(mongoDB *mongo.Database) http.HandlerFunc {
 		if sess.QuestionsAnswered > 0 {
 			accuracyRate = float64(sess.CorrectCount) / float64(sess.QuestionsAnswered)
 			avgTimeMs = sess.TotalTimeMs / int64(sess.QuestionsAnswered)
+
+			// Só conta como "rodada" pra conquista de sessões se pelo menos 1 pergunta foi
+			// respondida — encerrar uma sessão vazia não deveria valer ponto. Best-effort, mesmo
+			// padrão dos outros hooks de conquista.
+			if counters, err := gamification.BumpCounters(r.Context(), pool, userID, gamification.CounterDeltas{InfiniteSessions: 1}); err != nil {
+				log.Printf("aviso: falha ao atualizar contador de sessões do Modo Infinito (user_id=%s): %v", userID, err)
+			} else if _, err := gamification.EvaluateAndUnlock(r.Context(), pool, userID, counters); err != nil {
+				log.Printf("aviso: falha ao avaliar conquistas (user_id=%s): %v", userID, err)
+			}
 		}
 
 		writeJSON(w, http.StatusOK, map[string]any{

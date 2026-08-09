@@ -5,6 +5,7 @@ import (
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
+	"log"
 	"net/http"
 	"strconv"
 	"strings"
@@ -19,6 +20,7 @@ import (
 
 	"arqlearn/monolith/internal/apierror"
 	"arqlearn/monolith/internal/authmiddleware"
+	"arqlearn/monolith/internal/gamification"
 	"arqlearn/monolith/internal/groqclient"
 )
 
@@ -238,6 +240,12 @@ func handleUploadSummary(pool *pgxpool.Pool, mongoDB *mongo.Database, groq *groq
 			return
 		}
 
+		if counters, err := gamification.BumpCounters(r.Context(), pool, userID, gamification.CounterDeltas{SummariesGenerated: 1}); err != nil {
+			log.Printf("aviso: falha ao atualizar contador de resumos (user_id=%s): %v", userID, err)
+		} else if _, err := gamification.EvaluateAndUnlock(r.Context(), pool, userID, counters); err != nil {
+			log.Printf("aviso: falha ao avaliar conquistas (user_id=%s): %v", userID, err)
+		}
+
 		writeJSON(w, http.StatusOK, doc)
 	}
 }
@@ -338,6 +346,14 @@ func handlePostMaterialChat(pool *pgxpool.Pool, mongoDB *mongo.Database, groq *g
 		if _, err := mongoDB.Collection("material_chat_messages").InsertOne(r.Context(), assistantMsg); err != nil {
 			apierror.Write(w, http.StatusInternalServerError, "INTERNAL_ERROR", "Falha ao salvar resposta.")
 			return
+		}
+
+		// Só conta pra conquista quando a pergunta foi respondida de verdade (fora de escopo, o
+		// early-return acima nem chega aqui) — best-effort, mesmo padrão dos outros hooks.
+		if counters, err := gamification.BumpCounters(r.Context(), pool, userID, gamification.CounterDeltas{MaterialChatMessages: 1}); err != nil {
+			log.Printf("aviso: falha ao atualizar contador de chat sobre material (user_id=%s): %v", userID, err)
+		} else if _, err := gamification.EvaluateAndUnlock(r.Context(), pool, userID, counters); err != nil {
+			log.Printf("aviso: falha ao avaliar conquistas (user_id=%s): %v", userID, err)
 		}
 
 		writeJSON(w, http.StatusOK, map[string]any{

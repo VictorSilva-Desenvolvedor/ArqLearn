@@ -227,6 +227,33 @@ func handleSubmitAnswer(pool *pgxpool.Pool, mongoDB *mongo.Database) http.Handle
 			return
 		}
 
+		// Conquistas (não bloqueia a resposta se falhar — mesmo padrão de AddWeeklyXP acima: XP/
+		// vidas/streak já foram gravados de verdade, só a checagem de conquista é best-effort).
+		// perfect_lessons_total só soma na conclusão de uma lição sem NENHUM erro registrado nela
+		// (wrongCount ainda em 0 depois do incremento acima).
+		perfectLesson := 0
+		if isFirstCompletion && wrongCount == 0 {
+			perfectLesson = 1
+		}
+		lessonCompleted := 0
+		if isFirstCompletion {
+			lessonCompleted = 1
+		}
+		answerCorrect := 0
+		if correct {
+			answerCorrect = 1
+		}
+		counters, err := gamification.BumpCounters(r.Context(), pool, userID, gamification.CounterDeltas{
+			LessonsCompleted: lessonCompleted,
+			AnswersCorrect:   answerCorrect,
+			PerfectLessons:   perfectLesson,
+		})
+		if err != nil {
+			log.Printf("aviso: falha ao atualizar contadores de conquista (user_id=%s): %v", userID, err)
+		} else if _, err := gamification.EvaluateAndUnlock(r.Context(), pool, userID, counters); err != nil {
+			log.Printf("aviso: falha ao avaliar conquistas (user_id=%s): %v", userID, err)
+		}
+
 		writeJSON(w, http.StatusOK, map[string]any{
 			"correct":              correct,
 			"xp_ganho":             xpResult.XPConcedido,

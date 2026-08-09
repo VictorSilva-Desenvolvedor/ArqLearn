@@ -4,14 +4,17 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"log"
 	"net/http"
 	"time"
 
+	"github.com/jackc/pgx/v5/pgxpool"
 	"go.mongodb.org/mongo-driver/v2/bson"
 	"go.mongodb.org/mongo-driver/v2/mongo"
 
 	"arqlearn/monolith/internal/apierror"
 	"arqlearn/monolith/internal/authmiddleware"
+	"arqlearn/monolith/internal/gamification"
 	"arqlearn/monolith/internal/groqclient"
 )
 
@@ -45,7 +48,7 @@ essa informação em vez de inventar. Resposta em no máximo 4 frases.`
 // POST .../answers (campo "explicacao", sem custo de IA por resposta errada — ver nota em
 // Docs/CLAUDE.md sobre isso). Groq foi escolhido pela baixa latência: é uma chamada síncrona que
 // o usuário está esperando.
-func handleExplainQuestion(mongoDB *mongo.Database, groq *groqclient.Client) http.HandlerFunc {
+func handleExplainQuestion(pool *pgxpool.Pool, mongoDB *mongo.Database, groq *groqclient.Client) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		if mongoDB == nil {
 			apierror.Write(w, http.StatusServiceUnavailable, "SERVICE_UNAVAILABLE", "Serviço indisponível.")
@@ -55,7 +58,8 @@ func handleExplainQuestion(mongoDB *mongo.Database, groq *groqclient.Client) htt
 			apierror.Write(w, http.StatusServiceUnavailable, "SERVICE_UNAVAILABLE", "Explicação aprofundada indisponível no momento.")
 			return
 		}
-		if _, ok := authmiddleware.UserID(r.Context()); !ok {
+		userID, ok := authmiddleware.UserID(r.Context())
+		if !ok {
 			apierror.Write(w, http.StatusUnauthorized, "UNAUTHENTICATED", "Token inválido.")
 			return
 		}
@@ -91,6 +95,12 @@ func handleExplainQuestion(mongoDB *mongo.Database, groq *groqclient.Client) htt
 		if err != nil {
 			apierror.Write(w, http.StatusBadGateway, "AI_PROVIDER_ERROR", "Falha ao gerar explicação aprofundada.")
 			return
+		}
+
+		if counters, err := gamification.BumpCounters(r.Context(), pool, userID, gamification.CounterDeltas{ExplainUsed: 1}); err != nil {
+			log.Printf("aviso: falha ao atualizar contador de explique-melhor (user_id=%s): %v", userID, err)
+		} else if _, err := gamification.EvaluateAndUnlock(r.Context(), pool, userID, counters); err != nil {
+			log.Printf("aviso: falha ao avaliar conquistas (user_id=%s): %v", userID, err)
 		}
 
 		writeJSON(w, http.StatusOK, map[string]any{
