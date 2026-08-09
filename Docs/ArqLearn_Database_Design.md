@@ -3,7 +3,7 @@
 
 Modelo de dados detalhado: esquema relacional, documentos, vetores, cache e estratégias de persistência.
 
-Versão 1.10 | Agosto de 2026
+Versão 1.11 | Agosto de 2026
 Documento complementar ao SAD e ao TDD do ArqLearn v1.0
 
 > **Sobre esta versão:** versão em Markdown, mantida como fonte da verdade a partir de agora (ver
@@ -25,6 +25,7 @@ Documento complementar ao SAD e ao TDD do ArqLearn v1.0
 | 1.8 | 08/08/2026 | Equipe de Engenharia / Dados | Adiciona `confidence` a `questions` (já exigido pelo Persona Prompt §4.6-4.7 na geração, nunca persistido) — encontrado ao implementar `cmd/generate-questions`/`cmd/review-questions` (`ai-content-pipeline`); sem o campo, quem revisa não vê a autoavaliação de confiança do modelo |
 | 1.9 | 09/08/2026 | Equipe de Engenharia / Dados | Adiciona a tabela `uploads` (Postgres) — nunca desenhada até então, deixava `content_chunks.upload_id` sem FK real. Ingestão real (R2 + extração de PDF + chunking + embeddings) implementada e testada ao vivo ponta a ponta |
 | 1.10 | 09/08/2026 | Equipe de Engenharia / Dados | Documenta o schema real de `infinite_mode_sessions` (§4.4.2) — o índice já listado em §4.5 desde a v1.1 era especulativo (`{user_id, status}`, campo `status` nunca existiu) e nunca tinha sido criado de fato; implementação real do Modo Infinito usa TTL sobre `expires_at`, mesmo padrão de `practice_sessions` |
+| 1.11 | 09/08/2026 | Equipe de Engenharia / Dados | Adiciona `notifications_enabled`, `push_enabled` e `email_enabled` a `users` (Postgres, migrations 0003/0005) e a coleção `notifications` (§4.4.3) — `GET /v1/notifications` e `PATCH /v1/users/me/notification-preferences` reais, mas a coleção fica legitimamente vazia até existir algum job que insira notificação de verdade |
 
 ---
 
@@ -103,7 +104,13 @@ CREATE TABLE users (
   timezone VARCHAR(64) NOT NULL DEFAULT 'America/Sao_Paulo',
   tenant_id UUID,
   deleted_at TIMESTAMPTZ,
-  created_at TIMESTAMPTZ NOT NULL DEFAULT now()
+  created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+  -- Preferências de notificação (migrations/0003 e 0005, v1.11) — notifications_enabled é a
+  -- preferência geral (PATCH /v1/users/me); push_enabled/email_enabled são por canal
+  -- (PATCH /v1/notifications/preferences, API Spec §9). Duas rotas distintas, três colunas.
+  notifications_enabled BOOLEAN NOT NULL DEFAULT true,
+  push_enabled BOOLEAN NOT NULL DEFAULT true,
+  email_enabled BOOLEAN NOT NULL DEFAULT true
 );
 CREATE INDEX idx_users_tenant ON users(tenant_id) WHERE deleted_at IS NULL;
 
@@ -388,6 +395,28 @@ Mesmo padrão de expiração de `practice_sessions`: TTL de 30 minutos sobre `ex
 pergunta dentro da mesma sessão; quando o pool de perguntas aprovadas do tópico se esgota,
 `next_question` sai ausente da resposta (API Spec §6.1) e o cliente trata como fim natural.
 
+### 4.4.3 Coleção: `notifications` *(v1.11)*
+
+Notificações in-app do usuário (`GET /v1/notifications`, API Spec §9) — schema nunca tinha sido
+desenhado antes (endpoint stub desde a v1.0). Permanente, sem TTL — diferente das coleções de
+sessão efêmera acima, notificação não expira sozinha.
+
+```json
+{
+  "_id": "uuid",
+  "user_id": "uuid",
+  "type": "streak_at_risk | league_promotion | league_demotion | new_challenge | questions_ready_for_review | welcome",
+  "message": "string",
+  "read": false,
+  "created_at": "datetime"
+}
+```
+
+Nenhum código ainda insere documento nesta coleção — os gatilhos (streak em risco, promoção de
+liga etc.) dependem de jobs agendados que não existem (mesmo motivo de `cmd/worker` não consumir
+fila real, ver `Docs/CLAUDE.md`). `GET /v1/notifications` é real e funcional, só que
+legitimamente devolve lista vazia até algum gatilho passar a escrever aqui.
+
 ### 4.5 Estratégia de Indexação (MongoDB)
 
 | Coleção | Índices |
@@ -399,6 +428,7 @@ pergunta dentro da mesma sessão; quando o pool de perguntas aprovadas do tópic
 | `infinite_mode_sessions` | `{expires_at: 1}` (TTL, `expireAfterSeconds: 0`) — mesmo padrão de `practice_sessions`. *(v1.1, corrigido na v1.9 — ver §4.4.2)* |
 | `content_summaries` | `{upload_id: 1}` (único) — um resumo ativo por upload. *(v1.1)* |
 | `material_chat_messages` | `{upload_id: 1, user_id: 1, created_at: 1}` — histórico ordenado por thread. *(v1.1)* |
+| `notifications` | `{user_id: 1, created_at: -1}` — listagem paginada, mais recentes primeiro. *(v1.11)* |
 | `practice_sessions` | `{expires_at: 1}` (TTL, `expireAfterSeconds: 0`) — autolimpeza de sessões abandonadas. *(v1.6)* |
 
 *Tabela 3 — Índices recomendados por coleção MongoDB.*
