@@ -2,7 +2,8 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
-import { startLessonSession, submitAnswer } from "@/lib/api/resources/lessons";
+import { explainQuestion, startLessonSession, submitAnswer } from "@/lib/api/resources/lessons";
+import { ApiError } from "@/lib/api/http";
 import { useAuth } from "@/hooks/useAuth";
 import type { AnswerResult, LessonSession, SessionQuestion } from "@/types/api";
 
@@ -18,6 +19,9 @@ export function useQuizSession(trackId: string, lessonId: string) {
   const [hearts, setHearts] = useState(gamification.hearts_current);
   const [correctCount, setCorrectCount] = useState(0);
   const [sessionXpEarned, setSessionXpEarned] = useState(0);
+  const [deepExplanation, setDeepExplanation] = useState<string | null>(null);
+  const [explainLoading, setExplainLoading] = useState(false);
+  const [explainError, setExplainError] = useState<string | null>(null);
   const questionStartRef = useRef<number>(0);
   const loading = session === null;
 
@@ -78,6 +82,24 @@ export function useQuizSession(trackId: string, lessonId: string) {
     gamification.xp_today,
   ]);
 
+  const explainMore = useCallback(async () => {
+    if (!currentQuestion) return;
+    setExplainLoading(true);
+    setExplainError(null);
+    try {
+      const { deep_explanation } = await explainQuestion(lessonId, currentQuestion.id, {
+        selected_option_id: selectedOptionId ?? undefined,
+      });
+      setDeepExplanation(deep_explanation);
+    } catch (err) {
+      setExplainError(
+        err instanceof ApiError ? err.message : "Não foi possível aprofundar a explicação agora.",
+      );
+    } finally {
+      setExplainLoading(false);
+    }
+  }, [currentQuestion, lessonId, selectedOptionId]);
+
   const goToNextOrFinish = useCallback(() => {
     if (!session) return;
     const nextIndex = currentIndex + 1;
@@ -98,6 +120,8 @@ export function useQuizSession(trackId: string, lessonId: string) {
     setSelectedOptionId(null);
     setRevealed(false);
     setLastResult(null);
+    setDeepExplanation(null);
+    setExplainError(null);
     questionStartRef.current = Date.now();
   }, [
     session,
@@ -127,5 +151,9 @@ export function useQuizSession(trackId: string, lessonId: string) {
     verify,
     skip: goToNextOrFinish,
     continueNext: goToNextOrFinish,
+    deepExplanation,
+    explainLoading,
+    explainError,
+    explainMore,
   };
 }
