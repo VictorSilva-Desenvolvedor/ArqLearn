@@ -11,9 +11,11 @@
 package ingestion
 
 import (
+	"encoding/base64"
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"strconv"
 	"strings"
 	"time"
 
@@ -50,6 +52,7 @@ func contentTypeToFileType(contentType string) (string, bool) {
 
 func RegisterRoutes(mux *http.ServeMux, pool *pgxpool.Pool, verifier *authmiddleware.Verifier, r2 *objectstorage.Client) {
 	mux.Handle("POST /v1/uploads", verifier.Middleware(http.HandlerFunc(handleCreateUpload(pool, r2))))
+	mux.Handle("GET /v1/uploads", verifier.Middleware(http.HandlerFunc(handleListUploads(pool))))
 	mux.Handle("POST /v1/uploads/{upload_id}/complete", verifier.Middleware(http.HandlerFunc(handleCompleteUpload(pool))))
 	mux.Handle("GET /v1/uploads/{upload_id}", verifier.Middleware(http.HandlerFunc(handleGetUpload(pool))))
 	mux.HandleFunc("GET /v1/uploads/{upload_id}/questions", apierror.NotImplemented)
@@ -176,6 +179,74 @@ type uploadedContentResponse struct {
 	ErrorMessage    *string   `json:"error_message,omitempty"`
 	CreatedAt       time.Time `json:"created_at"`
 	UpdatedAt       time.Time `json:"updated_at"`
+}
+
+const listUploadsQuery = `
+	SELECT id, file_type, status, size_bytes, progress_percent, error_message, created_at, updated_at
+	FROM uploads
+	WHERE user_id = $1
+	ORDER BY created_at DESC
+	LIMIT $2 OFFSET $3
+`
+
+// handleListUploads implementa GET /v1/uploads — endpoint que nunca existiu no contrato (só
+// GET /v1/uploads/{id}, um de cada vez, ver Docs/PENDENCIAS_WEB_REAL.md item "Explorar"). Mesma
+// paginação por cursor (offset em base64) de handleListTracks (internal/learning/learning.go),
+// duplicada aqui em vez de exportada — não compensa acoplar os dois pacotes por ~10 linhas.
+func handleListUploads(pool *pgxpool.Pool) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		userID, ok := authmiddleware.UserID(r.Context())
+		if !ok {
+			apierror.Write(w, http.StatusUnauthorized, "UNAUTHENTICATED", "Token inválido.")
+			return
+		}
+		if pool == nil {
+			apierror.Write(w, http.StatusServiceUnavailable, "DATABASE_UNAVAILABLE", "Sem conexão com o banco.")
+			return
+		}
+
+		limit := 20
+		if raw := r.URL.Query().Get("limit"); raw != "" {
+			if parsed, err := strconv.Atoi(raw); err == nil && parsed > 0 && parsed <= 100 {
+				limit = parsed
+			}
+		}
+		offset := 0
+		if raw := r.URL.Query().Get("cursor"); raw != "" {
+			if decoded, err := base64.StdEncoding.DecodeString(raw); err == nil {
+				if parsed, err := strconv.Atoi(string(decoded)); err == nil {
+					offset = parsed
+				}
+			}
+		}
+
+		rows, err := pool.Query(r.Context(), listUploadsQuery, userID, limit+1, offset)
+		if err != nil {
+			apierror.Write(w, http.StatusInternalServerError, "INTERNAL_ERROR", "Falha ao consultar uploads.")
+			return
+		}
+		defer rows.Close()
+
+		items := []uploadedContentResponse{}
+		for rows.Next() {
+			var item uploadedContentResponse
+			if err := rows.Scan(&item.ID, &item.FileType, &item.Status, &item.SizeBytes,
+				&item.ProgressPercent, &item.ErrorMessage, &item.CreatedAt, &item.UpdatedAt); err != nil {
+				apierror.Write(w, http.StatusInternalServerError, "INTERNAL_ERROR", "Falha ao ler uploads.")
+				return
+			}
+			items = append(items, item)
+		}
+
+		var nextCursor *string
+		if len(items) > limit {
+			items = items[:limit]
+			nc := base64.StdEncoding.EncodeToString([]byte(strconv.Itoa(offset + limit)))
+			nextCursor = &nc
+		}
+
+		writeJSON(w, http.StatusOK, map[string]any{"data": items, "next_cursor": nextCursor})
+	}
 }
 
 const getUploadQuery = `

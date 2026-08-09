@@ -3,7 +3,7 @@
 
 Especificação de referência dos endpoints REST expostos pelo API Gateway.
 
-Versão 1.8 | Agosto de 2026
+Versão 1.10 | Agosto de 2026
 Documento complementar ao SAD e ao TDD do ArqLearn v1.0
 
 > **Sobre esta versão:** versão em Markdown, mantida como fonte da verdade a partir de agora (ver
@@ -23,6 +23,8 @@ Documento complementar ao SAD e ao TDD do ArqLearn v1.0
 | 1.6 | 08/08/2026 | Equipe de Engenharia | Adiciona `POST /v1/lessons/{lesson_id}/questions/{question_id}/explain` ("explique melhor", Persona Prompt §5) e o erro `AI_PROVIDER_ERROR` — primeiro endpoint que chama um provedor de IA de forma síncrona (Groq) |
 | 1.7 | 08/08/2026 | Equipe de Engenharia | Nota em §7: geração de pergunta por IA já funciona de ponta a ponta (Gemini), mas por CLI direto no banco — não pelos endpoints `/uploads/{upload_id}/questions` desta seção, que continuam stub porque dependem de uma coleção `uploads` nunca desenhada. Nenhum contrato mudou |
 | 1.8 | 09/08/2026 | Equipe de Engenharia | §7: `POST /v1/uploads`, `POST /v1/uploads/{upload_id}/complete` e `GET /v1/uploads/{upload_id}` deixam de ser stub — implementados contra a tabela `uploads` (Postgres) real e testados ao vivo. `GET/PATCH .../questions` continuam stub. Nenhum contrato mudou |
+| 1.9 | 09/08/2026 | Equipe de Engenharia | §6.1: decisão de "sem geração dedicada" revisada a pedido do usuário — tópico `"maquetes"` passa a gerar lotes novos em segundo plano, persistidos como lição permanente. Endpoints deixam de ser stub. Adiciona campo `level` na resposta de `/answers` |
+| 1.10 | 09/08/2026 | Equipe de Engenharia | §7: adiciona `GET /v1/uploads` (listagem, paginada) — endpoint novo, não existia em nenhuma versão anterior. Fecha a lacuna que deixava a tela "Meus Materiais" do Explorar sem alternativa a não ser mock (ver `Docs/PENDENCIAS_WEB_REAL.md`) |
 
 ---
 
@@ -131,7 +133,7 @@ reprocessar.
 | `lesson.id` | string | Identificador da lição. |
 | `lesson.order` | integer | Posição da lição dentro da trilha (1-based), derivada de `track.units[].lesson_ids` — não é um campo salvo em `lessons`, é calculado a cada resposta. *(v1.5)* |
 | `question.type` | enum | `multiple_choice` \| `true_false` \| `matching` \| `fill_blank` \| `image_identification`. |
-| `question.difficulty` | enum | `easy` \| `medium` \| `hard`. |
+| `question.difficulty` | enum | `easy` \| `medium` \| `hard` \| `impossible`. |
 | `question.review_status` | enum | `pending` \| `approved` \| `rejected` \| `edited`. |
 | `question.options[].id` | string | Id estável da opção, derivado da posição ("a", "b", "c"...) — **não** é o texto da opção. `answer` em `POST /v1/lessons/{lesson_id}/answers` é este id, não o texto. *(v1.5)* |
 
@@ -297,11 +299,17 @@ como base para o painel do professor.
 
 ### 6.1 Modo Infinito *(v1.1)*
 
-> **Decisão (Docs/PENDENCIAS_IA.md #7):** Modo Infinito não tem geração de pergunta dedicada — reaproveita
-> o mesmo pool de `questions` com `review_status: "approved"`, filtrando por `tracks.topic` igual ao
-> `topic` pedido. Nenhuma pergunta é gerada especificamente para esta sessão; a "infinitude" vem de
-> repetir/misturar o pool existente, não de geração sob demanda. Ainda stub — endpoints abaixo continuam
-> `501 NOT_IMPLEMENTED`.
+> **Decisão (Docs/PENDENCIAS_IA.md #7, revisada 08/2026):** Modo Infinito serve perguntas do pool de
+> `questions` com `review_status: "approved"`, filtrando por `tracks.topic` igual ao `topic` pedido —
+> essa parte não mudou. O que mudou: para o tópico `"maquetes"` (único com texto-fonte real embutido no
+> backend, `monolith/internal/questiongen/sourcetext`), o pool cresce sozinho: a cada 20 perguntas
+> respondidas numa sessão, um lote novo de 20 é gerado em segundo plano (Gemini, disparado na 15ª
+> resposta do bloco para estar pronto antes de o bloco atual acabar) e persistido como **Lição
+> permanente**, anexada à trilha (`track_s02_maquetes`, unidade "Conteúdo gerado pelo Modo Infinito") —
+> não é conteúdo efêmero da sessão, fica disponível também no modo de lição normal depois. Os outros 7
+> temas do catálogo continuam sem geração dedicada (só pool fixo existente), porque não têm texto-fonte
+> carregado — gerar sem lastro num texto-fonte violaria a regra de nunca alucinar conteúdo. Endpoints
+> abaixo são reais (não são mais stub).
 
 **`POST /v1/infinite-mode/sessions`** — Inicia uma sessão de Modo Infinito para um tópico.
 
@@ -331,11 +339,15 @@ próxima questão do modo infinito.
   "xp_daily_cap_reached": boolean,
   "questions_answered": integer,
   "correct_count": integer,
+  "level": integer,
   "next_question": { "...Question" }
 }
 ```
 `next_question` ausente quando o banco de perguntas do tópico se esgota — cliente deve tratar como fim
 de sessão nesse caso. Campo `xp_daily_cap_reached` adicionado na v1.2, mesmo comportamento de §6.
+`level` adicionado na v1.3 = `floor(questions_answered / 20) + 1`, calculado pro cliente exibir "Nível
+N" sem duplicar a conta — todo tópico ganha esse número, mas só `"maquetes"` de fato gera lição nova a
+cada nível (ver decisão acima).
 
 **`POST /v1/infinite-mode/sessions/{session_id}/end`** — Encerra a sessão manualmente (botão "Desistir"
 na UX) e retorna o resumo final.
@@ -409,6 +421,16 @@ para aquele upload (paginado, ver §2.4).
 > .../questions` (revisão de pergunta gerada por upload pela própria API, não pelo CLI) continuam stub.
 > Upload real de arquivo depende do bucket R2 estar habilitado na conta Cloudflare — ver
 > `Docs/PENDENCIAS_IA.md` #1.
+
+**`GET /v1/uploads`** *(v1.9)* — Lista os uploads do usuário autenticado, mais recentes primeiro.
+Endpoint novo — não existia em nenhuma versão anterior (só `GET /v1/uploads/{upload_id}`, um de cada
+vez); faltava pra tela "Meus Materiais" do Explorar (`apps/web`) parar de depender de mock.
+Paginação por cursor, mesmo padrão de §2.4.
+
+```json
+// Response 200
+{ "data": [ {"...UploadedContent", "progress_percent": integer} ], "next_cursor": "string|null" }
+```
 
 **`POST /v1/uploads`** — Inicia um upload. Retorna uma URL pré-assinada para envio direto ao object
 storage (S3), evitando proxy do binário pela API.
