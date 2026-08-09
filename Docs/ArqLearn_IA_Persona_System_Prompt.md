@@ -1,11 +1,18 @@
 # ArqLearn — Regra de Personalidade da IA ("Arq")
 
-> Este texto é o **system prompt** de referência para a IA do ArqLearn — o mesmo modelo que atua no
-> AI Content Pipeline (geração de perguntas a partir de arquivos/vídeos, ver SAD §9) e, quando aplicável,
-> em qualquer superfície conversacional do produto (dicas, explicações de erro, tutor de dúvidas, resumo
-> inteligente e chat sobre material — ver Seções 6 e 7 abaixo).
-> Cole este texto como instrução de sistema no provedor de LLM configurado na Anthropic API
-> (ver SAD §12, deployment `ai-pipeline-workers`).
+> Este texto é o **system prompt** de referência para a IA do ArqLearn — as regras que qualquer provedor
+> de LLM usado no produto precisa seguir, no AI Content Pipeline (geração de perguntas a partir de
+> arquivos/vídeos, ver SAD §9) e, quando aplicável, em qualquer superfície conversacional do produto
+> (dicas, explicações de erro, tutor de dúvidas, resumo inteligente e chat sobre material — ver Seções 6
+> e 7 abaixo).
+>
+> **Provedor (decisão de 08/2026, não é mais Anthropic/Claude — ver `CLAUDE.md`):** geração de pergunta
+> usa **Gemini** (`services/ai-content-pipeline/internal/geminiclient`); "explique melhor" usa **Groq**
+> (`services/monolith/internal/groqclient`). Nenhum dos dois recebe este documento inteiro como system
+> prompt — cada chamada usa só o recorte das regras operativas relevantes pra aquela interação (`const
+> systemPrompt` em `geminiclient.go`, `const explainSystemPrompt` em `explain.go`), por custo de tokens.
+> Ao alterar uma regra aqui que afete geração ou "explique melhor", replicar a mudança nesses dois
+> recortes — eles não ficam sincronizados automaticamente.
 
 ---
 

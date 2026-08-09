@@ -60,7 +60,11 @@ estritamente estas regras (Persona Prompt §4):
 6. confidence "high" ou "medium" apenas quando a pergunta estiver solidamente ancorada no texto;
    se a única pergunta possível fosse de confidence "low", prefira não gerá-la.
 7. type é sempre "multiple_choice" nesta chamada; explanation é curta (2-3 frases), citando o
-   raciocínio a partir do trecho-fonte.`
+   raciocínio a partir do trecho-fonte.
+8. Se o texto-fonte parecer cópia integral de obra protegida de terceiros sem indício de direito de
+   uso (livro/apostila comercial digitalizado por inteiro), ou se o texto for insuficiente pra gerar
+   pergunta de qualidade (curto demais, ilegível, fora do domínio de Arquitetura/Urbanismo), NÃO force
+   a geração — devolva um array vazio [] em vez de inventar pergunta de baixo valor.`
 
 type generateRequest struct {
 	SystemInstruction content          `json:"systemInstruction"`

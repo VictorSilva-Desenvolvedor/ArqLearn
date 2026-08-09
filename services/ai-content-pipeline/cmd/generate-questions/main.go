@@ -3,9 +3,11 @@
 // internal/pipeline/pipeline.go). Uso enquanto a extração/RAG reais não existem: cola aqui o
 // texto de uma página já extraída manualmente.
 //
-// Grava as perguntas válidas direto no MongoDB como "pending" (nunca "approved" — isso só
-// acontece via cmd/review-questions) e garante que a lição/unidade de destino existem, criando-as
-// se necessário. A trilha (track) precisa já existir — ver services/monolith/seeds/ para exemplos.
+// Grava as perguntas válidas direto no MongoDB. confidence "high" vai direto pra "approved" (já
+// jogável, sem revisão humana — decisão do usuário, ver Docs/PENDENCIAS_IA.md #5); "medium"/"low"
+// ficam "pending" até cmd/review-questions aprovar. Garante que a lição/unidade de destino
+// existem, criando-as se necessário. A trilha (track) precisa já existir — ver
+// services/monolith/seeds/ para exemplos.
 //
 // Uso:
 //
@@ -20,6 +22,7 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"strings"
 	"time"
 
 	"go.mongodb.org/mongo-driver/v2/bson"
@@ -56,7 +59,7 @@ func main() {
 	client := geminiclient.New(apiKey)
 	questions, err := client.GenerateQuestions(context.Background(), string(textBytes), *page, *count)
 	if err != nil {
-		log.Fatalf("falha ao gerar perguntas: %v", err)
+		log.Fatal(quotaHint(err))
 	}
 
 	valid := make([]geminiclient.GeneratedQuestion, 0, len(questions))
@@ -86,8 +89,17 @@ func main() {
 
 	now := time.Now().UTC()
 	newQuestionIDs := make([]string, 0, len(valid))
+	autoApproved := 0
 	for i, q := range valid {
 		id := fmt.Sprintf("%s_q_%d_%d", *lessonID, now.Unix(), i)
+		// confidence "high" pula revisão humana e vai direto pra "approved" — decisão explícita
+		// do usuário (Docs/PENDENCIAS_IA.md, pendência #5). "medium"/"low" continuam "pending"
+		// até cmd/review-questions aprovar manualmente.
+		reviewStatus := "pending"
+		if q.Confidence == "high" {
+			reviewStatus = "approved"
+			autoApproved++
+		}
 		_, err := db.Collection("questions").InsertOne(ctx, bson.M{
 			"_id":                id,
 			"lesson_id":          *lessonID,
@@ -100,7 +112,7 @@ func main() {
 			"confidence":         q.Confidence,
 			"source_upload_id":   nil,
 			"source_excerpt_ref": bson.M{"page": q.SourcePage},
-			"review_status":      "pending", // sempre — só cmd/review-questions promove pra "approved"
+			"review_status":      reviewStatus,
 			"created_at":         now,
 			"updated_at":         now,
 		})
@@ -117,7 +129,8 @@ func main() {
 		log.Fatalf("falha ao atualizar unidades da trilha: %v", err)
 	}
 
-	log.Printf("%d perguntas gravadas como \"pending\" em lesson_id=%s, track_id=%s — rode cmd/review-questions antes de ficarem jogáveis", len(newQuestionIDs), *lessonID, *trackID)
+	log.Printf("%d perguntas gravadas em lesson_id=%s, track_id=%s (%d auto-aprovadas por confidence=high, %d aguardando cmd/review-questions)",
+		len(newQuestionIDs), *lessonID, *trackID, autoApproved, len(newQuestionIDs)-autoApproved)
 }
 
 func ensureTrackExists(ctx context.Context, db *mongo.Database, trackID string) error {
@@ -190,4 +203,19 @@ func titleOrDefault(title, fallback string) string {
 		return title
 	}
 	return fallback
+}
+
+// quotaHint acrescenta uma dica legível quando o erro do provedor parece ser de quota/limite —
+// sem isso, "geminiclient: <mensagem bruta da API>" é fácil de confundir com um bug de verdade.
+// Não há alerta automático de quota (Docs/PENDENCIAS_IA.md #8) — isso é a mitigação mínima: só
+// deixa o erro óbvio quando ele já aconteceu, não avisa antes.
+func quotaHint(err error) string {
+	msg := err.Error()
+	lower := strings.ToLower(msg)
+	for _, marker := range []string{"quota", "rate limit", "429", "resource_exhausted"} {
+		if strings.Contains(lower, marker) {
+			return fmt.Sprintf("falha ao gerar perguntas (parece ser limite de quota do tier grátis do Gemini — aguarde e tente de novo, ou confira https://aistudio.google.com/apikey): %s", msg)
+		}
+	}
+	return fmt.Sprintf("falha ao gerar perguntas: %s", msg)
 }
