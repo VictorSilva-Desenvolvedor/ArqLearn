@@ -3,7 +3,7 @@
 
 Especificação de referência dos endpoints REST expostos pelo API Gateway.
 
-Versão 1.7 | Agosto de 2026
+Versão 1.8 | Agosto de 2026
 Documento complementar ao SAD e ao TDD do ArqLearn v1.0
 
 > **Sobre esta versão:** versão em Markdown, mantida como fonte da verdade a partir de agora (ver
@@ -22,6 +22,7 @@ Documento complementar ao SAD e ao TDD do ArqLearn v1.0
 | 1.5 | 08/08/2026 | Equipe de Engenharia | `question.options` passa a `{id, label}[]` (id estável, não texto) e `answer` passa a ser esse id; `lesson.order` adicionado — os três encontrados ao integrar com o app web já em construção |
 | 1.6 | 08/08/2026 | Equipe de Engenharia | Adiciona `POST /v1/lessons/{lesson_id}/questions/{question_id}/explain` ("explique melhor", Persona Prompt §5) e o erro `AI_PROVIDER_ERROR` — primeiro endpoint que chama um provedor de IA de forma síncrona (Groq) |
 | 1.7 | 08/08/2026 | Equipe de Engenharia | Nota em §7: geração de pergunta por IA já funciona de ponta a ponta (Gemini), mas por CLI direto no banco — não pelos endpoints `/uploads/{upload_id}/questions` desta seção, que continuam stub porque dependem de uma coleção `uploads` nunca desenhada. Nenhum contrato mudou |
+| 1.8 | 09/08/2026 | Equipe de Engenharia | §7: `POST /v1/uploads`, `POST /v1/uploads/{upload_id}/complete` e `GET /v1/uploads/{upload_id}` deixam de ser stub — implementados contra a tabela `uploads` (Postgres) real e testados ao vivo. `GET/PATCH .../questions` continuam stub. Nenhum contrato mudou |
 
 ---
 
@@ -400,12 +401,14 @@ para aquele upload (paginado, ver §2.4).
 
 ## 7. Ingestion Service
 
-> **v1.7 — todas as rotas desta seção continuam stub.** A geração de pergunta por IA (Gemini) já funciona
-> de ponta a ponta, mas fora deste contrato: `cmd/generate-questions`/`cmd/review-questions`
-> (`ai-content-pipeline`) escrevem/aprovam direto em `questions`/`lessons`/`tracks.units` no MongoDB, por
-> CLI. Os endpoints abaixo dependem de uma coleção `uploads` que nunca foi desenhada em
-> `Database_Design.md` — não implementar contra eles sem antes desenhar esse schema. Ver `CLAUDE.md`
-> para o fluxo real que existe hoje.
+> **v1.8 — `POST /v1/uploads`, `.../complete` e `GET /v1/uploads/{upload_id}` são reais**, contra a tabela
+> `uploads` (Postgres, `Database_Design.md` §5) e `internal/objectstorage` (R2). O binário do arquivo em
+> si (extração/chunking/embeddings/geração de pergunta) continua fora deste contrato HTTP — roda por CLI
+> operacional (`cmd/ingest-file` + `cmd/generate-questions -upload-id`, `ai-content-pipeline`), não por
+> fila/evento (`cmd/worker` ainda não consome SQS de verdade — ver `CLAUDE.md`). `GET/PATCH
+> .../questions` (revisão de pergunta gerada por upload pela própria API, não pelo CLI) continuam stub.
+> Upload real de arquivo depende do bucket R2 estar habilitado na conta Cloudflare — ver
+> `Docs/PENDENCIAS_IA.md` #1.
 
 **`POST /v1/uploads`** — Inicia um upload. Retorna uma URL pré-assinada para envio direto ao object
 storage (S3), evitando proxy do binário pela API.

@@ -23,6 +23,7 @@ Documento complementar ao SAD e ao TDD do ArqLearn v1.0
 | 1.6 | 08/08/2026 | Equipe de Engenharia / Dados | Adiciona `explanation` a `questions` (já exigido pelo Persona Prompt, nunca persistido) e a coleção `practice_sessions` (TTL) — ambos encontrados ao implementar `POST /v1/lessons/{lesson_id}/session` e `/answers` |
 | 1.7 | 08/08/2026 | Equipe de Engenharia / Dados | Documenta que `lesson.order` e `question.options[].id` são derivados na API, não campos do banco — encontrado ao integrar com o app web já em construção |
 | 1.8 | 08/08/2026 | Equipe de Engenharia / Dados | Adiciona `confidence` a `questions` (já exigido pelo Persona Prompt §4.6-4.7 na geração, nunca persistido) — encontrado ao implementar `cmd/generate-questions`/`cmd/review-questions` (`ai-content-pipeline`); sem o campo, quem revisa não vê a autoavaliação de confiança do modelo |
+| 1.9 | 09/08/2026 | Equipe de Engenharia / Dados | Adiciona a tabela `uploads` (Postgres) — nunca desenhada até então, deixava `content_chunks.upload_id` sem FK real. Ingestão real (R2 + extração de PDF + chunking + embeddings) implementada e testada ao vivo ponta a ponta |
 
 ---
 
@@ -435,12 +436,35 @@ específico, ver Persona Prompt, seção "Regras para o Chat sobre o Material").
 
 ## 5. Modelo Vetorial (pgvector)
 
+`content_chunks.upload_id` referencia `uploads.id` (tabela definida logo abaixo) — o registro de
+upload em si (dono, arquivo original, status de processamento) vive no Postgres, não no MongoDB, pra
+manter a FK nativa em vez de um join manual entre um `_id` string (Mongo) e um `UUID` (Postgres). Ver
+`migrations/0002_uploads.up.sql`.
+
+```sql
+CREATE TABLE uploads (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  filename VARCHAR(255) NOT NULL,
+  file_type VARCHAR(20) NOT NULL, -- pdf | docx | pptx | image | video
+  storage_key VARCHAR(500) NOT NULL,
+  size_bytes BIGINT NOT NULL,
+  status VARCHAR(20) NOT NULL DEFAULT 'received'
+    CHECK (status IN ('received','processing','ready_for_review','published','failed')),
+  progress_percent INTEGER,
+  error_message TEXT,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+  updated_at TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+CREATE INDEX idx_uploads_user ON uploads(user_id);
+```
+
 ```sql
 CREATE EXTENSION IF NOT EXISTS vector;
 
 CREATE TABLE content_chunks (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  upload_id UUID NOT NULL,
+  upload_id UUID NOT NULL REFERENCES uploads(id) ON DELETE CASCADE,
   source_type VARCHAR(20) NOT NULL, -- pdf | video | image
   text_content TEXT NOT NULL,
   source_ref JSONB,        -- {page: 4} ou {timestamp_ms: 125000}
@@ -452,6 +476,10 @@ CREATE INDEX idx_chunks_embedding ON content_chunks
   USING ivfflat (embedding vector_cosine_ops) WITH (lists = 100);
 CREATE INDEX idx_chunks_upload ON content_chunks(upload_id);
 ```
+
+Ingestão real (PDF → R2 → extração → chunk → embedding) implementada e testada ao vivo — ver
+`ai-content-pipeline/internal/pdfextract`, `internal/pgstore` e `cmd/ingest-file`. Sem OCR/Speech-to-Text
+ainda (fora de escopo até um PDF escaneado ou vídeo aparecer de verdade — ver `Docs/PENDENCIAS_IA.md`).
 
 Os chunks são retidos por 90 dias após a publicação das perguntas geradas, permitindo reprocessamento em
 caso de feedback negativo, e então arquivados/expurgados conforme a política de retenção (Seção 9). É
