@@ -18,6 +18,12 @@ interface MeResponse {
   gamification: GamificationProfile;
 }
 
+function landingPathForRole(role: User["role"]): string {
+  if (role === "teacher") return "/painel";
+  if (role === "admin") return "/admin";
+  return "/";
+}
+
 export interface AuthContextValue {
   user: User | null;
   gamification: GamificationProfile;
@@ -27,9 +33,13 @@ export interface AuthContextValue {
   // POST /v1/gamification/streak/freeze. Rastreado à parte, igual ao patch de User.
   streakFreezesAvailable: number;
   adjustStreakFreezes: (delta: number) => void;
-  // Sessão real (Supabase Auth) — usar isto pro login de verdade (ex.: Maria, aluna real).
-  // Retorna uma mensagem de erro legível, ou null se deu certo.
-  loginWithPassword: (email: string, password: string) => Promise<string | null>;
+  // Sessão real (Supabase Auth) — usar isto pro login de verdade (Maria/Marina/Admin, todas
+  // contas reais agora). error null = deu certo; landingPath é pra onde a página de login deve
+  // navegar em caso de sucesso (varia por papel — teacher/admin não caem no "/" do aluno).
+  loginWithPassword: (
+    email: string,
+    password: string,
+  ) => Promise<{ error: string | null; landingPath: string }>;
   isRealSession: boolean;
   // Modo demonstração (sem Supabase) — só pra professor/admin, que ainda não têm conta real.
   switchAccount: (accountId: MockAccountId) => void;
@@ -115,10 +125,22 @@ export function AuthProvider({
 
   const loginWithPassword = useCallback(async (email: string, password: string) => {
     const supabase = createClient();
-    const { error } = await supabase.auth.signInWithPassword({ email, password });
-    // onAuthStateChange (efeito acima) cuida de buscar o perfil real após o login — aqui só
-    // reporta erro de credencial pro formulário.
-    return error?.message ?? null;
+    const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+    if (error || !data.session) {
+      return { error: error?.message ?? "Falha no login.", landingPath: "/" };
+    }
+
+    // Busca o papel aqui (não só espera o onAuthStateChange do efeito acima) porque a página de
+    // login precisa saber pra onde navegar assim que o login der certo — teacher/admin não devem
+    // cair no "/" do aluno. O efeito acima roda de qualquer forma em paralelo (evento SIGNED_IN)
+    // e deixa o estado consistente; essa segunda leitura aqui é redundante mas inofensiva.
+    setAccessTokenProvider(() => data.session.access_token);
+    try {
+      const me = await apiFetch<MeResponse>("/v1/users/me");
+      return { error: null, landingPath: landingPathForRole(me.user.role) };
+    } catch {
+      return { error: "Login feito, mas não foi possível carregar seu perfil.", landingPath: "/" };
+    }
   }, []);
 
   const switchAccount = useCallback((id: MockAccountId) => {
