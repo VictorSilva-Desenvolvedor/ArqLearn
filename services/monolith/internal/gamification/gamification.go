@@ -39,9 +39,36 @@ type gamificationMeResponse struct {
 	StreakCurrent int               `json:"streak_current"`
 	StreakBest    int               `json:"streak_best"`
 	HeartsCurrent int               `json:"hearts_current"`
+	HeartsNextAt  *time.Time        `json:"hearts_next_at"`
 	Gems          int               `json:"gems"`
 	LeagueTier    *string           `json:"league_tier"`
 	Achievements  []achievementJSON `json:"achievements"`
+}
+
+// LoadHeartsWithRegen lê hearts_current/hearts_updated_at, aplica a regeneração preguiçosa (TDD
+// §5.4) e persiste de volta só quando algo de fato mudou — chamada por toda rota que lê ou
+// consome vidas (aqui, POST /v1/lessons/{lesson_id}/session e POST .../answers), pra nenhuma
+// delas enxergar um contador desatualizado. heartsNextAt vem nil quando já está no teto (5).
+func LoadHeartsWithRegen(ctx context.Context, pool *pgxpool.Pool, userID string) (heartsCurrent int, heartsNextAt *time.Time, err error) {
+	var updatedAt time.Time
+	if err = pool.QueryRow(ctx,
+		`SELECT hearts_current, hearts_updated_at FROM user_gamification WHERE user_id = $1`, userID,
+	).Scan(&heartsCurrent, &updatedAt); err != nil {
+		return 0, nil, err
+	}
+
+	now := time.Now().UTC()
+	novo, novoUpdatedAt := RegenerarVidas(heartsCurrent, updatedAt, now)
+	if novo != heartsCurrent || !novoUpdatedAt.Equal(updatedAt) {
+		if _, err = pool.Exec(ctx,
+			`UPDATE user_gamification SET hearts_current = $1, hearts_updated_at = $2 WHERE user_id = $3`,
+			novo, novoUpdatedAt, userID,
+		); err != nil {
+			return 0, nil, err
+		}
+	}
+
+	return novo, ProximaVidaEm(novo, novoUpdatedAt), nil
 }
 
 func handleGetGamificationMe(pool *pgxpool.Pool) http.HandlerFunc {
@@ -54,16 +81,22 @@ func handleGetGamificationMe(pool *pgxpool.Pool) http.HandlerFunc {
 
 		var resp gamificationMeResponse
 		err := pool.QueryRow(r.Context(), `
-			SELECT xp_total, xp_today, level, streak_current, streak_best, hearts_current, gems
+			SELECT xp_total, xp_today, level, streak_current, streak_best, gems
 			FROM user_gamification WHERE user_id = $1
 		`, userID).Scan(&resp.XPTotal, &resp.XPToday, &resp.Level, &resp.StreakCurrent,
-			&resp.StreakBest, &resp.HeartsCurrent, &resp.Gems)
+			&resp.StreakBest, &resp.Gems)
 		if err == pgx.ErrNoRows {
 			apierror.Write(w, http.StatusNotFound, "USER_PROFILE_NOT_FOUND", "Perfil de usuário não encontrado.")
 			return
 		}
 		if err != nil {
 			apierror.Write(w, http.StatusInternalServerError, "INTERNAL_ERROR", "Falha ao consultar gamificação.")
+			return
+		}
+
+		resp.HeartsCurrent, resp.HeartsNextAt, err = LoadHeartsWithRegen(r.Context(), pool, userID)
+		if err != nil {
+			apierror.Write(w, http.StatusInternalServerError, "INTERNAL_ERROR", "Falha ao consultar vidas.")
 			return
 		}
 
@@ -379,8 +412,13 @@ func handleShopPurchase(pool *pgxpool.Pool) http.HandlerFunc {
 			}
 		}
 		if category == "hearts_refill" {
+			// hearts_updated_at = agora: equivalente a já estar cheio (RegenerarVidas nem olha
+			// pro timestamp quando hearts_current >= HeartsMax), mas evita deixar um timestamp
+			// arbitrariamente antigo gravado — se uma vida for perdida logo em seguida, o
+			// relógio de regeneração começa limpo a partir da compra, não de antes dela.
 			if _, err := tx.Exec(r.Context(),
-				`UPDATE user_gamification SET hearts_current = 5 WHERE user_id = $1`, userID); err != nil {
+				`UPDATE user_gamification SET hearts_current = $1, hearts_updated_at = now() WHERE user_id = $2`,
+				HeartsMax, userID); err != nil {
 				apierror.Write(w, http.StatusInternalServerError, "INTERNAL_ERROR", "Falha ao aplicar item.")
 				return
 			}
@@ -422,6 +460,18 @@ func handleShopPurchase(pool *pgxpool.Pool) http.HandlerFunc {
 		resp.Item.Tipo = category
 		writeJSON(w, http.StatusOK, resp)
 	}
+}
+
+// AwardGems credita gems ao usuário (não é uma compra — não debita nada de ninguém). Usado hoje só
+// pelo pacote bugreports (POST /v1/bug-reports/{id}/resolve, API Spec §14): 5 gemas de agradecimento
+// a quem reportou um bug marcado como corrigido.
+func AwardGems(ctx context.Context, pool *pgxpool.Pool, userID string, amount int) (int, error) {
+	var newTotal int
+	err := pool.QueryRow(ctx,
+		`UPDATE user_gamification SET gems = gems + $1 WHERE user_id = $2 RETURNING gems`,
+		amount, userID,
+	).Scan(&newTotal)
+	return newTotal, err
 }
 
 func writeJSON(w http.ResponseWriter, status int, body any) {

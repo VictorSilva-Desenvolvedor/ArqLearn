@@ -15,6 +15,7 @@ import (
 
 	"arqlearn/monolith/internal/apierror"
 	"arqlearn/monolith/internal/authmiddleware"
+	"arqlearn/monolith/internal/gamification"
 )
 
 func RegisterRoutes(mux *http.ServeMux, pool *pgxpool.Pool, verifier *authmiddleware.Verifier) {
@@ -34,21 +35,21 @@ type userMeResponse struct {
 		CreatedAt time.Time `json:"created_at"`
 	} `json:"user"`
 	Gamification struct {
-		XPTotal       int  `json:"xp_total"`
-		XPToday       int  `json:"xp_today"`
-		Level         int  `json:"level"`
-		StreakCurrent int  `json:"streak_current"`
-		StreakBest    int  `json:"streak_best"`
-		HeartsCurrent int  `json:"hearts_current"`
-		Gems          int  `json:"gems"`
-		LeagueTier    *int `json:"league_tier"`
+		XPTotal       int        `json:"xp_total"`
+		XPToday       int        `json:"xp_today"`
+		Level         int        `json:"level"`
+		StreakCurrent int        `json:"streak_current"`
+		StreakBest    int        `json:"streak_best"`
+		HeartsCurrent int        `json:"hearts_current"`
+		HeartsNextAt  *time.Time `json:"hearts_next_at"`
+		Gems          int        `json:"gems"`
+		LeagueTier    *int       `json:"league_tier"`
 	} `json:"gamification"`
 }
 
 const getMeQuery = `
 	SELECT u.id, u.name, u.email, u.role, u.timezone, u.created_at,
-	       g.xp_total, g.xp_today, g.level, g.streak_current, g.streak_best,
-	       g.hearts_current, g.gems
+	       g.xp_total, g.xp_today, g.level, g.streak_current, g.streak_best, g.gems
 	FROM users u
 	JOIN user_gamification g ON g.user_id = u.id
 	WHERE u.id = $1 AND u.deleted_at IS NULL
@@ -67,8 +68,7 @@ func handleGetMe(pool *pgxpool.Pool) http.HandlerFunc {
 			&resp.User.ID, &resp.User.Name, &resp.User.Email, &resp.User.Role,
 			&resp.User.Timezone, &resp.User.CreatedAt,
 			&resp.Gamification.XPTotal, &resp.Gamification.XPToday, &resp.Gamification.Level,
-			&resp.Gamification.StreakCurrent, &resp.Gamification.StreakBest,
-			&resp.Gamification.HeartsCurrent, &resp.Gamification.Gems,
+			&resp.Gamification.StreakCurrent, &resp.Gamification.StreakBest, &resp.Gamification.Gems,
 		)
 		// TODO: preencher league_tier quando o fechamento semanal de liga existir (TDD §6) —
 		// hoje todo usuário fica sem liga atribuída, então league_tier é sempre null.
@@ -81,6 +81,16 @@ func handleGetMe(pool *pgxpool.Pool) http.HandlerFunc {
 		}
 		if err != nil {
 			apierror.Write(w, http.StatusInternalServerError, "INTERNAL_ERROR", "Falha ao consultar perfil.")
+			return
+		}
+
+		// Consulta à parte (não dá pra colocar no SELECT combinado acima porque pode precisar
+		// escrever de volta) — aplica a regeneração preguiçosa de vidas (TDD §5.4) antes de
+		// devolver o perfil, mesmo tratamento de GET /v1/gamification/me.
+		resp.Gamification.HeartsCurrent, resp.Gamification.HeartsNextAt, err =
+			gamification.LoadHeartsWithRegen(r.Context(), pool, resp.User.ID)
+		if err != nil {
+			apierror.Write(w, http.StatusInternalServerError, "INTERNAL_ERROR", "Falha ao consultar vidas.")
 			return
 		}
 

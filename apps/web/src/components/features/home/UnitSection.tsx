@@ -2,6 +2,7 @@ import { Badge } from "@/components/ui/Badge";
 import { Card } from "@/components/ui/Card";
 import { cn } from "@/lib/utils/cn";
 import { CurrentLessonNode } from "./CurrentLessonNode";
+import { FogOverlay } from "./FogOverlay";
 import { LessonNode, type LessonNodeVariant } from "./LessonNode";
 import { PathConnector } from "./PathConnector";
 
@@ -28,8 +29,24 @@ const statusBadge: Record<UnitStatus, { label: string; tone: "primary" | "second
   locked: { label: "BLOQUEADO", tone: "neutral" },
 };
 
+// Quantos nós "foggy" de fachada renderizar depois do último visível de verdade — fixo, não
+// escala com quantas lições realmente existem depois. Sem isso, dava pra rolar a página, medir a
+// altura da névoa e contar exatamente quantas lições estão escondidas (o problema que o usuário
+// apontou) — truncar o DOM aqui é o que garante que o mesmo visual apareça tanto se faltam 3
+// lições quanto se faltam 300.
+const TEASER_FOGGY_COUNT = 2;
+
 export function UnitSection({ title, subtitle, status, nodes }: UnitSectionProps) {
   const badge = statusBadge[status];
+  const firstFoggyIndex = nodes.findIndex((n) => n.variant === "foggy");
+  // Só o necessário pra "espiar" a névoa chega no DOM — o resto (por mais lições que existam de
+  // verdade) nem é renderizado, então não tem altura real pra medir.
+  const visibleNodes = firstFoggyIndex >= 0 ? nodes.slice(0, firstFoggyIndex + TEASER_FOGGY_COUNT) : nodes;
+  // Começa a névoa um pouco antes do primeiro nó "foggy" (não em cima dele) — esmaece gradual em
+  // vez de corte seco. Calculado sobre visibleNodes (não nodes) — é essa lista que define a
+  // altura real do container.
+  const fogTopPercent =
+    firstFoggyIndex >= 0 ? Math.max(0, (firstFoggyIndex / visibleNodes.length) * 100 - 10) : null;
 
   return (
     <div className={cn("w-full mb-12", status === "locked" && "opacity-60")}>
@@ -42,7 +59,7 @@ export function UnitSection({ title, subtitle, status, nodes }: UnitSectionProps
         radius="xl"
         className={cn(
           "mb-xs",
-          status === "current" && "border-secondary shadow-sm",
+          status === "current" && "border-secondary shadow-gamified",
           status === "completed" && "border-primary bg-surface-gray",
         )}
       >
@@ -56,9 +73,9 @@ export function UnitSection({ title, subtitle, status, nodes }: UnitSectionProps
         </p>
         {subtitle && <p className="font-body-sm text-body-sm text-on-surface-variant mt-1">{subtitle}</p>}
       </Card>
-      <div className="relative flex flex-col items-center gap-8 py-6">
-        {nodes.length > 1 && <PathConnector dashed={status === "current"} />}
-        {nodes.map((node, index) => (
+      <div className="relative flex flex-col items-center gap-8 py-6 overflow-hidden">
+        {visibleNodes.length > 1 && <PathConnector dashed={status === "current"} />}
+        {visibleNodes.map((node, index) => (
           <div
             key={node.lessonId}
             className="relative z-10"
@@ -71,6 +88,7 @@ export function UnitSection({ title, subtitle, status, nodes }: UnitSectionProps
             )}
           </div>
         ))}
+        {fogTopPercent !== null && <FogOverlay topPercent={fogTopPercent} />}
       </div>
     </div>
   );

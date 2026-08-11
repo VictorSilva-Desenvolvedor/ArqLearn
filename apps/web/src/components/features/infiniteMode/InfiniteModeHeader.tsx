@@ -10,9 +10,10 @@ interface InfiniteModeHeaderProps {
   topicLabel: string;
   current: number;
   total: number;
+  level: number;
 }
 
-export function InfiniteModeHeader({ topicLabel, current, total }: InfiniteModeHeaderProps) {
+export function InfiniteModeHeader({ topicLabel, current, total, level }: InfiniteModeHeaderProps) {
   const router = useRouter();
 
   return (
@@ -22,6 +23,7 @@ export function InfiniteModeHeader({ topicLabel, current, total }: InfiniteModeH
         <div className="flex-1">
           <p className="font-display text-question-sm text-on-surface font-bold">Modo Infinito: {topicLabel}</p>
         </div>
+        <Badge tone="primary">Nível {level}</Badge>
         <Badge tone="error">Dificuldade Elevada</Badge>
       </div>
       <div className="flex items-center gap-sm max-w-2xl mx-auto">

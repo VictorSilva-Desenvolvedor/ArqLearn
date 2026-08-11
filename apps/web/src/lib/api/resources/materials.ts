@@ -5,9 +5,12 @@ import { mockUploadSummaries } from "../mocks/fixtures/uploadSummaries";
 import { mockChatAnswerFor, mockChatHistory } from "../mocks/fixtures/chatMessages";
 import type { ChatAnswer, ChatMessage, Paginated, UploadSummary } from "@/types/api";
 
-export async function getUploadSummary(uploadId: string): Promise<UploadSummary> {
+// accessToken opcional — a página de Resumo é Server Component e passa o token da própria
+// requisição (mesmo motivo de getMe, resources/users.ts); a página de Chat é client component e
+// usa o provider global (setAccessTokenProvider, http.ts), então não passa nada aqui.
+export async function getUploadSummary(uploadId: string, accessToken?: string): Promise<UploadSummary> {
   if (isResourceReal("materials")) {
-    return apiFetch<UploadSummary>(`/v1/uploads/${uploadId}/summary`);
+    return apiFetch<UploadSummary>(`/v1/uploads/${uploadId}/summary`, undefined, accessToken);
   }
   const summary = mockUploadSummaries[uploadId];
   if (!summary) {
@@ -37,13 +40,13 @@ export async function sendChatMessage(uploadId: string, message: string): Promis
     });
   }
   chatMessageCounter += 1;
-  const { answer, source_excerpt } = mockChatAnswerFor(message);
+  const { answer, source_excerpt, source_ref } = mockChatAnswerFor(message);
   return mockDelay(
     {
       message_id: `mock-chat-${chatMessageCounter}`,
       answer,
       source_excerpt,
-      source_ref: { page: 12 },
+      source_ref,
       created_at: new Date().toISOString(),
     },
     500,

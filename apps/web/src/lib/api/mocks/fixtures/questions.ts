@@ -56,6 +56,54 @@ const gothicBank: MockQuestionEntry[] = [
     explanation:
       "Verdadeiro — os grandes vitrais coloridos eram usados para inundar o interior de luz, associada simbolicamente ao divino.",
   },
+  {
+    question: {
+      id: "q-gotico-4",
+      prompt: "Complete: o estilo predominante nas catedrais francesas do século XII é o _____.",
+      type: "fill_blank",
+      difficulty: "medium",
+      // fill_blank não tem uma lista de opções pra clicar — a única entrada guarda o texto
+      // esperado, usado tanto pra exibir "resposta esperada" quanto (via correctOptionId) pra
+      // comparar com o que o usuário digitou.
+      options: [{ id: "a", label: "Gótico" }],
+    },
+    correctOptionId: "Gótico",
+    explanation: "O estilo Gótico sucedeu o Românico na França a partir do século XII.",
+  },
+  {
+    question: {
+      id: "q-gotico-5",
+      prompt: "Associe: qual opção descreve corretamente o papel estrutural do arcobotante?",
+      type: "matching",
+      difficulty: "medium",
+      options: [
+        { id: "a", label: "Transfere o empuxo da abóbada para um pilar externo" },
+        { id: "b", label: "Sustenta o telhado sem função estrutural" },
+        { id: "c", label: "Ilumina o interior através de vitrais" },
+        { id: "d", label: "Sela a base da coluna no piso" },
+      ],
+    },
+    correctOptionId: "a",
+    explanation:
+      "O arcobotante (contraforte volante) transfere o empuxo lateral da abóbada para um pilar externo, permitindo paredes mais altas e finas.",
+  },
+  {
+    question: {
+      id: "q-gotico-6",
+      prompt: "Observe a elevação: qual elemento estrutural está destacado na imagem?",
+      type: "image_identification",
+      difficulty: "hard",
+      image_url: "https://picsum.photos/seed/arqlearn-gotico/800/450",
+      options: [
+        { id: "a", label: "Contraforte volante" },
+        { id: "b", label: "Rosácea" },
+        { id: "c", label: "Portal principal" },
+        { id: "d", label: "Pináculo" },
+      ],
+    },
+    correctOptionId: "a",
+    explanation: "O contraforte volante é o arco externo visível apoiando a parede da nave.",
+  },
 ];
 
 const defaultBank: MockQuestionEntry[] = [
@@ -82,6 +130,7 @@ const difficultyXp: Record<QuestionDifficulty, number> = {
   easy: 10,
   medium: 15,
   hard: 20,
+  impossible: 25,
 };
 
 export function xpForDifficulty(difficulty: QuestionDifficulty): number {

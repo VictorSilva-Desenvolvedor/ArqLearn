@@ -44,10 +44,10 @@ export default async function ProfilePage() {
     );
   }
 
-  // Ambos continuam mockados — /v1/gamification/me e /v1/progress/summary ainda são stub no
-  // backend (ver Docs/CLAUDE.md); XP/nível/streak básicos reais já aparecem em ProfileHeader
-  // (vêm de `user` acima, que é getMe() real).
-  const [gamification, progress] = await Promise.all([getGamificationProfile(), getProgressSummary()]);
+  const [gamification, progress] = await Promise.all([
+    getGamificationProfile(accessToken),
+    getProgressSummary(accessToken),
+  ]);
 
   return (
     <div className="max-w-2xl mx-auto px-lg py-section flex flex-col gap-lg">
@@ -63,6 +63,7 @@ export default async function ProfilePage() {
       <AchievementGrid unlocked={gamification.achievements} />
       <div className="flex flex-col gap-sm">
         <ProfileMenuLink href="/loja" icon="storefront" label="Loja" />
+        <ProfileMenuLink href="/ajuda" icon="help" label="Ajuda e Bugs" />
         <ProfileMenuLink href="/perfil/configuracoes" icon="settings" label="Configurações" />
         <LogoutMenuLink />
       </div>

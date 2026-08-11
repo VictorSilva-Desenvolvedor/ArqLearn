@@ -21,6 +21,9 @@ export interface GamificationProfile {
   streak_current: number;
   streak_best: number;
   hearts_current: number; // 0-5
+  // Instante da próxima regeneração de vida (TDD §5.4, 1 vida a cada 3h) — null quando
+  // hearts_current já está no teto (5). *(v1.10)*
+  hearts_next_at: string | null;
   gems: number;
   league_tier: LeagueTier;
 }
@@ -65,7 +68,7 @@ export type QuestionType =
   | "fill_blank"
   | "image_identification";
 
-export type QuestionDifficulty = "easy" | "medium" | "hard";
+export type QuestionDifficulty = "easy" | "medium" | "hard" | "impossible";
 
 export type QuestionReviewStatus = "pending" | "approved" | "rejected" | "edited";
 
@@ -146,7 +149,9 @@ export type NotificationType =
   | "league_demotion"
   | "new_challenge"
   | "questions_ready_for_review"
-  | "welcome";
+  | "welcome"
+  | "bug_fixed"
+  | "suggestion_implemented";
 
 export interface AppNotification {
   id: string;
@@ -154,6 +159,36 @@ export interface AppNotification {
   message: string;
   read: boolean;
   created_at: string;
+}
+
+export type BugReportStatus = "open" | "fixed";
+export type BugReportType = "bug" | "suggestion";
+export type DeviceType = "mobile" | "desktop" | "tablet";
+
+// Ver API Spec §14 — enviado por qualquer usuário (POST /v1/bug-reports), listado e resolvido só
+// por admin (GET /v1/bug-reports, POST .../resolve). reporter_name/reporter_email só vêm
+// preenchidos na listagem de admin, nunca no retorno do próprio envio. device_model/device_type
+// só fazem sentido pra type "bug" (v1.15) — o formulário só os mostra nesse caso.
+export interface BugReport {
+  id: string;
+  user_id: string;
+  reporter_name?: string;
+  reporter_email?: string;
+  type: BugReportType;
+  description: string;
+  screenshot_base64?: string;
+  device_model?: string;
+  device_type?: DeviceType;
+  status: BugReportStatus;
+  created_at: string;
+  resolved_at?: string | null;
+}
+
+export interface ResolveBugReportResult {
+  id: string;
+  status: BugReportStatus;
+  gems_awarded: number;
+  reporter_gems_total: number;
 }
 
 export type UploadFileType = "pdf" | "docx" | "pptx" | "image" | "video";
@@ -196,6 +231,7 @@ export interface InfiniteModeAnswerResult {
   xp_daily_cap_reached: boolean;
   questions_answered: number;
   correct_count: number;
+  level: number;
   next_question?: InfiniteModeQuestion;
 }
 

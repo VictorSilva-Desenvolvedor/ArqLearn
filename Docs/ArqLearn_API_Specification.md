@@ -28,6 +28,8 @@ Documento complementar ao SAD e ao TDD do ArqLearn v1.0
 | 1.11 | 09/08/2026 | Equipe de Engenharia | §9: `GET /v1/notifications` e `PATCH /v1/notifications/preferences` deixam de ser stub — implementados contra a nova coleção `notifications` (MongoDB) e as colunas `push_enabled`/`email_enabled` de `users` (Postgres). Lista de notificações real, mas legitimamente vazia hoje (nenhum gatilho escreve nela ainda). Nenhum contrato mudou |
 | 1.12 | 09/08/2026 | Equipe de Engenharia | §3.2: adiciona `hearts_next_at` ao `GamificationProfile` (a pedido do usuário) — vidas agora regeneram sozinhas com o tempo (TDD §5.4, novo); `hearts_current` nunca fazia isso antes |
 | 1.13 | 09/08/2026 | Equipe de Engenharia | §6.2/§6.3: `GET /v1/uploads/{upload_id}/summary`, `POST /v1/uploads/{upload_id}/chat` e `GET .../chat` deixam de ser stub — implementados contra `content_chunks` (pgvector) e as coleções `content_summaries`/`material_chat_messages` (ambas já desenhadas desde a v1.1). Testado ao vivo com upload/chunks semeados manualmente (sem depender do bloqueio de R2, ver `Docs/PENDENCIAS_IA.md` #1) — em produção, indisponível até existir upload real processado. Nenhum contrato mudou |
+| 1.14 | 09/08/2026 | Equipe de Engenharia | Adiciona §14 Ajuda e Bugs (a pedido do usuário) — 3 endpoints novos (`POST /v1/bug-reports`, `GET /v1/bug-reports`, `POST /v1/bug-reports/{id}/resolve`), nova coleção `bug_reports` (Database Design), print embutido como base64 (contorna o bloqueio de R2, `Docs/PENDENCIAS_IA.md` #1). Primeiro endpoint com checagem de papel (admin) no backend — não existia nenhuma antes |
+| 1.15 | 09/08/2026 | Equipe de Engenharia | §14: adiciona `type` (`bug \| suggestion`) e `device_model`/`device_type` a `bug_reports` (a pedido do usuário) — recompensa por resolução passa a depender do tipo: bug corrigido sobe de 5 pra **10 gemas**, sugestão implementada vale **50 gemas** (notificação nova `suggestion_implemented`, §9) |
 | 1.16 | 09/08/2026 | Equipe de Engenharia | §8: `achievements` em `GET /v1/gamification/me` passa a ser preenchido de verdade — desde a v1.0 a tabela existia mas nada nunca gravava nela. Catálogo de ~44 conquistas (a pedido do usuário) cobrindo lições, Modo Infinito, streak, Loja, Materiais e relatos de bug, a maioria em 5 níveis progressivos; cada desbloqueio credita XP/gemas uma única vez. Nenhum contrato mudou — resposta já era `{type, unlocked_at}[]` |
 
 ---
@@ -125,6 +127,7 @@ reprocessar.
 | `streak_current` | integer | Sequência atual de dias consecutivos. |
 | `streak_best` | integer | Recorde pessoal de streak. |
 | `hearts_current` | integer | Vidas disponíveis (0–5). |
+| `hearts_next_at` | datetime \| null | Instante em que a próxima vida será regenerada (TDD §5.4) — `null` quando `hearts_current` já está no teto (5). Cliente calcula a contagem regressiva localmente a partir deste timestamp fixo. *(v1.12)* |
 | `gems` | integer | Moeda virtual acumulada. |
 | `league_tier` | integer | Tier da liga semanal atual. |
 
@@ -624,6 +627,9 @@ completos a detalhar no TDD quando a implementação desses três recursos come�
 | `INSUFFICIENT_GEMS` | 402 | Saldo de gemas insuficiente para a compra. |
 | `RATE_LIMITED` | 429 | Limite de requisições excedido. |
 | `AI_PROVIDER_ERROR` | 502 | Falha ao chamar o provedor de IA configurado (ex.: Groq em `.../explain`). *(v1.6)* |
+| `BUG_REPORT_NOT_FOUND` | 404 | Relato de bug inexistente. *(v1.14)* |
+| `BUG_REPORT_ALREADY_RESOLVED` | 409 | Relato já estava `fixed` — resolver de novo não concede gemas outra vez. *(v1.14)* |
+| `PAYLOAD_TOO_LARGE` | 413 | Corpo da requisição excede o limite (ex.: print de bug grande demais). *(v1.14)* |
 
 *Tabela — Catálogo consolidado de códigos de erro da API.*
 
@@ -637,5 +643,97 @@ completos a detalhar no TDD quando a implementação desses três recursos come�
   ativo por no mínimo 6 meses após o anúncio de depreciação.
 - Endpoints depreciados retornam o cabeçalho `Deprecation: true` e `Sunset: <data>` durante o período de
   transição.
+
+## 14. Ajuda e Bugs *(v1.13, v1.15 — a pedido do usuário)*
+
+Aba "Ajuda e Bugs" do app: conteúdo estático de explicação (sem endpoint — vive só no cliente) mais um
+canal pra qualquer usuário reportar um **bug** ou sugerir uma **melhoria** — dois `type` do mesmo recurso
+`bug_reports` (coleção mantém o nome original por continuidade; ver Database Design §4.4.5), não dois
+sistemas separados. Recompensa em gemas depende do tipo quando um admin resolve o relato:
+
+| Tipo | Ganha ao ser resolvido |
+|---|---|
+| `bug` | **10 gemas** *(v1.15 — antes 5)* + notificação `bug_fixed` |
+| `suggestion` | **50 gemas** + notificação `suggestion_implemented` |
+
+Sem endpoint de catálogo/listagem de FAQ — o conteúdo de ajuda é texto fixo no app, igual ao catálogo da
+Loja (§8).
+
+> **Decisão de armazenamento do print:** o fluxo de upload real (§7) depende do R2, que está bloqueado
+> na conta Cloudflare (`Docs/PENDENCIAS_IA.md` #1) — em vez de esperar isso, o print vai embutido como
+> base64 dentro do próprio documento MongoDB (Database Design, coleção `bug_reports`), limitado a ~2MB
+> de payload. Migrar pra um `storage_key` do R2 é um swap de campo isolado quando o bloqueio for
+> resolvido, não uma mudança de contrato pros clientes.
+
+**`POST /v1/bug-reports`** — Envia um novo relato. Qualquer usuário autenticado.
+
+```json
+// Request body
+{
+  "type": "bug | suggestion",
+  "description": "string (obrigatório, 10-2000 caracteres)",
+  "screenshot_base64": "string | null",
+  "device_model": "string | null",
+  "device_type": "mobile | desktop | tablet | null"
+}
+
+// Response 201
+{ "id": "uuid", "status": "open", "created_at": "datetime" }
+```
+`device_model`/`device_type` só fazem sentido pra `type: "bug"` *(v1.15)* — cliente só mostra esses
+campos no formulário quando "Reportar bug" está selecionado; o backend aceita (e ignora silenciosamente)
+se vierem preenchidos numa `suggestion`, não é um erro de validação.
+
+Erros: `422 VALIDATION_ERROR` (descrição vazia/curta demais, ou `type` ausente/inválido) ·
+`413 PAYLOAD_TOO_LARGE` (print grande demais, corpo da requisição limitado a ~3MB pra caber a
+codificação base64 de ~2MB de imagem)
+
+**`GET /v1/bug-reports`** — Lista relatos, mais recentes primeiro. **Somente admin.**
+
+```
+GET /v1/bug-reports?status=open&type=bug&limit=20&cursor=...
+```
+`type` é opcional (omitido = os dois tipos juntos), mesma convenção de `status`.
+```json
+// Response 200
+{
+  "data": [
+    {
+      "id": "uuid",
+      "user_id": "uuid",
+      "reporter_name": "string",
+      "reporter_email": "string",
+      "type": "bug | suggestion",
+      "description": "string",
+      "screenshot_base64": "string | null",
+      "device_model": "string | null",
+      "device_type": "mobile | desktop | tablet | null",
+      "status": "open | fixed",
+      "created_at": "datetime",
+      "resolved_at": "datetime | null"
+    }
+  ],
+  "next_cursor": "string | null"
+}
+```
+Erros: `403 FORBIDDEN_ROLE` (autenticado, mas não é admin)
+
+**`POST /v1/bug-reports/{id}/resolve`** — Marca um relato como resolvido (`status: "fixed"` pros dois
+tipos — "fixed" aqui significa "corrigido" pra bug e "implementada" pra melhoria; cliente traduz o
+rótulo pela leitura de `type`, o backend não duplica o enum de status por tipo). **Somente admin.** Efeito
+colateral duplo, ambos síncronos dentro do mesmo handler (volume baixo o suficiente pra não precisar de
+fila/evento dedicado, diferente de `gamification.xp_awarded` em §7.4): concede a quantidade de gemas da
+tabela acima ao autor do relato (`user_gamification.gems += N`, `N` depende de `type`) e insere a
+notificação correspondente (`bug_fixed` ou `suggestion_implemented`, §9) pra ele.
+
+```json
+// Response 200
+{ "id": "uuid", "status": "fixed", "gems_awarded": 10, "reporter_gems_total": integer }
+```
+`gems_awarded` é `10` ou `50` conforme `type` do relato — o cliente não escolhe, é sempre o valor fixo da
+tabela acima.
+
+Erros: `403 FORBIDDEN_ROLE` · `404 BUG_REPORT_NOT_FOUND` · `409 BUG_REPORT_ALREADY_RESOLVED` (idempotência
+por status — resolver de novo um relato já `fixed` não concede gemas uma segunda vez)
 
 — Fim do documento —

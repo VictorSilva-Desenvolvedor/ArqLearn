@@ -14,10 +14,15 @@
 // existem, criando-as se necessário. A trilha (track) precisa já existir — ver
 // services/monolith/seeds/ para exemplos.
 //
+// -difficulty (easy|medium|hard|impossible, opcional) força o nível pedido ao modelo nesta
+// chamada — vazio deixa o modelo escolher livremente entre os quatro (Persona Prompt §4.5).
+// -provider (gemini|groq, default gemini) escolhe o LLM — groq usa GROQ_API_KEY e é uma segunda
+// fonte de geração (internal/groqclient), mesma regra de negócio, pra diversificar o banco.
+//
 // Uso:
 //
 //	GEMINI_API_KEY=... MONGODB_URI=... go run ./cmd/generate-questions \
-//	  -text=pagina.txt -page=7 -count=5 \
+//	  -text=pagina.txt -page=7 -count=5 -difficulty=easy \
 //	  -track-id=track_s02_maquetes -lesson-id=lesson_maquetes_u1 -lesson-title="Unidade 1"
 //
 //	GEMINI_API_KEY=... MONGODB_URI=... DATABASE_URL=... go run ./cmd/generate-questions \
@@ -39,15 +44,25 @@ import (
 	"go.mongodb.org/mongo-driver/v2/mongo/options"
 
 	"arqlearn/ai-content-pipeline/internal/geminiclient"
+	"arqlearn/ai-content-pipeline/internal/groqclient"
 	"arqlearn/ai-content-pipeline/internal/pgstore"
 	"arqlearn/ai-content-pipeline/internal/store"
 )
+
+// generator abstrai o provedor de LLM — geminiclient.Client e groqclient.Client implementam a
+// mesma assinatura (GenerateQuestions devolvendo []geminiclient.GeneratedQuestion), então o resto
+// do comando (validação, gravação no Mongo) não sabe nem precisa saber qual dos dois foi usado.
+type generator interface {
+	GenerateQuestions(ctx context.Context, sourceText string, sourcePage, count int, difficulty string) ([]geminiclient.GeneratedQuestion, error)
+}
 
 func main() {
 	textPath := flag.String("text", "", "caminho do arquivo de texto-fonte (modo manual — mutuamente exclusivo com -upload-id)")
 	uploadID := flag.String("upload-id", "", "uploads.id (uuid) — busca chunks reais em content_chunks (modo RAG — mutuamente exclusivo com -text)")
 	page := flag.Int("page", 1, "número da página de origem no modo -text, ecoado em source_page (ignorado no modo -upload-id, que usa a página real de cada chunk)")
 	count := flag.Int("count", 5, "quantidade de perguntas a gerar por chunk/página")
+	difficulty := flag.String("difficulty", "", "easy|medium|hard|impossible — força o nível de dificuldade; vazio deixa o modelo escolher (Persona Prompt §4.5)")
+	provider := flag.String("provider", "gemini", "gemini|groq — provedor de LLM usado pra gerar (mesma regra de negócio nos dois, ver internal/groqclient)")
 	trackID := flag.String("track-id", "", "_id da trilha (tracks) — precisa já existir (obrigatório)")
 	lessonID := flag.String("lesson-id", "", "_id da lição (lessons) — cria se não existir (obrigatório)")
 	lessonTitle := flag.String("lesson-title", "", "título da lição/unidade, usado só ao criar")
@@ -57,14 +72,29 @@ func main() {
 		log.Fatal("informe exatamente um de -text ou -upload-id")
 	}
 	if *trackID == "" || *lessonID == "" {
-		log.Fatal("uso: generate-questions (-text=arquivo.txt -page=N | -upload-id=uuid) -count=N -track-id=... -lesson-id=... [-lesson-title=\"...\"]")
+		log.Fatal("uso: generate-questions (-text=arquivo.txt -page=N | -upload-id=uuid) -count=N -track-id=... -lesson-id=... [-lesson-title=\"...\"] [-difficulty=easy|medium|hard|impossible]")
+	}
+	if *difficulty != "" && *difficulty != "easy" && *difficulty != "medium" && *difficulty != "hard" && *difficulty != "impossible" {
+		log.Fatalf("-difficulty inválida: %q (use easy, medium, hard ou impossible, ou omita)", *difficulty)
 	}
 
-	apiKey := os.Getenv("GEMINI_API_KEY")
-	if apiKey == "" {
-		log.Fatal("GEMINI_API_KEY não configurada no ambiente")
+	var client generator
+	switch *provider {
+	case "gemini":
+		apiKey := os.Getenv("GEMINI_API_KEY")
+		if apiKey == "" {
+			log.Fatal("GEMINI_API_KEY não configurada no ambiente")
+		}
+		client = geminiclient.New(apiKey)
+	case "groq":
+		apiKey := os.Getenv("GROQ_API_KEY")
+		if apiKey == "" {
+			log.Fatal("GROQ_API_KEY não configurada no ambiente")
+		}
+		client = groqclient.New(apiKey)
+	default:
+		log.Fatalf("-provider inválido: %q (use gemini ou groq)", *provider)
 	}
-	client := geminiclient.New(apiKey)
 
 	sourceChunks, err := loadSourceChunks(*textPath, *uploadID, *page)
 	if err != nil {
@@ -74,7 +104,7 @@ func main() {
 	var valid []geminiclient.GeneratedQuestion
 	var total int
 	for _, chunk := range sourceChunks {
-		questions, err := client.GenerateQuestions(context.Background(), chunk.Text, chunk.Page, *count)
+		questions, err := client.GenerateQuestions(context.Background(), chunk.Text, chunk.Page, *count, *difficulty)
 		if err != nil {
 			log.Fatal(quotaHint(err))
 		}

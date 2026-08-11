@@ -14,9 +14,7 @@ const tierLabel: Record<string, string> = {
 
 export default async function LeaguePage() {
   const accessToken = await getServerAccessToken();
-  // getLeague() continua mockado — /v1/gamification/league ainda é stub no backend (ver
-  // Docs/CLAUDE.md), não dá pra ligar de verdade ainda.
-  const [{ user }, league] = await Promise.all([getMe(accessToken), getLeague()]);
+  const [{ user }, league] = await Promise.all([getMe(accessToken), getLeague(accessToken)]);
 
   return (
     <div className="max-w-2xl mx-auto px-lg py-section flex flex-col gap-md">

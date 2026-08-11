@@ -1,0 +1,40 @@
+As maquetes arquitetônicas são compostas de conexões e combinações de superfícies que podem ser planas e retilíneas ou curvas, lisas ou texturizadas, monocromáticas ou coloridas, podem ser cegas — ou com aberturas ou cegas (como são chamadas as superfícies sem aberturas), com espessuras cheias ou ocas, entre outras diversas variáveis e, por fim, podem ser construídas de materiais diversos.
+
+As maquetes, assim como qualquer volume, são criadas a partir de elementos primários. Ching (2013) explica a composição das formas por meio desses elementos: ponto, reta, plano e volume. Para ele, o ponto é apenas uma posição no espaço, sendo a reta uma extensão deste; o plano, por sua vez, é a extensão da reta, que articulada pode formar um volume.
+
+Knoll e Hechinger (2003) consideram que as maquetes utilizam três elementos tectônicos básicos em sua composição: corpos, superfícies e hastes. Os autores consideram que "a confecção de maquetes consiste primeiramente em produzir corpos, superfícies e hastes, dar-lhes forma, uni-los e trabalhar suas faces exteriores" (2003, p. 12).
+
+Segundo Knoll e Hechinger (2003), as maquetes arquitetônicas podem ser divididas em três grupos:
+— Maquetes topográficas, que se subdividem em maquetes de terreno, paisagem e jardim.
+— Maquetes de edificações, que compreendem as maquetes urbanísticas, de edifícios, estruturais, de interiores e de detalhes.
+— Maquetes específicas, utilizadas para maquetes de design e de móveis e objetos.
+
+Além disso, as maquetes variam conforme o seu nível de elaboração e fase de projeto: 1º Nível — Pré-Projeto (Esboço de Idealização, Maquete de Idealização); 2º Nível — Projeto (Projeto de Construção, Maquete de Trabalho); 3º Nível — Execução (Planejamento de Execução, Maquete de Execução). Para Knoll e Hechinger (2003), a maquete de idealização não requer equipamentos sofisticados ou estudos especializados. Na maquete de trabalho, as condições já são previamente estabelecidas, embora a estrutura ou o conjunto ainda possam sofrer alterações. Na maquete de execução, o projeto é apresentado de maneira clara e definitiva, atendendo aos critérios de uma "tarefa de execução", com materiais que reproduzam adequadamente o impacto visual das cores e das superfícies externas do projeto.
+
+Segundo Mills (2007, p. 21), as maquetes de estudo podem ser consideradas pertencentes a dois grupos distintos: maquetes primárias e maquetes secundárias. O grupo das maquetes primárias se relaciona com o nível ou o estágio de evolução do projeto, e o grupo das maquetes secundárias se refere a seções ou aspectos específicos do projeto enfocado.
+
+As maquetes preliminares constituem a fase inicial das maquetes de estudo. Elas são como croquis ou desenhos tridimensionais. Das maquetes conceituais, as que exigem menos detalhes são as maquetes volumétricas, definidas assim, pois não têm aberturas. Elas são compostas apenas por planos curvos ou retilíneos.
+
+Essas maquetes conceituais também podem ser do tipo maquetes de diagrama. Essas maquetes diagramas representam questões principais de ordem arquitetônica do projeto, seja a circulação, a relação formal ou até mesmo a atribuição do projeto no terreno.
+
+Quanto às maquetes secundárias, segundo Mills (2007), temos: Maquetes de sítio ou maquete de terreno — são maquetes feitas para estudar o terreno e para realizar a locação do edifício. Maquete de contexto — são aquelas que mostram as edificações do entorno para o estudo do edifício em relação às demais construções existentes. Maquete de urbanismo — estuda as condições urbanas, explorando o relacionamento dos diversos setores de uma cidade.
+
+Maquete de paisagismo ou cobertura vegetal: na maquete de paisagismo são representadas as pessoas, as árvores e o mobiliário urbano em escala. Para maquetes de estudo, a cobertura vegetal pode ser trabalhada também de maneira simples, sem muitos detalhes, apenas de forma abstrata. Deve-se tomar cuidado para que o paisagismo não obstrua a visibilidade dos demais itens da maquete, principalmente aqueles que são mais importantes arquitetonicamente.
+
+Maquetes de interiores: são feitas para estudar espaços e mobiliário da arquitetura de interiores. Normalmente são feitas em escalas entre 1:50 ou 1:25, por exemplo, e devem ser abertas para a visualização do espaço interno. Pode ser trabalhada, conjuntamente, tanto a parte interna quanto a parte externa da edificação.
+
+Maquete de seção: utilizada para estudos dos espaços verticais de uma edificação por meio de corte em locais relevantes, possibilitando a visualização de pontos complexos de serem compreendidos em 2D. Esse tipo de maquete acaba revelando detalhes internos em que, muitas vezes, devem ser pesados certos acabamentos utilizados em maquetes interiores, como móveis e equipamentos.
+
+Maquetes de fachadas: são maquetes realizadas para estudos e refinamentos exclusivos das fachadas. Esse tipo de caso acontece principalmente em fachadas isoladas, no meio de quadra, quando não é possível representar o restante do edifício. Também pode ser utilizada para realizar reformas e atualizações de fachadas pré-existentes.
+
+Maquete de estrutura ou maquete de trama: são maquetes que detalham o sistema estrutural de um projeto, principalmente em projetos de conexões complexas. Podem ser utilizadas em escalas maiores (1:50) para explorar o processo criativo e testar características de carregamento de pontos, treliças, telhados, entre outros.
+
+Maquetes de detalhe ou conexão: essas maquetes são desenvolvidas para demonstrar detalhes importantes de um projeto, em escalas que variam de 1:25 a 1:5. Podem ser detalhes de conexões construtivas, sistemas estruturais, corrimãos, mobiliário, entre outros. Esse tipo de maquete pode ser muito útil para resolver problemas de projeto durante a obra e ainda facilitar a comunicação com o cliente.
+
+As maquetes são muito utilizadas por profissionais para fazer o estudo do comportamento físico das geometrias e formas de elementos, no que diz respeito à sua função estrutural. Não podemos deixar de atentar para o fato de que essas análises são empíricas quando comparadas ao universo dos cálculos estruturais, que têm a incumbência de garantir a estabilidade e a segurança das edificações por meio de dimensionamentos e especificações dos materiais envolvidos.
+
+A construção dos elementos da maquete, quando queremos simular e entender a sua resistência a cargas e esforços, pode ser feita com papel dobrado, pois as dobras no papel podem representar reforços estruturais em materiais reais, tais como concreto, metal etc. Palitos e espetos de madeira também são muito úteis para criar esses elementos.
+
+Vamos levantar uma situação hipotética: considere que temos um projeto de uma edificação com 20 andares de altura. Nesse caso, se optarmos pela escala 1:50, fazendo um cálculo rápido, obteríamos o seguinte: 20 andares x 3 metros (pé-direito) = 60 metros em escala real. Teríamos, então, na escala 1:50, uma altura total da maquete de 1,20 metros. Agora, se essa mesma maquete fosse realizada na escala 1:100, a altura total seria reduzida para 60 centímetros.
+
+Como exemplo e inspiração de maquetes monocromáticas, cita-se o trabalho do arquiteto Richard Meier, profissional que possui diversos projetos de caráter institucional e tem como característica projetual a opção por uma arquitetura monocromática.

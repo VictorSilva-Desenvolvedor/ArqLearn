@@ -11,7 +11,15 @@ import { levelForXp } from "@/lib/api/mocks/fixtures/levelCurve";
 import { clearAccountCookie, setAccountCookie } from "@/lib/auth/clientSession";
 import { createClient } from "@/lib/supabase/client";
 import { apiFetch, setAccessTokenProvider } from "@/lib/api/http";
+import { isResourceReal } from "@/lib/api/config";
+import { getGamificationProfile } from "@/lib/api/resources/gamification";
 import type { GamificationProfile, User } from "@/types/api";
+
+// TDD §5.4 — mesmo intervalo/teto do backend, usado aqui só como stand-in de mock (nunca no
+// componente que consome useAuth(); ver regra em Docs/CLAUDE.md sobre XP/vidas nunca calculados
+// no cliente fora da camada de mock).
+const HEARTS_MAX = 5;
+const HEARTS_REGEN_INTERVAL_MS = 3 * 60 * 60 * 1000;
 
 interface MeResponse {
   user: User;
@@ -202,6 +210,51 @@ export function AuthProvider({
   const dismissLevelUp = useCallback(() => {
     setJustLeveledUpTo(null);
   }, []);
+
+  // Resolve a regeneração de vidas (TDD §5.4) quando o relógio local bate o hearts_next_at
+  // vigente: sessão real busca o perfil de novo (fonte da verdade é o backend, que já aplica a
+  // regeneração preguiçosa em GET /v1/gamification/me); sessão mockada calcula localmente — é o
+  // único lugar do cliente com permissão pra reimplementar a fórmula do servidor (mock stand-in,
+  // ver Docs/CLAUDE.md). Roda para qualquer sessão (real ou mock) sempre que hearts_next_at
+  // muda, não só quando um diálogo de vidas está aberto — o contador do TopAppBar também deve
+  // atualizar sozinho.
+  useEffect(() => {
+    if (!gamification.hearts_next_at || gamification.hearts_current >= HEARTS_MAX) return;
+
+    const targetMs = new Date(gamification.hearts_next_at).getTime();
+    const msLeft = targetMs - Date.now();
+
+    const resolve = async () => {
+      if (isRealSession && isResourceReal("gamification")) {
+        try {
+          const fresh = await getGamificationProfile();
+          setGamification((current) => ({
+            ...current,
+            hearts_current: fresh.hearts_current,
+            hearts_next_at: fresh.hearts_next_at,
+          }));
+        } catch {
+          // Falha de rede momentânea — mantém o estado atual; o próximo hearts_next_at (ou a
+          // próxima leitura de perfil) tenta de novo, sem travar a UI numa promise rejeitada.
+        }
+        return;
+      }
+      setGamification((current) => {
+        if (current.hearts_current >= HEARTS_MAX) return current;
+        const nextHeartsCurrent = current.hearts_current + 1;
+        const nextHeartsNextAt =
+          nextHeartsCurrent >= HEARTS_MAX ? null : new Date(targetMs + HEARTS_REGEN_INTERVAL_MS).toISOString();
+        return { ...current, hearts_current: nextHeartsCurrent, hearts_next_at: nextHeartsNextAt };
+      });
+    };
+
+    if (msLeft <= 0) {
+      void resolve();
+      return;
+    }
+    const timer = setTimeout(() => void resolve(), msLeft);
+    return () => clearTimeout(timer);
+  }, [gamification.hearts_next_at, gamification.hearts_current, isRealSession]);
 
   const mockAccount = accountId ? getAccountById(accountId) : null;
   const baseUser = isRealSession ? realUser : (mockAccount?.user ?? null);

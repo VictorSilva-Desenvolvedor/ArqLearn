@@ -21,8 +21,16 @@
   `approved` na geração; `medium`/`low` continuam exigindo `cmd/review-questions`.
 - **`cmd/review-questions` agora edita**, não só aprova/rejeita — corrige campo por campo (Enter em
   branco mantém o valor), reprova a mesma checagem de `geminiclient.Validate()` antes de salvar.
-- **Modo Infinito**: decidido reaproveitar o pool de `questions` `approved` por `tracks.topic`, sem
-  geração dedicada (API Spec §6.1).
+- **Modo Infinito**: decisão original (reaproveitar só o pool de `questions` `approved` por
+  `tracks.topic`, sem geração dedicada) **revisada em 08/2026, a pedido do usuário** — agora o tópico
+  "maquetes" (único com texto-fonte real embutido, `monolith/internal/questiongen/sourcetext`) gera um
+  lote novo de 20 perguntas em segundo plano a cada 20 respondidas na sessão, persistido como Lição
+  permanente (`lesson_maquetes_infinito_N`) anexada a `track_s02_maquetes` — "nível novo" quer dizer
+  isso: uma lição de verdade, visível também fora do Modo Infinito. Os outros 7 temas do catálogo
+  continuam exatamente como antes (só pool fixo, sem geração), porque não têm PDF-fonte carregado —
+  gerar "do conhecimento geral" pra eles violaria a regra de nunca inventar sem lastro num
+  texto-fonte. Trava simples em `infinite_mode_generation_state` (um doc por tópico) evita gerar dois
+  lotes em paralelo. Ver API Spec §6.1 e `internal/learning/infinitemode_generation.go`.
 - **Voz revisada** — `geminiclient`/`explain.go` já seguiam o tom do Persona Prompt na prática (conferido
   contra as respostas reais geradas nesta sessão), mas faltavam as regras de guardrail do §8/§9
   (direitos autorais, não forçar geração com conteúdo insuficiente) — adicionadas ao `systemPrompt` do
@@ -67,4 +75,9 @@ grátis em ~50-80% em dez/2025 — pode mudar de novo sem aviso). Mitigação m�
 `cmd/generate-questions` agora reconhece erro de quota/rate-limit e imprime uma dica clara em vez de só
 repassar a mensagem bruta da API. Não há alerta *antes* de estourar — só fica óbvio quando já aconteceu.
 Considerar monitoramento de verdade se o volume de geração crescer a ponto de rodar sem supervisão
-humana direta.
+humana direta. **Ficou mais relevante em 08/2026**: a geração em segundo plano do Modo Infinito
+(pendência resolvida acima, "Modo Infinito") roda automaticamente, sem supervisão humana, disparada só
+pelo volume de uso de "maquetes" — é exatamente o cenário que este item já previa. Mitigação atual:
+uma trava global por tópico (`infinite_mode_generation_state`) garante no máximo 1 lote (4 chamadas ao
+Gemini) por vez, então o pior caso é 1 lote a cada ~poucos minutos de uso contínuo intenso, não 1 por
+usuário simultâneo — mas ainda sem alerta proativo de quota.

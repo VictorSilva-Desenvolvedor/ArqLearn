@@ -20,6 +20,13 @@ export function AdminTopBar() {
           </span>
         </Link>
         <div className="flex items-center gap-sm">
+          <Link
+            href="/admin/bugs"
+            className="hidden md:inline-flex items-center justify-center w-10 h-10 rounded-full hover:bg-surface-gray transition-colors text-on-surface-variant"
+            aria-label="Ajuda e Bugs"
+          >
+            <Icon name="bug_report" />
+          </Link>
           <span className="hidden md:inline font-body-md text-body-md text-on-surface-variant">
             {user.name}
           </span>

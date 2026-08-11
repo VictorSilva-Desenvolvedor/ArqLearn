@@ -3,7 +3,12 @@ import { Card } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
 import { Icon } from "@/components/ui/Icon";
 
-export function InfiniteModePromptCard() {
+interface InfiniteModePromptCardProps {
+  topic: string;
+  themeLabel: string;
+}
+
+export function InfiniteModePromptCard({ topic, themeLabel }: InfiniteModePromptCardProps) {
   return (
     <Card radius="xl" className="flex flex-col md:flex-row items-center justify-between gap-md bg-surface-gray">
       <div className="flex items-center gap-md">
@@ -11,11 +16,11 @@ export function InfiniteModePromptCard() {
         <div>
           <p className="font-display text-question-sm text-on-surface font-bold">Modo Infinito</p>
           <p className="font-body-sm text-body-sm text-on-surface-variant">
-            Pratique sem limites com perguntas de dificuldade elevada sobre Sistemas Estruturais.
+            Pratique sem limites com perguntas de dificuldade elevada sobre {themeLabel}.
           </p>
         </div>
       </div>
-      <Link href="/infinito/estruturas/sessao">
+      <Link href={`/infinito/${topic}/sessao`}>
         <Button variant="gamification">Desafiar-se</Button>
       </Link>
     </Card>

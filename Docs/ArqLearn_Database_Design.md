@@ -25,7 +25,10 @@ Documento complementar ao SAD e ao TDD do ArqLearn v1.0
 | 1.8 | 08/08/2026 | Equipe de Engenharia / Dados | Adiciona `confidence` a `questions` (já exigido pelo Persona Prompt §4.6-4.7 na geração, nunca persistido) — encontrado ao implementar `cmd/generate-questions`/`cmd/review-questions` (`ai-content-pipeline`); sem o campo, quem revisa não vê a autoavaliação de confiança do modelo |
 | 1.9 | 09/08/2026 | Equipe de Engenharia / Dados | Adiciona a tabela `uploads` (Postgres) — nunca desenhada até então, deixava `content_chunks.upload_id` sem FK real. Ingestão real (R2 + extração de PDF + chunking + embeddings) implementada e testada ao vivo ponta a ponta |
 | 1.10 | 09/08/2026 | Equipe de Engenharia / Dados | Documenta o schema real de `infinite_mode_sessions` (§4.4.2) — o índice já listado em §4.5 desde a v1.1 era especulativo (`{user_id, status}`, campo `status` nunca existiu) e nunca tinha sido criado de fato; implementação real do Modo Infinito usa TTL sobre `expires_at`, mesmo padrão de `practice_sessions` |
-| 1.11 | 09/08/2026 | Equipe de Engenharia / Dados | Adiciona `notifications_enabled`, `push_enabled` e `email_enabled` a `users` (Postgres, migrations 0003/0005) e a coleção `notifications` (§4.4.3) — `GET /v1/notifications` e `PATCH /v1/users/me/notification-preferences` reais, mas a coleção fica legitimamente vazia até existir algum job que insira notificação de verdade |
+| 1.11 | 09/08/2026 | Equipe de Engenharia / Dados | Adiciona a coleção `infinite_mode_generation_state` (§4.4.3) — trava de geração em segundo plano do Modo Infinito de Maquetes (decisão revisada em Docs/PENDENCIAS_IA.md #7, API Spec §6.1). Remove o §4.6 antigo (schema especulativo da v1.1 com campos `status`/`started_at`/`ended_at` que nunca chegaram a existir — divergia do schema real já documentado em §4.4.2 desde a v1.10, mantê-lo era ativamente enganoso) |
+| 1.12 | 09/08/2026 | Equipe de Engenharia / Dados | Adiciona a coleção `notifications` (§4.4.4) — schema nunca desenhado antes (endpoint stub desde a v1.0). Adiciona `notifications_enabled`/`push_enabled`/`email_enabled` a `users` (§3.2) — `PATCH /v1/users/me` e `PATCH /v1/notifications/preferences` agora reais |
+| 1.13 | 09/08/2026 | Equipe de Engenharia / Dados | Adiciona a coleção `bug_reports` (§4.4.5, a pedido do usuário) — print embutido como base64 pra não depender do R2 bloqueado. Adiciona `bug_fixed` ao enum de `notifications.type` (§4.4.4) — primeiro gatilho síncrono real que insere notificação, sem depender de job |
+| 1.14 | 09/08/2026 | Equipe de Engenharia / Dados | `bug_reports` (§4.4.5) ganha `type` (`bug \| suggestion`) e `device_model`/`device_type` (a pedido do usuário) — mesma coleção passa a cobrir sugestões de melhoria, não só bugs. Adiciona `suggestion_implemented` ao enum de `notifications.type` (§4.4.4) |
 | 1.15 | 09/08/2026 | Equipe de Engenharia / Dados | Adiciona 15 contadores vitalícios a `user_gamification` (migrations/0006, a pedido do usuário) — nenhum contador cumulativo existia antes, só saldos atuais (xp_total/gems), que não servem pra checar limiar tipo "responda 100 perguntas ao todo". `achievements` (schema inalterado desde v1.0) passa a ser gravada de verdade pela primeira vez — catálogo completo em `internal/gamification/achievements.go` |
 
 ---
@@ -420,7 +423,32 @@ Mesmo padrão de expiração de `practice_sessions`: TTL de 30 minutos sobre `ex
 pergunta dentro da mesma sessão; quando o pool de perguntas aprovadas do tópico se esgota,
 `next_question` sai ausente da resposta (API Spec §6.1) e o cliente trata como fim natural.
 
-### 4.4.3 Coleção: `notifications` *(v1.11)*
+### 4.4.3 Coleção: `infinite_mode_generation_state` *(v1.11)*
+
+Trava de geração em segundo plano do Modo Infinito (API Spec §6.1, decisão revisada em
+Docs/PENDENCIAS_IA.md #7) — um documento por `topic`, `_id` = o próprio topic. Garante que no
+máximo um lote de perguntas seja gerado por vez para o mesmo tópico, mesmo se duas sessões
+cruzarem o limiar de 20 perguntas quase simultaneamente (evita duplicar custo de chamada ao
+Gemini). `next_unit_number` roda entre 1-4, alternando qual unidade-fonte
+(`questiongen/sourcetext/unidadeN.txt`) alimenta o próximo lote.
+
+```json
+{
+  "_id": "maquetes",
+  "in_progress": false,
+  "next_unit_number": 3,
+  "next_batch_label": 5,
+  "updated_at": "datetime"
+}
+```
+
+`in_progress: true` só persiste enquanto a goroutine de geração roda (tipicamente segundos); um
+documento travado há mais de 5 minutos é tratado como órfão (processo morreu no meio) e
+destravado automaticamente na próxima tentativa — sem isso, uma falha no meio da geração
+travaria o crescimento do pool para sempre. Sem TTL: diferente de `practice_sessions` e
+`infinite_mode_sessions`, este documento é permanente (um por tópico, não por sessão de usuário).
+
+### 4.4.4 Coleção: `notifications` *(v1.11)*
 
 Notificações in-app do usuário (`GET /v1/notifications`, API Spec §9) — schema nunca tinha sido
 desenhado antes (endpoint stub desde a v1.0). Permanente, sem TTL — diferente das coleções de
@@ -430,7 +458,7 @@ sessão efêmera acima, notificação não expira sozinha.
 {
   "_id": "uuid",
   "user_id": "uuid",
-  "type": "streak_at_risk | league_promotion | league_demotion | new_challenge | questions_ready_for_review | welcome",
+  "type": "streak_at_risk | league_promotion | league_demotion | new_challenge | questions_ready_for_review | welcome | bug_fixed | suggestion_implemented",
   "message": "string",
   "read": false,
   "created_at": "datetime"
@@ -440,7 +468,44 @@ sessão efêmera acima, notificação não expira sozinha.
 Nenhum código ainda insere documento nesta coleção — os gatilhos (streak em risco, promoção de
 liga etc.) dependem de jobs agendados que não existem (mesmo motivo de `cmd/worker` não consumir
 fila real, ver `Docs/CLAUDE.md`). `GET /v1/notifications` é real e funcional, só que
-legitimamente devolve lista vazia até algum gatilho passar a escrever aqui.
+legitimamente devolve lista vazia até algum gatilho passar a escrever aqui. **Exceção (v1.13):**
+`bug_fixed`/`suggestion_implemented` *(v1.14)* SÃO inseridos de verdade por
+`POST /v1/bug-reports/{id}/resolve` (§4.4.5, API Spec §14) — primeiro gatilho síncrono real desta
+coleção, sem depender de job nenhum.
+
+### 4.4.5 Coleção: `bug_reports` *(v1.13, v1.14 — a pedido do usuário)*
+
+Relatos enviados pela aba "Ajuda e Bugs" (API Spec §14) — nome da coleção mantido por continuidade
+mesmo cobrindo dois `type` desde a v1.14 (`bug` e `suggestion`, sugestão de melhoria), não é uma
+coleção separada. Permanente, sem TTL. `screenshot_base64` guarda o print embutido no próprio
+documento — decisão explícita pra não depender do R2, que está bloqueado
+(`Docs/PENDENCIAS_IA.md` #1); ver a nota de decisão na API Spec §14 sobre migrar pra `storage_key`
+do R2 depois.
+
+```json
+{
+  "_id": "uuid",
+  "user_id": "uuid",
+  "type": "bug | suggestion",
+  "description": "string",
+  "screenshot_base64": "string | null",
+  "device_model": "string | null",
+  "device_type": "mobile | desktop | tablet | null",
+  "status": "open | fixed",
+  "created_at": "datetime",
+  "resolved_at": "datetime | null"
+}
+```
+
+`device_model`/`device_type` *(v1.14)* só são preenchidos quando `type: "bug"` — o formulário só
+mostra esses campos nesse caso, mas o schema não impõe a regra (documento com `type: "suggestion"`
+e os dois campos nulos é o caminho normal).
+
+`status: "fixed"` só é alcançado via `POST /v1/bug-reports/{id}/resolve` (admin), que também credita
+gemas ao `user_id` do relato (`user_gamification.gems`, Postgres — **10** se `type: "bug"`, **50**
+se `type: "suggestion"`, API Spec §14) e insere a notificação correspondente (`bug_fixed` ou
+`suggestion_implemented`, acima) pro mesmo usuário — dois efeitos síncronos no mesmo handler, sem
+fila (volume baixo demais pra justificar um evento dedicado, diferente de `gamification.xp_awarded`).
 
 ### 4.5 Estratégia de Indexação (MongoDB)
 
@@ -455,29 +520,10 @@ legitimamente devolve lista vazia até algum gatilho passar a escrever aqui.
 | `material_chat_messages` | `{upload_id: 1, user_id: 1, created_at: 1}` — histórico ordenado por thread. *(v1.1)* |
 | `notifications` | `{user_id: 1, created_at: -1}` — listagem paginada, mais recentes primeiro. *(v1.11)* |
 | `practice_sessions` | `{expires_at: 1}` (TTL, `expireAfterSeconds: 0`) — autolimpeza de sessões abandonadas. *(v1.6)* |
+| `infinite_mode_generation_state` | Nenhum índice adicional — um documento por tópico, sempre buscado por `_id` (já indexado por padrão). *(v1.11)* |
+| `bug_reports` | `{status: 1, type: 1, created_at: -1}` — fila de admin filtrada por status e/ou tipo, mais recentes primeiro. *(v1.13, `type` adicionado na v1.14)* |
 
 *Tabela 3 — Índices recomendados por coleção MongoDB.*
-
-### 4.6 Coleção: `infinite_mode_sessions` *(v1.1)*
-
-```json
-{
-  "_id": "uuid",
-  "user_id": "uuid",
-  "topic": "estruturas",
-  "status": "active | ended",
-  "questions_answered": 42,
-  "correct_count": 41,
-  "xp_earned": 620,
-  "avg_time_ms": 45000,
-  "started_at": "datetime",
-  "ended_at": "datetime | null"
-}
-```
-
-Perguntas são selecionadas dinamicamente do banco de questões existente (filtradas por `topic`), sem uma
-nova coleção de perguntas — reaproveita `questions` (§4.3). A sessão não pertence a nenhuma
-`lesson`/`track`; existe apenas para agregar o estado da tela "Modo Infinito".
 
 ### 4.7 Coleção: `content_summaries` *(v1.1)*
 

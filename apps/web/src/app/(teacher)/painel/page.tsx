@@ -38,8 +38,26 @@ export default function TeacherDashboardPage() {
     getReviewQueue(selectedClassId).then(setQueue);
   }, [selectedClassId]);
 
+  // Não há endpoint de exportação no contrato (API Spec) — isto é um CSV gerado 100% no cliente
+  // a partir do que já está na tela, sem depender de um backend que ainda não existe.
+  const handleExport = () => {
+    const header = "Aluno,Questão ID,Tópico,Status\n";
+    const csvRows = queue
+      .map((row) => [row.student_name, row.question_id, row.topic, row.status].join(","))
+      .join("\n");
+    const blob = new Blob([header + csvRows], { type: "text/csv;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = `fila-revisao-${selectedClassId ?? "turma"}.csv`;
+    link.click();
+    URL.revokeObjectURL(url);
+  };
+
   return (
-    <div className="max-w-container-max mx-auto px-lg py-section flex flex-col gap-lg">
+    // DESIGN.md: Teacher Dashboard usa "Density-First" — padding reduzido a sm (12px), não a
+    // maior escala (spacing-section, 48px) usada nas telas de aluno/gamificação.
+    <div className="max-w-container-max mx-auto px-sm py-sm flex flex-col gap-sm">
       <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-sm">
         <div>
           <h1 className="font-display text-display-lg font-bold text-on-surface">Painel de Análise</h1>
@@ -47,7 +65,7 @@ export default function TeacherDashboardPage() {
             <ClassSelector classes={classes} selectedClassId={selectedClassId} onSelect={setSelectedClassId} />
           )}
         </div>
-        <Button variant="ghost" icon={<Icon name="download" />}>
+        <Button variant="ghost" icon={<Icon name="download" />} disabled={queue.length === 0} onClick={handleExport}>
           Exportar
         </Button>
       </div>

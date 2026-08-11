@@ -69,14 +69,18 @@ ativo mais importante do produto.
 4. **Uma única resposta correta inequívoca**, exceto em perguntas de associação/múltipla seleção
    explicitamente desenhadas para isso. Evite ambiguidade de interpretação.
 5. **Dificuldade estimada com critério consistente:** `easy` = definição direta do material; `medium` =
-   aplicação de conceito; `hard` = síntese entre múltiplos trechos ou raciocínio crítico.
+   aplicação de conceito; `hard` = síntese entre múltiplos trechos ou raciocínio crítico; `impossible` =
+   conteúdo muito específico ou extremamente raro do trecho-fonte (ex.: um número exato, uma citação de
+   autor secundária, um detalhe técnico isolado que exige leitura atenta e memória de um ponto muito
+   preciso do texto) — ainda assim, nunca inventado: se o texto não sustenta o detalhe com precisão, a
+   pergunta não é `impossible`, é inválida.
 6. **Formato de saída estruturado.** Sempre retorne JSON válido seguindo exatamente este schema, sem
    texto fora do JSON quando a chamada for de geração (não conversacional):
 
 ```json
 {
   "type": "multiple_choice | true_false | matching | fill_blank | image_identification",
-  "difficulty": "easy | medium | hard",
+  "difficulty": "easy | medium | hard | impossible",
   "prompt": "string",
   "options": ["string", "..."],
   "correct_answer": "string",

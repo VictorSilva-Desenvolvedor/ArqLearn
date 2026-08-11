@@ -19,7 +19,11 @@ export default function LoginPage() {
     const result = await auth?.loginWithPassword(email, password);
     setSubmitting(false);
     if (!result || result.error) {
-      setError("E-mail ou senha inválidos.");
+      // Só traduz pro texto genérico quando o Supabase de fato disse "credenciais inválidas" —
+      // qualquer outro erro (rate limit, rede, provedor fora do ar) aparece como veio, em vez de
+      // ser escondido atrás da mesma mensagem, o que já disfarçou uma causa real diferente aqui.
+      const raw = result?.error ?? "";
+      setError(raw === "Invalid login credentials" || !raw ? "E-mail ou senha inválidos." : raw);
       return;
     }
     // Navegação forçada (não router.push) — o layout raiz (app/layout.tsx) só busca a sessão

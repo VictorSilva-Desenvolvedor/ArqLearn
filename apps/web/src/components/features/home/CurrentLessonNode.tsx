@@ -28,7 +28,7 @@ export function CurrentLessonNode({ icon, href, ctaLabel }: CurrentLessonNodePro
   return (
     <div className="relative flex flex-col items-center">
       {ctaLabel && (
-        <div className="absolute -top-12 bg-surface-bright border-2 border-secondary text-secondary font-label-caps text-label-caps px-3 py-1 rounded-lg shadow-md flex flex-col items-center whitespace-nowrap">
+        <div className="absolute -top-12 animate-bounce bg-surface-bright border-2 border-secondary text-secondary font-label-caps text-label-caps px-3 py-1 rounded-lg shadow-md flex flex-col items-center whitespace-nowrap">
           {ctaLabel}
           <div className="w-0 h-0 border-l-[6px] border-l-transparent border-r-[6px] border-r-transparent border-t-[8px] border-t-secondary absolute -bottom-[10px]" />
         </div>
