@@ -8,6 +8,7 @@ const items = [
   { href: "/perfil", label: "Perfil", icon: "person" },
   { href: "/loja", label: "Loja", icon: "storefront" },
   { href: "/notificacoes", label: "Notificações", icon: "notifications" },
+  { href: "/ajuda", label: "Ajuda e Bugs", icon: "help" },
 ];
 
 export function SideNav() {

@@ -11,7 +11,7 @@ export function IconButton({ icon, label, className, ...rest }: IconButtonProps)
     <button
       aria-label={label}
       className={cn(
-        "inline-flex items-center justify-center w-10 h-10 rounded-full text-on-surface-variant hover:bg-surface-gray transition-colors",
+        "inline-flex items-center justify-center w-11 h-11 rounded-full text-on-surface-variant hover:bg-surface-gray transition-colors",
         className,
       )}
       {...rest}

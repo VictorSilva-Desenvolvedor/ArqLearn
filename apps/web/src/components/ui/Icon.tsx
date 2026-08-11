@@ -16,7 +16,11 @@ export function Icon({ name, filled = false, className, size }: IconProps) {
     ...(size ? { fontSize: size } : {}),
   };
   return (
-    <span className={cn("material-symbols-outlined leading-none", className)} style={style}>
+    <span
+      aria-hidden="true"
+      className={cn("material-symbols-outlined leading-none", className)}
+      style={style}
+    >
       {name}
     </span>
   );

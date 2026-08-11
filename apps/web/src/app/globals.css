@@ -26,7 +26,7 @@
   --color-surface-tint: #34618f;
   --color-surface-variant: #d9e3f6;
   --color-surface-gray: #f3f4f6;
-  --color-blueprint-grid: #e5e7eb;
+  --color-blueprint-grid: #b4bcc7;
 
   /* Cores — primária (navegação, botões primários, cabeçalhos) */
   --color-primary: #0e4471;
@@ -110,10 +110,80 @@
   --spacing-xl: 32px;
   --spacing-section: 48px;
   --spacing-container-max: 1120px;
+
+  /*
+   * "Ambient Shadow" — DESIGN.md §Elevation & Depth: sombra suave, baixo blur, tingida de azul
+   * (primary-blue), reservada só a elementos gamificados críticos (nó de lição concluída/
+   * checkpoint, card da unidade em andamento), nunca um shadow-sm/md/lg genérico do Tailwind.
+   * Valores portados de .gamified-shadow em home_mapa_de_aprendizado/code.html:196-198.
+   */
+  --shadow-gamified: 0 4px 6px -1px rgba(14, 68, 113, 0.1), 0 2px 4px -1px rgba(14, 68, 113, 0.06);
 }
 
+/*
+ * "Digital Drafting Table" — grade técnica de fundo presente nos 17 code.html de referência
+ * (ex.: home_mapa_de_aprendizado/code.html:184-192), nunca portada pra produção antes.
+ * --color-blueprint-grid já existia em @theme só pra outros usos pontuais (ex.: border);
+ * aqui é o próprio grid 24x24 do conceito visual.
+ */
 body {
-  background: var(--color-background);
+  background-color: var(--color-background);
+  background-image:
+    linear-gradient(to right, var(--color-blueprint-grid) 1px, transparent 1px),
+    linear-gradient(to bottom, var(--color-blueprint-grid) 1px, transparent 1px);
+  background-size: 24px 24px;
+  background-attachment: fixed;
   color: var(--color-on-background);
   font-family: var(--font-body);
+}
+
+/*
+ * Keyframes de entrada/saída pra Modal (Radix Dialog) e DropdownMenu — substituem classes
+ * data-[state=open]:animate-in que dependiam do plugin tailwindcss-animate (nunca instalado,
+ * eram código morto). Radix já espera o fim de uma animação CSS aplicada a data-[state=closed]
+ * antes de desmontar o elemento, então isto cobre abrir E fechar sem precisar de forceMount.
+ * A regra de prefers-reduced-motion acima já encurta a duração dessas animações pra ~0.
+ */
+@keyframes overlay-fade-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+@keyframes overlay-fade-out {
+  from { opacity: 1; }
+  to { opacity: 0; }
+}
+@keyframes modal-content-in {
+  from { opacity: 0; transform: translate(-50%, -50%) scale(0.95); }
+  to { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+}
+@keyframes modal-content-out {
+  from { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+  to { opacity: 0; transform: translate(-50%, -50%) scale(0.95); }
+}
+@keyframes dropdown-in {
+  from { opacity: 0; transform: translateY(-4px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+@keyframes dropdown-out {
+  from { opacity: 1; transform: translateY(0); }
+  to { opacity: 0; transform: translateY(-4px); }
+}
+@keyframes toast-in {
+  from { opacity: 0; transform: translate(-50%, 8px); }
+  to { opacity: 1; transform: translate(-50%, 0); }
+}
+
+/* Respeita a preferência do sistema por menos movimento (spec §4 e §8) — reduz toda animação/
+   transição/scroll suave a essencialmente instantâneo, em vez de simplesmente removê-las (o que
+   quebraria estados que dependem de uma transição terminar, como o :focus-visible em alguns
+   navegadores). Regra global de propósito único: não redefinir motion por componente. */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
 }

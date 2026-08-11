@@ -1,11 +1,21 @@
 import { ApiError } from "../../http";
 import { getInfiniteModeBank, type InfiniteModeQuestionEntry } from "./infiniteModeQuestions";
+import { awardXp } from "./dailyXpCap";
 import type { InfiniteModeAnswerResult, InfiniteModeEndResult, InfiniteModeSession } from "@/types/api";
 
 // Sessão de Modo Infinito em memória do lado do cliente — mesmo padrão de quizSessions.ts.
 // O banco de perguntas é curto no mock; ciclamos por ele até MAX_QUESTIONS e então tratamos
 // como "banco esgotado" (next_question ausente), igual ao comportamento real descrito no spec.
 const MAX_QUESTIONS = 9;
+
+// Mesma conta que o backend real faz em handleInfiniteModeAnswer (API Spec §6.1 v1.3): a cada 20
+// perguntas respondidas, sobe um "nível" — só o tópico "maquetes" de fato gera lição nova por trás
+// disso (services/monolith/internal/learning/infinitemode_generation.go), mas o número em si é
+// exibido pra qualquer tópico, cliente não distingue.
+const LEVEL_BATCH_SIZE = 20;
+function levelFor(questionsAnswered: number): number {
+  return Math.floor(questionsAnswered / LEVEL_BATCH_SIZE) + 1;
+}
 
 interface MockInfiniteSessionState {
   topic: string;
@@ -29,6 +39,16 @@ function nextEntry(state: MockInfiniteSessionState): InfiniteModeQuestionEntry |
 
 export function startInfiniteModeSessionMock(topic: string): InfiniteModeSession {
   const bank = getInfiniteModeBank(topic);
+  if (!bank) {
+    // Código só do mock — não existe no catálogo real do spec porque no backend de verdade
+    // todo tema publicado teria perguntas; aqui simula um tema da grade sem conteúdo gerado ainda.
+    throw new ApiError(404, {
+      error_code: "TOPIC_NOT_AVAILABLE",
+      message: `Ainda não há perguntas de Modo Infinito para o tema "${topic}".`,
+      trace_id: "mock-trace",
+    });
+  }
+
   sessionCounter += 1;
   const sessionId = `mock-infinite-${sessionCounter}`;
 
@@ -79,19 +99,23 @@ export function answerInfiniteModeSessionMock(
 
   state.questionsAnswered += 1;
   state.totalTimeMs += timeMs;
+  // perguntas do Modo Infinito são todas "hard" — XP-base fixo mais alto que o loop padrão,
+  // mas ainda sujeito ao mesmo teto diário compartilhado (spec §6.1: "mesmo comportamento de §6").
+  const { xp_ganho, xp_daily_cap_reached } = awardXp(correct ? 25 : 0);
   if (correct) {
     state.correctCount += 1;
-    state.xpEarned += 25; // perguntas do Modo Infinito são todas "hard" — XP fixo mais alto que o loop padrão
+    state.xpEarned += xp_ganho;
   }
 
   const next = nextEntry(state);
 
   return {
     correct,
-    xp_ganho: correct ? 25 : 0,
-    xp_daily_cap_reached: false,
+    xp_ganho,
+    xp_daily_cap_reached,
     questions_answered: state.questionsAnswered,
     correct_count: state.correctCount,
+    level: levelFor(state.questionsAnswered),
     next_question: next?.question,
   };
 }

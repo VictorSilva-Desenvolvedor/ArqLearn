@@ -57,8 +57,12 @@ estritamente estas regras (Persona Prompt §4):
    literalmente no texto-fonte. Se o texto não permite afirmar algo com segurança, não gere a pergunta.
 3. Toda pergunta deve indicar a página do texto-fonte de onde veio (source_page).
 4. Uma única resposta correta inequívoca por pergunta — evite ambiguidade de interpretação.
-5. Dificuldade: "medium" = aplicação de conceito; "hard" = síntese entre múltiplos trechos ou
-   raciocínio crítico. Não gere perguntas "easy" (definição direta) nesta chamada.
+5. Dificuldade (Persona Prompt §4.5): "easy" = definição direta do material; "medium" = aplicação
+   de conceito; "hard" = síntese entre múltiplos trechos ou raciocínio crítico; "impossible" =
+   conteúdo muito específico ou extremamente raro do trecho-fonte (um número exato, uma citação
+   secundária, um detalhe isolado que exige leitura atenta), nunca inventado — se o texto não
+   sustenta o detalhe com precisão, não gere como "impossible". Gere só o nível de dificuldade
+   pedido nesta mensagem pelo usuário — não misture níveis na mesma chamada.
 6. confidence "high" ou "medium" apenas quando a pergunta estiver solidamente ancorada no texto;
    se a única pergunta possível fosse de confidence "low", prefira não gerá-la.
 7. type é sempre "multiple_choice" nesta chamada; explanation é curta (2-3 frases), citando o
@@ -93,7 +97,7 @@ var questionsArraySchema = map[string]any{
 		"type": "OBJECT",
 		"properties": map[string]any{
 			"type":           map[string]any{"type": "STRING", "enum": []string{"multiple_choice"}},
-			"difficulty":     map[string]any{"type": "STRING", "enum": []string{"medium", "hard"}},
+			"difficulty":     map[string]any{"type": "STRING", "enum": []string{"easy", "medium", "hard", "impossible"}},
 			"prompt":         map[string]any{"type": "STRING"},
 			"options":        map[string]any{"type": "ARRAY", "items": map[string]any{"type": "STRING"}},
 			"correct_answer": map[string]any{"type": "STRING"},
@@ -116,18 +120,23 @@ type generateResponse struct {
 	} `json:"error"`
 }
 
-// GenerateQuestions pede N perguntas medium/hard a partir de um texto-fonte (uma página ou
-// trecho), seguindo o Persona Prompt §4. sourcePage é repassado no prompt pra o modelo ecoar de
-// volta em cada pergunta (fonte de verdade pro rastreamento, não um valor confiável por si só —
-// o chamador ainda deve conferir que bate com o texto realmente enviado).
-func (c *Client) GenerateQuestions(ctx context.Context, sourceText string, sourcePage, count int) ([]GeneratedQuestion, error) {
+// GenerateQuestions pede N perguntas de um nível de dificuldade específico a partir de um
+// texto-fonte (uma página ou trecho), seguindo o Persona Prompt §4. sourcePage é repassado no
+// prompt pra o modelo ecoar de volta em cada pergunta (fonte de verdade pro rastreamento, não um
+// valor confiável por si só — o chamador ainda deve conferir que bate com o texto realmente
+// enviado). difficulty vazio deixa o modelo escolher livremente entre easy/medium/hard/impossible.
+func (c *Client) GenerateQuestions(ctx context.Context, sourceText string, sourcePage, count int, difficulty string) ([]GeneratedQuestion, error) {
 	if !c.Enabled() {
 		return nil, fmt.Errorf("geminiclient: GEMINI_API_KEY não configurada")
 	}
 
+	difficultyInstruction := "easy, medium, hard ou impossible, conforme o critério da regra 5"
+	if difficulty != "" {
+		difficultyInstruction = fmt.Sprintf("todas de dificuldade %q", difficulty)
+	}
 	userPrompt := fmt.Sprintf(
-		"Texto-fonte (página %d):\n\n%s\n\nGere %d perguntas de múltipla escolha (4 alternativas cada), medium ou hard, a partir exclusivamente deste texto.",
-		sourcePage, sourceText, count,
+		"Texto-fonte (página %d):\n\n%s\n\nGere %d perguntas de múltipla escolha (4 alternativas cada), %s, a partir exclusivamente deste texto.",
+		sourcePage, sourceText, count, difficultyInstruction,
 	)
 
 	reqBody, err := json.Marshal(generateRequest{
@@ -261,7 +270,7 @@ func Validate(q GeneratedQuestion) error {
 	if !seen[q.CorrectAnswer] {
 		return fmt.Errorf("correct_answer (%q) não bate com nenhuma option exatamente", q.CorrectAnswer)
 	}
-	if q.Difficulty != "medium" && q.Difficulty != "hard" && q.Difficulty != "easy" {
+	if q.Difficulty != "medium" && q.Difficulty != "hard" && q.Difficulty != "easy" && q.Difficulty != "impossible" {
 		return fmt.Errorf("difficulty inválida: %q", q.Difficulty)
 	}
 	if q.Confidence != "high" && q.Confidence != "medium" && q.Confidence != "low" {

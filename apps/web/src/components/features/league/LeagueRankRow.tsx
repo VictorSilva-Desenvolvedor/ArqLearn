@@ -1,4 +1,5 @@
 import { cn } from "@/lib/utils/cn";
+import { Avatar } from "@/components/ui/Avatar";
 import type { LeagueRankingEntry } from "@/types/api";
 
 interface LeagueRankRowProps {
@@ -15,6 +16,7 @@ export function LeagueRankRow({ entry, isCurrentUser }: LeagueRankRowProps) {
       )}
     >
       <span className="w-6 font-label text-body-sm font-bold text-on-surface-variant">{entry.position}</span>
+      <Avatar name={entry.name} size={32} />
       <span className="flex-1 font-body-lg text-body-lg text-on-surface truncate">
         {isCurrentUser ? "Você" : entry.name}
       </span>

@@ -94,17 +94,22 @@ func handleSubmitAnswer(pool *pgxpool.Pool, mongoDB *mongo.Database) http.Handle
 		var timezone string
 		var xpTotal, xpToday, heartsCurrent, streakCurrent, streakBest int
 		var xpTodayDate, streakLastActiveDate *time.Time
+		var heartsUpdatedAt time.Time
 		err = pool.QueryRow(r.Context(), `
-			SELECT u.timezone, g.xp_total, g.xp_today, g.xp_today_date, g.hearts_current,
+			SELECT u.timezone, g.xp_total, g.xp_today, g.xp_today_date, g.hearts_current, g.hearts_updated_at,
 			       g.streak_current, g.streak_best, g.streak_last_active_date
 			FROM users u JOIN user_gamification g ON g.user_id = u.id
 			WHERE u.id = $1
-		`, userID).Scan(&timezone, &xpTotal, &xpToday, &xpTodayDate, &heartsCurrent,
+		`, userID).Scan(&timezone, &xpTotal, &xpToday, &xpTodayDate, &heartsCurrent, &heartsUpdatedAt,
 			&streakCurrent, &streakBest, &streakLastActiveDate)
 		if err != nil {
 			apierror.Write(w, http.StatusInternalServerError, "INTERNAL_ERROR", "Falha ao consultar perfil.")
 			return
 		}
+		// Regenera antes de aplicar a resposta atual (TDD §5.4) — sem isso, alguém que voltou
+		// depois de horas sem vidas perderia mais uma vida indevidamente por causa de um
+		// contador desatualizado.
+		heartsCurrent, heartsUpdatedAt = gamification.RegenerarVidas(heartsCurrent, heartsUpdatedAt, now)
 
 		hojeLocal := gamification.HojeLocal(timezone, now)
 		hojeLocalDate, _ := time.Parse("2006-01-02", hojeLocal)
@@ -129,8 +134,12 @@ func handleSubmitAnswer(pool *pgxpool.Pool, mongoDB *mongo.Database) http.Handle
 		xpResult := gamification.CalcularXP(q.Difficulty, req.TimeMs, isFirstCompletion, correct, xpToday)
 
 		newHearts := heartsCurrent
+		newHeartsUpdatedAt := heartsUpdatedAt
 		if !correct && newHearts > 0 {
 			newHearts--
+			// Cada perda reinicia o relógio de regeneração a partir deste instante (TDD §5.4),
+			// mesmo que já houvesse um tique em andamento de uma perda anterior.
+			newHeartsUpdatedAt = now
 		}
 
 		streak := gamification.StreakState{Current: streakCurrent, Best: streakBest, LastActiveDate: dateOrEmpty(streakLastActiveDate)}
@@ -151,9 +160,10 @@ func handleSubmitAnswer(pool *pgxpool.Pool, mongoDB *mongo.Database) http.Handle
 		_, err = pool.Exec(r.Context(), `
 			UPDATE user_gamification
 			SET xp_total = $1, xp_today = $2, xp_today_date = $3, level = $4,
-			    hearts_current = $5, streak_current = $6, streak_best = $7, streak_last_active_date = $8
-			WHERE user_id = $9
-		`, newXPTotal, newXPToday, hojeLocalDate, newLevel, newHearts,
+			    hearts_current = $5, hearts_updated_at = $6, streak_current = $7, streak_best = $8,
+			    streak_last_active_date = $9
+			WHERE user_id = $10
+		`, newXPTotal, newXPToday, hojeLocalDate, newLevel, newHearts, newHeartsUpdatedAt,
 			streak.Current, streak.Best, streakLastActiveParam, userID)
 		if err != nil {
 			apierror.Write(w, http.StatusInternalServerError, "INTERNAL_ERROR", "Falha ao atualizar gamificação.")

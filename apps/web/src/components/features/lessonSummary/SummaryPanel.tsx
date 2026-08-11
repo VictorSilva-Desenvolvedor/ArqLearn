@@ -12,9 +12,19 @@ interface SummaryPanelProps {
   streak: number;
   hearts: number;
   moduleProgressPercent: number;
+  gemsEarned?: number;
+  nextHref: string;
 }
 
-export function SummaryPanel({ xpEarned, accuracy, streak, hearts, moduleProgressPercent }: SummaryPanelProps) {
+export function SummaryPanel({
+  xpEarned,
+  accuracy,
+  streak,
+  hearts,
+  moduleProgressPercent,
+  gemsEarned = 0,
+  nextHref,
+}: SummaryPanelProps) {
   const router = useRouter();
 
   return (
@@ -48,6 +58,15 @@ export function SummaryPanel({ xpEarned, accuracy, streak, hearts, moduleProgres
             label="Vidas Restantes"
             value={`${hearts}`}
           />
+          {/* Spec §C ("Gems earned when applicable") — só aparece quando a lição realmente rendeu
+              gemas (hoje, só via conquista desbloqueada nesta mesma lição). */}
+          {gemsEarned > 0 && (
+            <StatCard
+              icon={<Icon name="diamond" filled className="text-primary text-3xl" />}
+              label="Gemas Ganhas"
+              value={`+${gemsEarned}`}
+            />
+          )}
         </div>
 
         <div className="text-left">
@@ -62,7 +81,7 @@ export function SummaryPanel({ xpEarned, accuracy, streak, hearts, moduleProgres
           <ProgressBar value={moduleProgressPercent} max={100} variant="thin" tone="primary" />
         </div>
 
-        <Button variant="primary" fullWidth onClick={() => router.push("/")}>
+        <Button variant="primary" fullWidth onClick={() => router.push(nextHref)}>
           Continuar para o Mapa
         </Button>
       </div>

@@ -21,6 +21,7 @@ export function UploadPromptCard({ onFileSelected }: UploadPromptCardProps) {
           <p className="font-body-sm text-body-sm text-on-surface-variant">
             Envie PDFs, apresentações, imagens ou vídeos e gere exercícios automaticamente.
           </p>
+          <p className="font-body-sm text-body-sm text-outline mt-1">Tamanho máximo: 2 GB</p>
         </div>
       </div>
       <input

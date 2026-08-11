@@ -31,6 +31,61 @@ export const mockLessonsByTrack: Record<string, TrackLesson[]> = {
       progress_status: "not_started",
     },
   ],
+  "track-sistemas-construtivos": [
+    {
+      lesson: {
+        id: "t4-l1",
+        track_id: "track-sistemas-construtivos",
+        title: "Alvenaria Estrutural vs. Vedação",
+        order: 1,
+      },
+      progress_status: "not_started",
+    },
+    {
+      lesson: { id: "t4-l2", track_id: "track-sistemas-construtivos", title: "Modulação e Instalações", order: 2 },
+      progress_status: "not_started",
+    },
+  ],
+  "track-arquitetura-moderna-br": [
+    {
+      lesson: {
+        id: "t5-l1",
+        track_id: "track-arquitetura-moderna-br",
+        title: "Oscar Niemeyer e o Concreto Armado",
+        order: 1,
+      },
+      progress_status: "not_started",
+    },
+    {
+      lesson: {
+        id: "t5-l2",
+        track_id: "track-arquitetura-moderna-br",
+        title: "Brutalismo Paulista",
+        order: 2,
+      },
+      progress_status: "not_started",
+    },
+  ],
+  "track-conforto-termico": [
+    {
+      lesson: { id: "t6-l1", track_id: "track-conforto-termico", title: "Ventilação Natural", order: 1 },
+      progress_status: "not_started",
+    },
+    {
+      lesson: { id: "t6-l2", track_id: "track-conforto-termico", title: "Inércia Térmica", order: 2 },
+      progress_status: "not_started",
+    },
+  ],
+  "track-estruturas": [
+    {
+      lesson: { id: "t7-l1", track_id: "track-estruturas", title: "Treliças Isostáticas", order: 1 },
+      progress_status: "not_started",
+    },
+    {
+      lesson: { id: "t7-l2", track_id: "track-estruturas", title: "Flambagem de Pilares", order: 2 },
+      progress_status: "not_started",
+    },
+  ],
 };
 
 // Metadados só de apresentação (ícone do nó, se é checkpoint) — não fazem parte do contrato
@@ -42,10 +97,18 @@ export interface LessonNodePresentation {
 }
 
 export const lessonNodePresentation: Record<string, LessonNodePresentation> = {
-  "t1-l1": { icon: "check" },
-  "t1-l2": { icon: "check" },
+  "t1-l1": { icon: "foundation" },
+  "t1-l2": { icon: "foundation" },
   "t1-l3": { icon: "emoji_events", isCheckpoint: true },
   "t2-l1": { icon: "account_balance" },
   "t2-l2": { icon: "castle" },
   "t3-l1": { icon: "location_city" },
+  "t4-l1": { icon: "handyman" },
+  "t4-l2": { icon: "plumbing" },
+  "t5-l1": { icon: "villa" },
+  "t5-l2": { icon: "apartment" },
+  "t6-l1": { icon: "air" },
+  "t6-l2": { icon: "thermostat" },
+  "t7-l1": { icon: "architecture" },
+  "t7-l2": { icon: "vertical_align_bottom" },
 };

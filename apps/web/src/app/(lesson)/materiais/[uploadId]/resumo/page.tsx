@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { getUploadSummary } from "@/lib/api/resources/materials";
+import { getServerAccessToken } from "@/lib/supabase/server";
 import { SummaryHeader } from "@/components/features/materialSummary/SummaryHeader";
 import { DiagramCard } from "@/components/features/materialSummary/DiagramCard";
 import { KeyPointsChecklist } from "@/components/features/materialSummary/KeyPointsChecklist";
@@ -12,7 +13,7 @@ export default async function MaterialSummaryPage({
   params: Promise<{ uploadId: string }>;
 }) {
   const { uploadId } = await params;
-  const summary = await getUploadSummary(uploadId);
+  const summary = await getUploadSummary(uploadId, await getServerAccessToken());
 
   return (
     <>

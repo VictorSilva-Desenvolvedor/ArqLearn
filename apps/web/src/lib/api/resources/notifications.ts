@@ -4,9 +4,11 @@ import { mockDelay } from "../mocks/delay";
 import { mockNotifications } from "../mocks/fixtures/notifications";
 import type { AppNotification, Paginated } from "@/types/api";
 
-export async function listNotifications(): Promise<Paginated<AppNotification>> {
+// accessToken opcional — a página de Notificações é Server Component e passa o token da própria
+// requisição, mesmo motivo de getMe (resources/users.ts).
+export async function listNotifications(accessToken?: string): Promise<Paginated<AppNotification>> {
   if (isResourceReal("notifications")) {
-    return apiFetch<Paginated<AppNotification>>("/v1/notifications");
+    return apiFetch<Paginated<AppNotification>>("/v1/notifications", undefined, accessToken);
   }
   return mockDelay({ data: mockNotifications, next_cursor: null });
 }

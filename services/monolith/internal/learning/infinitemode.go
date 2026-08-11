@@ -16,6 +16,7 @@ import (
 	"arqlearn/monolith/internal/apierror"
 	"arqlearn/monolith/internal/authmiddleware"
 	"arqlearn/monolith/internal/gamification"
+	"arqlearn/monolith/internal/questiongen"
 )
 
 // infiniteModeSessionTTL segue o mesmo padrão de sessionTTL (session.go) — sessão abandonada
@@ -158,7 +159,7 @@ type infiniteModeAnswerRequest struct {
 // handleInfiniteModeAnswer concede XP igual a uma resposta normal (gamification.CalcularXP),
 // mas sem tocar vidas/streak/SRS/user_progress — Modo Infinito é prática solta, não faz parte do
 // progresso de nenhuma lição específica (API Spec §6.1, resposta não inclui vidas_restantes).
-func handleInfiniteModeAnswer(pool *pgxpool.Pool, mongoDB *mongo.Database) http.HandlerFunc {
+func handleInfiniteModeAnswer(pool *pgxpool.Pool, mongoDB *mongo.Database, gemini *questiongen.Client) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		if pool == nil || mongoDB == nil {
 			apierror.Write(w, http.StatusServiceUnavailable, "SERVICE_UNAVAILABLE", "Serviço indisponível.")
@@ -259,6 +260,9 @@ func handleInfiniteModeAnswer(pool *pgxpool.Pool, mongoDB *mongo.Database) http.
 			return
 		}
 
+		newQuestionsAnswered := sess.QuestionsAnswered + 1
+		maybeTriggerGeneration(mongoDB, gemini, sess.Topic, newQuestionsAnswered)
+
 		// Conquistas do Modo Infinito (sequência sem errar, total de perguntas) — best-effort,
 		// mesmo padrão de AddWeeklyXP acima.
 		if counters, err := gamification.BumpInfiniteAnswerCounters(r.Context(), pool, userID, correct); err != nil {
@@ -271,8 +275,9 @@ func handleInfiniteModeAnswer(pool *pgxpool.Pool, mongoDB *mongo.Database) http.
 			"correct":              correct,
 			"xp_ganho":             xpResult.XPConcedido,
 			"xp_daily_cap_reached": xpResult.DailyCapReached,
-			"questions_answered":   sess.QuestionsAnswered + 1,
+			"questions_answered":   newQuestionsAnswered,
 			"correct_count":        sess.CorrectCount + boolToInt(correct),
+			"level":                newQuestionsAnswered/genBatchSize + 1,
 		}
 		if nextQuestion != nil {
 			resp["next_question"] = toWireQuestion(*nextQuestion)

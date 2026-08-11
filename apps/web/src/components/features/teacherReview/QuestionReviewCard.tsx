@@ -15,16 +15,18 @@ const typeLabel: Record<QuestionType, string> = {
   image_identification: "Identificação de Imagem",
 };
 
-const difficultyTone: Record<QuestionDifficulty, "tertiary" | "secondary" | "error"> = {
+const difficultyTone: Record<QuestionDifficulty, "tertiary" | "secondary" | "error" | "primary"> = {
   easy: "tertiary",
   medium: "secondary",
   hard: "error",
+  impossible: "primary",
 };
 
 const difficultyLabel: Record<QuestionDifficulty, string> = {
   easy: "Fácil",
   medium: "Médio",
   hard: "Difícil",
+  impossible: "Impossível",
 };
 
 interface QuestionReviewCardProps {

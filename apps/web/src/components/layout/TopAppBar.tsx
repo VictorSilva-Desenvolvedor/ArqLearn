@@ -1,32 +1,52 @@
 "use client";
 
+import { useState } from "react";
 import Link from "next/link";
 import { Icon } from "@/components/ui/Icon";
 import { StatPill } from "@/components/ui/StatPill";
 import { Avatar } from "@/components/ui/Avatar";
 import { IconButton } from "@/components/ui/IconButton";
+import { ThemeSelector } from "./ThemeSelector";
+import { NoHeartsDialog } from "@/components/features/gamification/NoHeartsDialog";
+import { StreakDialog } from "@/components/features/gamification/StreakDialog";
 import { useAuth } from "@/hooks/useAuth";
 
 export function TopAppBar() {
   const { user, gamification, logout } = useAuth();
+  const [heartsDialogOpen, setHeartsDialogOpen] = useState(false);
+  const [streakDialogOpen, setStreakDialogOpen] = useState(false);
 
   const stats = (
     <>
+      <button
+        type="button"
+        onClick={() => setStreakDialogOpen(true)}
+        aria-label="Ver sequência e bloqueio de ofensiva"
+        className="rounded-full"
+      >
+        <StatPill
+          tone="secondary"
+          icon={<Icon name="local_fire_department" filled className="text-secondary" />}
+          value={gamification.streak_current}
+        />
+      </button>
+      <div className="w-px h-4 bg-outline-variant" />
+      <button
+        type="button"
+        onClick={() => setHeartsDialogOpen(true)}
+        aria-label="Ver vidas e restaurar"
+        className="rounded-full"
+      >
+        <StatPill
+          tone="error"
+          icon={<Icon name="favorite" filled className="text-error-red" />}
+          value={gamification.hearts_current}
+        />
+      </button>
+      <div className="w-px h-4 bg-outline-variant" />
       <StatPill
         tone="secondary"
-        icon={<Icon name="local_fire_department" filled className="text-secondary" />}
-        value={gamification.streak_current}
-      />
-      <div className="w-px h-4 bg-outline-variant" />
-      <StatPill
-        tone="error"
-        icon={<Icon name="favorite" filled className="text-error-red" />}
-        value={gamification.hearts_current}
-      />
-      <div className="w-px h-4 bg-outline-variant" />
-      <StatPill
-        tone="primary"
-        icon={<Icon name="diamond" filled className="text-primary" />}
+        icon={<Icon name="diamond" filled className="text-secondary" />}
         value={gamification.gems}
       />
     </>
@@ -40,6 +60,9 @@ export function TopAppBar() {
           <h1 className="font-display text-display-lg font-bold text-primary">ArqLearn</h1>
         </Link>
         <div className="flex items-center gap-md">
+          <div className="hidden sm:block">
+            <ThemeSelector />
+          </div>
           <div className="hidden md:flex items-center gap-sm bg-surface-gray rounded-full px-sm py-1 border border-outline-variant">
             {stats}
           </div>
@@ -62,9 +85,14 @@ export function TopAppBar() {
           <IconButton icon={<Icon name="logout" />} label="Sair" onClick={logout} />
         </div>
       </div>
+      <div className="sm:hidden flex justify-center py-1 border-t border-outline-variant bg-surface-gray">
+        <ThemeSelector />
+      </div>
       <div className="md:hidden flex justify-around items-center bg-surface-gray py-2 border-t border-outline-variant">
         {stats}
       </div>
+      <NoHeartsDialog open={heartsDialogOpen} onOpenChange={setHeartsDialogOpen} />
+      <StreakDialog open={streakDialogOpen} onOpenChange={setStreakDialogOpen} />
     </header>
   );
 }

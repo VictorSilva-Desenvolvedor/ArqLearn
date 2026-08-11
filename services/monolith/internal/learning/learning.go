@@ -19,9 +19,10 @@ import (
 	"arqlearn/monolith/internal/apierror"
 	"arqlearn/monolith/internal/authmiddleware"
 	"arqlearn/monolith/internal/groqclient"
+	"arqlearn/monolith/internal/questiongen"
 )
 
-func RegisterRoutes(mux *http.ServeMux, pool *pgxpool.Pool, mongoDB *mongo.Database, verifier *authmiddleware.Verifier, groq *groqclient.Client) {
+func RegisterRoutes(mux *http.ServeMux, pool *pgxpool.Pool, mongoDB *mongo.Database, verifier *authmiddleware.Verifier, groq *groqclient.Client, gemini *questiongen.Client) {
 	// Trilhas e progresso — API Spec §6
 	mux.Handle("GET /v1/tracks", verifier.Middleware(http.HandlerFunc(handleListTracks(mongoDB))))
 	mux.Handle("GET /v1/tracks/{track_id}/lessons", verifier.Middleware(http.HandlerFunc(handleListTrackLessons(mongoDB))))
@@ -32,7 +33,7 @@ func RegisterRoutes(mux *http.ServeMux, pool *pgxpool.Pool, mongoDB *mongo.Datab
 
 	// Modo Infinito — API Spec §6.1
 	mux.Handle("POST /v1/infinite-mode/sessions", verifier.Middleware(http.HandlerFunc(handleStartInfiniteMode(mongoDB))))
-	mux.Handle("POST /v1/infinite-mode/sessions/{session_id}/answers", verifier.Middleware(http.HandlerFunc(handleInfiniteModeAnswer(pool, mongoDB))))
+	mux.Handle("POST /v1/infinite-mode/sessions/{session_id}/answers", verifier.Middleware(http.HandlerFunc(handleInfiniteModeAnswer(pool, mongoDB, gemini))))
 	mux.Handle("POST /v1/infinite-mode/sessions/{session_id}/end", verifier.Middleware(http.HandlerFunc(handleEndInfiniteMode(pool, mongoDB))))
 
 	// Resumo Inteligente — API Spec §6.2

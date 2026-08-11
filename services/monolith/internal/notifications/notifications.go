@@ -7,12 +7,14 @@
 package notifications
 
 import (
+	"context"
 	"encoding/base64"
 	"encoding/json"
 	"net/http"
 	"strconv"
 	"time"
 
+	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
 	"go.mongodb.org/mongo-driver/v2/bson"
@@ -31,6 +33,7 @@ func RegisterRoutes(mux *http.ServeMux, pool *pgxpool.Pool, mongoDB *mongo.Datab
 // notification espelha a coleção "notifications" (nova — nunca existia schema nenhum pra isso).
 type notification struct {
 	ID        string    `bson:"_id" json:"id"`
+	UserID    string    `bson:"user_id" json:"-"` // nunca serializado — API Spec §9 não expõe user_id (a lista já é escopada pro usuário autenticado)
 	Type      string    `bson:"type" json:"type"`
 	Message   string    `bson:"message" json:"message"`
 	Read      bool      `bson:"read" json:"read"`
@@ -139,6 +142,22 @@ func handleUpdatePreferences(pool *pgxpool.Pool) http.HandlerFunc {
 
 		writeJSON(w, http.StatusOK, resp)
 	}
+}
+
+// Create insere uma notificação real pro usuário — hoje só chamada pelo pacote bugreports
+// (POST /v1/bug-reports/{id}/resolve, API Spec §14): é o primeiro gatilho síncrono desta coleção,
+// os demais tipos (streak_at_risk, league_promotion...) ainda dependem de jobs que não existem
+// (ver comentário no topo do arquivo).
+func Create(ctx context.Context, mongoDB *mongo.Database, userID, notifType, message string) error {
+	_, err := mongoDB.Collection("notifications").InsertOne(ctx, notification{
+		ID:        uuid.NewString(),
+		UserID:    userID,
+		Type:      notifType,
+		Message:   message,
+		Read:      false,
+		CreatedAt: time.Now().UTC(),
+	})
+	return err
 }
 
 func writeJSON(w http.ResponseWriter, status int, body any) {

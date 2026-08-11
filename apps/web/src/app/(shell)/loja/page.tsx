@@ -5,13 +5,15 @@ import { mockShopCatalog } from "@/lib/api/mocks/fixtures/shopCatalog";
 import { purchaseShopItem } from "@/lib/api/resources/gamification";
 import { ApiError } from "@/lib/api/http";
 import { useAuth } from "@/hooks/useAuth";
+import { useToast } from "@/hooks/useToast";
 import { ShopFeatureCard } from "@/components/features/shop/ShopFeatureCard";
 import { ShopCosmeticItem } from "@/components/features/shop/ShopCosmeticItem";
 
 const HEARTS_MAX = 5;
 
 export default function ShopPage() {
-  const { gamification, updateGamification } = useAuth();
+  const { gamification, updateGamification, adjustStreakFreezes } = useAuth();
+  const { showToast } = useToast();
   const [pendingItemId, setPendingItemId] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
 
@@ -28,6 +30,11 @@ export default function ShopPage() {
         gems: result.gems_restantes,
         ...(result.item.tipo === "hearts_refill" ? { hearts_current: HEARTS_MAX } : {}),
       });
+      if (result.item.tipo === "streak_freeze") {
+        adjustStreakFreezes(1);
+      }
+      const purchasedName = mockShopCatalog.find((i) => i.id === result.item.id)?.name ?? "Item";
+      showToast(`${purchasedName} comprado!`, "success");
     } catch (err) {
       if (err instanceof ApiError) {
         setError(err.message);

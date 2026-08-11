@@ -42,7 +42,7 @@ export function ProgressBar({
       )}
     >
       <div
-        className={cn("h-full rounded-full transition-all", fillTone[tone])}
+        className={cn("h-full rounded-full transition-all duration-300 ease-out", fillTone[tone])}
         style={{ width: `${percent}%` }}
       />
     </div>

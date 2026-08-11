@@ -17,12 +17,12 @@ const DailyXPCap = 500
 const DefaultEaseFactor = 2.5
 
 var basePorDificuldade = map[string]int{
-	"easy": 10, "medium": 20, "hard": 30,
+	"easy": 10, "medium": 20, "hard": 30, "impossible": 40,
 }
 
 // limiarVelocidadeMs (TDD §3) é reutilizado também pelo mapeamento de qualidade do SRS (§4.1).
 var limiarVelocidadeMs = map[string]int{
-	"easy": 5000, "medium": 8000, "hard": 12000,
+	"easy": 5000, "medium": 8000, "hard": 12000, "impossible": 17000,
 }
 
 // XPResult é o retorno de CalcularXP — xp_ganho e xp_daily_cap_reached da resposta de
@@ -158,4 +158,44 @@ func HojeLocal(timezone string, now time.Time) string {
 		loc = time.UTC
 	}
 	return now.In(loc).Format("2006-01-02")
+}
+
+// HeartsMax e HeartsRegenInterval implementam TDD §5.4: uma vida regenera a cada 3h até o teto
+// de 5, calculado de forma preguiçosa (sem job) sempre que hearts_current/hearts_updated_at são
+// lidos — ver RegenerarVidas e LoadHeartsWithRegen.
+const HeartsMax = 5
+const HeartsRegenInterval = 3 * time.Hour
+
+// RegenerarVidas implementa TDD §5.4. heartsUpdatedAt é o instante da última mudança no contador
+// (perda ou regeneração, nunca "última vez que o endpoint rodou"). Devolve o novo total de vidas
+// e o novo heartsUpdatedAt — quando nenhum tique completo se passou, devolve os valores de
+// entrada inalterados (chamador não precisa persistir nesse caso).
+func RegenerarVidas(heartsCurrent int, heartsUpdatedAt, now time.Time) (int, time.Time) {
+	if heartsCurrent >= HeartsMax {
+		return heartsCurrent, heartsUpdatedAt
+	}
+
+	elapsed := now.Sub(heartsUpdatedAt)
+	ticks := int(elapsed / HeartsRegenInterval)
+	if ticks <= 0 {
+		return heartsCurrent, heartsUpdatedAt
+	}
+
+	novo := heartsCurrent + ticks
+	if novo >= HeartsMax {
+		return HeartsMax, now
+	}
+	// Avança o relógio só pelos ticks realmente aplicados — preserva o progresso parcial do
+	// próximo tique em vez de resetar pra "agora" (ver TDD §5.4, exemplo do intervalo de 4h20).
+	return novo, heartsUpdatedAt.Add(time.Duration(ticks) * HeartsRegenInterval)
+}
+
+// ProximaVidaEm devolve o instante da próxima regeneração, ou nil quando já está no teto — é
+// exatamente GamificationProfile.hearts_next_at (API Spec §3.2).
+func ProximaVidaEm(heartsCurrent int, heartsUpdatedAt time.Time) *time.Time {
+	if heartsCurrent >= HeartsMax {
+		return nil
+	}
+	next := heartsUpdatedAt.Add(HeartsRegenInterval)
+	return &next
 }

@@ -13,16 +13,19 @@ export interface GamificationMeResponse extends GamificationProfile {
   achievements: Achievement[];
 }
 
-export async function getGamificationProfile(): Promise<GamificationMeResponse> {
+// accessToken é opcional pra manter chamadas client-side funcionando (fetch pega o token do
+// provider global, ver setAccessTokenProvider em http.ts) — Server Components (Perfil/Liga)
+// passam explicitamente o token da própria requisição, mesmo motivo de getMe (resources/users.ts).
+export async function getGamificationProfile(accessToken?: string): Promise<GamificationMeResponse> {
   if (isResourceReal("gamification")) {
-    return apiFetch<GamificationMeResponse>("/v1/gamification/me");
+    return apiFetch<GamificationMeResponse>("/v1/gamification/me", undefined, accessToken);
   }
   return mockDelay({ ...mockGamificationProfile, achievements: mockAchievementUnlocks });
 }
 
-export async function getLeague(): Promise<League> {
+export async function getLeague(accessToken?: string): Promise<League> {
   if (isResourceReal("gamification")) {
-    return apiFetch<League>("/v1/gamification/league");
+    return apiFetch<League>("/v1/gamification/league", undefined, accessToken);
   }
   return mockDelay(mockLeague);
 }
@@ -54,4 +57,24 @@ export async function purchaseShopItem(itemId: string, idempotencyKey: string): 
 
   const gemsRestantes = mockGamificationProfile.gems - item.price_gems;
   return mockDelay({ gems_restantes: gemsRestantes, item: { id: item.id, tipo: item.tipo } }, 300);
+}
+
+export interface FreezeStreakResponse {
+  streak_freezes_available: number;
+}
+
+// GamificationProfile não expõe "quantos freezes tenho" — só esta resposta e o item da loja. O
+// caller (client, já tem a contagem via useAuth()) passa o valor atual; o mock só valida/consome.
+export async function freezeStreak(currentFreezesAvailable: number): Promise<FreezeStreakResponse> {
+  if (isResourceReal("gamification")) {
+    return apiFetch<FreezeStreakResponse>("/v1/gamification/streak/freeze", { method: "POST" });
+  }
+  if (currentFreezesAvailable <= 0) {
+    throw new ApiError(409, {
+      error_code: "NO_STREAK_FREEZE_AVAILABLE",
+      message: "Você não tem nenhum bloqueio de ofensiva disponível.",
+      trace_id: "mock-trace",
+    });
+  }
+  return mockDelay({ streak_freezes_available: currentFreezesAvailable - 1 }, 300);
 }

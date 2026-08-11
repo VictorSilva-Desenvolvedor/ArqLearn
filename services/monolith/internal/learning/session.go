@@ -11,6 +11,7 @@ import (
 
 	"arqlearn/monolith/internal/apierror"
 	"arqlearn/monolith/internal/authmiddleware"
+	"arqlearn/monolith/internal/gamification"
 )
 
 // sessionTTL casa com o prazo já documentado em SESSION_EXPIRED (API Spec §12) e com o índice
@@ -121,10 +122,10 @@ func handleStartSession(pool *pgxpool.Pool, mongoDB *mongo.Database) http.Handle
 			return
 		}
 
-		var heartsCurrent int
-		err = pool.QueryRow(r.Context(),
-			`SELECT hearts_current FROM user_gamification WHERE user_id = $1`, userID,
-		).Scan(&heartsCurrent)
+		// LoadHeartsWithRegen (não um SELECT direto): aplica a regeneração preguiçosa antes do
+		// gate de acesso (TDD §5.4) — sem isso, alguém que ficou horas sem vidas e já teria
+		// regenerado continuaria vendo LESSON_NO_HEARTS_LEFT até o próximo GET /gamification/me.
+		heartsCurrent, _, err := gamification.LoadHeartsWithRegen(r.Context(), pool, userID)
 		if err != nil {
 			apierror.Write(w, http.StatusInternalServerError, "INTERNAL_ERROR", "Falha ao consultar vidas.")
 			return

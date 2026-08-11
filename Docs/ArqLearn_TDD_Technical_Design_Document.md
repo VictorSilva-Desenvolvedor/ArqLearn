@@ -1,7 +1,7 @@
 # DOCUMENTO TÉCNICO DE DESIGN (TDD)
 ## ArqLearn — Algoritmos de Negócio, Contratos de Evento e Fluxos de Sequência
 
-Versão 1.0 | Agosto de 2026
+Versão 1.1 | Agosto de 2026
 Documento complementar ao SAD, ao Database Design e à API Specification do ArqLearn v1.0
 
 > **Nota de nomenclatura:** existe também um `ArqLearn_Documento_Tecnico_Design.docx` na pasta `Docs/`,
@@ -16,6 +16,7 @@ Documento complementar ao SAD, ao Database Design e à API Specification do ArqL
 | Versão | Data | Autor | Descrição |
 |---|---|---|---|
 | 1.0 | 08/08/2026 | Equipe de Arquitetura/Engenharia | Versão inicial — preenche a lacuna apontada no CLAUDE.md |
+| 1.1 | 09/08/2026 | Equipe de Arquitetura/Engenharia | Adiciona §5.4 Vidas — Regeneração (a pedido do usuário): `hearts_current` nunca regenerava sozinho, `hearts_updated_at` existia no schema (Database Design) mas não era usado em lugar nenhum do backend |
 
 ---
 
@@ -61,9 +62,9 @@ calcularXP(question, answer_time_ms, is_first_completion, correct, xp_today) =
     retorna { xp_concedido: 0, daily_cap_reached: false }
                        # errar nunca concede XP, apenas consome vida (hearts_current -= 1)
 
-  base = BASE_POR_DIFICULDADE[question.difficulty]   # easy: 10, medium: 20, hard: 30
+  base = BASE_POR_DIFICULDADE[question.difficulty]   # easy: 10, medium: 20, hard: 30, impossible: 40
   bonus_velocidade = 5 se answer_time_ms < LIMIAR_VELOCIDADE[question.difficulty] senão 0
-                       # LIMIAR_VELOCIDADE: easy=5000ms, medium=8000ms, hard=12000ms
+                       # LIMIAR_VELOCIDADE: easy=5000ms, medium=8000ms, hard=12000ms, impossible=17000ms
   bonus_primeira_conclusao = 10 se is_first_completion senão 0
                        # concedido uma única vez por lição (transição para status "completed"
                        # nunca vista antes nesse user_progress), não em repetições de SRS
@@ -225,6 +226,54 @@ para cada user com streak_last_active_date != ontem_local(user.timezone) e strea
     streak_current = 0
     registra gamification_events(event_type='streak_reset')
 ```
+
+### 5.4 Vidas — Regeneração
+
+> Agrupada aqui por conveniência de numeração (não renumerar §6–§9, referenciados por número em vários
+> outros arquivos) — não é parte da mecânica de streak, é independente.
+
+Sem job dedicado — recalculado sob demanda ("lazy", mesmo padrão de `xpHojeAposReset`, §3.2) sempre que
+`hearts_current`/`hearts_updated_at` são lidos: `GET /v1/gamification/me`,
+`POST /v1/lessons/{lesson_id}/session` (checagem de acesso) e `POST /v1/lessons/{lesson_id}/answers`
+(antes de aplicar uma eventual perda de vida da resposta atual). `hearts_updated_at` marca o instante da
+última mudança no contador (perda ou regeneração) — não é "última vez que o endpoint rodou".
+
+```
+HEARTS_MAX = 5
+HEARTS_REGEN_INTERVAL = 3h
+
+função regenerarVidas(hearts_current, hearts_updated_at, agora):
+  se hearts_current >= HEARTS_MAX:
+    retorna (hearts_current, hearts_updated_at)   # nada a fazer, timer não importa mais
+
+  decorrido = agora - hearts_updated_at
+  ticks = floor(decorrido / HEARTS_REGEN_INTERVAL)
+  se ticks <= 0:
+    retorna (hearts_current, hearts_updated_at)   # ainda não passou 1 intervalo completo
+
+  novo = hearts_current + ticks
+  se novo >= HEARTS_MAX:
+    retorna (HEARTS_MAX, agora)
+  senão:
+    # avança o relógio só pelos ticks realmente aplicados — preserva o progresso parcial do
+    # próximo tique em vez de resetar pra "agora" (ex.: se o intervalo é 3h e o usuário volta
+    # depois de 4h20 com só 1 vida faltando, ganha 1 vida e o próximo tique já está a 1h20 de
+    # distância, não a 3h de novo)
+    retorna (novo, hearts_updated_at + ticks * HEARTS_REGEN_INTERVAL)
+```
+
+**Perda de vida** (resposta errada, `POST /.../answers`, RF-09): `hearts_current -= 1` (nunca abaixo de
+0) e `hearts_updated_at = agora` — cada perda reinicia o relógio de regeneração a partir daquele
+instante, mesmo que a vida perdida não seja a primeira do dia.
+
+**Compra de recarga completa** (`POST /v1/gamification/shop/purchase`, item categoria `hearts_refill`):
+`hearts_current = HEARTS_MAX` e `hearts_updated_at = agora` — equivalente a já estar cheio, timer não
+importa até a próxima perda.
+
+**Exposição ao cliente:** `GamificationProfile.hearts_next_at` (API Spec §3.2, v1.10) é
+`hearts_updated_at + HEARTS_REGEN_INTERVAL` quando `hearts_current < HEARTS_MAX`, ou `null` quando já
+está no teto — o cliente calcula a contagem regressiva localmente a partir desse timestamp fixo, sem
+precisar saber o valor do intervalo nem repetir a lógica de regeneração.
 
 ## 6. Ligas Semanais — Fechamento
 

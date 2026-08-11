@@ -19,6 +19,7 @@ import (
 
 	"arqlearn/monolith/internal/analytics"
 	"arqlearn/monolith/internal/authmiddleware"
+	"arqlearn/monolith/internal/bugreports"
 	"arqlearn/monolith/internal/corsmiddleware"
 	"arqlearn/monolith/internal/db"
 	"arqlearn/monolith/internal/documentdb"
@@ -28,6 +29,7 @@ import (
 	"arqlearn/monolith/internal/learning"
 	"arqlearn/monolith/internal/notifications"
 	"arqlearn/monolith/internal/objectstorage"
+	"arqlearn/monolith/internal/questiongen"
 	"arqlearn/monolith/internal/users"
 )
 
@@ -61,6 +63,11 @@ func main() {
 		log.Print("aviso: GROQ_API_KEY ausente — POST /v1/lessons/{lesson_id}/questions/{question_id}/explain responderá 503")
 	}
 
+	gemini := questiongen.New(os.Getenv("GEMINI_API_KEY"))
+	if !gemini.Enabled() {
+		log.Print("aviso: GEMINI_API_KEY ausente — Modo Infinito de Maquetes não vai gerar lotes novos em segundo plano, só reaproveita o pool existente")
+	}
+
 	r2 := objectstorage.New(
 		os.Getenv("R2_ACCOUNT_ID"), os.Getenv("R2_ACCESS_KEY_ID"), os.Getenv("R2_SECRET_ACCESS_KEY"),
 		os.Getenv("R2_S3_ENDPOINT"), os.Getenv("R2_BUCKET_NAME"),
@@ -75,10 +82,11 @@ func main() {
 	mux.HandleFunc("GET /ready", handleReady(pool, mongoClient))
 
 	users.RegisterRoutes(mux, pool, verifier)
-	learning.RegisterRoutes(mux, pool, mongoDB, verifier, groq)
+	learning.RegisterRoutes(mux, pool, mongoDB, verifier, groq, gemini)
 	gamification.RegisterRoutes(mux, pool, verifier)
 	ingestion.RegisterRoutes(mux, pool, verifier, r2)
 	notifications.RegisterRoutes(mux, pool, mongoDB, verifier)
+	bugreports.RegisterRoutes(mux, pool, mongoDB, verifier)
 	analytics.RegisterRoutes(mux)
 
 	// Sem isso, qualquer chamada feita direto do browser (client-side) pro backend real é

@@ -8,11 +8,13 @@ import {
   submitInfiniteModeAnswer,
 } from "@/lib/api/resources/infiniteMode";
 import { useAuth } from "@/hooks/useAuth";
+import { ApiError } from "@/lib/api/http";
 import type { InfiniteModeAnswerResult, InfiniteModeQuestion } from "@/types/api";
 
-// Mesmo tamanho de MAX_QUESTIONS do mock em lib/api/mocks/fixtures/infiniteModeSessions.ts —
-// só para dar uma referência de progresso à barra; a API real não devolve um total fixo.
-const PROGRESS_HINT_TOTAL = 9;
+// Tamanho do bloco de "nível" — mesma conta do backend (LEVEL_BATCH_SIZE no mock, genBatchSize no
+// backend real, internal/learning/infinitemode_generation.go). A barra de progresso mostra o
+// avanço dentro do nível atual, não o total histórico da sessão.
+const LEVEL_BATCH_SIZE = 20;
 
 export function useInfiniteModeSession(topic: string) {
   const router = useRouter();
@@ -23,17 +25,29 @@ export function useInfiniteModeSession(topic: string) {
   const [selectedOptionId, setSelectedOptionId] = useState<string | null>(null);
   const [revealed, setRevealed] = useState(false);
   const [lastResult, setLastResult] = useState<InfiniteModeAnswerResult | null>(null);
+  const [notAvailable, setNotAvailable] = useState(false);
+  const [levelUpTo, setLevelUpTo] = useState<number | null>(null);
   const questionStartRef = useRef<number>(0);
-  const loading = sessionId === null;
+  const levelRef = useRef<number>(1);
+  const loading = sessionId === null && !notAvailable;
 
   useEffect(() => {
     let cancelled = false;
-    startInfiniteModeSession(topic).then((session) => {
-      if (cancelled) return;
-      setSessionId(session.session_id);
-      setQuestion(session.question);
-      questionStartRef.current = Date.now();
-    });
+    startInfiniteModeSession(topic)
+      .then((session) => {
+        if (cancelled) return;
+        setSessionId(session.session_id);
+        setQuestion(session.question);
+        questionStartRef.current = Date.now();
+      })
+      .catch((err) => {
+        if (cancelled) return;
+        if (err instanceof ApiError && err.error_code === "TOPIC_NOT_AVAILABLE") {
+          setNotAvailable(true);
+          return;
+        }
+        throw err;
+      });
     return () => {
       cancelled = true;
     };
@@ -60,7 +74,13 @@ export function useInfiniteModeSession(topic: string) {
     if (result.xp_ganho > 0) {
       updateGamification({});
     }
+    if (result.level > levelRef.current) {
+      levelRef.current = result.level;
+      setLevelUpTo(result.level);
+    }
   }, [sessionId, question, selectedOptionId, updateGamification]);
+
+  const dismissLevelUp = useCallback(() => setLevelUpTo(null), []);
 
   const finishAndGoToSummary = useCallback(async () => {
     if (!sessionId) return;
@@ -95,12 +115,17 @@ export function useInfiniteModeSession(topic: string) {
 
   return {
     loading,
+    notAvailable,
     question,
     selectedOptionId,
     revealed,
     lastResult,
     questionsAnswered: lastResult?.questions_answered ?? 0,
-    progressHintTotal: PROGRESS_HINT_TOTAL,
+    levelProgress: (lastResult?.questions_answered ?? 0) % LEVEL_BATCH_SIZE || (lastResult ? LEVEL_BATCH_SIZE : 0),
+    levelProgressTotal: LEVEL_BATCH_SIZE,
+    level: lastResult?.level ?? 1,
+    levelUpTo,
+    dismissLevelUp,
     selectOption,
     verify,
     continueNext,

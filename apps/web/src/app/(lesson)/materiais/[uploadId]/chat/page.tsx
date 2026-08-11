@@ -6,12 +6,14 @@ import { getUploadSummary, listChatHistory, sendChatMessage } from "@/lib/api/re
 import { SummaryHeader } from "@/components/features/materialSummary/SummaryHeader";
 import { ChatMessageBubble } from "@/components/features/materialChat/ChatMessageBubble";
 import { ChatInputBar } from "@/components/features/materialChat/ChatInputBar";
+import type { ChatSourceRef } from "@/types/api";
 
 interface ViewMessage {
   id: string;
   role: "user" | "assistant";
   message: string;
   sourceExcerpt?: string;
+  sourceRef?: ChatSourceRef;
 }
 
 export default function MaterialChatPage() {
@@ -45,6 +47,7 @@ export default function MaterialChatPage() {
           role: "assistant",
           message: answer.answer,
           sourceExcerpt: answer.source_excerpt,
+          sourceRef: answer.source_ref,
         },
       ]);
     } finally {
@@ -57,7 +60,13 @@ export default function MaterialChatPage() {
       <SummaryHeader title={title} eyebrow="Chat sobre o Material" />
       <div className="max-w-2xl mx-auto w-full px-md py-lg flex flex-col gap-md flex-1">
         {messages.map((m) => (
-          <ChatMessageBubble key={m.id} role={m.role} message={m.message} sourceExcerpt={m.sourceExcerpt} />
+          <ChatMessageBubble
+            key={m.id}
+            role={m.role}
+            message={m.message}
+            sourceExcerpt={m.sourceExcerpt}
+            sourceRef={m.sourceRef}
+          />
         ))}
         {sending && (
           <p className="font-body-sm text-body-sm text-on-surface-variant self-start">Arq está digitando…</p>

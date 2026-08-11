@@ -1,5 +1,6 @@
 import { ApiError } from "../../http";
 import { getMockQuestionBank, xpForDifficulty, type MockQuestionEntry } from "./questions";
+import { awardXp } from "./dailyXpCap";
 import type { AnswerResult, LessonSession, QuestionDifficulty } from "@/types/api";
 
 interface MockSessionState {
@@ -58,17 +59,24 @@ export function answerMockSession(
     });
   }
 
-  const correct = entry.correctOptionId === answerOptionId;
+  // fill_blank não tem id de opção pra comparar exato — o usuário digita texto livre, então a
+  // "resposta certa" (correctOptionId guarda o texto esperado nesse caso) precisa tolerar
+  // diferença de maiúscula/minúscula e espaço nas pontas.
+  const correct =
+    entry.question.type === "fill_blank"
+      ? entry.correctOptionId.trim().toLowerCase() === answerOptionId.trim().toLowerCase()
+      : entry.correctOptionId === answerOptionId;
   if (!correct) {
     session.heartsRemaining = Math.max(0, session.heartsRemaining - 1);
   }
 
-  const xp_ganho = correct ? xpForDifficulty(entry.question.difficulty as QuestionDifficulty) : 0;
+  const baseXp = correct ? xpForDifficulty(entry.question.difficulty as QuestionDifficulty) : 0;
+  const { xp_ganho, xp_daily_cap_reached } = awardXp(baseXp);
 
   return {
     correct,
     xp_ganho,
-    xp_daily_cap_reached: false,
+    xp_daily_cap_reached,
     vidas_restantes: session.heartsRemaining,
     streak_atual: session.streak,
     explicacao: entry.explanation,

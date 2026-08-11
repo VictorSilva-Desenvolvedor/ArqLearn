@@ -1,6 +1,9 @@
 package gamification
 
-import "testing"
+import (
+	"testing"
+	"time"
+)
 
 // TestNivel_TabelaDoTDD confere Nivel() contra a tabela exata do TDD §3.1.
 func TestNivel_TabelaDoTDD(t *testing.T) {
@@ -147,5 +150,89 @@ func TestAtualizarStreak_NovoRecorde(t *testing.T) {
 	next := AtualizarStreak(prev, "2026-08-08")
 	if next.Best != 11 {
 		t.Errorf("Best = %d, esperado 11 (novo recorde)", next.Best)
+	}
+}
+
+func TestRegenerarVidas_JaNoTeto(t *testing.T) {
+	base := time.Date(2026, 8, 9, 12, 0, 0, 0, time.UTC)
+	novo, novoUpdatedAt := RegenerarVidas(HeartsMax, base, base.Add(100*time.Hour))
+	if novo != HeartsMax {
+		t.Errorf("novo = %d, esperado permanecer no teto %d", novo, HeartsMax)
+	}
+	if !novoUpdatedAt.Equal(base) {
+		t.Errorf("updatedAt não deveria mudar quando já está no teto")
+	}
+}
+
+func TestRegenerarVidas_AindaNaoPassouUmTique(t *testing.T) {
+	base := time.Date(2026, 8, 9, 12, 0, 0, 0, time.UTC)
+	novo, novoUpdatedAt := RegenerarVidas(2, base, base.Add(2*time.Hour+59*time.Minute))
+	if novo != 2 {
+		t.Errorf("novo = %d, esperado permanecer 2 (intervalo de 3h não completou)", novo)
+	}
+	if !novoUpdatedAt.Equal(base) {
+		t.Errorf("updatedAt não deveria mudar antes de completar um tique")
+	}
+}
+
+func TestRegenerarVidas_UmTiqueCompleto(t *testing.T) {
+	base := time.Date(2026, 8, 9, 12, 0, 0, 0, time.UTC)
+	novo, novoUpdatedAt := RegenerarVidas(2, base, base.Add(3*time.Hour))
+	if novo != 3 {
+		t.Errorf("novo = %d, esperado 3", novo)
+	}
+	esperado := base.Add(3 * time.Hour)
+	if !novoUpdatedAt.Equal(esperado) {
+		t.Errorf("updatedAt = %v, esperado %v", novoUpdatedAt, esperado)
+	}
+}
+
+func TestRegenerarVidas_PreservaProgressoParcial(t *testing.T) {
+	// 4h20 depois, com 1 intervalo de 3h: ganha 1 vida e o relógio avança só 3h, não pra "agora"
+	// — sobram 1h20 de progresso pro próximo tique (TDD §5.4).
+	base := time.Date(2026, 8, 9, 12, 0, 0, 0, time.UTC)
+	agora := base.Add(4*time.Hour + 20*time.Minute)
+	novo, novoUpdatedAt := RegenerarVidas(3, base, agora)
+	if novo != 4 {
+		t.Errorf("novo = %d, esperado 4", novo)
+	}
+	esperado := base.Add(3 * time.Hour)
+	if !novoUpdatedAt.Equal(esperado) {
+		t.Errorf("updatedAt = %v, esperado %v (progresso parcial preservado)", novoUpdatedAt, esperado)
+	}
+	if restante := agora.Sub(novoUpdatedAt); restante != 1*time.Hour+20*time.Minute {
+		t.Errorf("progresso restante = %v, esperado 1h20", restante)
+	}
+}
+
+func TestRegenerarVidas_MultiplosTiquesCapadoNoTeto(t *testing.T) {
+	// Longe por 20h com hearts_current=3: 6 tiques de 3h regenerariam 9 vidas, mas o teto é 5.
+	base := time.Date(2026, 8, 9, 12, 0, 0, 0, time.UTC)
+	agora := base.Add(20 * time.Hour)
+	novo, novoUpdatedAt := RegenerarVidas(3, base, agora)
+	if novo != HeartsMax {
+		t.Errorf("novo = %d, esperado capar no teto %d", novo, HeartsMax)
+	}
+	if !novoUpdatedAt.Equal(agora) {
+		t.Errorf("updatedAt = %v, esperado igual a agora (%v) quando capa no teto", novoUpdatedAt, agora)
+	}
+}
+
+func TestProximaVidaEm_NoTeto(t *testing.T) {
+	base := time.Date(2026, 8, 9, 12, 0, 0, 0, time.UTC)
+	if got := ProximaVidaEm(HeartsMax, base); got != nil {
+		t.Errorf("esperado nil no teto, veio %v", got)
+	}
+}
+
+func TestProximaVidaEm_AbaixoDoTeto(t *testing.T) {
+	base := time.Date(2026, 8, 9, 12, 0, 0, 0, time.UTC)
+	got := ProximaVidaEm(3, base)
+	if got == nil {
+		t.Fatal("esperado um timestamp, veio nil")
+	}
+	esperado := base.Add(HeartsRegenInterval)
+	if !got.Equal(esperado) {
+		t.Errorf("ProximaVidaEm = %v, esperado %v", got, esperado)
 	}
 }

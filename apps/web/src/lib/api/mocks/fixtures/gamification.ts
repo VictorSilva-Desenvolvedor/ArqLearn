@@ -8,6 +8,7 @@ export const mockGamificationProfile: GamificationProfile = {
   streak_current: 12,
   streak_best: 24,
   hearts_current: 5,
+  hearts_next_at: null,
   gems: 340,
   league_tier: "prata",
 };
