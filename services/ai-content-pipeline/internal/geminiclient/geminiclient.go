@@ -188,9 +188,9 @@ func (c *Client) GenerateQuestions(ctx context.Context, sourceText string, sourc
 }
 
 type embedRequest struct {
-	Model                 string  `json:"model"`
-	Content               content `json:"content"`
-	OutputDimensionality  int     `json:"outputDimensionality"`
+	Model                string  `json:"model"`
+	Content              content `json:"content"`
+	OutputDimensionality int     `json:"outputDimensionality"`
 }
 
 type embedResponse struct {
