@@ -4,7 +4,7 @@
 Como operar as Fases 0–2 do roadmap (SAD §18) com **5–20 usuários nos primeiros 3 meses**, sem pagar por
 capacidade que ninguém vai usar.
 
-Versão 1.0 | Agosto de 2026
+Versão 1.4 | Agosto de 2026
 Documento complementar ao SAD — não substitui nem contradiz a arquitetura-alvo, só define **como chegar
 lá aos poucos, sem custo de infraestrutura antes de haver tração real**.
 
@@ -15,6 +15,8 @@ lá aos poucos, sem custo de infraestrutura antes de haver tração real**.
 | 1.0 | 08/08/2026 | Equipe de Arquitetura | Versão inicial — estratégia de custo mínimo para a fase de validação |
 | 1.1 | 08/08/2026 | Equipe de Arquitetura | §4 revista — provedor de IA trocado de Anthropic/Claude para Gemini + Groq (critério "sem cartão", ver `CLAUDE.md`) |
 | 1.2 | 08/08/2026 | Equipe de Arquitetura | §4 — remove DeepSeek da divisão: testado ao vivo (`402 Insufficient Balance`) e confirmado pelo usuário que uso real exige cartão, mesmo com o crédito inicial |
+| 1.3 | 09/08/2026 | Equipe de Arquitetura | Adiciona §8, guia de deploy passo a passo (a pedido do usuário) — decisão fechada entre Fly.io (backend) e Cloud Run: Fly.io, setup mais simples pra esta fase. Cria `services/monolith/Dockerfile`/`.dockerignore`/`fly.toml`, `apps/web/.env.example` e `.github/workflows/deploy.yml` (CD, inerte até os secrets serem cadastrados manualmente no GitHub — nenhum agente tem acesso a isso) |
+| 1.4 | 09/08/2026 | Equipe de Arquitetura | §3/§8: troca Fly.io por **Render** pro backend — descoberto ao vivo, tentando fazer o deploy de verdade, que a Fly.io não tem mais free tier sem cartão pra conta nova (só trial de 2h/7 dias) e o Cloud Run também exige cartão. Remove `fly.toml`, atualiza `.github/workflows/deploy.yml` (job do backend agora só dispara o Deploy Hook do Render via curl). `RENDER_DEPLOY_HOOK_URL` já cadastrado como secret no GitHub |
 
 ---
 
@@ -62,7 +64,7 @@ por trás tem 1 processo ou 8.
 
 | Camada (SAD §12) | Alvo (escala) | Escolha para 5–20 usuários | Free tier aproximado | Gatilho de graduação |
 |---|---|---|---|---|
-| Orquestração/compute | Kubernetes (EKS/GKE) | **Google Cloud Run** (ou Fly.io como alternativa) — contêiner Go, escala a zero | Cloud Run: ~2M requisições/mês grátis, permanente | Tráfego sustentado que não escala a zero, ou necessidade real de orquestrar múltiplos serviços com políticas próprias |
+| Orquestração/compute | Kubernetes (EKS/GKE) | **Render** (Web Service, runtime Docker) — escala a zero, sem cartão de crédito. *(v1.4 — Fly.io e Cloud Run descartados: os dois passaram a exigir cartão cadastrado, ver §8)* | 750h de instância/mês grátis (cobre 1 serviço 24/7) | Tráfego sustentado que não escala a zero, cold start de 30-60s virando problema real, ou necessidade de orquestrar múltiplos serviços com políticas próprias |
 | Banco relacional + vetorial | PostgreSQL + pgvector gerenciado | **Supabase** ou **Neon** (Postgres com pgvector no free tier) | ~500MB–3GB de storage grátis, permanente | Storage ou conexões simultâneas no limite do plano gratuito |
 | Banco de documentos | MongoDB gerenciado | **MongoDB Atlas M0** | 512MB grátis, permanente | Storage no limite, ou necessidade de sharding |
 | Cache | Redis gerenciado | **Upstash Redis** (serverless, pay-per-request) | Free tier cobre folgadamente baixo volume | Custo de request começa a aparecer na fatura |
@@ -149,5 +151,82 @@ Não é uma data — é a primeira condição abaixo que acontecer:
 Ao cruzar qualquer um desses pontos, seguir o roadmap do SAD §18 normalmente (Fase 3 em diante já assume
 uma base de usuários maior) — a extração de serviços a partir do monólito modular (Seção 2) é o primeiro
 passo dessa transição, não uma reescrita.
+
+## 8. Guia de deploy passo a passo *(v1.3, v1.4 — backend trocado de Fly.io pra Render)*
+
+> **Por que Render, não Fly.io/Cloud Run:** a v1.3 original deste guia previa Fly.io — descoberto
+> depois, ao tentar de verdade, que a Fly.io não tem mais free tier pra conta nova (só um trial de 2h/7
+> dias, cartão obrigatório no cadastro) e o Cloud Run também exige cartão pra verificação. Isso quebra o
+> critério "sem cartão" que o projeto já vinha seguindo pra IA (ver `CLAUDE.md`, seção Stack). **Render**
+> tem free tier real sem cartão (750h de instância/mês, suficiente pra manter 1 serviço no ar o mês
+> inteiro) e builda a partir do mesmo `Dockerfile` sem alteração nenhuma.
+
+### 8.1 Backend (`services/monolith`) — Render
+
+Pré-requisito: conta no [render.com](https://render.com) (sem cartão). `services/monolith/Dockerfile`
+já existe — não há `render.yaml`/Blueprint, o serviço foi criado manualmente pelo dashboard (passos
+abaixo), suficiente pra um único serviço nesta fase.
+
+1. **New → Web Service**, conecta o repositório `ArqLearn` do GitHub.
+2. **Root Directory**: `services/monolith`.
+3. **Runtime**: Docker.
+4. **Dockerfile Path**: `services/monolith/Dockerfile` — **relativo à raiz do repositório, não ao Root
+   Directory** (pegadinha real do Render: o campo não segue o Root Directory sozinho — descoberto ao
+   vivo, o build falhava com `open Dockerfile: no such file or directory` até corrigir isso).
+5. **Docker Build Context Directory**: `services/monolith` — sem isso, os `COPY go.mod go.sum ./` etc.
+   do Dockerfile procuram os arquivos a partir da raiz do repo, não de `services/monolith`, e falham do
+   mesmo jeito.
+6. Aba **Environment** → **Add from .env** → cola as variáveis (mesmas chaves de
+   `services/monolith/.env.example`: Supabase x5, `DATABASE_URL`, Mongo x2, Gemini, Groq,
+   `CORS_ALLOWED_ORIGINS`; R2 fica de fora enquanto o bloqueio da Seção 6/`PENDENCIAS_IA.md` #1
+   persistir — sem essas chaves, `POST /v1/uploads` responde 503 de forma graciosa, o resto do app
+   funciona normalmente).
+7. Aba **Deploy**:
+   - **Docker Command**: vazio (o `ENTRYPOINT` do Dockerfile já é o correto).
+   - **Pre-Deploy Command**: vazio (migrations aplicadas manualmente nesta fase, não a cada deploy).
+   - **Auto-Deploy**: **Off** — o deploy é disparado pelo GitHub Actions só depois que o CI passar
+     (§8.3), não a cada push cru.
+   - **Deploy Hook**: revela e copia a URL — é o segredo `RENDER_DEPLOY_HOOK_URL` do §8.3.
+8. Deploy manual da primeira vez (**Manual Deploy → Deploy latest commit**) pra confirmar que builda.
+   Depois disso, o CD (§8.3) assume.
+
+Depois do deploy, `curl https://SEU-SERVICO.onrender.com/ready` deve responder `200 ok` — se responder
+503, o motivo (Postgres ou MongoDB) aparece no corpo da resposta (ver `cmd/server/main.go`,
+`handleReady`). Free tier do Render dorme depois de 15 min sem tráfego — a primeira requisição depois
+disso paga um cold start de 30-60s, aceitável nesta fase (mesmo espírito do "escala a zero" que já
+estava previsto pra Fly.io/Cloud Run na Seção 3).
+
+### 8.2 Frontend (`apps/web`) — Vercel
+
+Pré-requisito: conta no [vercel.com](https://vercel.com), repositório importado a partir do GitHub.
+
+1. No dashboard do novo projeto Vercel, em **Settings → General → Root Directory**, definir
+   `apps/web` — é o único ajuste manual necessário; a Vercel detecta sozinha que a raiz do repo tem
+   `workspaces` no `package.json` e instala as dependências a partir de lá automaticamente (não precisa
+   de `vercel.json` nem de `installCommand`/`buildCommand` customizados).
+2. Em **Settings → Environment Variables**, cadastrar as 4 chaves de `apps/web/.env.example`
+   (`NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY`,
+   `NEXT_PUBLIC_API_BASE_URL` = a URL do Render obtida em 8.1, `NEXT_PUBLIC_API_REAL_RESOURCES`).
+3. Deploy — a Vercel builda com `next build` automaticamente a cada push (Preview em PR, Production em
+   `main`).
+4. Voltar ao Render (8.1, aba Environment) e atualizar `CORS_ALLOWED_ORIGINS` com o domínio real que a
+   Vercel atribuiu, senão o navegador bloqueia toda chamada client-side ao backend.
+
+### 8.3 CD automático (`.github/workflows/deploy.yml`)
+
+Dispara depois que o job de CI (`.github/workflows/ci.yml`) passar em `main` — nunca publica um commit
+que não passou em build/vet/test/lint. Backend: só uma chamada HTTP no Deploy Hook do Render (8.1,
+passo 7); frontend: build + deploy via Vercel CLI. Precisa dos secrets abaixo cadastrados em
+**Settings → Secrets and variables → Actions** do repositório no GitHub:
+
+| Secret | Onde conseguir | Status |
+|---|---|---|
+| `RENDER_DEPLOY_HOOK_URL` | Render → serviço → aba Deploy → Deploy Hook (8.1, passo 7) | ✅ já cadastrado |
+| `VERCEL_TOKEN` | Vercel → Account Settings → Tokens | pendente |
+| `VERCEL_ORG_ID` / `VERCEL_PROJECT_ID` | Rodar `vercel link` uma vez em `apps/web` local — grava os dois em `apps/web/.vercel/project.json` | pendente |
+
+Sem os secrets do Vercel, o job `deploy-frontend` do workflow falha (o `deploy-backend` já funciona,
+`RENDER_DEPLOY_HOOK_URL` está configurado) — atualizar esta tabela pra "✅" conforme cada um for
+cadastrado.
 
 — Fim do documento —

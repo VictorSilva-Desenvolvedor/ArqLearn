@@ -1,0 +1,9 @@
+# Nunca deixar segredo local entrar na imagem — variáveis de ambiente reais vêm da plataforma de
+# deploy (Fly.io secrets / Cloud Run env vars), nunca de um .env copiado pra dentro do contêiner.
+.env
+.env.local
+
+# Nada disso é necessário pra compilar nem rodar o binário.
+*.md
+.git
+.github
