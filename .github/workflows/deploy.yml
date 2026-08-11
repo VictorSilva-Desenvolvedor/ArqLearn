@@ -2,9 +2,8 @@ name: Deploy
 
 # Dispara depois que o workflow de CI terminar com sucesso em main — nunca publica um commit que
 # não passou em build/vet/test/lint (ver Docs/ArqLearn_Estrategia_Bootstrap.md §8.3). Inerte até
-# os secrets (FLY_API_TOKEN, VERCEL_TOKEN, VERCEL_ORG_ID, VERCEL_PROJECT_ID) serem cadastrados à
-# mão em Settings → Secrets and variables → Actions do repositório — nenhum agente de IA tem
-# acesso a essa tela, é uma ação manual de quem administra o repo.
+# os secrets (RENDER_DEPLOY_HOOK_URL, VERCEL_TOKEN, VERCEL_ORG_ID, VERCEL_PROJECT_ID) serem
+# cadastrados em Settings → Secrets and variables → Actions do repositório.
 on:
   workflow_run:
     workflows: [CI]
@@ -13,21 +12,17 @@ on:
 
 jobs:
   deploy-backend:
-    name: Fly.io — services/monolith
+    name: Render — services/monolith
     if: github.event.workflow_run.conclusion == 'success'
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-        with:
-          ref: ${{ github.event.workflow_run.head_sha }}
-
-      - uses: superfly/flyctl-actions/setup-flyctl@master
-
-      - name: fly deploy
-        working-directory: services/monolith
-        run: flyctl deploy --remote-only
-        env:
-          FLY_API_TOKEN: ${{ secrets.FLY_API_TOKEN }}
+      # Render já está conectado direto ao repositório (Auto-Deploy desligado no dashboard —
+      # ver Estrategia_Bootstrap.md §8.1) — só falta disparar o build via Deploy Hook, a mesma
+      # URL configurada como secret. Sem checkout: não precisa do código aqui, só da chamada HTTP.
+      - name: Dispara deploy no Render
+        run: |
+          curl -sf -X POST "${{ secrets.RENDER_DEPLOY_HOOK_URL }}" \
+            || (echo "Falha ao disparar o deploy hook do Render" && exit 1)
 
   deploy-frontend:
     name: Vercel — apps/web
