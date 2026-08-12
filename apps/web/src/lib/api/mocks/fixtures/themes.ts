@@ -39,20 +39,20 @@ const featuredThemes: ThemeDefinition[] = [
 const curriculumThemes: ThemeDefinition[] = [
   // 1º semestre
   { topic: "arquitetura_brasileira", label: "Arquitetura Brasileira", icon: "flag", semester: 1, hasContent: false },
-  { topic: "construcoes_sustentaveis", label: "Construções Sustentáveis", icon: "eco", semester: 1, hasContent: false },
+  { topic: "construcoes_sustentaveis", label: "Construções Sustentáveis", icon: "eco", semester: 1, hasContent: true },
   { topic: "expressao_representacao_oficinas", label: "Expressão e Representação - Oficinas", icon: "draw", semester: 1, hasContent: false },
   { topic: "fundamentos_topografia", label: "Fundamentos de Topografia", icon: "terrain", semester: 1, hasContent: false },
   // 2º semestre
   { topic: "atelier_residencial_baixa", label: "Atelier de Projeto de Arquitetura Residencial de Baixa Complexidade", icon: "home", semester: 2, hasContent: false },
-  { topic: "desenho_arquitetura_urbanismo", label: "Desenho de Arquitetura e Urbanismo", icon: "architecture", semester: 2, hasContent: false },
+  { topic: "desenho_arquitetura_urbanismo", label: "Desenho de Arquitetura e Urbanismo", icon: "architecture", semester: 2, hasContent: true },
   { topic: "geometria_descritiva", label: "Geometria Descritiva Aplicada à Arquitetura", icon: "shape_line", semester: 2, hasContent: false },
   { topic: "maquetes", label: "Maquetes", icon: "view_in_ar", semester: 2, hasContent: true },
   // 3º semestre
-  { topic: "atelier_cultural", label: "Atelier de Projeto de Arquitetura Cultural", icon: "theater_comedy", semester: 3, hasContent: false },
+  { topic: "projeto_arquitetura_cultural", label: "Atelier de Projeto de Arquitetura Cultural", icon: "theater_comedy", semester: 3, hasContent: true },
   { topic: "conforto_acustico_luminico", label: "Conforto Ambiental - Acústico e Lumínico", icon: "light_mode", semester: 3, hasContent: false },
   { topic: "historia_pre_modernismo_desconstrutivismo", label: "História e Teoria da Arquitetura - do Pré-Modernismo ao Desconstrutivismo", icon: "museum", semester: 3, hasContent: false },
   { topic: "informatica_perspectivas", label: "Informática Aplicada à Arquitetura e Urbanismo - Perspectivas", icon: "3d_rotation", semester: 3, hasContent: false },
-  { topic: "informatica_projecoes_ortogonais", label: "Informática Aplicada à Arquitetura e Urbanismo - Projeções Ortogonais", icon: "grid_on", semester: 3, hasContent: false },
+  { topic: "informatica_projecoes_ortogonais", label: "Informática Aplicada à Arquitetura e Urbanismo - Projeções Ortogonais", icon: "grid_on", semester: 3, hasContent: true },
   // 4º semestre
   { topic: "atelier_residencial_alta", label: "Atelier de Projeto de Arquitetura Residencial de Alta Complexidade", icon: "villa", semester: 4, hasContent: false },
   { topic: "ergonomia_desenho_moveis", label: "Ergonomia e Desenho de Móveis", icon: "chair", semester: 4, hasContent: false },
