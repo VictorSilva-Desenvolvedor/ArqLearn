@@ -234,4 +234,18 @@ Os três secrets estão cadastrados (08/2026) — projeto Vercel `arqlearn` cria
 (provável `arqlearn.vercel.app`, a confirmar) — sem isso o navegador bloqueia as chamadas do
 front pro backend.
 
+**Duas pegadinhas reais do primeiro deploy (08/2026), corrigidas — não reintroduzir:**
+1. `VERCEL_ORG_ID`/`VERCEL_PROJECT_ID` precisam estar no `env:` do **job** inteiro em
+   `deploy.yml`, não só no último step — `vercel pull` (primeiro step) também precisa delas pra
+   resolver o time sem interatividade; a conta tem dois times (pessoal + VigorHub), então sem
+   isso o CLI falha com "Multiple teams found".
+2. O projeto Vercel precisa do **Root Directory = `apps/web`** configurado (feito via API,
+   `PATCH /v9/projects/{id}` — dá no mesmo que configurar pelo dashboard, ver passo 1 acima), **e**
+   os steps de `vercel pull`/`build`/`deploy` no `deploy.yml` rodam a partir da **raiz do repo**,
+   não com `working-directory: apps/web`. Como o repo é workspace npm, `apps/web/node_modules`
+   nunca existe (tudo hoisted na raiz) — com `working-directory: apps/web`, `vercel deploy
+   --prebuilt` fazia uma checagem de caminho literal por `apps/web/node_modules/@swc/helpers/...`
+   e falhava com "File does not exist", mesmo o `vercel build` funcionando normalmente (Next.js
+   resolve módulo subindo diretório; a checagem do deploy não faz essa resolução).
+
 — Fim do documento —
