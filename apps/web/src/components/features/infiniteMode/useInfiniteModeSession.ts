@@ -24,6 +24,7 @@ export function useInfiniteModeSession(topic: string) {
   const [question, setQuestion] = useState<InfiniteModeQuestion | null>(null);
   const [selectedOptionId, setSelectedOptionId] = useState<string | null>(null);
   const [revealed, setRevealed] = useState(false);
+  const [verifying, setVerifying] = useState(false);
   const [lastResult, setLastResult] = useState<InfiniteModeAnswerResult | null>(null);
   const [notAvailable, setNotAvailable] = useState(false);
   const [levelUpTo, setLevelUpTo] = useState<number | null>(null);
@@ -62,23 +63,28 @@ export function useInfiniteModeSession(topic: string) {
   );
 
   const verify = useCallback(async () => {
-    if (!sessionId || !question || !selectedOptionId) return;
+    if (!sessionId || !question || !selectedOptionId || verifying) return;
+    setVerifying(true);
     const timeMs = Date.now() - questionStartRef.current;
-    const result = await submitInfiniteModeAnswer(sessionId, {
-      question_id: question.id,
-      answer: selectedOptionId,
-      time_ms: timeMs,
-    });
-    setLastResult(result);
-    setRevealed(true);
-    if (result.xp_ganho > 0) {
-      updateGamification({});
+    try {
+      const result = await submitInfiniteModeAnswer(sessionId, {
+        question_id: question.id,
+        answer: selectedOptionId,
+        time_ms: timeMs,
+      });
+      setLastResult(result);
+      setRevealed(true);
+      if (result.xp_ganho > 0) {
+        updateGamification({});
+      }
+      if (result.level > levelRef.current) {
+        levelRef.current = result.level;
+        setLevelUpTo(result.level);
+      }
+    } finally {
+      setVerifying(false);
     }
-    if (result.level > levelRef.current) {
-      levelRef.current = result.level;
-      setLevelUpTo(result.level);
-    }
-  }, [sessionId, question, selectedOptionId, updateGamification]);
+  }, [sessionId, question, selectedOptionId, verifying, updateGamification]);
 
   const dismissLevelUp = useCallback(() => setLevelUpTo(null), []);
 
@@ -119,6 +125,7 @@ export function useInfiniteModeSession(topic: string) {
     question,
     selectedOptionId,
     revealed,
+    verifying,
     lastResult,
     questionsAnswered: lastResult?.questions_answered ?? 0,
     levelProgress: (lastResult?.questions_answered ?? 0) % LEVEL_BATCH_SIZE || (lastResult ? LEVEL_BATCH_SIZE : 0),

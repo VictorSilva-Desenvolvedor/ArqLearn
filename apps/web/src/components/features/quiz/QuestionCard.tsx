@@ -12,6 +12,7 @@ interface QuestionCardProps {
   options: QuestionOption[];
   selectedOptionId: string | null;
   revealed: boolean;
+  verifying?: boolean;
   isSelectedCorrect: boolean;
   onSelect: (optionId: string) => void;
 }
@@ -34,6 +35,7 @@ export function QuestionCard({
   options,
   selectedOptionId,
   revealed,
+  verifying = false,
   isSelectedCorrect,
   onSelect,
 }: QuestionCardProps) {
@@ -59,6 +61,7 @@ export function QuestionCard({
         <FillBlankInput
           value={selectedOptionId ?? ""}
           revealed={revealed}
+          locked={revealed || verifying}
           isCorrect={isSelectedCorrect}
           correctAnswer={options[0]?.label}
           onChange={onSelect}
@@ -78,8 +81,9 @@ export function QuestionCard({
               label={option.label}
               selected={selectedOptionId === option.id}
               revealed={revealed}
+              verifying={verifying}
               isCorrect={selectedOptionId === option.id ? isSelectedCorrect : undefined}
-              disabled={revealed}
+              disabled={revealed || verifying}
               onClick={() => onSelect(option.id)}
             />
           ))}

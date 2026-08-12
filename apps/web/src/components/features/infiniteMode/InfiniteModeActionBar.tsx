@@ -5,6 +5,7 @@ interface InfiniteModeActionBarProps {
   revealed: boolean;
   xpDailyCapReached: boolean;
   canConfirm: boolean;
+  verifying?: boolean;
   onGiveUp: () => void;
   onConfirm: () => void;
   onContinue: () => void;
@@ -14,6 +15,7 @@ export function InfiniteModeActionBar({
   revealed,
   xpDailyCapReached,
   canConfirm,
+  verifying = false,
   onGiveUp,
   onConfirm,
   onContinue,
@@ -33,11 +35,20 @@ export function InfiniteModeActionBar({
           </Button>
         ) : (
           <>
-            <Button variant="ghost" onClick={onGiveUp}>
+            <Button variant="ghost" disabled={verifying} onClick={onGiveUp}>
               Desistir
             </Button>
-            <Button variant="primary" disabled={!canConfirm} onClick={onConfirm}>
-              Confirmar
+            <Button
+              variant="primary"
+              disabled={!canConfirm || verifying}
+              icon={
+                verifying ? (
+                  <Icon name="progress_activity" className="animate-spin text-xl" />
+                ) : undefined
+              }
+              onClick={onConfirm}
+            >
+              {verifying ? "Verificando…" : "Confirmar"}
             </Button>
           </>
         )}

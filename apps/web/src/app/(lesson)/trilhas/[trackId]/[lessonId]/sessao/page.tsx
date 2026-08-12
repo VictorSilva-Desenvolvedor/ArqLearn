@@ -39,6 +39,7 @@ export default function LessonSessionPage() {
         options={quiz.currentQuestion.options}
         selectedOptionId={quiz.selectedOptionId}
         revealed={quiz.revealed}
+        verifying={quiz.verifying}
         isSelectedCorrect={quiz.lastResult?.correct ?? false}
         onSelect={quiz.selectOption}
       />
@@ -49,6 +50,7 @@ export default function LessonSessionPage() {
           explanation={quiz.lastResult?.explicacao ?? ""}
           xpDailyCapReached={quiz.lastResult?.xp_daily_cap_reached ?? false}
           canVerify={Boolean(quiz.selectedOptionId?.trim())}
+          verifying={quiz.verifying}
           onSkip={quiz.skip}
           onVerify={quiz.verify}
           onContinue={quiz.continueNext}
