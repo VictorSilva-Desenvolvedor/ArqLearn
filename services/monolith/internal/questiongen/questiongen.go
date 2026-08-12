@@ -1,7 +1,7 @@
 // Package questiongen chama o Gemini para gerar perguntas novas em segundo plano, alimentando o
-// crescimento do Modo Infinito de Maquetes (Docs/PENDENCIAS_IA.md #7, decisão revisada 08/2026:
-// deixou de ser "só reaproveita o pool existente" e passou a gerar lotes novos sob demanda,
-// só para o tópico "maquetes" — único com texto-fonte real embutido, ver sourcetext/).
+// crescimento do Modo Infinito (Docs/PENDENCIAS_IA.md #7, decisão revisada 08/2026: deixou de ser
+// "só reaproveita o pool existente" e passou a gerar lotes novos sob demanda) — só para os tópicos
+// com texto-fonte real embutido em sourcetext/ (ver HasSourceText), nunca "do conhecimento geral".
 //
 // Deliberadamente uma cópia adaptada de services/ai-content-pipeline/internal/geminiclient, não um
 // import — são módulos Go separados sem dependência cruzada (mesma razão documentada em

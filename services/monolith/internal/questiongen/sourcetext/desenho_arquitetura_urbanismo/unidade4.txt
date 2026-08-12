@@ -1,0 +1,380 @@
+Disciplina
+
+DESENHO DE ARQUITETURA E
+URBANISMO
+
+       recursos naturais apresentados, o terreno e suas vistas, a
+       característica cultural, a característica econômica (financeiro,
+       operação, manutenção), a segurança (estrutura, incêndio,
+       criminoso), os temporais (crescimento, mudança), entre outras
+       possíveis particularidades do contexto a ser avaliado.
+       De forma geral, pode-se afirmar que é o cliente ou a função da
+       edificação quem vai determinar quais itens do programa são
+       prioritários e devem receber características particulares a
+       serem previstas no projeto arquitetônico. Em geral, o programa
+       arquitetônico básico, aquele que garante a sua funcionalidade, é
+       previsto em Normas Técnicas brasileiras ou internacionais, isto
+       significa que para construir uma residência unifamiliar é
+       necessário consultar a NBR 16636 (elaboração e
+       desenvolvimento de serviços técnicos especializados de
+       projetos arquitetônicos e urbanísticos), assim como para
+       construir uma Unidade Básica de Saúde (UBS) o Ministério da
+       Saúde exige como programa de necessidades previsto no
+       Manual de Estrutura Física das Unidades de Saúde. Destaca-se
+       que toda edificação de uso público possui o programa de
+       necessidades definido pelo setor disponibilizado publicamente.
+       Cabe ao arquiteto apresentar soluções para os problemas
+       definidos pelo programa arquitetônico.
+       O programa arquitetônico nada mais é do que uma lista dos
+       cômodos que devem conter no projeto arquitetônico a ser
+       elaborado, assim faz-se necessário a esquematização destes
+Disciplina
+
+DESENHO DE ARQUITETURA E
+URBANISMO
+
+       itens, ou seja, após a definição do programa se começa os
+       esboços da edificação.
+
+             “Em todas as suas etapas, o programa dispõe de
+             recursos gráficos, como diagramas e desenhos, que o
+             programador [arquiteto] organiza e apresenta ao cliente
+             para que, em comum acordo, cheguem a uma
+             conclusão quanto aos propósitos do projeto. Na
+             conclusão, o arquiteto inicia o trabalho de projeto com a
+             síntese gráfica de suas interpretações do programa e,
+             na sequência, mantém o desenho como principal forma
+             de comunicação e registro de suas ideias, definições e
+             orientações construtivas.”
+Disciplina
+
+DESENHO DE ARQUITETURA E
+URBANISMO
+
+   Sigaemfrente
+
+  SIGA EM FRENTE
+  A linguagem gráfica
+
+       A linguagem gráfica assume diferentes papéis na prática
+       profissional, desde ferramentas de reflexão ao produto final
+       para um cliente. A capacidade de síntese do desenho o coloca
+       como instrumento comunicativo de hipóteses na análise e no
+       estudo que está sendo realizado pelo projetista. Assim, o
+       desenho torna-se a ferramenta utilizada como questionador, ou
+       seja, é por meio dos registros gráficos realizados que surgem
+       as indagações que levam a diferentes soluções para as
+       problemáticas.
+       O desenho tem função primordial de prospecção, de
+       materializar as dúvidas, muitas vezes, de leituras subjetivas do
+       espaço; as percepções do arquiteto são adquiridas das
+       diferentes formas citadas anteriormente, mas é o desenho que
+       espacializa esta sensibilidade ao ambiente físico. Note que o
+       desenho é um dos atores principais nos estudos tanto de
+       análise de circulação da edificação – distribuição dos cômodos
+       – como estudo do dimensionamento dos espaços internos, e
+       no estudo da plasticidade e volumetria que o edifício poderá
+Disciplina
+
+DESENHO DE ARQUITETURA E
+URBANISMO
+
+       conceber. Importante registrar que os desenhos iniciais não
+       possuem o compromisso de serem rígidos ao entendimento do
+       cliente e sim para ser como estudo do arquiteto.
+       Os planos de massas têm o papel de distribuir espacialmente,
+       sem escala ou definição, o estudo que o arquiteto está
+       realizando sobre um projeto. Na Figura 2, o profissional analisa
+       a interação do paisagismo com a proposta que está
+       idealizando, para o citado caso, as copas das árvores e a
+       incidência da luz solar fazem necessárias para seu
+       entendimento.
+       Figura 2 | Exemplo de plano de massas.
+Disciplina
+
+DESENHO DE ARQUITETURA E
+URBANISMO
+
+       Fonte: Freepik.
+       Somada às regras de desenho geométrico, temos as normas,
+       presentes no catálogo da ABNT (Associação Brasileira de
+       Normas Técnicas), que auxiliam os profissionais a desenvolver
+       seus projetos técnicos dentro dos padrões estabelecidos.
+
+  Representação gráfica em
+  arquitetura
+
+       Registre a informação de que o desenho é a ferramenta que o
+       profissional possui para transportar suas ideias para o papel,
+       mas isso deve ser feito ordenadamente e seguindo linguagens
+       universais de representação que garantem, além da precisão
+       gráfica, a possibilidade de interpretação integral do seu projeto
+Disciplina
+
+DESENHO DE ARQUITETURA E
+URBANISMO
+
+       pelos demais envolvidos no processo de projeto e execução de
+       um ambiente.
+       Ao longo de um projeto, a função do desenho técnico é registrar
+       o que existirá, trabalhando as ideias em direção à
+       materialização da proposta interventiva.
+       “Durante o projeto, o desenho é utilizado para guiar o
+       desenvolvimento de uma ideia, desde seu conceito até a
+       proposta concretizada” (Ching; Juroszek, 2012, p.2). A
+       construção do desenho arquitetônico segue princípios de
+       geometria descritiva, pois cabe ao profissional representar um
+       ambiente ou a edificação como um todo, que são
+       tridimensionais, em um formato bidimensional. Ching (2017,
+       p.29) reforça esse desafio imposto ao desenhista ao relatar
+       que:
+Disciplina
+
+DESENHO DE ARQUITETURA E
+URBANISMO
+
+             O problema fundamental do desenho de arquitetura é
+             como representar formas, construções e espaços
+             tridimensionais em apenas duas dimensões. Três tipos
+             distintos de sistemas de desenho evoluíram ao longo
+             do tempo para cumprir essa missão: desenhos de
+             vistas múltiplas, de linhas paralelas e em perspectivas
+             cônicas.
+       Atuando como arquiteto, você terá a necessidade de
+       representar os mais diversos elementos, desde objetos,
+       passando por detalhes construtivos, projetos inteiros e até
+       mesmo cidades. Todas essas representações contam com
+       normas específicas. Para a representação gráfica em
+       arquitetura, objeto principal de estudo em nossa disciplina,
+       devemos utilizar como referência a norma NBR 6492.
+       Essa norma, com o auxílio de algumas normas
+       complementares, define todos os parâmetros para a
+       representação em arquitetura em todo o território nacional,
+       garantindo assim uma padronização dos projetos executados
+       no Brasil, facilitando o entendimento de todos os profissionais.
+       A norma em questão define os elementos que compõem um
+       projeto de arquitetura, por exemplo, os croquis e os projetos
+       preliminares, aqui já tratados, bem como os anteprojetos e os
+       projetos executivos que serão objetos de estudos futuros em
+       nossa disciplina.
+       O objetivo das normas brasileiras (NBR) é a padronização para
+       que todos envolvidos, seja na produção ou leitura dos
+Disciplina
+
+DESENHO DE ARQUITETURA E
+URBANISMO
+
+       desenhos, utilizem a mesma linguagem, evitando dúvidas e
+       erros de interpretação que poderiam ocorrer se fossem usados
+       representações e símbolos variados.
+       Sejam desenhos manuais ou seguindo a preferência atual pela
+       criação dos desenhos ou projetos com programas de
+       computador, a representação universal passa necessariamente
+       pelas regras de expressão gráfica impostas pelas normas de
+       desenho.
+
+   Vamosexercitar
+
+  VAMOS EXERCITAR
+
+       Nas figuras abaixo estão representados dois desenhos
+       diferentes, o primeiro deles é um exemplo de perspectiva
+       artística. Este desenho pode, por exemplo, ser utilizado na
+       apresentação do projeto para o cliente, pois possui uma
+       preocupação que não é prática ou técnica, mas, sim em
+       apresentar de maneira artística o projeto.
+       Já o segundo é um desenho prático, um estudo de layout para
+       um edifício. Seu valor não está na beleza, mas, sim na
+       informação a ser transmitida, nesse caso específico temos um
+       desenho com um alto rigor técnico, o que é necessário para o
+       entendimento deste desenho pelos profissionais envolvidos.
+Disciplina
+
+DESENHO DE ARQUITETURA E
+URBANISMO
+
+       O desenho arquitetônico exige o conhecimento sobre os
+       materiais e técnicas de desenho necessários para a
+       representação projetual. No método tradicional de desenho,
+       aquele feito à mão, alguns instrumentos básicos compõem o
+       conjunto de ferramentas de trabalho, tais como: lápis (grafite),
+       caneta nanquim, réguas, esquadros, compasso, escalímetros,
+       papel (pranchas) em diferentes tamanhos, entre outros.
+       Vamos conhecer os principais materiais e equipamentos para o
+       desenvolvimento do desenho técnico:
+
+             Mesa de desenho: equipamento essencial para que se
+             possa iniciar o processo de desenho. As mesas possuem
+             uma regulagem de inclinação, geralmente constituídas por
+             um tampo de madeira revestido com uma camada plástica
+             resistente ao choque e a perfurações, que tem como
+             objetivo a fixação do papel. Essa fixação é feita com fita
+             adesiva ou fita crepe. Temos também as pranchetas
+             portáteis que podem ser apoiadas em outras superfícies
+             durante o seu uso (Figura 1).
+
+       Figura 1 | Mesas de desenho
+Disciplina
+
+DESENHO DE ARQUITETURA E
+URBANISMO
+
+       Fonte: Almeida, 2021.
+       Em conjunto com a mesa, é necessário utilizar uma régua
+       colocada horizontalmente, que pode ser a ‘Paralela’ ou a ‘T’, que
+       servem para traçar linhas e como apoio para os esquadros.
+
+             Régua paralela: equipada com um sistema de cabos e
+             roldanas que permitem que a régua se desloque ao longo
+             da mesa de forma paralela. Possibilita desenhar com maior
+             velocidade e precisão (Figura 1).
+             Régua T: é portátil e possui uma barra transversal em uma
+             de suas extremidades que desliza ao longo da borda de
+             uma mesa como um guia, para estabelecer e desenhar
+             linhas retas paralelas (Figura 2).
+Disciplina
+
+DESENHO DE ARQUITETURA E
+URBANISMO
+
+       Figura 2 | Régua T
+
+       Fonte: Almeida, 2021.
+             Esquadros: são peças de acrílico triangulares, utilizados
+             aos pares, com os ângulos de 45° e 90° e 30°, 60° e 90°
+             (Figura 3). São empregados para o desenho de linhas
+             verticais e outros ângulos, combinados também com a
+             régua paralela da mesa, na execução dos detalhes e
+             elementos dos desenhos.
+
+       Figura 3 | Esquadros
+Disciplina
+
+DESENHO DE ARQUITETURA E
+URBANISMO
+
+       Fonte: Souza et al. (2018, p.29).
+             Compassos: instrumentos empregados para criação de
+             circunferências e arcos, que possuem uma ponta seca e
+             outra com grafite, ou compasso apenas para transportar
+             medidas, que apresentam duas pontas secas (Figura 4).
+Disciplina
+
+DESENHO DE ARQUITETURA E
+URBANISMO
+
+       Seguindo as orientações da NBR 6492 (ABNT, 2021a), proceda
+       da seguinte forma:
+
+             Denominação dos ambientes: 3,5 mm de altura;
+             Demais informações (cotas, dimensões das esquadrias):
+             2,5 mm de altura.
+
+       Cotas: devem atender:
+
+             Linhas de cota fora do desenho;
+             Linhas de chamada param a 2 mm ou 3 mm do vão
+             dimensionado;
+             Números (cifras) com 2,5 mm de altura e não encostar na
+             linha de cota;
+             Quando a cifra não couber entre as linhas de chamada,
+             colocar logo ao lado.
+
+       Para o desenho da cota de nível, você pode usar um gabarito de
+       círculos, no lugar do compasso. Lembre-se sempre de que o
+       desenho manual exige prática, então intensifique suas
+       atividades e aprimore o seu traço constantemente.
+
+   Saibamais
+
+  SAIBA MAIS
+Disciplina
+
+DESENHO DE ARQUITETURA E
+URBANISMO
+
+       Caro estudante!
+       Como sugestão de aprofundamento para seu aprendizado, leia
+       as páginas de 10 a 24, da obra de Montenegro (2016) - O traço
+       dá ideia: bases para o projeto projetado.
+       Nesse capítulo intitulado como ‘Esboço ou desenho rápido à
+       mão livre’ você poderá encontrar dicas e conceitos
+       importantíssimos para aplicar na representação gráfica, e na
+       forma de utilização dos instrumentos de desenho.
+       E ainda, para o aprofundamento para seu aprendizado sobre
+       normas abordadas nesta aula. As normas técnicas estão
+       presentes no catálogo da ABNT e devem ser adquiridas
+       conforme a sua necessidade, mas felizmente você pode ter
+       acesso visual a elas através da nossa Biblioteca Virtual.
+
+          1. Lembre-se de que, para acessar essa obra, você deve estar
+             ’logado’ no sistema da Biblioteca Virtual;
+
+          2. Acesse o conteúdo Targed Gedweb;
+          3. Clique em ‘Acessar Portal’;
+          4. Agora é só digitar o número da NBR e clicar em ‘Buscar’
+
+   Referências
+
+  REFERÊNCIAS
+Disciplina
+
+DESENHO DE ARQUITETURA E
+URBANISMO
+
+       ALMEIDA, EstelaE., Regina R. et al. Desenho de arquitetura e
+       urbanismo. Londrina: Editora e Distribuidora Educacional S.A.,
+       2021. Público
+       ASSOCIAÇÃO BRASILEIRA DE NORMAS TÉCNICAS - ABNT. .
+       NBR 6492: Representação de projetos de arquitetura. . Rio de
+       Janeiro, 2021.
+       CHING, Francis F. D. K.; JUROSZEK, Steven S. P. Desenho para
+       arquitetos. Porto Alegre: Bookman, 2012.
+       CHING, Francis F. D. K. Representação gráfica em arquitetura.
+       Porto Alegre: Bookman, 2017.
+       YEE, R. Desenho arquitetônico - um compêndio visual de tipos e
+       métodos. 4. ed. Rio de Janeiro: LTC, 2017 2017.
+
+  Aula 5
+
+    Aula 5
+
+   Pontodechegada
+
+  PONTO DE CHEGADA
+
+       Olá, estudante!
+       Desenvolver a competência desta Unidade, que é conhecer o
+       processo de desenvolvimento de desenho e o processo e as
+Disciplina
+
+DESENHO DE ARQUITETURA E
+URBANISMO
+
+       etapas de desenvolvimento de projeto para saber aplicar à
+       linguagem gráfica, através de representação gráfica baseada
+       em normas da ABNT, na construção de projetos de arquitetura e
+       urbanismo. Primeiramente você conheceu os conceitos
+       introdutórios ao projeto de arquitetura e sua representação de
+       forma didática e com exemplos visuais e práticos. Conheceu as
+       diferentes formas de se apresentar um projeto, como e quando
+       usar essas formas de apresentação e como fazê-las. Ainda viu
+       o conteúdo sobre as percepções das diferentes escalas de
+       projeto e as relações entre o edifício e a cidade. Em seguida,
+       conheceu os fundamentos do desenho técnico, como a
+       definição e construção dos desenhos, o desenho de
+       observação, a concepção e comunicação de desenho de
+       orientação construtiva e, claro, a representação gráfica em
+       arquitetura. Para a construção de projetos, conheceu a essência
+       primordial do desenho técnico: saber usá-lo com o homem
+       como medida de todas as coisas através da aplicação da
+       antropometria, ergonomia, escala, proporção e das relações
+       espaciais. Por fim, conheceu os materiais, as ferramentas e as
+       principais normas técnicas utilizadas na representação gráfica
+       utilizados para realizar os desenhos manuais.
+       Quando um profissional de arquitetura e urbanismo se forma,
+       acaba realizando diversas funções em seu escritório, desde a
+       primeira conversa com o cliente, medição dos espaços,
+       realização dos projetos e acompanhamento de obras. Uma das
+       dúvidas mais comuns é como desenvolver os projetos iniciais e
+

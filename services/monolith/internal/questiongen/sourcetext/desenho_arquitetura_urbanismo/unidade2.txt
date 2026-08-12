@@ -1,0 +1,354 @@
+Disciplina
+
+DESENHO DE ARQUITETURA E
+URBANISMO
+
+             Terminal para beiral: utilizado no arremate entre a calha e a
+             telha, protegendo as terças de apoio contra chuvas e
+             evitando a entrada de animais.
+             Cantoneira: peça utilizada no arremate dos fechamentos
+             laterais ou no arremate lateral da cobertura.
+             Platibanda: é a continuação das paredes externas, com o
+             objetivo de esconder a cobertura. Como podemos notar na
+             Figura 8, as telhas ficam encobertas pela extensão da
+             parede.
+       Figura 8 | Exemplo de platibanda em corte.
+
+       Fonte: Nesse e Silva, 2017.
+       Segundo Cardoso (2000), a colocação das telhas geralmente se
+       inicia do beiral para a cumeeira, no sentido oposto ao dos
+Disciplina
+
+DESENHO DE ARQUITETURA E
+URBANISMO
+
+       ventos dominantes na região, regra essa que também é válida
+       para os demais tipos de telha. Cuidados devem ser tomados
+       durante a colocação das telhas, de forma a evitar quebras e
+       acidentes. É recomendável que as telhas sejam posicionadas
+       simultaneamente em todas as águas do telhado para que o seu
+       peso seja distribuído de uniformemente sobre a estrutura de
+       madeira. Devem-se respeitar os limites mínimos e máximos de
+       acordo com cada tipo de telha para garantir que a água escoe
+       adequadamente, evitando problemas de infiltração e danos à
+       estrutura do telhado.
+
+             Tipos de telhas
+
+       Existem inúmeros tipos de telhas, dentre elas, podemos citar a
+       telha cerâmica (com boa estanqueidade e conforto térmico),
+       telha de fibrocimento (baixo custo e baixo conforto térmico),
+       telha de concreto pré-moldado (muito utilizadas em indústrias,
+       vencendo grandes vãos), telhas metálicas (com ou sem
+       proteção térmica, são muito utilizadas em galpões industriais,
+       comerciais ou de serviços, vencendo grandes vãos), entre
+       outras.
+       As telhas cerâmicas (Figura 9) oferecem boas condições de
+       conforto termoacústico, com inclinação entre 25% e 35%. Esse
+       modelo de telha requer maior altura disponível para instalação
+       do telhado, o que pode ser um problema caso exista algum
+       elemento ou legislação que limite a altura final da construção.
+Disciplina
+
+DESENHO DE ARQUITETURA E
+URBANISMO
+
+       Outras desvantagens deste modelo de telha são o alto custo e o
+       peso, necessitando de uma estrutura mais reforçada.
+       Figura 9 | Telhado com telha cerâmica.
+
+       Fonte: Pexels.
+       Já com as telhas de fibrocimento (Figura 10) é possível
+       executar um telhado com inclinações menores, entre 10% e
+       25%. Elas são mais leves do que as telhas cerâmicas e têm um
+       custo menor, são mais fáceis de manusear e instalar e exigem
+       uma estrutura de sustentação mais leve. No entanto, seu
+       desempenho termoacústico é baixo e sua estética não é
+       agradável, sendo mais comumente utilizada em telhados
+       embutidos.
+       Figura 10 | Telhado com telha de fibrocimento.
+Disciplina
+
+DESENHO DE ARQUITETURA E
+URBANISMO
+
+       Fonte: Pexels.
+       Por fim, as telhas metálicas (Figura 11) são mais leves e
+       permitem inclinações ainda menores – entre 5% e 10%. Assim,
+       as coberturas com telha metálica possuem uma altura mais
+       baixa que os modelos anteriores, sendo ideal para telhados
+       embutidos. Porém, em se tratando de conforto, são as que mais
+       esquentam o ambiente e as mais barulhentas. Por este motivo,
+       criou-se um modelo de telha chamada sanduíche (Figura 12),
+       compostas por duas chapas metálicas “recheadas” de um
+       material isolante térmico e acústico.
+       Figura 11 | Telhado com telha metálica.
+Disciplina
+
+DESENHO DE ARQUITETURA E
+URBANISMO
+
+       Fonte: Nese e Silva 2017.
+       Para calcular o número de degraus necessários é preciso dividir
+       a altura total do desnível pelo valor máximo permitido para a
+       altura do espelho. Por exemplo, se a altura do desnível for de
+       350 cm e a altura máxima permitida para o espelho é de 18 cm,
+       serão necessários 20 degraus (350/18 = 19,44 = 20,
+       arredondando para cima). Neste exemplo, os espelhos terão
+       altura final de 17,5 cm (altura final do desnível dividido pelo
+       número de degraus, ou seja, 350 / 20 = 17,5).
+       Definido o tamanho dos espelhos, partimos para o cálculo do
+       piso. Existe uma relação ideal entre o piso e o espelho para
+       garantir o conforto e a segurança dos usuários. Para isso, usa-
+       se a fórmula definida pela NBR 9050 (ABNT, 2021b):
+
+                                                      60 cm ≤p + 2e ≤ 65cm
+
+       Para encontrar o tamanho do piso podemos usar a medida
+       intermediária definida pela norma de 64 cm. Continuando o
+       nosso exemplo anterior, numa escada com espelhos de 17,5
+Disciplina
+
+DESENHO DE ARQUITETURA E
+URBANISMO
+
+       cm, o dimensionamento ideal do piso é de 29 cm. Confira o
+       cálculo
+
+                                                          p+ (2x17,5) = 64
+                                                          p+ (35) = 64
+                                                          p= 64−35
+                                                          p= 29cm
+
+       Este valor atende aos requisitos da norma NBR 9050 (ABNT,
+       2021b), pois está entre 28 e 32 cm. Nossa escada foi
+       dimensionada adequadamente.
+
+  Elementos que compõem
+  as escadas
+
+       O desenho arquitetônico de uma escada deve ser traçado com
+       precisão, representando o que se quer construir. Na planta do
+       pavimento térreo, por exemplo, nem todos os degraus são
+       visíveis, metade da escada fica visível na linha de corte da
+       planta e metade superior não, dessa forma, os degraus que
+       estão localizados acima da linha de corte devem ser
+       representados por linhas tracejadas, conforme a Figura 11, a
+       seguir.
+       Figura 11 | Piso, espelho e patamar de uma escada.
+Disciplina
+
+DESENHO DE ARQUITETURA E
+URBANISMO
+
+       Fonte: Nese e Silva 2017.
+       Os elementos construtivos devem ser representados, assim
+       como os níveis, dimensões, cotas e outras informações
+       importantes para a leitura e a execução da escada devem ser
+       inseridas no desenho. No corte, são representados os
+       elementos internos e as alturas que não são representados em
+       planta baixa. Assim, sempre que possível, passar os planos de
+       corte pela escada, informando as cotas verticais dos elementos
+       em corte, níveis e outras informações complementares que
+       sejam necessárias para a compreensão do projeto.
+       Para desenhar a escada em corte, basta desenhar uma malha
+       esquemática com as linhas auxiliares horizontais representando
+       a altura do espelho e as linhas verticais a largura do piso,
+       conforme o exemplo da figura 12 a seguir. No corte, serão
+       representados a profundidade do piso, a altura do espelho, os
+       patamares, o corrimão e o guarda-corpo.
+       Figura 12 | Exemplo de desenho esquemático do corte da
+       escada.
+Disciplina
+
+DESENHO DE ARQUITETURA E
+URBANISMO
+
+       Fonte: Nese e Silva 2017.
+       Com o corte esquemático realizado, é preciso acrescentar as
+       outras informações, como a espessura da laje da escada, do
+       patamar e a representação do corrimão. Na Figura 13 é
+       apresentado esse corte da escada já detalhado com as
+       espessuras, o corrimão e as cotas de alturas principais.
+       Figura 13 | Exemplo de desenho esquemático do corte da
+       escada.
+Disciplina
+
+DESENHO DE ARQUITETURA E
+URBANISMO
+
+       Fonte: Nese e Silva (2017)
+       Além disso, a NBR 9050 (ABNT, 2021b) estabelece que as
+       rampas devem ser providas de corrimãos em duas alturas, 70
+       cm e 92 cm, em ambos os lados, para oferecer suporte e
+       estabilidade aos usuários. Portanto, quando não houver
+       paredes laterais, as rampas devem apresentar elementos de
+       segurança, como guarda-corpo, corrimãos ou guias de
+       balizamento.
+       Também devem prolongar-se paralelamente ao patamar, com
+       comprimento mínimo de 0,30 m nas extremidades, sem
+       interferir com áreas de circulação, como é apresentado na
+       Figura 4, a seguir.
+       Figura 4 | Corrimão de rampa.
+Disciplina
+
+DESENHO DE ARQUITETURA E
+URBANISMO
+
+       Fonte: ABNT 9050 (2021)
+       O corrimão deve ter as suas extremidades com acabamento
+       recurvado, fixados na parede ou no guarda-corpo e devem ser
+       fabricados em materiais rígidos apropriados para este uso. As
+       dimensões do corrimão, expressas em mm, estão
+       representadas na Figura 5 a seguir.
+       Figura 5 | Empunhadura e dimensões do Corrimão.
+Disciplina
+
+DESENHO DE ARQUITETURA E
+URBANISMO
+
+       Fonte: ABNT 9050 (2021)
+       A guia de balizamento, além de importante para pessoas com
+       deficiência visual, também é essencial para o cadeirante, que
+       utiliza desse elemento como apoio de segurança ao percorrer a
+       rampa. Na Figura 6, podemos observar o detalhe desse
+       elemento, que pode ser de alvenaria ou outro material, com
+       altura mínima de 5 cm.
+       Figura 6 | Guia de balizamento.
+Disciplina
+
+DESENHO DE ARQUITETURA E
+URBANISMO
+
+       Fonte: ABNT 9050 (2021)
+       A altura do guarda-corpo em rampas internas às edificações é
+       de, no mínimo, 92 cm medida do piso acabado ao topo, onde o
+       usuário vai apoiar sua mão. Em locais externos, quando a altura
+       ultrapassar 12 m do solo, o guarda-corpo deve ser de, no
+       mínimo, 1,30 m de altura. Lembrando que o piso tátil também é
+       importante para identificar, por exemplo, o início e o fim da
+       inclinação da rampa. Na Figura 7 é apresentada uma rampa
+       com dois segmentos, tendo o piso tátil indicando o início e o fim
+       da rampa.
+       Figura 7 | Exemplo de posicionamento do piso tátil em uma
+       rampa.
+Disciplina
+
+DESENHO DE ARQUITETURA E
+URBANISMO
+
+  SAIBA MAIS
+
+       Olá, estudante! Vamos avançar com nosso conhecimento sobre
+       o detalhamento técnico, que é muito importante para garantir a
+       correta execução da construção. Veja o projeto da residência
+       Porto Madeiro, desenvolvido por Cristiana Pasquini do grupo
+       DEA Arquitetura. A casa possui estrutura mista de concreto e
+       aço, grandes brises pivotantes na varanda e ventilação cruzada
+       por meio de aberturas na cobertura. Imagine como seria
+       executar essa obra sem um detalhamento adequado.
+       Conheça mais sobre o projeto e veja o diagrama disponibilizado
+       no site do escritório de arquitetura para compreender todos os
+       detalhes da construção.
+       Residência Porto Madeiro.
+
+   Referências
+
+  REFERÊNCIAS
+
+       ASSOCIAÇÃO BRASILEIRA DE NORMAS TÉCNICAS - ABNT. NBR
+       6492: Documentação técnica para projetos arquitetônicos e
+       urbanísticos – Requisitos. Rio de Janeiro: ABNT, 2021.
+       GRUPO DEA ARQUITETURA. Residência Porto Madeiro. 2022.
+       Disponível
+Disciplina
+
+DESENHO DE ARQUITETURA E
+URBANISMO
+
+       em: https://www.grupodearquitetura.com.br/residenciaportoma
+       derohttps://www.grupodearquitetura.com.br/residenciaportoma
+       dero&gt;. Acesso em: fev. 2024.
+       NESSE, Paola P. L.; SILVA, Samuel S. M. Desenho arquitetônico.
+       Londrina: Editora e Distribuidora Educacional S.A. (WL), 2017.
+       XAVIER, Sinval. Apostila de Desenho Arquitetônico. Apostila do
+       curso das disciplinas de Desenho Arquitetônico dos cursos de
+       Engenharia Civil e Engenharia Civil Empresarial da Universidade
+       Federal do Rio Grande. Março. 2011. Disponível
+       em: https://bit.ly/3rDghwK. Acesso em: setembro set.de 2024.
+
+  Aula 5
+
+    Aula 20
+
+   Pontodechegada
+
+  PONTO DE CHEGADA
+  Coberturas, circulação
+  vertical e detalhamento
+
+       Para realizar um projeto arquitetônico, diversos elementos
+       devem ser representados no desenho técnico a fim de torná-lo
+Disciplina
+
+DESENHO DE ARQUITETURA E
+URBANISMO
+
+       acessível e completo. Dentre eles, podemos citar as coberturas
+       e os elementos de circulação vertical, que devem ser
+       dimensionados corretamente para evitar problemas estruturais
+       ou dificuldades na acessibilidade da construção.
+       Em se tratando das coberturas, diversos são os modelos e
+       materiais que podem ser empregados no projeto de um telhado.
+       Alguns dos tipos mais comuns são o telhado aparente, telhado
+       embutido e a laje plana. As telhas podem ser em cerâmica,
+       concreto, fibrocimento ou metal, variando suas características
+       de conforto termoacústico, inclinação e efeitos estéticos.
+       O cálculo de inclinação do telhado segue a fórmula:
+
+            Inclinação (%) = Altura do telhado (m) / Largura (m) x 100
+       Isso significa que a inclinação é a proporção entre a altura e a
+       largura do telhado. É dada em porcentagem e varia de 2% a 5%
+       no caso da laje plana, ou de 5% a 35% nos outros modelos de
+       telhado a depender da telha utilizada.
+       Já sobre as circulações verticais, existem três tipos: escadas,
+       rampas e elevadores. Os dois primeiros são dimensionados de
+       acordo com as exigências da norma de acessibilidade, a NBR
+       9050 (ABNT, 2021b), enquanto o último segue as
+       recomendações de segurança na NBR 16858-1 (ABNT, 2021c).
+       Os elementos da escada devem estar de acordo com o que
+       orienta a norma de acessibilidade. A profundidade do piso, a
+       altura do espelho e dos corrimãos e a relação entre ambos
+       precisa atender a critérios específicos para garantir o conforto e
+Disciplina
+
+DESENHO DE ARQUITETURA E
+URBANISMO
+
+       a segurança dos usuários. O número de degraus varia conforme
+       o desnível a ser vencido.
+       O dimensionamento das rampas também se apoia nas
+       diretrizes da norma, onde a inclinação máxima de acordo com
+       cada desnível é orientada para garantir o acesso de pessoas em
+       cadeiras de rodas ou com mobilidade reduzida.
+       Ainda, sobre a circulação vertical, os elevadores se tornam uma
+       alternativa mais rápida e com maior economia de espaço em
+       relação aos citados anteriormente. No entanto, por serem
+       equipamentos mecânicos, estão sujeitos a falhas e nunca deve
+       se apoiar apenas no uso de elevadores para garantir a
+       circulação vertical da construção. Os elevadores são
+       dimensionados de acordo com as diretrizes da norma NBR
+       16858-1 (ABNT, 2021c), que trata sobre os requisitos de
+       segurança para construção e instalação de elevadores elétricos
+       e hidráulicos.
+       Por fim, é muito importante que os elementos de um projeto
+       estejam detalhados adequadamente para garantir a correta
+       execução na obra. O detalhamento técnico possui uma
+       quantidade de informações maior, a fim de que todas as
+       orientações, medidas, materiais e formas de execução estejam
+       claras e precisas para a equipe de execução. Qualquer elemento
+       da construção pode ser detalhado e, em especial, recomenda-se
+       que aqueles de maior complexidade ou os que foram
+       projetados sob medida especificamente para a construção
+       recebam mais detalhes no desenho técnico. Algumas
+

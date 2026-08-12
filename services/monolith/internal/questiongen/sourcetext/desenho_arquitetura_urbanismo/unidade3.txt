@@ -1,0 +1,457 @@
+Disciplina
+
+DESENHO DE ARQUITETURA E
+URBANISMO
+
+  SIGA EM FRENTE
+  Elementos da planta
+
+       As paredes são elementos construtivos fundamentais no
+       desenho da planta de pavimento, uma vez que constituem os
+       contornos dos ambientes da edificação. A espessura utilizada
+       para a representação da parede vai variar de acordo com o
+       sistema construtivo, buscando sempre ser o mais fiel possível
+       ao que vai ser executado. Por exemplo, para uma parede
+       construída em alvenaria convencional revestida dos dois lados
+       por reboco e pintura, podemos adotar uma espessura de 15cm
+       em escala. No entanto, para alguns sistemas construtivos,
+       podemos contar com paredes de 10 cm de espessura,
+       chegando até 25cm de espessura ou mais. Paredes de vidro,
+       por exemplo, chegam a 5cm de espessura, incluindo a
+       espessura da esquadria.
+       Os materiais construtivos mais utilizados possuem sua
+       representação convencionada pela NBR 6492 (ABNT, 2021).
+       Xavier (2021) ressalta que se deve ter cuidado ao empregar
+       hachuras sólidas, pois, em algumas situações, podem vir a
+       apresentar um peso visual excessivo dentro do contexto gráfico,
+       comprometendo a leitura do projeto. O autor salienta que, caso
+       o projetista utilize cores para diferenciar os tipos de paredes,
+       deve-se atentar para não utilizar cores geralmente associadas
+       aos diferentes processos em que as paredes estarão
+Disciplina
+
+DESENHO DE ARQUITETURA E
+URBANISMO
+
+       submetidas em projetos de reforma e/ou ampliação,
+       estabelecidos pelos códigos de obras municipais: hachura
+       vermelha para construção de novas paredes e amarela para
+       demolição de paredes existentes.
+       Os desníveis e as transições de pisos devem ser demarcados
+       com linhas estreitas, porém mais espessas do que as que
+       representam os pisos (XAVIER, 2021). Já uma escada tem
+       representados em planta seus degraus e patamares até 1,50m
+       de altura em linha larga e, acima dessa altura, esses elementos
+       são indicados por suas projeções em linha tracejada estreita,
+       sendo facultativo o uso de linha de interrupção indicando a
+       transição para acima de 1,50m (CORRÊA, 2019). Tratando-se de
+       escadas (Figura 3), deve-se indicar a numeração dos degraus,
+       enquanto, para rampas, a sua inclinação em porcentagem; e,
+       nos dois casos, seu sentido ascendente com uma seta,
+       conforme convenção da NBR 6492 (ABNT, 2021).
+       Figura 3 | Exemplo de representação de escada em planta
+
+       Fonte: adaptada de ABNT (2021)
+       Em uma planta, os elementos de construção situados acima do
+       plano de corte ou com arestas e contornos não visíveis (como
+       beirais das coberturas, vãos de aberturas e esquadrias, vigas,
+Disciplina
+
+DESENHO DE ARQUITETURA E
+URBANISMO
+
+       chaminés, alçapões, mezaninos, caixa-d’água) devem ser
+       representados em projeção através de linhas tracejadas
+       estreitas (ABNT, 2021).
+       Já as esquadrias (Figura 4) não possuem sua aparência
+       apresentada em planta, entretanto, nesse desenho, indica-se o
+       posicionamento e as dimensões das portas e, no caso das
+       janelas, também sua altura em relação ao piso (CHING, 2011).
+       Segundo a NBR 6492 (ABNT, 2021), seus detalhes devem estar
+       de acordo com seus materiais, devendo atender à nomenclatura
+       P1, P2, P3 e assim por diante para portas, e J1, J2, J3, para
+       janelas. Nesse sentido, indica-se também as soleiras e o tipo de
+       operação das portas (abrir, correr, sanfonada, etc.) e os peitoris
+       das janelas (CHING, 2011).
+       Figura 4 | Exemplo de representação de esquadrias
+
+       Fonte: adaptado de ABNT (2021).
+       A porta pode ser representada por um retângulo de linhas
+       contínuas estreitas para escalas menores ou iguais a 1:50,
+       sendo a menor das dimensões igual a 3cm. Já para escalas de
+       desenho de detalhe (1:20 e 1:10), a porta será apresentada
+       como um retângulo em linhas contínuas largas. A
+Disciplina
+
+DESENHO DE ARQUITETURA E
+URBANISMO
+
+       representação da abertura da porta é realizada por um arco em
+       linha estreita (CORRÊA, 2019). Devem ser cotados os vãos
+       acabados, prontos para receberem as esquadrias, e suas
+       dimensões devem estar presentes no desenho ou indicadas
+       para visualização em um quadro geral com todas as
+       especificações de cada abertura (ABNT, 2021).
+
+  Simbologias técnicas e
+  representação
+
+       Uma vez representados todos os ambientes, devemos
+       identificá-los, isso facilitará a leitura do projeto. Para essa
+       identificação, contamos com diversos elementos como: o nome
+       do ambiente, comumente acompanhado da área construída
+       (expressa em metros quadrados – m²); cota de nível
+       (identificado por símbolo próprio); o pé-direito (altura entre o
+       piso acabado e o teto acabado) representado pela sigla “P.D.” e
+       o seu valor (expresso em metros − m).
+       No desenvolvimento de um projeto, os equipamentos fixos, tais
+       como aparelhos hidráulicos e alguns pontos elétricos, possuem
+       suas posições indicadas nas plantas (CORRÊA, 2019) de forma
+       a permitir a compatibilização do projeto arquitetônico com os
+       demais projetos complementares. As linhas de contorno da
+       grande maioria desses elementos são de espessura larga,
+       sendo seus detalhes representados por linhas estreitas. Deve-
+       se ter o cuidado com o grau de detalhamento dessas peças e a
+Disciplina
+
+DESENHO DE ARQUITETURA E
+URBANISMO
+
+       no terreno. Utilize cotas com linhas indicando exatamente
+       aonde a cota tem início e fim, e por fim, indicar o Norte.
+       Já a representação simplificada (Figura 3) visa representar
+       simplesmente a área ocupada do terreno, representando
+       somente o contorno da área ocupada, as cotas de recuos, do
+       contorno da edificação e cotas gerais do terreno. Esse desenho
+       é o mais comum a ser apresentado na aprovação legal de um
+       projeto, visa apresentar a área ocupada do terreno, permitindo
+       que se controle o quanto é ocupado do terreno e o quanto se
+       mantém de área livre, permeável.
+       Figura 3 | Exemplo de implantação simplificada
+
+       Fonte: Nesse e Silva, 2017.
+       Os recuos mais comuns são frontais e laterais, porém isso varia
+       de município para município, podendo apresentar também
+       recuos de fundo, por exemplo. Os valores dos recuos do seu
+       município de atuação podem normalmente ser encontrados na
+Disciplina
+
+DESENHO DE ARQUITETURA E
+URBANISMO
+
+       Lei de Uso e Ocupação do Solo (LUOS) ou no Código de Obras e
+       Edificações (COE) do município.
+
+  Simbologias técnicas e
+  representação
+
+       Na planta de implantação, assim como em todas as plantas
+       baixas do projeto, devemos indicar a posição da orientação
+       Norte. Isto pode ser feito por uma seta seguida pela letra “N”,
+       conforme podemos notar na Figura 4. A indicação do Norte
+       auxilia na compreensão da trajetória da insolação na edificação,
+       permitindo que se avalie o seu conforto térmico. No desenho
+       arquitetônico, posicionamos o desenho e depois indicamos o
+       Norte, portanto, nem sempre ele vai estar apontando para cima,
+       fato que é comum na realização de mapas.
+       Figura 4 | Exemplos de símbolos com indicação de Norte.
+
+       Fonte: Nesse e Silva, 2017.
+       É importante destacar que os pontos de visualização de cortes
+       e fachadas devem ser indicados em planta. Para indicar onde é
+       o ponto de visualização de cada corte, utilizamos uma linha do
+       tipo traço ponto, indicando como esse plano de corte vertical
+Disciplina
+
+DESENHO DE ARQUITETURA E
+URBANISMO
+
+       intercepta a planta. Nas extremidades desta linha, utilizamos
+       setas para indicar para qual direção o observador está olhando,
+       bem como indicamos o número da folha e o número do
+       desenho.
+       Para indicação das fachadas (ou elevações), utilizamos uma
+       seta, com o número do desenho e o número da folha,
+       apontando para cada uma das fachadas. Esta seta indica a
+       direção em que o observador está olhando. As representações
+       das linhas de corte e da seta de indicação de fachada podem
+       ser feitas conforme exemplos apresentados na Figura 5.
+       Figura 5 | Indicação de corte e fachada
+
+       Fonte: Nesse e Silva, 2017.
+       Sobre a escala, por se tratar de um desenho em que é
+       necessário representar todo o terreno, a escala adotada para
+       esse tipo de desenho costuma ser menor, normalmente 1:100
+       ou 1:200. Em grandes projetos, como o de uma fábrica ou
+       aeroporto, por exemplo, esta escala pode ser ainda menor,
+       variando de acordo com o tamanho do terreno a ser
+       representado.
+Disciplina
+
+DESENHO DE ARQUITETURA E
+URBANISMO
+
+       Um fator de atenção é sobre a verificação das curvas de nível
+       do terreno, pois elas podem interferir no desenvolvimento do
+       projeto.
+       Uma função importante que a planta de localização pode
+       exercer, conforme relata Kubba (2014), é a de destacar as
+       condições peculiares da superfície, ou topografia, de um lote,
+       quando essa não precisa ser apresentada separadamente. Essa
+       informação indica ao construtor a declividade ou o nivelamento
+       do terreno, e compreende as mudanças de cota desse, como os
+       declives, elevações, vales e outras variações na superfície. Caso
+       seja necessário, entretanto, essas informações devem ser
+       vistas em uma planta do terreno, onde suas características
+       topográficas são melhores detalhadas.
+       De acordo com Ching (2011), a resposta de um projeto de
+       edificação a seu contexto inclui considerar as características
+       físicas de seu terreno, principalmente a configuração da
+       superfície do solo. Assim, em alguns casos, torna-se necessária
+       a representação e o detalhamento do terreno. Nesse desenho,
+       segundo Corrêa (2019), devem estar indicados os marcos
+       relativos aos pontos medidos no levantamento topográfico,
+       sendo esses normalmente localizados nos vértices do polígono
+       que representa o perímetro do terreno. Para se localizar o
+       terreno em planta, pode-se usar um marco inicial externo como
+       a indicação da posição de um poste ou outro elemento
+       pertencente ao logradouro e referenciá-lo a um dos marcos do
+       perímetro do terreno. Conforme descreve Ching (2011), em uma
+Disciplina
+
+DESENHO DE ARQUITETURA E
+URBANISMO
+
+       décimo da altura da letra em caixa-alta (maiúscula), exceto nas
+       unidades de medidas e demais exigências ortográficas, assim
+       como não podem ser em itálico, somente quando houver essa
+       exigência, na grafa em idioma estrangeiro (ABNT, 2021).
+       Na representação da planta de situação, comumente é utilizado
+       para o contorno do terreno, linha com espessura mais
+       extralarga, enquanto a linha larga indica os elementos
+       complementares ao desenho e que identificam sua localização,
+       como o contorno dos quarteirões, elementos topográficos e
+       outros. Já a linha estreita é utilizada para elementos
+       secundários e linhas de cota, hachuras, linhas auxiliares, etc.
+       (XAVIER, 2021).
+       Parte do conjunto de desenhos do projeto arquitetônico que
+       trata dos primeiros aspectos do lote e de elementos genéricos
+       da edificação, a planta de situação deve constar na primeira
+       prancha e, sempre que possível, ser inserida próxima à
+       representação das plantas de localização e de cobertura
+       (XAVIER, 2021). Nessa prancha, pode conter as informações
+       normalmente inseridas na planta de implantação, como o
+       quadro com as áreas do terreno, ocupada e construída, além
+       das taxas de ocupação e de construção (CORRÊA, 2019).
+
+   Saibamais
+
+  SAIBA MAIS
+Disciplina
+
+DESENHO DE ARQUITETURA E
+URBANISMO
+
+  SAIBA MAIS
+
+       Caro estudante! Aproveite esse momento para aprimorar e
+       conhecer mais dos conceitos vistos ao longo dessa unidade
+       através da leitura do capítulo 10 do livro de Montenegro, que
+       apresenta mais informações sobre as relações entre planta,
+       implantação e planta de situação, com exemplos ilustrados.
+       Desenho arquitetônico: para cursos técnicos de 2o grau e
+       faculdades de arquitetura.
+       Leia também um capítulo da obra de SARAPKA et al., (2022):
+       Desenho básico: da prática manual à digital.
+       No capítulo III, com o título ‘Representações planas’, você
+       poderá ver como são desenhadas as principais peças gráficas
+       do projeto arquitetônico. Fique livre para ler todo o material,
+       mas atente-se às páginas 37-38 que tratam da planta de
+       situação e implantação.
+
+   Referências
+
+  REFERÊNCIAS
+
+       ASSOCIAÇÃO BRASILEIRA DE NORMAS TÉCNICAS - ABNT. NBR
+       6492: Documentação técnica para projetos arquitetônicos e
+       urbanísticos – Requisitos. Rio de Janeiro: ABNT, 2021.
+Disciplina
+
+DESENHO DE ARQUITETURA E
+URBANISMO
+
+       CHING, F. D. K. Representação gráfica em arquitetura. 5. ed.
+       Porto Alegre: Bookman, 2011.
+       CORNETET, B. C.; PIRES, D. G. M. Arquitetura. Porto Alegre:
+       SAGAH, 2016.
+       CORRÊA, R. M. Desenho técnico civil: Projeto de edifícios e
+       outras construções. 1. ed. Rio de Janeiro: Elsevier, 2019.
+       KUBBA, S. A. Desenho técnico para construção. Porto Alegre:
+       Bookman, 2014.
+       MONTENEGRO, G. Desenho arquitetônico. 5. ed. São Paulo:
+       Blücher, 2017.
+       NESSE, P. L.; SILVA, S. M. Desenho arquitetônico. Londrina:
+       Educacional, 2017. 216 p.
+       SARAPKA, E. M.; SANTANA, M. A.; MONFRÉ, M. A. M. et al.
+       Desenho básico: da prática manual à digital. São Paulo: Blucher,
+       2022
+       XAVIER, S. C. Desenho arquitetônico: auxiliado por computador.
+       Rio Grande: FURG, 2021.
+
+  Aula 4
+
+    Aula 9
+
+   Videoaula
+
+R  õ
+Disciplina
+
+DESENHO DE ARQUITETURA E
+URBANISMO
+
+  Representações
+  complementares das
+  plantas baixas
+
+       Olá, estudante! Nesta videoaula você conhecerá sobre a
+       importância de uma representação gráfica de maneira ordenada
+       e organizada para o correto entendimento de um desenho
+       técnico. Todos os conceitos aprendidos serão aplicados na
+       representação gráfica para construir o seu desenho técnico
+       com todas as informações pertinentes, de acordo com o tipo de
+       projeto a ser realizado.
+       Vamos começar!
+
+   Pontodepartida
+
+  PONTO DE PARTIDA
+
+       Olá, estudante! Boas-vindas ao conteúdo desta unidade.
+       Ao longo desta unidade você conheceu os conceitos e
+       elementos gráficos que compõem os diferentes tipos de
+       plantas, como a planta dos pavimentos (baixa) e as plantas de
+       implantação e situação. Nesta aula, continuaremos o estudo da
+       representação gráfica com conceitos que tangem a sua
+       finalização e entrega. A composição dos diferentes tipos de
+Disciplina
+
+DESENHO DE ARQUITETURA E
+URBANISMO
+
+       M.; MIRANDA, Juliana J. S.; ALLEGRETTI, Carla C. Andrea A. L.;
+       SCHEIBE, Aline A. C. Desenho Técnico Arquitetônico. Porto
+       Alegre: SAGAH, 2018.
+       XAVIER, Sinval. Desenho arquitetônico: auxiliado por
+       computador. Rio Grande: Ed. da FURG, 2021, . 177f. Disponível
+       em: https://repositorio.furg.br/handle/1/9365https://repositorio.
+       furg.br/handle/1/9365, .Acesso em: agosto de. 2024.
+
+  Aula 5
+
+    Aula 10
+
+   Pontodechegada
+
+  PONTO DE CHEGADA
+
+       Olá, estudante!
+       Para desenvolver a competência desta Unidade, que é saber
+       representar um projeto arquitetônico, que envolve muitas
+       etapas e maneiras de expressar sua concepção,
+       independentemente se ele for realizado pelo modo manual, ou
+       então por métodos mais modernos, com os equipamentos
+       computacionais e softwares de última geração que
+       encontramos em nossa atualidade é necessário obedecer
+Disciplina
+
+DESENHO DE ARQUITETURA E
+URBANISMO
+
+       etapas, a partir das suas primeiras ideias, seguindo para o
+       desenvolvimento da proposta até chegar ao projeto executivo
+       final, a padronização é essencial no projeto e na representação
+       gráfica.
+       É necessário ressaltar a importância de que o profissional deve
+       ter conhecimento de várias formas de expressão gráfica para
+       ter um maior número de ferramentas aplicáveis ao processo de
+       projeto, seja qual for a etapa, harmonizando a utilização de
+       croquis, desenhos técnicos, técnicas de perspectiva, etc.
+       Saiba que o projeto arquitetônico, bem como todos os demais
+       projetos complementares, são documentos, com informações
+       técnicas relativas à execução de uma obra, portanto, devem ser
+       desenvolvidos com a orientação de normas técnicas e
+       legislações aplicáveis, seja de âmbito municipal, estadual ou
+       federal.
+
+   Videoauladeencerramento
+
+  VIDEOAULA DE
+  ENCERRAMENTO
+
+       Olá, estudante!
+       Nesta videoaula você compreenderá as principais premissas
+       relacionadas com o projeto arquitetônico. Verá a importância da
+Disciplina
+
+DESENHO DE ARQUITETURA E
+URBANISMO
+
+       expressão gráfica sem deixar de atender as normas vigentes, irá
+       relembrar os requisitos básicos para o desenho técnico, como a
+       prancha de desenho, tipos de linhas e suas aplicações e
+       também as informações através da escrita, além dos formatos
+       de apresentação e tipos de planta.
+       O desenho é, sem dúvida, a linguagem mais importante para o
+       universo da arquitetura e urbanismo. É por meio das suas
+       ilustrações que conseguirá representar suas ideias tanto para
+       seu cliente quanto para quem for executar.
+       Vamos assistir!
+
+   Éhoradepraticar
+
+  É HORA DE PRATICAR
+
+       A representação de plantas (baixa, implantação e situação) tem
+       o mesmo formato? Ou seja, elas têm a mesma composição e
+       possuem as mesmas informações?
+       As informações escritas são relevantes para a composição e
+       organização das pecas gráficas?
+       Qual a importância da planta humanizada na leitura e
+       entendimento de um projeto?
+       Para contextualizar sua aprendizagem, imagine que você
+       possua um escritório de arquitetura, no qual seu maior serviço
+Disciplina
+
+DESENHO DE ARQUITETURA E
+URBANISMO
+
+       são projetos e reformas de residências unifamiliares, e como o
+       mercado está promissor, decidiu expandir sua equipe e
+       contratou dois estagiários para auxiliá-lo tanto na produção dos
+       desenhos de apresentação para clientes quanto para visitas de
+       campo. Durante as entrevistas de emprego percebeu que as
+       pessoas que contratou são interessadas e estudiosas, o que o
+       motivou a contratá-las, porém, possuem pouca experiência
+       profissional.
+       A prática de projeto é a melhor maneira de aprender, portanto,
+       chegou o momento de passar as primeiras tarefas para que os
+       estagiários possam elaborar os desenhos.
+       Como primeira atividade, os estagiários precisam fazer a planta
+       executiva de uma residência unifamiliar já aprovada pelo cliente,
+       o desenho será utilizado por você na reunião com a equipe de
+       mão de obra.
+
+             Quais informações os estagiários não podem esquecer de
+             desenhar para que você consiga apresentar o projeto para
+             os profissionais que irão executar?
+             Quais são as informações que constam em uma planta
+             humanizada?
+             Quais as informações apresentadas no projeto que o
+             profissional que fará a execução utiliza para calcular seus
+             custos?
+
+       Na segunda atividade, eles devem realizar os desenhos
+       complementares que mostrem o terreno todo do projeto que
+

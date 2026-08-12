@@ -120,6 +120,18 @@ Rodar depois do seed 003, uma vez.
 Todo `correct_answer` validado programaticamente contra as `options` (bate exatamente, sem
 duplicata) antes de entrar no seed — mesma checagem que `geminiclient.Validate()` faria.
 
+**Geração dinâmica do Modo Infinito generalizada pras 4 disciplinas (08/2026):** Maquetes tinha uma
+funcionalidade que as demais trilhas não tinham — `internal/learning/infinitemode_generation.go`
+gera lotes novos de perguntas via Gemini em segundo plano quando o pool do Modo Infinito de um
+tópico está acabando (Docs/PENDENCIAS_IA.md #3), só pra tópicos com texto-fonte real embutido
+(`questiongen.HasSourceText`). Generalizado de "hardcoded pra maquetes" pra um mapa
+`generationTopicConfigs` (topic → trackID/unitID) — as 4 disciplinas novas entraram nesse mapa,
+com texto-fonte real em `internal/questiongen/sourcetext/<topic>/unidade{1..4}.txt` (commitado no
+repositório público, mesmo tratamento já usado pra Maquetes — decisão consciente do usuário,
+08/2026, ciente de que isso expõe excertos de apostila publicamente). O texto vem do material já
+extraído em `Docs/DocsFaculdade/` (1 PDF lido por inteiro + 3 com amostra de 4 trechos cada, por
+disciplina — cobertura menor que Maquetes, que teve os 4 PDFs lidos por inteiro).
+
 **Pendente:** as 2-3 unidades restantes de cada uma dessas 4 disciplinas (cada uma tem 4
 PDFs/apostilas no total, 30-116 páginas cada) — o texto de amostra dos PDFs não usados ainda está
 organizado em `Docs/DocsFaculdade/<disciplina>/chunks/`, com o script
