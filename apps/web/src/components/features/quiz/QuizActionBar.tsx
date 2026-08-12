@@ -8,6 +8,7 @@ interface QuizActionBarProps {
   explanation: string;
   xpDailyCapReached: boolean;
   canVerify: boolean;
+  verifying?: boolean;
   onSkip: () => void;
   onVerify: () => void;
   onContinue: () => void;
@@ -25,6 +26,7 @@ export function QuizActionBar({
   explanation,
   xpDailyCapReached,
   canVerify,
+  verifying = false,
   onSkip,
   onVerify,
   onContinue,
@@ -79,11 +81,20 @@ export function QuizActionBar({
           </Button>
         ) : (
           <>
-            <Button variant="ghost" onClick={onSkip}>
+            <Button variant="ghost" disabled={verifying} onClick={onSkip}>
               Pular
             </Button>
-            <Button variant="gamification" disabled={!canVerify} onClick={onVerify}>
-              Verificar
+            <Button
+              variant="gamification"
+              disabled={!canVerify || verifying}
+              icon={
+                verifying ? (
+                  <Icon name="progress_activity" className="animate-spin text-xl" />
+                ) : undefined
+              }
+              onClick={onVerify}
+            >
+              {verifying ? "Verificando…" : "Verificar"}
             </Button>
           </>
         )}

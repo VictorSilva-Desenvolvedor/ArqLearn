@@ -68,6 +68,7 @@ export default function InfiniteModeSessionPage() {
         options={infinite.question.options}
         selectedOptionId={infinite.selectedOptionId}
         revealed={infinite.revealed}
+        verifying={infinite.verifying}
         isSelectedCorrect={infinite.lastResult?.correct ?? false}
         onSelect={infinite.selectOption}
       />
@@ -75,6 +76,7 @@ export default function InfiniteModeSessionPage() {
         revealed={infinite.revealed}
         xpDailyCapReached={infinite.lastResult?.xp_daily_cap_reached ?? false}
         canConfirm={Boolean(infinite.selectedOptionId?.trim())}
+        verifying={infinite.verifying}
         onGiveUp={infinite.giveUp}
         onConfirm={infinite.verify}
         onContinue={infinite.continueNext}

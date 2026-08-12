@@ -5,17 +5,31 @@ interface AnswerOptionProps {
   label: string;
   selected: boolean;
   revealed: boolean;
+  /** Resposta enviada, aguardando o servidor confirmar certo/errado — mostra um spinner na
+   * opção marcada em vez do ícone de certo/errado (ainda não sabemos qual dos dois é). */
+  verifying?: boolean;
   isCorrect?: boolean;
   disabled?: boolean;
   onClick: () => void;
 }
 
-export function AnswerOption({ label, selected, revealed, isCorrect, disabled, onClick }: AnswerOptionProps) {
+export function AnswerOption({
+  label,
+  selected,
+  revealed,
+  verifying,
+  isCorrect,
+  disabled,
+  onClick,
+}: AnswerOptionProps) {
   // Spec (Elevation & Depth): borda 1px no estado padrão, 2px só ao marcar seleção — não fixa em
   // 2px pra toda answer card.
   let toneClasses = "border border-outline-variant bg-surface-bright hover:border-primary";
   if (selected && !revealed) {
     toneClasses = "border-2 border-primary bg-primary-fixed";
+  }
+  if (selected && verifying) {
+    toneClasses = "border-2 border-primary bg-primary-fixed opacity-80";
   }
   if (revealed && selected) {
     toneClasses = isCorrect
@@ -45,6 +59,9 @@ export function AnswerOption({ label, selected, revealed, isCorrect, disabled, o
       )}
     >
       <span className="flex-1">{label}</span>
+      {selected && verifying && (
+        <Icon name="progress_activity" className="text-xl shrink-0 animate-spin text-primary" />
+      )}
       {revealIcon && (
         <Icon
           name={revealIcon}

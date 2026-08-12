@@ -15,6 +15,7 @@ export function useQuizSession(trackId: string, lessonId: string) {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [selectedOptionId, setSelectedOptionId] = useState<string | null>(null);
   const [revealed, setRevealed] = useState(false);
+  const [verifying, setVerifying] = useState(false);
   const [lastResult, setLastResult] = useState<AnswerResult | null>(null);
   const [hearts, setHearts] = useState(gamification.hearts_current);
   const [correctCount, setCorrectCount] = useState(0);
@@ -51,31 +52,37 @@ export function useQuizSession(trackId: string, lessonId: string) {
   );
 
   const verify = useCallback(async () => {
-    if (!session || !currentQuestion || !selectedOptionId) return;
+    if (!session || !currentQuestion || !selectedOptionId || verifying) return;
+    setVerifying(true);
     const timeMs = Date.now() - questionStartRef.current;
-    const result = await submitAnswer(lessonId, {
-      session_id: session.session_id,
-      question_id: currentQuestion.id,
-      answer: selectedOptionId,
-      time_ms: timeMs,
-    });
+    try {
+      const result = await submitAnswer(lessonId, {
+        session_id: session.session_id,
+        question_id: currentQuestion.id,
+        answer: selectedOptionId,
+        time_ms: timeMs,
+      });
 
-    setLastResult(result);
-    setRevealed(true);
-    setHearts(result.vidas_restantes);
-    setSessionXpEarned((xp) => xp + result.xp_ganho);
-    if (result.correct) setCorrectCount((c) => c + 1);
+      setLastResult(result);
+      setRevealed(true);
+      setHearts(result.vidas_restantes);
+      setSessionXpEarned((xp) => xp + result.xp_ganho);
+      if (result.correct) setCorrectCount((c) => c + 1);
 
-    updateGamification({
-      hearts_current: result.vidas_restantes,
-      xp_total: gamification.xp_total + result.xp_ganho,
-      xp_today: gamification.xp_today + result.xp_ganho,
-      streak_current: result.streak_atual,
-    });
+      updateGamification({
+        hearts_current: result.vidas_restantes,
+        xp_total: gamification.xp_total + result.xp_ganho,
+        xp_today: gamification.xp_today + result.xp_ganho,
+        streak_current: result.streak_atual,
+      });
+    } finally {
+      setVerifying(false);
+    }
   }, [
     session,
     currentQuestion,
     selectedOptionId,
+    verifying,
     lessonId,
     updateGamification,
     gamification.xp_total,
@@ -143,6 +150,7 @@ export function useQuizSession(trackId: string, lessonId: string) {
     totalQuestions,
     selectedOptionId,
     revealed,
+    verifying,
     lastResult,
     hearts,
     gems: gamification.gems,
