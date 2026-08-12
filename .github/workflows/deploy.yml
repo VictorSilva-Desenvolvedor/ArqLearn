@@ -52,6 +52,15 @@ jobs:
       - name: Instala Vercel CLI
         run: npm install --global vercel@latest
 
+      # Na raiz, não em apps/web: o repo é workspace npm (apps/web + apps/mobile,
+      # package.json raiz). Deixar o `vercel build` instalar sozinho dentro de apps/web (sem
+      # saber do workspace) gera uma árvore de node_modules diferente da que `next build` espera
+      # — quebrou ao vivo com "File does not exist: node_modules/@swc/helpers/cjs/
+      # _interop_require_default.cjs" no primeiro deploy real. Mesmo padrão que ci.yml já usa
+      # (npm install na raiz, build isolado por workspace).
+      - name: Instala dependências (workspace)
+        run: npm install
+
       - name: Puxa config do ambiente de produção
         working-directory: apps/web
         run: vercel pull --yes --environment=production --token=${{ secrets.VERCEL_TOKEN }}
