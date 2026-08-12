@@ -81,3 +81,42 @@ pelo volume de uso de "maquetes" — é exatamente o cenário que este item já 
 uma trava global por tópico (`infinite_mode_generation_state`) garante no máximo 1 lote (4 chamadas ao
 Gemini) por vez, então o pior caso é 1 lote a cada ~poucos minutos de uso contínuo intenso, não 1 por
 usuário simultâneo — mas ainda sem alerta proativo de quota.
+
+### 4. Novas matérias (Docs/DocsFaculdade) — 1 unidade de 4 disciplinas coberta a fundo, resto pendente
+Material fornecido pelo usuário em `Docs/DocsFaculdade/` (apostilas por disciplina, pasta git-ignorada
+— mesmo tratamento de `Docs/ignorar/`, repo é público). Diferente de Maquetes/pendência #1, essas
+perguntas foram escritas diretamente a partir do texto extraído dos PDFs (`pdftotext`), sem passar pelo
+AI Content Pipeline (Gemini) — `services/monolith/seeds/003_novas_materias_licoes_perguntas.js` grava
+tudo como `review_status: "pending"`, mesma regra de sempre (precisa `cmd/review-questions` ou
+aprovação manual equivalente antes de virar jogável).
+
+**Pegadinha real encontrada:** os PDFs de cada disciplina não seguem a ordem alfabética do nome do
+arquivo (UUID) — cada apostila declara sua própria "Unidade N" na capa, checada página a página antes
+de escrever qualquer pergunta. O primeiro PDF processado de cada disciplina acabou sendo uma unidade
+diferente em cada caso (não necessariamente "Unidade 1") — não reintroduzir a suposição de que a
+ordem do arquivo bate com o número da unidade.
+
+**Feito:** 1 unidade completa (50 perguntas cada, texto integral do PDF lido, não só uma amostra) em
+cada uma das 4 disciplinas — 200 perguntas no total:
+- Construções Sustentáveis → **Unidade 3** (Uso dos Recursos Naturais e a Geração de Resíduos da
+  Construção Civil)
+- Desenho de Arquitetura e Urbanismo → **Unidade 4** (Coberturas, Elementos Verticais e
+  Detalhamentos)
+- Atelier de Projeto de Arquitetura Cultural → **Unidade 4** (Apresentação e detalhamento construtivo
+  do anteprojeto)
+- Informática Aplicada à Arquitetura e Urbanismo - Projeções Ortogonais → **Unidade 4**
+  (Configurando impressão e plotagem) — a Unidade 1 dessa disciplina é PDF escaneado sem texto
+  extraível, OCR não suportado nesta fase, ver pendência acima sobre PDF escaneado.
+
+Todo `correct_answer` validado programaticamente contra as `options` (bate exatamente, sem
+duplicata) antes de entrar no seed — mesma checagem que `geminiclient.Validate()` faria.
+
+**Pendente:** as 2-3 unidades restantes de cada uma dessas 4 disciplinas (cada uma tem 4
+PDFs/apostilas no total, 30-116 páginas cada) — o texto de amostra dos PDFs não usados ainda está
+organizado em `Docs/DocsFaculdade/<disciplina>/chunks/`, com o script
+`Docs/DocsFaculdade/GERAR_PERGUNTAS.sh` pronto pra rodar via `cmd/generate-questions` (Gemini) +
+`cmd/review-questions` quando for a vez de completar — **mas esse script ainda usa a numeração de
+unidade antiga (por ordem alfabética de arquivo), errada; confirmar o número real de cada PDF (ver
+pegadinha acima) antes de rodá-lo.** Nenhuma ação foi tomada ainda sobre o PDF escaneado
+(Informática, Unidade 1) — depende de uma versão com texto ou de investir em OCR (fora de escopo
+desta fase, ver Seção 5 do `Estrategia_Bootstrap.md`).

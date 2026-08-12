@@ -25,6 +25,7 @@ npm-debug.log*
 
 # --- Material de referência não distribuível (grades curriculares, apostilas etc.) ---
 /Docs/ignorar/
+/Docs/DocsFaculdade/
 
 # --- OS / editor ---
 .DS_Store
