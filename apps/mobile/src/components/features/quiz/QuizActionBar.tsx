@@ -1,0 +1,153 @@
+import { ActivityIndicator, Pressable, StyleSheet, Text, View } from "react-native";
+import { Button } from "@/components/ui/Button";
+import { Icon } from "@/components/ui/Icon";
+import { colors, spacing, type } from "@/theme/tokens";
+
+interface QuizActionBarProps {
+  revealed: boolean;
+  isCorrect: boolean;
+  explanation: string;
+  xpDailyCapReached: boolean;
+  canVerify: boolean;
+  verifying?: boolean;
+  onSkip: () => void;
+  onVerify: () => void;
+  onContinue: () => void;
+  // "Explique melhor" (API Spec §6, v1.6) — aprofunda a explicação curta acima sob demanda,
+  // chamando IA de verdade (Groq). deepExplanation null = ainda não pedida nesta pergunta.
+  deepExplanation?: string | null;
+  explainLoading?: boolean;
+  explainError?: string | null;
+  onExplainMore?: () => void;
+}
+
+// Espelha apps/web/src/components/features/quiz/QuizActionBar.tsx.
+export function QuizActionBar({
+  revealed,
+  isCorrect,
+  explanation,
+  xpDailyCapReached,
+  canVerify,
+  verifying = false,
+  onSkip,
+  onVerify,
+  onContinue,
+  deepExplanation,
+  explainLoading,
+  explainError,
+  onExplainMore,
+}: QuizActionBarProps) {
+  return (
+    <View style={styles.bar}>
+      {revealed && (
+        <Text
+          style={[
+            type.bodyMd,
+            styles.explanation,
+            { color: isCorrect ? colors.onTertiaryFixedVariant : colors.onErrorContainer },
+          ]}
+          accessibilityLiveRegion="polite"
+        >
+          {explanation}
+        </Text>
+      )}
+      {revealed && onExplainMore && (
+        <View style={styles.explainBlock}>
+          {deepExplanation ? (
+            <Text style={[type.bodySm, styles.deepExplanation]}>{deepExplanation}</Text>
+          ) : (
+            <Pressable onPress={onExplainMore} disabled={explainLoading}>
+              <Text style={[type.bodySm, styles.explainLink, explainLoading && styles.explainLinkDisabled]}>
+                {explainLoading ? "Aprofundando..." : "Explique melhor"}
+              </Text>
+            </Pressable>
+          )}
+          {explainError && <Text style={[type.bodySm, styles.explainError]}>{explainError}</Text>}
+        </View>
+      )}
+      {revealed && xpDailyCapReached && (
+        <View style={styles.xpCapRow}>
+          <Icon name="bolt" size={16} color={colors.secondary} />
+          <Text style={[type.bodySm, styles.xpCapText]}>
+            Você atingiu o limite diário de XP — continue praticando, mas o XP extra de hoje não conta.
+          </Text>
+        </View>
+      )}
+      <View style={styles.footer}>
+        {revealed ? (
+          <Button variant="primary" fullWidth onPress={onContinue}>
+            Continuar
+          </Button>
+        ) : (
+          <>
+            <Button variant="ghost" disabled={verifying} onPress={onSkip}>
+              Pular
+            </Button>
+            <Button
+              variant="gamification"
+              disabled={!canVerify || verifying}
+              icon={verifying ? <ActivityIndicator size="small" color={colors.onSecondaryContainer} /> : undefined}
+              onPress={onVerify}
+            >
+              {verifying ? "Verificando…" : "Verificar"}
+            </Button>
+          </>
+        )}
+      </View>
+    </View>
+  );
+}
+
+const styles = StyleSheet.create({
+  bar: {
+    borderTopWidth: 2,
+    borderTopColor: colors.outlineVariant,
+    backgroundColor: colors.surfaceBright,
+  },
+  explanation: {
+    paddingHorizontal: spacing.md,
+    paddingTop: spacing.sm,
+  },
+  explainBlock: {
+    paddingHorizontal: spacing.md,
+    paddingTop: spacing.xs,
+    gap: 4,
+  },
+  deepExplanation: {
+    color: colors.onSurfaceVariant,
+    backgroundColor: colors.surfaceContainer,
+    borderRadius: 12,
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.sm,
+  },
+  explainLink: {
+    alignSelf: "flex-start",
+    color: colors.primary,
+    textDecorationLine: "underline",
+  },
+  explainLinkDisabled: {
+    opacity: 0.5,
+  },
+  explainError: {
+    color: colors.error,
+  },
+  xpCapRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 4,
+    paddingHorizontal: spacing.md,
+    paddingTop: spacing.xs,
+  },
+  xpCapText: {
+    flex: 1,
+    color: colors.secondary,
+  },
+  footer: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    gap: spacing.md,
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.md,
+  },
+});

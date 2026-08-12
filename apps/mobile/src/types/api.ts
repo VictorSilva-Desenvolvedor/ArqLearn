@@ -103,3 +103,41 @@ export interface TrackLesson {
   lesson: Lesson;
   progress_status: LessonProgressStatus;
 }
+
+export type QuestionType =
+  | "multiple_choice"
+  | "true_false"
+  | "matching"
+  | "fill_blank"
+  | "image_identification";
+
+export type QuestionDifficulty = "easy" | "medium" | "hard" | "impossible";
+
+export interface QuestionOption {
+  id: string;
+  label: string;
+}
+
+export interface SessionQuestion {
+  id: string;
+  prompt: string;
+  type: QuestionType;
+  difficulty: QuestionDifficulty;
+  image_url?: string;
+  options: QuestionOption[];
+}
+
+export interface LessonSession {
+  session_id: string;
+  questions: SessionQuestion[];
+  hearts_available: number;
+}
+
+export interface AnswerResult {
+  correct: boolean;
+  xp_ganho: number;
+  xp_daily_cap_reached: boolean;
+  vidas_restantes: number;
+  streak_atual: number;
+  explicacao: string;
+}

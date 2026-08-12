@@ -27,6 +27,27 @@ const glyphs = {
   success: "check-circle",
   error: "alert-circle",
   wifiOff: "wifi-off",
+  // --- Fase 1 (loop de estudo): quiz, gamificação, catálogo de conquistas ---
+  heartOutline: "heart-outline",
+  heartBroken: "heart-broken",
+  bolt: "lightning-bolt",
+  target: "target",
+  download: "download",
+  downloadDone: "check-circle",
+  schedule: "clock-outline",
+  cancel: "close-circle",
+  militaryTech: "medal",
+  verified: "check-decagram",
+  menuBook: "book-open-page-variant",
+  psychology: "head-lightbulb-outline",
+  allInclusive: "all-inclusive",
+  replay: "replay",
+  storefront: "storefront-outline",
+  uploadFile: "file-upload-outline",
+  summarize: "text-box-outline",
+  forum: "forum-outline",
+  bugReport: "bug-outline",
+  taskAlt: "check-circle-outline",
 } as const;
 
 export type IconName = keyof typeof glyphs;
