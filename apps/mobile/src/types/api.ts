@@ -141,3 +141,36 @@ export interface AnswerResult {
   streak_atual: number;
   explicacao: string;
 }
+
+export interface InfiniteModeQuestion {
+  id: string;
+  prompt: string;
+  type: QuestionType;
+  difficulty: QuestionDifficulty;
+  image_url?: string;
+  options: QuestionOption[];
+}
+
+export interface InfiniteModeSession {
+  session_id: string;
+  topic: string;
+  question: InfiniteModeQuestion;
+}
+
+export interface InfiniteModeAnswerResult {
+  correct: boolean;
+  xp_ganho: number;
+  xp_daily_cap_reached: boolean;
+  questions_answered: number;
+  correct_count: number;
+  level: number;
+  next_question?: InfiniteModeQuestion;
+}
+
+export interface InfiniteModeEndResult {
+  questions_answered: number;
+  correct_count: number;
+  accuracy_rate: number;
+  xp_earned: number;
+  avg_time_ms: number;
+}
