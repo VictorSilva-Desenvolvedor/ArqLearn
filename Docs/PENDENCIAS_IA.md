@@ -82,7 +82,7 @@ uma trava global por tópico (`infinite_mode_generation_state`) garante no máxi
 Gemini) por vez, então o pior caso é 1 lote a cada ~poucos minutos de uso contínuo intenso, não 1 por
 usuário simultâneo — mas ainda sem alerta proativo de quota.
 
-### 4. Novas matérias (Docs/DocsFaculdade) — 1 unidade de 4 disciplinas coberta a fundo, resto pendente
+### 4. Novas matérias (Docs/DocsFaculdade) — paridade de volume com Maquetes alcançada (08/2026)
 Material fornecido pelo usuário em `Docs/DocsFaculdade/` (apostilas por disciplina, pasta git-ignorada
 — mesmo tratamento de `Docs/ignorar/`, repo é público). Diferente de Maquetes/pendência #1, essas
 perguntas foram escritas diretamente a partir do texto extraído dos PDFs (`pdftotext`), sem passar pelo
@@ -132,12 +132,35 @@ repositório público, mesmo tratamento já usado pra Maquetes — decisão cons
 extraído em `Docs/DocsFaculdade/` (1 PDF lido por inteiro + 3 com amostra de 4 trechos cada, por
 disciplina — cobertura menor que Maquetes, que teve os 4 PDFs lidos por inteiro).
 
-**Pendente:** as 2-3 unidades restantes de cada uma dessas 4 disciplinas (cada uma tem 4
-PDFs/apostilas no total, 30-116 páginas cada) — o texto de amostra dos PDFs não usados ainda está
-organizado em `Docs/DocsFaculdade/<disciplina>/chunks/`, com o script
-`Docs/DocsFaculdade/GERAR_PERGUNTAS.sh` pronto pra rodar via `cmd/generate-questions` (Gemini) +
-`cmd/review-questions` quando for a vez de completar — **mas esse script ainda usa a numeração de
-unidade antiga (por ordem alfabética de arquivo), errada; confirmar o número real de cada PDF (ver
-pegadinha acima) antes de rodá-lo.** Nenhuma ação foi tomada ainda sobre o PDF escaneado
-(Informática, Unidade 1) — depende de uma versão com texto ou de investir em OCR (fora de escopo
-desta fase, ver Seção 5 do `Estrategia_Bootstrap.md`).
+**QA sobre as 200 perguntas do seed 003 (08/2026):** revisão estrutural completa (correct_answer
+bate exatamente com uma option, sem duplicata de option, sem prompt duplicado) não encontrou erros;
+2 perguntas de Informática (Unidade 4) tinham desbalanceamento de tamanho/estrutura entre as options
+("pistas" indiretas da resposta certa) — corrigidas diretamente no JSON-fonte antes da rodada
+seguinte.
+
+**Extração completa dos PDFs restantes e paridade de volume com Maquetes (08/2026):** as 2-3
+unidades que faltavam de cada disciplina foram extraídas por inteiro (`pdftotext -layout`, não mais
+amostra) e viraram **450 perguntas novas**, escritas com o mesmo rigor do seed 003 (rigor no
+`source_ref` por página, resposta única inequívoca, validação programática de
+`correct_answer`/options antes de gravar) e organizadas por unidade em
+`services/monolith/seeds/005_novas_materias_unidades_extras.js`:
+- Construções Sustentáveis → Unidades 1, 2 e 4 (113 perguntas; Unidade 3 já coberta pelo seed 003)
+- Desenho de Arquitetura e Urbanismo → Unidades 1, 2 e 3 (113 perguntas; Unidade 4 já coberta)
+- Atelier de Projeto de Arquitetura Cultural → Unidades 1, 2 e 3 (112 perguntas; Unidade 4 já coberta)
+- Informática Aplicada... Projeções Ortogonais → Unidades 2 e 3, mais um lote complementar de
+  reforço sobre o mesmo material (112 perguntas; Unidade 4 já coberta, Unidade 1 segue inviável —
+  PDF escaneado sem texto extraível, ver abaixo)
+
+Total por disciplina após seeds 003+005: **312-313 perguntas cada**, superando as 162 aprovadas de
+Maquetes — diferença é que as de Maquetes já passaram por `cmd/review-questions` uma a uma ao longo
+do tempo, enquanto estas 450 (e as 200 do seed 003) ainda estão `review_status: "pending"` até
+alguém rodar a revisão manual (ou aprovação em lote consciente, como já feito uma vez nesta sessão).
+O seed 005 já nasce com lições de ~10 perguntas (não repete o erro do seed 003, corrigido depois
+pelo seed 004) — rodar 005 uma única vez, depois do 003; idempotente via upsert por `_id`, seguro
+rodar de novo. Verificado programaticamente: nenhuma pergunta do seed 005 duplica prompt do seed 003
+nem entre si.
+
+**Ainda pendente:** PDF escaneado de Informática (Unidade 1) sem texto extraível — depende de uma
+versão com texto ou de investir em OCR (fora de escopo desta fase, ver Seção 5 do
+`Estrategia_Bootstrap.md`). Fora isso, as 4 disciplinas novas têm agora as 4 unidades cobertas
+(Maquetes é a única com as 4 unidades + revisão humana completa via `cmd/review-questions`).
