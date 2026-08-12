@@ -26,11 +26,10 @@ jobs:
 
   deploy-frontend:
     name: Vercel — apps/web
-    # Desligado de propósito (a pedido do usuário, 08/2026): por enquanto só o backend (Render)
-    # publica automaticamente. Reativar trocando pra `github.event.workflow_run.conclusion ==
-    # 'success'` assim que VERCEL_TOKEN/VERCEL_ORG_ID/VERCEL_PROJECT_ID estiverem cadastrados
-    # (ver Docs/ArqLearn_Estrategia_Bootstrap.md §8.3).
-    if: false
+    # Reativado (08/2026): VERCEL_TOKEN/VERCEL_ORG_ID/VERCEL_PROJECT_ID cadastrados, projeto
+    # "arqlearn" criado no escopo pessoal da Vercel (victorpaulodev-4099s-projects) — ver
+    # Docs/ArqLearn_Estrategia_Bootstrap.md §8.3.
+    if: github.event.workflow_run.conclusion == 'success'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
