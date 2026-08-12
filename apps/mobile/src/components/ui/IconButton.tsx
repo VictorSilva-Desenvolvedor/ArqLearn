@@ -5,16 +5,19 @@ import { colors } from "@/theme/tokens";
 interface IconButtonProps {
   icon: ReactNode;
   label: string;
+  disabled?: boolean;
   onPress?: () => void;
 }
 
-export function IconButton({ icon, label, onPress }: IconButtonProps) {
+export function IconButton({ icon, label, disabled, onPress }: IconButtonProps) {
   return (
     <Pressable
       accessibilityRole="button"
       accessibilityLabel={label}
+      accessibilityState={{ disabled }}
+      disabled={disabled}
       onPress={onPress}
-      style={({ pressed }) => [styles.base, pressed && styles.pressed]}
+      style={({ pressed }) => [styles.base, pressed && !disabled && styles.pressed, disabled && styles.disabled]}
     >
       {icon}
     </Pressable>
@@ -31,5 +34,8 @@ const styles = StyleSheet.create({
   },
   pressed: {
     backgroundColor: colors.surfaceGray,
+  },
+  disabled: {
+    opacity: 0.5,
   },
 });
