@@ -53,22 +53,25 @@ jobs:
         run: npm install --global vercel@latest
 
       # Na raiz, não em apps/web: o repo é workspace npm (apps/web + apps/mobile,
-      # package.json raiz). Deixar o `vercel build` instalar sozinho dentro de apps/web (sem
-      # saber do workspace) gera uma árvore de node_modules diferente da que `next build` espera
-      # — quebrou ao vivo com "File does not exist: node_modules/@swc/helpers/cjs/
-      # _interop_require_default.cjs" no primeiro deploy real. Mesmo padrão que ci.yml já usa
-      # (npm install na raiz, build isolado por workspace).
+      # package.json raiz) — npm workspaces faz hoist de tudo pra node_modules da raiz,
+      # apps/web/node_modules nunca existe. Mesmo padrão que ci.yml já usa.
       - name: Instala dependências (workspace)
         run: npm install
 
+      # A partir da raiz do repo (não com working-directory: apps/web) — é o Root Directory do
+      # projeto na Vercel (configurado como apps/web via API, ver Docs/ArqLearn_Estrategia_
+      # Bootstrap.md §8.3) que direciona o CLI pro subdiretório certo, mas mantendo consciência
+      # do monorepo pra resolver node_modules hoisted na raiz. Com working-directory: apps/web
+      # (tentativa anterior), `vercel deploy --prebuilt` fazia uma checagem de caminho literal
+      # relativo ao cwd por apps/web/node_modules/@swc/helpers/... — que nunca existe nesse
+      # layout — e falhava com "File does not exist", mesmo o `vercel build` funcionando (Next.js
+      # resolve módulo subindo diretório, a checagem do deploy não). Descoberto ao vivo no
+      # primeiro deploy real.
       - name: Puxa config do ambiente de produção
-        working-directory: apps/web
         run: vercel pull --yes --environment=production --token=${{ secrets.VERCEL_TOKEN }}
 
       - name: Build
-        working-directory: apps/web
         run: vercel build --prod --token=${{ secrets.VERCEL_TOKEN }}
 
       - name: Deploy
-        working-directory: apps/web
         run: vercel deploy --prebuilt --prod --token=${{ secrets.VERCEL_TOKEN }}

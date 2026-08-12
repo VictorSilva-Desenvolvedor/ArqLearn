@@ -21,6 +21,7 @@ npm-debug.log*
 .env
 .env.*
 !.env.example
+.vercel
 
 # --- Material de referência não distribuível (grades curriculares, apostilas etc.) ---
 /Docs/ignorar/
