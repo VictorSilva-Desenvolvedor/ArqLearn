@@ -174,3 +174,53 @@ export interface InfiniteModeEndResult {
   xp_earned: number;
   avg_time_ms: number;
 }
+
+export type UploadFileType = "pdf" | "docx" | "pptx" | "image" | "video";
+
+export type UploadStatus = "received" | "processing" | "ready_for_review" | "published" | "failed";
+
+export interface UploadedContent {
+  id: string;
+  filename: string;
+  file_type: UploadFileType;
+  status: UploadStatus;
+  size_bytes: number;
+  progress_percent?: number;
+  created_at: string;
+}
+
+export interface UploadSummaryKeyPoint {
+  title: string;
+  explanation: string;
+}
+
+export interface UploadSummary {
+  upload_id: string;
+  title: string;
+  synopsis: string;
+  key_points: UploadSummaryKeyPoint[];
+  architect_tip: string | null;
+  generated_at: string;
+}
+
+export interface ChatSourceRef {
+  page?: number;
+  timestamp_ms?: number;
+}
+
+export interface ChatAnswer {
+  message_id: string;
+  answer: string;
+  source_excerpt: string;
+  source_ref: ChatSourceRef;
+  created_at: string;
+}
+
+export type ChatRole = "user" | "assistant";
+
+export interface ChatMessage {
+  message_id: string;
+  role: ChatRole;
+  message: string;
+  created_at: string;
+}

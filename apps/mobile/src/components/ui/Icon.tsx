@@ -51,6 +51,17 @@ const glyphs = {
   // --- Fase 2 (Modo Infinito) ---
   construction: "hammer-wrench",
   factCheck: "clipboard-check-outline",
+  // --- Fase 3 (Materiais: Resumo e Chat) ---
+  back: "arrow-left",
+  send: "send",
+  lightbulb: "lightbulb-on-outline",
+  diagram: "floor-plan",
+  bookmark: "bookmark-outline",
+  filePdf: "file-pdf-box",
+  fileDoc: "file-word-outline",
+  filePpt: "file-powerpoint-outline",
+  fileImage: "file-image-outline",
+  fileVideo: "file-video-outline",
 } as const;
 
 export type IconName = keyof typeof glyphs;

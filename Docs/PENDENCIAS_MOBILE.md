@@ -68,18 +68,37 @@ perguntas, testar "Desistir" (encerra na hora, sem diálogo), esgotar o banco mo
 cair no resumo automaticamente; tocar num tema sem banco (ex. `arquitetura_brasileira`) e conferir
 a tela "ainda não está pronto".
 
-### 4. Fase 3 — Materiais (Chat e Resumo)
-Ausente. Precisa telas em `app/materiais/[uploadId]/{chat,resumo}`, componentes de
-`components/features/{materialSummary,materialChat}/`, e completar
-`lib/api/resources/materials.ts` no mobile.
+### 4. Fase 3 concluída, mas nunca testada num device/simulador de verdade
+`materials.ts` foi portado (`getUploadSummary`/`listChatHistory`/`sendChatMessage`), com telas em
+`app/materiais/[uploadId]/{resumo,chat}.tsx` e os componentes de `components/features/
+materialSummary/` (`SummaryHeader`, `DiagramCard`, `KeyPointsChecklist`, `ArchitectTipCallout`) e
+`components/features/materialChat/` (`useMaterialChat`, `ChatInputBar`, `ChatMessageBubble`) —
+diferente do web, que inlina a lógica de chat direto na página, aqui ficou num hook colocado na
+pasta da feature, mesma convenção das Fases 1/2. Sem streaming (chat é request/response simples).
+Ponto de entrada: seção "Meus Materiais" na tela `explorar.tsx`, listando `listMyUploads()` (só
+`uploads.ts` parcial — `listMyUploads`/`fileTypeFromMime`). **Não portados** (fora de escopo,
+ficam pra Fase 4 junto com o Explorar real): o fluxo de upload de verdade
+(`initiateUpload`/`completeUpload`/`getUploadStatus`, polling de status, seletor de arquivo —
+precisa de `expo-document-picker`, ainda não instalado) e a revisão de perguntas do professor
+(`listUploadQuestions`/`reviewUploadQuestion`, fora de escopo do mobile por decisão já registrada).
+Verificado só por `tsc --noEmit` (limpo) e `expo export --platform web` (bundla sem erro) — mesma
+limitação dos itens #1-#3: login sempre Supabase real, não dá pra validar ponta a ponta sem
+device/simulador + conta real. Ação necessária: `npx expo start`, abrir Explorar → seção "Meus
+Materiais" → tocar em "Sistemas Construtivos" (PDF), conferir Resumo (sinopse, card de diagrama
+placeholder, pontos-chave, dica do arquiteto), "Tirar Dúvidas" → enviar pergunta com "modulação"
+(deve citar página 14) e uma genérica (página 12), conferir que o histórico seedado aparece ao
+entrar; tocar em "Planta Baixa Residencial" (imagem, sem histórico) e conferir que abre limpo.
 
 ### 5. Fase 4 — Explorar, Liga e Perfil ainda são placeholder
 `explorar.tsx`/`liga.tsx`/`perfil.tsx` são telas estáticas de "em construção" — precisam virar
 reais, espelhando `apps/web/src/app/(shell)/{explorar,liga,perfil}/page.tsx` (`explorar.tsx` já
-ganhou uma seção de Modo Infinito na Fase 2, mas segue sem busca/upload/trilhas recomendadas).
-Inclui portar `ThemeContext` (seleção de tema global, hoje só no web) e, no Home,
-`AllDonePrompt` (modal oferecendo Modo Infinito quando a trilha em destaque termina) — os dois
-ficaram deliberadamente fora da Fase 2 por dependerem desta fase.
+ganhou uma seção de Modo Infinito na Fase 2 e "Meus Materiais" na Fase 3, mas segue sem busca/
+trilhas recomendadas). Inclui portar `ThemeContext` (seleção de tema global, hoje só no web) e, no
+Home, `AllDonePrompt` (modal oferecendo Modo Infinito quando a trilha em destaque termina) — os
+dois ficaram deliberadamente fora da Fase 2 por dependerem desta fase. Também inclui o fluxo de
+upload de verdade (`UploadPromptCard`, seletor de arquivo via `expo-document-picker` — ainda não
+instalado —, `initiateUpload`/`completeUpload`/`getUploadStatus` de `lib/api/resources/uploads.ts`,
+polling de status), deixado fora da Fase 3 pelo mesmo motivo.
 
 ### 6. Fase 5 — Loja, Notificações, Ajuda e Bugs
 Ausentes por completo no mobile (nem placeholder existe) — espelhar
