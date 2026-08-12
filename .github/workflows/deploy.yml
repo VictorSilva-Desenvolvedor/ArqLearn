@@ -31,6 +31,15 @@ jobs:
     # Docs/ArqLearn_Estrategia_Bootstrap.md §8.3.
     if: github.event.workflow_run.conclusion == 'success'
     runs-on: ubuntu-latest
+    # VERCEL_ORG_ID/VERCEL_PROJECT_ID no nível do job (não só no último step): `vercel pull`
+    # reconstrói apps/web/.vercel/project.json a partir dessas duas env vars — o arquivo em si é
+    # local/gitignored (Estrategia_Bootstrap.md §8.3, gerado uma vez via `vercel link`), não vem
+    # no checkout do runner. Sem as duas env vars já no step de pull, a conta tendo mais de um
+    # time (pessoal + VigorHub) faz o CLI falhar com "Multiple teams found" por não ter time
+    # implícito num terminal não-interativo — descoberto ao vivo no primeiro deploy real.
+    env:
+      VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+      VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
     steps:
       - uses: actions/checkout@v4
         with:
@@ -43,8 +52,6 @@ jobs:
       - name: Instala Vercel CLI
         run: npm install --global vercel@latest
 
-      # --yes: usa a config já vinculada em apps/web/.vercel/project.json (criada uma vez, local,
-      # via `vercel link` — ver Estrategia_Bootstrap.md §8.3), sem pedir input interativo.
       - name: Puxa config do ambiente de produção
         working-directory: apps/web
         run: vercel pull --yes --environment=production --token=${{ secrets.VERCEL_TOKEN }}
@@ -56,6 +63,3 @@ jobs:
       - name: Deploy
         working-directory: apps/web
         run: vercel deploy --prebuilt --prod --token=${{ secrets.VERCEL_TOKEN }}
-        env:
-          VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
-          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
