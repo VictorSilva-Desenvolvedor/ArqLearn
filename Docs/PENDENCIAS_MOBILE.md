@@ -49,10 +49,24 @@ cobre os 5 tipos de pergunta) e percorrer: responder certo/errado, "Explique mel
 (`NoHeartsDialog` + restaurar com gemas), completar com 100% de acerto (tela de conquista credita
 XP/gemas uma única vez), e forçar um level-up (`LevelUpCelebration` global).
 
-### 3. Fase 2 — Modo Infinito
-Ausente. Precisa `useInfiniteModeSession` portado de
-`apps/web/src/components/features/infiniteMode/`, telas em `app/infinito/[topic]/`, reaproveitando
-`QuestionCard` da Fase 1.
+### 3. Fase 2 concluída, mas nunca testada num device/simulador de verdade
+`useInfiniteModeSession` foi portado (`src/components/features/infiniteMode/`), com telas em
+`app/infinito/[topic]/{sessao,resumo}.tsx`, reaproveitando `QuestionCard`/`AnswerOption`/
+`FillBlankInput` da Fase 1 e `StatCard` do resumo de lição. Componentes próprios:
+`InfiniteModeActionBar`, `InfiniteModeHeader`, `InfiniteModeSummaryPanel` — level-up aqui é um
+toast (`useToast`), não o modal `LevelUpCelebration` da Fase 1. Ponto de entrada: seção "Modo
+Infinito" adicionada à tela `explorar.tsx` (ainda um placeholder no resto — busca/upload continuam
+"em construção"), listando `themeCatalog` (portado em `lib/api/mocks/fixtures/themes.ts`, ~44
+temas) sem filtrar por `hasContent`; um tema sem banco cai na tela "ainda não está pronto" da
+própria sessão. **Não portados** (fora de escopo, ficam pra Fase 4 — Explorar/Home reais):
+`ThemeContext` (seleção de tema global) e `AllDonePrompt` (modal do Home oferecendo Modo Infinito
+quando uma trilha termina). Verificado só por `tsc --noEmit` (limpo) e
+`expo export --platform web` (bundla sem erro) — mesma limitação dos itens #1/#2: login sempre
+Supabase real, não dá pra validar ponta a ponta sem device/simulador + conta real. Ação necessária:
+`npx expo start`, abrir Explorar → tocar num tema com banco (ex. `fundamentos`), responder
+perguntas, testar "Desistir" (encerra na hora, sem diálogo), esgotar o banco mock (9 perguntas) e
+cair no resumo automaticamente; tocar num tema sem banco (ex. `arquitetura_brasileira`) e conferir
+a tela "ainda não está pronto".
 
 ### 4. Fase 3 — Materiais (Chat e Resumo)
 Ausente. Precisa telas em `app/materiais/[uploadId]/{chat,resumo}`, componentes de
@@ -61,7 +75,11 @@ Ausente. Precisa telas em `app/materiais/[uploadId]/{chat,resumo}`, componentes 
 
 ### 5. Fase 4 — Explorar, Liga e Perfil ainda são placeholder
 `explorar.tsx`/`liga.tsx`/`perfil.tsx` são telas estáticas de "em construção" — precisam virar
-reais, espelhando `apps/web/src/app/(shell)/{explorar,liga,perfil}/page.tsx`.
+reais, espelhando `apps/web/src/app/(shell)/{explorar,liga,perfil}/page.tsx` (`explorar.tsx` já
+ganhou uma seção de Modo Infinito na Fase 2, mas segue sem busca/upload/trilhas recomendadas).
+Inclui portar `ThemeContext` (seleção de tema global, hoje só no web) e, no Home,
+`AllDonePrompt` (modal oferecendo Modo Infinito quando a trilha em destaque termina) — os dois
+ficaram deliberadamente fora da Fase 2 por dependerem desta fase.
 
 ### 6. Fase 5 — Loja, Notificações, Ajuda e Bugs
 Ausentes por completo no mobile (nem placeholder existe) — espelhar

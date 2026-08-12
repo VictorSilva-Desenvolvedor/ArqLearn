@@ -48,6 +48,9 @@ const glyphs = {
   forum: "forum-outline",
   bugReport: "bug-outline",
   taskAlt: "check-circle-outline",
+  // --- Fase 2 (Modo Infinito) ---
+  construction: "hammer-wrench",
+  factCheck: "clipboard-check-outline",
 } as const;
 
 export type IconName = keyof typeof glyphs;
