@@ -35,12 +35,19 @@ dispositivo físico ou emulador Android/iOS. Ação necessária: abrir o app (`n
 `apps/mobile`, Expo Go ou simulador) e testar login com uma conta real (ex. `maria.aluna@...`),
 incluindo o caso de token expirando/renovando em background (`AppState` + `startAutoRefresh`).
 
-### 2. Fase 1 — Loop de estudo (sessão de quiz, resumo, conquista)
-Ainda 100% ausente no mobile — é o valor central do produto e a próxima prioridade (decisão do
-usuário). Precisa: `useQuizSession` portado de `apps/web/src/components/features/quiz/`, telas de
-sessão/resumo/conquista em `app/trilhas/[trackId]/[lessonId]/`, componentes de quiz
-(`QuestionCard`, `AnswerOption`, `FillBlankInput`, `QuizActionBar`, `HeartsRow`), e os modais de
-gamificação (`NoHeartsDialog`, `HeartsCountdown`, `LevelUpCelebration`).
+### 2. Fase 1 concluída, mas nunca testada num device/simulador de verdade
+`useQuizSession` foi portado (`src/components/features/quiz/`), com telas de sessão/resumo/
+conquista em `app/trilhas/[trackId]/[lessonId]/`, os componentes de quiz (`QuestionCard`,
+`AnswerOption`, `FillBlankInput`, `QuizActionBar`, `HeartsRow`, `QuizHeader`) e os modais de
+gamificação (`NoHeartsDialog`, `HeartsCountdown`, `LevelUpCelebration`, este último montado
+globalmente em `app/_layout.tsx`). Verificado só por `tsc --noEmit` (limpo) e
+`expo export --platform web` (bundla 1056 módulos sem erro) — mesma limitação já registrada no
+antigo item #1 desta lista: como login é sempre Supabase real (nunca mockado), não dá pra validar
+o fluxo ponta a ponta sem device/simulador + conta real. Ação necessária: `npx expo start` em
+`apps/mobile`, logar com conta real, abrir uma lição da trilha `t2-l1` (banco de perguntas Gótico,
+cobre os 5 tipos de pergunta) e percorrer: responder certo/errado, "Explique melhor", zerar vidas
+(`NoHeartsDialog` + restaurar com gemas), completar com 100% de acerto (tela de conquista credita
+XP/gemas uma única vez), e forçar um level-up (`LevelUpCelebration` global).
 
 ### 3. Fase 2 — Modo Infinito
 Ausente. Precisa `useInfiniteModeSession` portado de

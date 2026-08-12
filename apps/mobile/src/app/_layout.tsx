@@ -11,6 +11,7 @@ import { SafeAreaProvider } from "react-native-safe-area-context";
 import { AuthContext, AuthProvider } from "@/contexts/AuthContext";
 import { ToastProvider } from "@/contexts/ToastContext";
 import { Toast } from "@/components/ui/Toast";
+import { LevelUpCelebration } from "@/components/features/gamification/LevelUpCelebration";
 import { colors } from "@/theme/tokens";
 
 SplashScreen.preventAutoHideAsync();
@@ -73,6 +74,7 @@ export default function RootLayout() {
           <StatusBar style="dark" />
           <RootNavigator />
           <Toast />
+          <LevelUpCelebration />
         </ToastProvider>
       </AuthProvider>
     </SafeAreaProvider>

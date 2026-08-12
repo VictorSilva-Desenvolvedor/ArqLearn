@@ -9,6 +9,10 @@ interface ButtonProps {
   variant?: ButtonVariant;
   size?: ButtonSize;
   fullWidth?: boolean;
+  disabled?: boolean;
+  // Ex.: ActivityIndicator enquanto uma ação está em andamento (espelha o `icon?: ReactNode` de
+  // apps/web/src/components/ui/Button.tsx) — renderizado antes do texto.
+  icon?: ReactNode;
   onPress?: () => void;
   children: ReactNode;
 }
@@ -19,10 +23,22 @@ const sizeStyles: Record<ButtonSize, { paddingVertical: number; paddingHorizonta
   lg: { paddingVertical: 12, paddingHorizontal: 32, text: "headlineMd" },
 };
 
-export function Button({ variant = "primary", size = "md", fullWidth = false, onPress, children }: ButtonProps) {
+export function Button({
+  variant = "primary",
+  size = "md",
+  fullWidth = false,
+  disabled = false,
+  icon,
+  onPress,
+  children,
+}: ButtonProps) {
   const sizeStyle = sizeStyles[size];
   return (
-    <Pressable onPress={onPress} style={fullWidth ? styles.fullWidth : undefined}>
+    <Pressable
+      onPress={onPress}
+      disabled={disabled}
+      style={fullWidth ? styles.fullWidth : undefined}
+    >
       {({ pressed }) => (
         <View
           style={[
@@ -30,9 +46,11 @@ export function Button({ variant = "primary", size = "md", fullWidth = false, on
             variantStyle(variant),
             { paddingVertical: sizeStyle.paddingVertical, paddingHorizontal: sizeStyle.paddingHorizontal },
             fullWidth && styles.fullWidth,
-            pressed && styles.pressed,
+            pressed && !disabled && styles.pressed,
+            disabled && styles.disabled,
           ]}
         >
+          {icon}
           <Text style={[type[sizeStyle.text], styles.label, { color: variantTextColor(variant) }]}>{children}</Text>
         </View>
       )}
@@ -68,15 +86,20 @@ function variantTextColor(variant: ButtonVariant) {
 
 const styles = StyleSheet.create({
   base: {
-    borderRadius: 24,
+    flexDirection: "row",
     alignItems: "center",
     justifyContent: "center",
+    gap: 8,
+    borderRadius: 24,
   },
   fullWidth: {
     width: "100%",
   },
   pressed: {
     opacity: 0.85,
+  },
+  disabled: {
+    opacity: 0.5,
   },
   label: {
     fontWeight: "700",
