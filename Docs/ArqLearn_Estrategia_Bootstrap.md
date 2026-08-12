@@ -222,11 +222,16 @@ passo 7); frontend: build + deploy via Vercel CLI. Precisa dos secrets abaixo ca
 | Secret | Onde conseguir | Status |
 |---|---|---|
 | `RENDER_DEPLOY_HOOK_URL` | Render → serviço → aba Deploy → Deploy Hook (8.1, passo 7) | ✅ já cadastrado |
-| `VERCEL_TOKEN` | Vercel → Account Settings → Tokens | pendente |
-| `VERCEL_ORG_ID` / `VERCEL_PROJECT_ID` | Rodar `vercel link` uma vez em `apps/web` local — grava os dois em `apps/web/.vercel/project.json` | pendente |
+| `VERCEL_TOKEN` | Vercel → Account Settings → Tokens | ✅ já cadastrado |
+| `VERCEL_ORG_ID` / `VERCEL_PROJECT_ID` | Rodar `vercel link` uma vez em `apps/web` local — grava os dois em `apps/web/.vercel/project.json` | ✅ já cadastrado |
 
-Sem os secrets do Vercel, o job `deploy-frontend` do workflow falha (o `deploy-backend` já funciona,
-`RENDER_DEPLOY_HOOK_URL` está configurado) — atualizar esta tabela pra "✅" conforme cada um for
-cadastrado.
+Os três secrets estão cadastrados (08/2026) — projeto Vercel `arqlearn` criado no escopo pessoal
+(`victorpaulodev-4099s-projects`), env vars de Produção (`NEXT_PUBLIC_SUPABASE_URL`,
+`NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY`, `NEXT_PUBLIC_API_BASE_URL=https://arqlearn.onrender.com`,
+`NEXT_PUBLIC_API_REAL_RESOURCES`) cadastradas via `vercel env add`. `deploy-frontend` no
+`deploy.yml` está ativo. **Pendência remanescente:** depois do primeiro deploy, atualizar
+`CORS_ALLOWED_ORIGINS` no Render com o domínio de produção real que a Vercel atribuir ao projeto
+(provável `arqlearn.vercel.app`, a confirmar) — sem isso o navegador bloqueia as chamadas do
+front pro backend.
 
 — Fim do documento —
