@@ -81,3 +81,23 @@ pelo volume de uso de "maquetes" — é exatamente o cenário que este item já 
 uma trava global por tópico (`infinite_mode_generation_state`) garante no máximo 1 lote (4 chamadas ao
 Gemini) por vez, então o pior caso é 1 lote a cada ~poucos minutos de uso contínuo intenso, não 1 por
 usuário simultâneo — mas ainda sem alerta proativo de quota.
+
+### 4. Novas matérias (Docs/DocsFaculdade) — só Unidade 1 de 4 disciplinas coberta, resto pendente
+Material fornecido pelo usuário em `Docs/DocsFaculdade/` (apostilas por disciplina, pasta git-ignorada
+— mesmo tratamento de `Docs/ignorar/`, repo é público). Diferente de Maquetes/pendência #1, essas
+perguntas foram escritas diretamente a partir do texto extraído dos PDFs (`pdftotext`), sem passar pelo
+AI Content Pipeline (Gemini) — `services/monolith/seeds/003_novas_materias_licoes_perguntas.js` grava
+tudo como `review_status: "pending"`, mesma regra de sempre (precisa `cmd/review-questions` ou
+aprovação manual equivalente antes de virar jogável).
+
+**Feito:** Unidade 1 de 4 disciplinas (Construções Sustentáveis, Desenho de Arquitetura e Urbanismo,
+Atelier de Projeto de Arquitetura Cultural — 6 perguntas cada; Informática Aplicada à Arquitetura e
+Urbanismo - Projeções Ortogonais ficou na Unidade 2, porque a Unidade 1 é PDF escaneado sem texto
+extraível, OCR não suportado nesta fase, ver pendência acima sobre PDF escaneado).
+
+**Pendente:** as Unidades 2-4 dessas mesmas 4 disciplinas (cada uma tem 4 PDFs/apostilas no total,
+30-116 páginas cada) — texto já extraído e organizado em `Docs/DocsFaculdade/<disciplina>/chunks/`,
+com o script `Docs/DocsFaculdade/GERAR_PERGUNTAS.sh` pronto pra rodar via `cmd/generate-questions`
+(Gemini) + `cmd/review-questions` quando for a vez de completar. Nenhuma ação foi tomada ainda sobre
+o PDF escaneado (Informática, Unidade 1) — depende de uma versão com texto ou de investir em OCR
+(fora de escopo desta fase, ver Seção 5 do `Estrategia_Bootstrap.md`).
