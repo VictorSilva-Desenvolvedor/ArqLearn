@@ -23,6 +23,10 @@ const glyphs = {
   lock: "lock",
   chevronRight: "chevron-right",
   errors: "close-circle-outline",
+  close: "close",
+  success: "check-circle",
+  error: "alert-circle",
+  wifiOff: "wifi-off",
 } as const;
 
 export type IconName = keyof typeof glyphs;

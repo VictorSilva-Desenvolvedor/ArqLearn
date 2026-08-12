@@ -2,7 +2,7 @@ import { useState } from "react";
 import { useRouter } from "expo-router";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 import { Icon, type IconName } from "@/components/ui/Icon";
-import { useAuth } from "@/contexts/AuthContext";
+import { useAuth } from "@/hooks/useAuth";
 import { colors, type } from "@/theme/tokens";
 
 interface CurrentLessonNodeProps {

@@ -1,40 +1,5 @@
-import type { GamificationProfile, Track, TrackLesson, User } from "@/types/api";
+import type { TrackLesson } from "@/types/api";
 import type { IconName } from "@/components/ui/Icon";
-
-// Espelha apps/web/src/lib/api/mocks/fixtures/{user,gamification,tracks,lessons}.ts — mesmos
-// dados, para a Home renderizar igual nas duas plataformas antes da API real entrar.
-
-export const mockUser: User = {
-  id: "3f6a2b8e-1c4d-4a2e-9b8f-7d5c6a1e0f3a",
-  name: "Alex Silva",
-  email: "alex.silva@arqlearn.com",
-  role: "student",
-  timezone: "America/Sao_Paulo",
-  created_at: "2026-02-10T12:00:00Z",
-};
-
-export const mockGamificationProfile: GamificationProfile = {
-  xp_total: 520,
-  xp_today: 30,
-  level: 8,
-  streak_current: 12,
-  streak_best: 24,
-  hearts_current: 5,
-  gems: 340,
-  league_tier: "prata",
-};
-
-export const mockTracks: Track[] = [
-  { id: "track-fundamentos", title: "Fundamentos de Arquitetura", topic: "fundamentos", origin: "curated" },
-  {
-    id: "track-historia",
-    title: "História da Arquitetura",
-    topic: "historia",
-    origin: "curated",
-    description: "Grécia e Roma Antiga",
-  },
-  { id: "track-urbanismo", title: "Urbanismo", topic: "urbanismo", origin: "curated" },
-];
 
 export const mockLessonsByTrack: Record<string, TrackLesson[]> = {
   "track-fundamentos": [
@@ -69,6 +34,10 @@ export const mockLessonsByTrack: Record<string, TrackLesson[]> = {
   ],
 };
 
+// Metadados só de apresentação (ícone do nó, se é checkpoint) — não fazem parte do contrato de
+// API, ficam separados dos tipos em types/api.ts. Espelha
+// apps/web/src/lib/api/mocks/fixtures/lessons.ts#lessonNodePresentation (nomes de ícone
+// diferentes: aqui usa o glifo já mapeado em components/ui/Icon.tsx, não Material Symbols cru).
 export interface LessonNodePresentation {
   icon: IconName;
   isCheckpoint?: boolean;

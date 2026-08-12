@@ -1,12 +1,16 @@
+import { useEffect, useState } from "react";
 import { ScrollView, StyleSheet, View } from "react-native";
 import { DailyGoalCard } from "@/components/home/DailyGoalCard";
 import { LearningMap, type LearningMapUnit } from "@/components/home/LearningMap";
 import { TopAppBar } from "@/components/home/TopAppBar";
 import type { LessonNodeVariant } from "@/components/home/LessonNode";
 import type { UnitStatus } from "@/components/home/UnitSection";
-import { useAuth } from "@/contexts/AuthContext";
-import { lessonNodePresentation, mockLessonsByTrack, mockTracks } from "@/mocks/fixtures";
+import { useAuth } from "@/hooks/useAuth";
+import { listTrackLessons } from "@/lib/api/resources/lessons";
+import { listTracks } from "@/lib/api/resources/tracks";
+import { lessonNodePresentation } from "@/lib/api/mocks/fixtures/lessons";
 import { colors } from "@/theme/tokens";
+import type { Track, TrackLesson } from "@/types/api";
 
 const DAILY_GOAL_XP = 50;
 
@@ -23,17 +27,12 @@ function unitStatusFor(lessons: { progress_status: string }[]): UnitStatus {
   return "locked";
 }
 
-// Mesma derivação de apps/web/src/app/(shell)/page.tsx, mas lendo direto dos mocks locais —
-// a troca para GET /v1/tracks + GET /v1/tracks/{id}/lessons entra junto com a auth real.
-const units: LearningMapUnit[] = mockTracks.map((track) => {
-  const trackLessons = mockLessonsByTrack[track.id] ?? [];
-  const status = unitStatusFor(trackLessons);
-
+function toUnit(track: Track, trackLessons: TrackLesson[]): LearningMapUnit {
   return {
     trackId: track.id,
     title: track.title,
     subtitle: track.description,
-    status,
+    status: unitStatusFor(trackLessons),
     nodes: trackLessons.map(({ lesson, progress_status }) => {
       const presentation = lessonNodePresentation[lesson.id];
       const variant = variantFor(progress_status, presentation?.isCheckpoint);
@@ -46,17 +45,36 @@ const units: LearningMapUnit[] = mockTracks.map((track) => {
       };
     }),
   };
-});
+}
 
 export default function HomeScreen() {
   const { gamification } = useAuth();
+  const [units, setUnits] = useState<LearningMapUnit[] | null>(null);
+
+  useEffect(() => {
+    let cancelled = false;
+    async function load() {
+      const { data: tracks } = await listTracks();
+      const withLessons = await Promise.all(
+        tracks.map(async (track) => {
+          const { data: trackLessons } = await listTrackLessons(track.id);
+          return toUnit(track, trackLessons);
+        }),
+      );
+      if (!cancelled) setUnits(withLessons);
+    }
+    void load();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   return (
     <View style={styles.screen}>
       <TopAppBar />
       <ScrollView contentContainerStyle={styles.content}>
         <DailyGoalCard xpToday={gamification.xp_today} goal={DAILY_GOAL_XP} />
-        <LearningMap units={units} />
+        {units && <LearningMap units={units} />}
       </ScrollView>
     </View>
   );
