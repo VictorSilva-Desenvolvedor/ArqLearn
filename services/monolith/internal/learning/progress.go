@@ -1,6 +1,7 @@
 package learning
 
 import (
+	"math"
 	"net/http"
 	"time"
 
@@ -75,7 +76,10 @@ func handleProgressSummary(mongoDB *mongo.Database) http.HandlerFunc {
 			}
 		}
 		if totalCorrect+totalWrong > 0 {
-			resp.AccuracyRate = float64(totalCorrect) / float64(totalCorrect+totalWrong)
+			// Percentual (0-100), não fração (0-1) — o front (ProgressSummaryCard) só faz
+			// `${accuracy_rate}%`, sem multiplicar por 100 nem formatar. Arredondado pro mesmo
+			// padrão que useQuizSession.ts já usa no cálculo client-side equivalente.
+			resp.AccuracyRate = math.Round(float64(totalCorrect) / float64(totalCorrect+totalWrong) * 100)
 		}
 
 		lessonIDs := make([]string, 0, len(statusByLesson))
