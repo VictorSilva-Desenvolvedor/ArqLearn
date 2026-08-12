@@ -108,6 +108,15 @@ cada uma das 4 disciplinas — 200 perguntas no total:
   (Configurando impressão e plotagem) — a Unidade 1 dessa disciplina é PDF escaneado sem texto
   extraível, OCR não suportado nesta fase, ver pendência acima sobre PDF escaneado.
 
+**Erro de estruturação encontrado e corrigido (08/2026):** as 4 lições foram gravadas cada uma
+como 50 perguntas numa lição só. `handleStartSession` não pagina — pega todas as perguntas de
+`question_ids` de uma vez numa sessão só, e nenhuma outra lição do app tem mais que ~14 perguntas.
+Resultado prático: sessão de prática de 50 perguntas de uma vez, sem "próximo nó" no mapa de
+aprendizado depois (só 1 unit por trilha nova). Corrigido com
+`seeds/004_divide_novas_materias_em_licoes_de_10.js` — divide cada lição de 50 em 5 lições de 10
+(mesma ordem), atualiza `questions.lesson_id`, recria `track.units` com 5 entries em sequência.
+Rodar depois do seed 003, uma vez.
+
 Todo `correct_answer` validado programaticamente contra as `options` (bate exatamente, sem
 duplicata) antes de entrar no seed — mesma checagem que `geminiclient.Validate()` faria.
 
