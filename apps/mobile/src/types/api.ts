@@ -21,9 +21,63 @@ export interface GamificationProfile {
   level: number;
   streak_current: number;
   streak_best: number;
-  hearts_current: number;
+  hearts_current: number; // 0-5
+  // Instante da próxima regeneração de vida (TDD §5.4, 1 vida a cada 3h) — null quando
+  // hearts_current já está no teto (5).
+  hearts_next_at: string | null;
   gems: number;
   league_tier: LeagueTier;
+}
+
+export type AchievementType = string;
+
+export interface Achievement {
+  type: AchievementType;
+  unlocked_at: string;
+}
+
+export interface LeagueRankingEntry {
+  user_id: string;
+  name: string;
+  xp_this_week: number;
+  position: number;
+}
+
+export interface League {
+  league_id: string;
+  tier: LeagueTier;
+  week_reference: string;
+  ranking: LeagueRankingEntry[];
+}
+
+export type ShopItemType = "hearts_refill" | "streak_freeze" | "cosmetic";
+
+export interface ShopItem {
+  id: string;
+  tipo: ShopItemType;
+  name: string;
+  description: string;
+  price_gems: number;
+  requires_level?: number;
+  is_new?: boolean;
+  locked?: boolean;
+}
+
+export interface PurchaseResult {
+  gems_restantes: number;
+  item: { id: string; tipo: ShopItemType };
+}
+
+export interface Paginated<T> {
+  data: T[];
+  next_cursor: string | null;
+}
+
+export interface ApiErrorBody {
+  error_code: string;
+  message: string;
+  trace_id: string;
+  details?: Record<string, unknown>;
 }
 
 export type TrackOrigin = "curated" | "user_generated";

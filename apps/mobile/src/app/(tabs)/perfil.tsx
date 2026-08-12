@@ -2,7 +2,7 @@ import { StyleSheet, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Avatar } from "@/components/ui/Avatar";
 import { StatPill } from "@/components/ui/StatPill";
-import { useAuth } from "@/contexts/AuthContext";
+import { useAuth } from "@/hooks/useAuth";
 import { colors, type } from "@/theme/tokens";
 
 export default function PerfilScreen() {
