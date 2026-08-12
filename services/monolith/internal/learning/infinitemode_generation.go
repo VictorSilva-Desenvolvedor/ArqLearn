@@ -13,14 +13,38 @@ import (
 	"arqlearn/monolith/internal/questiongen"
 )
 
-// generationTopic é o único tópico do Modo Infinito com geração dinâmica real, por decisão
-// explícita do usuário: é o único com texto-fonte real embutido (questiongen/sourcetext) — os
-// outros 7 temas do catálogo continuam 100% no pool fixo (Docs/PENDENCIAS_IA.md #7, comportamento
-// original). Gerar "do conhecimento geral" pros demais violaria a regra de nunca inventar sem
-// lastro num texto-fonte específico.
-const generationTopic = "maquetes"
-const generationTrackID = "track_s02_maquetes"
-const generationUnitID = "unit_maquetes_infinito"
+// generationTopicConfig mapeia cada tópico com texto-fonte real embutido (questiongen.HasSourceText)
+// pra sua trilha/unit de destino — únicos tópicos com geração dinâmica real (Docs/PENDENCIAS_IA.md
+// #7). Os demais temas do catálogo continuam 100% no pool fixo: gerar "do conhecimento geral" pra
+// eles violaria a regra de nunca inventar sem lastro num texto-fonte específico. Adicionar um tópico
+// novo aqui exige que questiongen/sourcetext/<topic>/unidade{1..4}.txt exista antes.
+type topicGenerationConfig struct {
+	trackID string
+	unitID  string
+}
+
+var generationTopicConfigs = map[string]topicGenerationConfig{
+	"maquetes": {
+		trackID: "track_s02_maquetes",
+		unitID:  "unit_maquetes_infinito",
+	},
+	"construcoes_sustentaveis": {
+		trackID: "track_s01_construcoes_sustentaveis",
+		unitID:  "unit_construcoes_sustentaveis_infinito",
+	},
+	"desenho_arquitetura_urbanismo": {
+		trackID: "track_s02_desenho_arquitetura_urbanismo",
+		unitID:  "unit_desenho_arquitetura_urbanismo_infinito",
+	},
+	"projeto_arquitetura_cultural": {
+		trackID: "track_s03_projeto_arquitetura_cultural",
+		unitID:  "unit_projeto_arquitetura_cultural_infinito",
+	},
+	"informatica_projecoes_ortogonais": {
+		trackID: "track_s03_informatica_projecoes_ortogonais",
+		unitID:  "unit_informatica_projecoes_ortogonais_infinito",
+	},
+}
 
 // genBatchSize/genTriggerAt: a cada 20 perguntas respondidas (nesta sessão) no tópico com geração
 // dinâmica, um novo lote de 20 é gerado em segundo plano — disparado na 15ª pra ter ~5 perguntas de
@@ -62,7 +86,8 @@ type generationState struct {
 // geração de verdade roda numa goroutine com contexto próprio, desligado do ciclo de vida da
 // requisição HTTP que a disparou.
 func maybeTriggerGeneration(mongoDB *mongo.Database, gemini *questiongen.Client, topic string, questionsAnsweredInSession int) {
-	if topic != generationTopic || gemini == nil || !gemini.Enabled() || mongoDB == nil {
+	config, ok := generationTopicConfigs[topic]
+	if !ok || gemini == nil || !gemini.Enabled() || mongoDB == nil {
 		return
 	}
 	if questionsAnsweredInSession%genBatchSize != genTriggerAt {
@@ -94,25 +119,25 @@ func maybeTriggerGeneration(mongoDB *mongo.Database, gemini *questiongen.Client,
 		return
 	}
 
-	go generateNextBatch(mongoDB, gemini, state.NextUnitNumber, state.NextBatchLabel)
+	go generateNextBatch(mongoDB, gemini, topic, config, state.NextUnitNumber, state.NextBatchLabel)
 }
 
 // generateNextBatch gera, valida e persiste um lote novo de perguntas (nova Lição permanente,
-// anexada à trilha de Maquetes — API Spec §6.1) e sempre libera a trava ao final, mesmo em erro.
-func generateNextBatch(mongoDB *mongo.Database, gemini *questiongen.Client, unitNumber, batchLabel int) {
+// anexada à trilha do tópico — API Spec §6.1) e sempre libera a trava ao final, mesmo em erro.
+func generateNextBatch(mongoDB *mongo.Database, gemini *questiongen.Client, topic string, config topicGenerationConfig, unitNumber, batchLabel int) {
 	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Minute)
 	defer cancel()
-	defer releaseGenerationLock(mongoDB, unitNumber)
+	defer releaseGenerationLock(mongoDB, topic, unitNumber)
 
-	sourceText, ok := questiongen.SourceTextForUnit(unitNumber)
+	sourceText, ok := questiongen.SourceTextForUnit(topic, unitNumber)
 	if !ok {
-		log.Printf("modo infinito: sem texto-fonte pra unidade %d, pulando geração", unitNumber)
+		log.Printf("modo infinito (%s): sem texto-fonte pra unidade %d, pulando geração", topic, unitNumber)
 		return
 	}
 
-	existingPrompts, err := fetchExistingMaquetesPrompts(ctx, mongoDB)
+	existingPrompts, err := fetchExistingPrompts(ctx, mongoDB, topic)
 	if err != nil {
-		log.Printf("modo infinito: falha ao consultar perguntas existentes: %v", err)
+		log.Printf("modo infinito (%s): falha ao consultar perguntas existentes: %v", topic, err)
 		// segue mesmo assim — sem a lista de "não repetir" o risco é de repetição, não de erro fatal
 	}
 
@@ -120,12 +145,12 @@ func generateNextBatch(mongoDB *mongo.Database, gemini *questiongen.Client, unit
 	for _, mix := range genDifficultyMix {
 		qs, err := gemini.GenerateQuestions(ctx, sourceText, mix.difficulty, mix.count, existingPrompts)
 		if err != nil {
-			log.Printf("modo infinito: falha ao gerar %d perguntas %q (unidade %d): %v", mix.count, mix.difficulty, unitNumber, err)
+			log.Printf("modo infinito (%s): falha ao gerar %d perguntas %q (unidade %d): %v", topic, mix.count, mix.difficulty, unitNumber, err)
 			continue
 		}
 		for _, q := range qs {
 			if err := questiongen.Validate(q); err != nil {
-				log.Printf("modo infinito: pergunta gerada descartada (%q): %v", q.Prompt, err)
+				log.Printf("modo infinito (%s): pergunta gerada descartada (%q): %v", topic, q.Prompt, err)
 				continue
 			}
 			generated = append(generated, q)
@@ -133,39 +158,40 @@ func generateNextBatch(mongoDB *mongo.Database, gemini *questiongen.Client, unit
 	}
 
 	if len(generated) == 0 {
-		log.Printf("modo infinito: lote %d (unidade %d) não gerou nenhuma pergunta válida", batchLabel, unitNumber)
+		log.Printf("modo infinito (%s): lote %d (unidade %d) não gerou nenhuma pergunta válida", topic, batchLabel, unitNumber)
 		return
 	}
 
-	if err := persistGeneratedLesson(ctx, mongoDB, batchLabel, generated); err != nil {
-		log.Printf("modo infinito: falha ao persistir lote %d: %v", batchLabel, err)
+	if err := persistGeneratedLesson(ctx, mongoDB, topic, config, batchLabel, generated); err != nil {
+		log.Printf("modo infinito (%s): falha ao persistir lote %d: %v", topic, batchLabel, err)
 		return
 	}
-	log.Printf("modo infinito: lote %d gerado com sucesso (%d perguntas, unidade-fonte %d)", batchLabel, len(generated), unitNumber)
+	log.Printf("modo infinito (%s): lote %d gerado com sucesso (%d perguntas, unidade-fonte %d)", topic, batchLabel, len(generated), unitNumber)
 }
 
-func releaseGenerationLock(mongoDB *mongo.Database, prevUnitNumber int) {
+func releaseGenerationLock(mongoDB *mongo.Database, topic string, prevUnitNumber int) {
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 	nextUnit := (prevUnitNumber % 4) + 1
 	_, err := mongoDB.Collection("infinite_mode_generation_state").UpdateOne(ctx,
-		bson.M{"_id": generationTopic},
+		bson.M{"_id": topic},
 		bson.M{
 			"$set": bson.M{"in_progress": false, "updated_at": time.Now().UTC(), "next_unit_number": nextUnit},
 			"$inc": bson.M{"next_batch_label": 1},
 		},
 	)
 	if err != nil {
-		log.Printf("modo infinito: falha ao liberar trava de geração: %v", err)
+		log.Printf("modo infinito (%s): falha ao liberar trava de geração: %v", topic, err)
 	}
 }
 
-// fetchExistingMaquetesPrompts lê os prompts já existentes na trilha de Maquetes (curados +
-// gerados em lotes anteriores) pra instruir o Gemini a não repetir — limitado a 200 pra manter o
-// prompt dentro de um tamanho razoável.
-func fetchExistingMaquetesPrompts(ctx context.Context, mongoDB *mongo.Database) ([]string, error) {
+// fetchExistingPrompts lê os prompts já existentes na trilha do tópico (curados + gerados em
+// lotes anteriores) pra instruir o Gemini a não repetir — limitado a 200 pra manter o prompt
+// dentro de um tamanho razoável. Depende de convenção de nomenclatura (lesson_id sempre começa
+// com "lesson_<topic>") — todos os seeds/scripts de geração já seguem isso.
+func fetchExistingPrompts(ctx context.Context, mongoDB *mongo.Database, topic string) ([]string, error) {
 	cur, err := mongoDB.Collection("questions").Find(ctx,
-		bson.M{"lesson_id": bson.M{"$regex": "^lesson_maquetes"}},
+		bson.M{"lesson_id": bson.M{"$regex": "^lesson_" + topic}},
 		options.Find().SetProjection(bson.M{"prompt": 1}).SetLimit(200),
 	)
 	if err != nil {
@@ -187,13 +213,13 @@ func fetchExistingMaquetesPrompts(ctx context.Context, mongoDB *mongo.Database) 
 }
 
 // persistGeneratedLesson cria uma Lição nova de verdade (não efêmera) com as perguntas geradas e a
-// anexa à trilha de Maquetes — é isso que faz o lote "virar nível novo no sistema": qualquer aluno
+// anexa à trilha do tópico — é isso que faz o lote "virar nível novo no sistema": qualquer aluno
 // no modo de lição normal passa a ver essa lição, não só quem jogou Modo Infinito. Perguntas com
 // confidence "high" entram já "approved" (mesma regra do cmd/generate-questions, ver
 // Docs/PENDENCIAS_IA.md); "medium"/"low" entram "pending", aguardando revisão humana.
-func persistGeneratedLesson(ctx context.Context, mongoDB *mongo.Database, batchLabel int, questions []questiongen.GeneratedQuestion) error {
+func persistGeneratedLesson(ctx context.Context, mongoDB *mongo.Database, topic string, config topicGenerationConfig, batchLabel int, questions []questiongen.GeneratedQuestion) error {
 	now := time.Now().UTC()
-	lessonID := fmt.Sprintf("lesson_maquetes_infinito_%d", batchLabel)
+	lessonID := fmt.Sprintf("lesson_%s_infinito_%d", topic, batchLabel)
 
 	questionIDs := make([]string, 0, len(questions))
 	for i, q := range questions {
@@ -231,7 +257,7 @@ func persistGeneratedLesson(ctx context.Context, mongoDB *mongo.Database, batchL
 		bson.M{"_id": lessonID},
 		bson.M{"$setOnInsert": bson.M{
 			"_id":               lessonID,
-			"track_id":          generationTrackID,
+			"track_id":          config.trackID,
 			"title":             fmt.Sprintf("Modo Infinito — Conteúdo gerado #%d", batchLabel),
 			"difficulty":        "medium",
 			"question_ids":      questionIDs,
@@ -245,14 +271,16 @@ func persistGeneratedLesson(ctx context.Context, mongoDB *mongo.Database, batchL
 		return fmt.Errorf("gravar lição %s: %w", lessonID, err)
 	}
 
-	return appendLessonToInfinitoUnit(ctx, mongoDB, lessonID, now)
+	return appendLessonToInfinitoUnit(ctx, mongoDB, config, lessonID, now)
 }
 
-// appendLessonToInfinitoUnit anexa lessonID à unidade "unit_maquetes_infinito" da trilha de
-// Maquetes, criando a unidade (ordem 5, depois das 4 unidades curadas) na primeira geração.
-func appendLessonToInfinitoUnit(ctx context.Context, mongoDB *mongo.Database, lessonID string, now time.Time) error {
+// appendLessonToInfinitoUnit anexa lessonID à unidade de Modo Infinito (config.unitID) da trilha
+// do tópico (config.trackID), criando a unidade na primeira geração — a ordem é sempre "depois de
+// todas as unidades curadas já existentes" (len(units)+1), nunca um número fixo: cada trilha pode
+// ter uma quantidade diferente de unidades curadas antes de chegar na primeira geração dinâmica.
+func appendLessonToInfinitoUnit(ctx context.Context, mongoDB *mongo.Database, config topicGenerationConfig, lessonID string, now time.Time) error {
 	res, err := mongoDB.Collection("tracks").UpdateOne(ctx,
-		bson.M{"_id": generationTrackID, "units.id": generationUnitID},
+		bson.M{"_id": config.trackID, "units.id": config.unitID},
 		bson.M{
 			"$push": bson.M{"units.$.lesson_ids": lessonID},
 			"$set":  bson.M{"updated_at": now},
@@ -265,13 +293,20 @@ func appendLessonToInfinitoUnit(ctx context.Context, mongoDB *mongo.Database, le
 		return nil
 	}
 
+	var track struct {
+		Units []bson.M `bson:"units"`
+	}
+	if err := mongoDB.Collection("tracks").FindOne(ctx, bson.M{"_id": config.trackID}, options.FindOne().SetProjection(bson.M{"units": 1})).Decode(&track); err != nil {
+		return fmt.Errorf("consultar units da trilha %s: %w", config.trackID, err)
+	}
+
 	_, err = mongoDB.Collection("tracks").UpdateOne(ctx,
-		bson.M{"_id": generationTrackID},
+		bson.M{"_id": config.trackID},
 		bson.M{
 			"$push": bson.M{"units": bson.M{
-				"id":         generationUnitID,
+				"id":         config.unitID,
 				"title":      "Conteúdo gerado pelo Modo Infinito",
-				"order":      5,
+				"order":      len(track.Units) + 1,
 				"lesson_ids": []string{lessonID},
 			}},
 			"$set": bson.M{"updated_at": now},

@@ -1,0 +1,2588 @@
+Disciplina
+
+DESENHO DE ARQUITETURA E
+URBANISMO
+
+Unidade 4
+
+Representação de Coberturas, Elementos Verticais e Detalhamentos
+
+  Aula 1
+
+    Aula 16
+
+   Videoaula
+
+  Cobertura e telhados
+
+       Olá, estudante!
+       Nesta videoaula você aprenderá sobre telhados e coberturas,
+       desde os diferentes tipos de telhas até como representar um
+       telhado em planta baixa, em corte e na elevação de um desenho
+       técnico. Verá como calcular a inclinação do telhado, conhecerá
+       os tipos de coberturas e suas características, bem como as
+       diferenças entre telhas cerâmicas, de fibrocimento e metálicas.
+       Este conteúdo será de grande importância para que consiga
+       inserir estes elementos nos seus projetos, completando-os e
+       facilitando ainda mais a leitura geral de todas as informações
+       projetuais.
+       Vamos começar!
+Disciplina
+
+DESENHO DE ARQUITETURA E
+URBANISMO
+
+   Pontodepartida
+
+  PONTO DE PARTIDA
+
+       Olá, estudante! Boas-vindas ao estudo desta unidade.
+       Nesta aula, você irá aprender sobre as coberturas. A cobertura
+       de uma edificação nada mais é que o telhado, seja ele como for:
+       laje, telhado aparente, telhado embutido ou outro dentre os
+       diversos modelos e materiais que podem ser utilizados.
+       Frequentemente nos vemos colocando mais energia no
+       desenvolvimento da planta baixa, pensando como serão
+       distribuídos os ambientes, onde ficarão as esquadrias, como
+       organizar o leiaute, mas não podemos nos esquecer de projetar
+       a cobertura da edificação. É justamente este elemento o
+       responsável pela criação de volumes na fachada que a tornam
+       interessante.
+       O objetivo é que você saia desta aula sabendo como
+       representar estes elementos em planta, corte e elevação para
+       incorporá-los nos projetos a fim de que seja possível sua
+       correta execução em obra. Portanto, convido você a conhecer
+       quais são as possibilidades para a criação dos telhados.
+       Vamos lá?
+
+   Vamoscomeçar
+Disciplina
+
+DESENHO DE ARQUITETURA E
+URBANISMO
+
+  VAMOS COMEÇAR
+  Tipos de Coberturas
+
+       A cobertura é um elemento importante na arquitetura, sendo
+       responsável por proteger os edifícios das intempéries
+       climáticas e conferir estética e personalidade às construções.
+       Entre tantos tipos de cobertura, temos telhados, lajes, cascas,
+       malhas metálicas, membranas, etc. Estes variam em forma,
+       material e método de construção. Os tipos de cobertura mais
+       comuns são:
+
+             Telhado aparente
+
+       O telhado aparente é o modelo de cobertura mais comum e
+       conhecido. As telhas são responsáveis por compor a estética
+       da fachada, já que ficam à mostra. Segundo Piletti (2009), os
+       tipos de telhados mais utilizados são o telhado em duas águas,
+       o telhado em quatro águas e o telhado em uma água, apesar de
+       existirem outras configurações além destas. Cada água pode
+       possuir desníveis ou direcionamentos específicos a depender
+       da planta baixa e da área que precisa ser coberta. Geralmente,
+       esse tipo de telhado possui um beiral (extensão do telhado)
+Disciplina
+
+DESENHO DE ARQUITETURA E
+URBANISMO
+
+       para dar acabamento e proteger as paredes externas da
+       construção, como demostrado a seguir na Figura 1.
+       Figura 1 | Telhado aparente com telha cerâmica.
+
+       Fonte: Pexels.
+       Existe uma grande gama de materiais que podem ser utilizados
+       em um telhado aparente. Dentre eles, as telhas mais comuns
+       são: telha cerâmica, telha de concreto, telha de fibrocimento ou
+       telha metálica. Cada uma delas possui características
+       específicas de conforto térmico e acústico e inclinações
+       mínimas e máximas necessárias para garantir a segurança e
+       estanqueidade da cobertura.
+
+             Telhado embutido
+
+       Neste tipo de cobertura, o telhado segue o mesmo padrão do
+       modelo citado anteriormente, porém o telhado fica oculto atrás
+       de um elemento arquitetônico chamado platibanda, que nada
+       mais é que uma parede de fechamento criada especialmente
+       para esconder a cobertura (Figura 2). Para este modelo, é
+       comum utilizar-se das telhas de fibrocimento ou metálica pelo
+       seu baixo custo e pouca inclinação, permitindo uma platibanda
+Disciplina
+
+DESENHO DE ARQUITETURA E
+URBANISMO
+
+       mais baixa. Além disso, como o telhado ficará oculto, não há
+       necessidade de usar uma telha esteticamente agradável.
+       Para o telhado embutido é bastante importante você se atentar
+       para a disposição e o dimensionamento adequado das calhas.
+       Enquanto o telhado aparente muitas vezes dispensa o uso de
+       calhas, no telhado oculto isto não é possível. Como não há um
+       beiral por onde a água escorra, é necessário utilizar-se de
+       calhas para direcionar a chuva, o que demandará uma
+       instalação de água pluvial específica para este tipo de
+       cobertura.
+       Figura 2 | Telhado embutido com platibanda.
+
+       Fonte: Pexels.
+             Laje plana
+
+       Outro tipo de cobertura é a laje plana (Figura 3). Segundo
+       Gaspar (2012), a laje plana pode ser de concreto armado, pré-
+       fabricada ou alveolar, e é caracterizada por ter uma inclinação
+       mínima, imperceptível aos olhos, que varia entre 1% e 5%. Esse
+       tipo de cobertura oferece vantagens como o aproveitamento do
+Disciplina
+
+DESENHO DE ARQUITETURA E
+URBANISMO
+
+       espaço em sua superfície para a construção de terraços. É
+       importante ressaltar que a correta impermeabilização da laje
+       plana é indispensável para evitar futuras infiltrações à
+       construção.
+       Figura 3 | Laje plana.
+
+       Fonte: Pexels.
+       Esses são apenas alguns exemplos dos tipos de telhados que
+       podem ser utilizados em projetos arquitetônicos. É importante
+       lembrar que a escolha do tipo de telhado deve levar em
+       consideração as necessidades específicas do edifício, como o
+       clima, a orientação solar, a estética e a funcionalidade. Dessa
+       forma, é possível garantir uma cobertura eficiente, durável e
+       esteticamente harmoniosa com o restante da arquitetura do
+       edifício.
+
+   Sigaemfrente
+
+  SIGA EM FRENTE
+Disciplina
+
+DESENHO DE ARQUITETURA E
+URBANISMO
+
+  SIGA EM FRENTE
+  Estrutura do telhado
+
+       A estrutura da cobertura é composta pelas ripas, caibros, terças
+       e tesouras, geralmente feitas de vigas de madeira ou metal.
+       Veja um esquema de estrutura na Figura 4.
+       Figura 4 | Esquema de estrutura do telhado.
+
+       Fonte: Nesse e Silva (2017).
+       A maioria das coberturas são compostas por um conjunto de
+       elementos divididos em três partes: estrutura principal,
+       telhamento e sistema de águas pluviais. A estrutura principal é
+       o elemento principal estrutural da cobertura, o telhamento é o
+       revestimento da estrutura e o sistema de águas pluviais é o
+       conjunto de elementos utilizados para o escoamento das águas
+       da chuva.
+       A estrutura principal é composta por uma trama de elementos
+       estruturais, dimensionados de acordo com o tipo de telha. Os
+       materiais utilizados para a sua execução podem ser de madeira,
+       estrutura metálica, concreto, entre outros. Uma estrutura pode
+       ser subdividida em diversas partes:
+Disciplina
+
+DESENHO DE ARQUITETURA E
+URBANISMO
+
+             Tesoura: de forma triangular, é a base que suporta todos os
+             elementos da cobertura, conforme apresentado na Figura 5
+             a seguir.
+       Figura 5 | Exemplo da estrutura do telhado.
+
+       Fonte: iStock.
+             Terças: fixados na tesoura, suportam os caibros.
+             Caibros: estrutura vertical fixada nas terças, que sustenta
+             as ripas.
+             Ripas: estrutura horizontal fixada nos caibros, que sustenta
+             as telhas.
+             Empena ou oitão: parede lateral onde se apoia a cumeeira e
+             define a altura da cobertura.
+             Água: número de planos inclinados que classifica o tipo de
+             telhado (uma, duas, três águas etc.) e tem como função o
+             escoamento das águas pluviais.
+             ·Água furtada: encontro das águas que escorrem das
+             partes de um telhado, também conhecido como calha.
+Disciplina
+
+DESENHO DE ARQUITETURA E
+URBANISMO
+
+             Cumeeira: linha horizontal mais alta, da cobertura formada
+             pelo encontro dos planos inclinados.
+             Espigão: linha inclinada, formada pelo encontro dos planos
+             inclinados.
+             Beiral: parte da cobertura que avança além das paredes e
+             protege a edificação das intempéries, conforme
+             apresentado na Figura 6 a seguir.
+       Figura 6 | Exemplo de beiral inclinado em corte.
+
+       Fonte: Nesse e Silva, 2017.
+             Testeira: fixado abaixo das telhas, esconde caibros e vigas,
+             e oferece um acabamento ao telhado, conforme
+             apresentado na Figura 7 a seguir.
+Disciplina
+
+DESENHO DE ARQUITETURA E
+URBANISMO
+
+       Figura 7 | Exemplo de estrutura de apoio da cobertura - testeira.
+
+       Fonte: Nesse e Silva, 2017.
+       O Telhamento é o elemento que reveste a estrutura e tem como
+       função o recobrimento da estrutura, proteção e o seu
+       acabamento e deve-se utilizar telhas para este recobrimento,
+       onde cada uma tem uma inclinação diferente na sua aplicação.
+       Além da telha, é necessário especificar as peças
+       complementares, tais como:
+
+             Telha cumeeira: tem um formato diferenciado para cobrir o
+             encontro de duas águas do telhado.
+             Rufo: utilizado no arremate do telhamento com a parede,
+             caixas-d’água, lanternins (abertura no telhado que
+             proporciona a circulação do ar), platibandas, entre outros.
+             Espigão: peça utilizada para o recobrimento do encontro de
+             telhas na linha do espigão.
+Disciplina
+
+DESENHO DE ARQUITETURA E
+URBANISMO
+
+             Terminal para beiral: utilizado no arremate entre a calha e a
+             telha, protegendo as terças de apoio contra chuvas e
+             evitando a entrada de animais.
+             Cantoneira: peça utilizada no arremate dos fechamentos
+             laterais ou no arremate lateral da cobertura.
+             Platibanda: é a continuação das paredes externas, com o
+             objetivo de esconder a cobertura. Como podemos notar na
+             Figura 8, as telhas ficam encobertas pela extensão da
+             parede.
+       Figura 8 | Exemplo de platibanda em corte.
+
+       Fonte: Nesse e Silva, 2017.
+       Segundo Cardoso (2000), a colocação das telhas geralmente se
+       inicia do beiral para a cumeeira, no sentido oposto ao dos
+Disciplina
+
+DESENHO DE ARQUITETURA E
+URBANISMO
+
+       ventos dominantes na região, regra essa que também é válida
+       para os demais tipos de telha. Cuidados devem ser tomados
+       durante a colocação das telhas, de forma a evitar quebras e
+       acidentes. É recomendável que as telhas sejam posicionadas
+       simultaneamente em todas as águas do telhado para que o seu
+       peso seja distribuído de uniformemente sobre a estrutura de
+       madeira. Devem-se respeitar os limites mínimos e máximos de
+       acordo com cada tipo de telha para garantir que a água escoe
+       adequadamente, evitando problemas de infiltração e danos à
+       estrutura do telhado.
+
+             Tipos de telhas
+
+       Existem inúmeros tipos de telhas, dentre elas, podemos citar a
+       telha cerâmica (com boa estanqueidade e conforto térmico),
+       telha de fibrocimento (baixo custo e baixo conforto térmico),
+       telha de concreto pré-moldado (muito utilizadas em indústrias,
+       vencendo grandes vãos), telhas metálicas (com ou sem
+       proteção térmica, são muito utilizadas em galpões industriais,
+       comerciais ou de serviços, vencendo grandes vãos), entre
+       outras.
+       As telhas cerâmicas (Figura 9) oferecem boas condições de
+       conforto termoacústico, com inclinação entre 25% e 35%. Esse
+       modelo de telha requer maior altura disponível para instalação
+       do telhado, o que pode ser um problema caso exista algum
+       elemento ou legislação que limite a altura final da construção.
+Disciplina
+
+DESENHO DE ARQUITETURA E
+URBANISMO
+
+       Outras desvantagens deste modelo de telha são o alto custo e o
+       peso, necessitando de uma estrutura mais reforçada.
+       Figura 9 | Telhado com telha cerâmica.
+
+       Fonte: Pexels.
+       Já com as telhas de fibrocimento (Figura 10) é possível
+       executar um telhado com inclinações menores, entre 10% e
+       25%. Elas são mais leves do que as telhas cerâmicas e têm um
+       custo menor, são mais fáceis de manusear e instalar e exigem
+       uma estrutura de sustentação mais leve. No entanto, seu
+       desempenho termoacústico é baixo e sua estética não é
+       agradável, sendo mais comumente utilizada em telhados
+       embutidos.
+       Figura 10 | Telhado com telha de fibrocimento.
+Disciplina
+
+DESENHO DE ARQUITETURA E
+URBANISMO
+
+       Fonte: Pexels.
+       Por fim, as telhas metálicas (Figura 11) são mais leves e
+       permitem inclinações ainda menores – entre 5% e 10%. Assim,
+       as coberturas com telha metálica possuem uma altura mais
+       baixa que os modelos anteriores, sendo ideal para telhados
+       embutidos. Porém, em se tratando de conforto, são as que mais
+       esquentam o ambiente e as mais barulhentas. Por este motivo,
+       criou-se um modelo de telha chamada sanduíche (Figura 12),
+       compostas por duas chapas metálicas “recheadas” de um
+       material isolante térmico e acústico.
+       Figura 11 | Telhado com telha metálica.
+Disciplina
+
+DESENHO DE ARQUITETURA E
+URBANISMO
+
+       Fonte: Pexels.
+       Figura 12 – Esquema de telha sanduíche.
+Disciplina
+
+DESENHO DE ARQUITETURA E
+URBANISMO
+
+       Fonte: Carolina C. de Assis (2023).
+       Ao desenhar a cobertura de um edifício é importante considerar
+       a inclinação do telhado e o sistema de calhas a fim de garantir
+       construções seguras, funcionais e esteticamente agradáveis.
+       A inclinação do telhado é a sua angulação em relação ao plano
+       horizontal, medida em porcentagem. Cada plano de inclinação é
+       chamado de água. Uma cobertura é formada por uma ou mais
+       águas, projetadas de forma a direcionar a água da chuva para
+       um beiral ou para as calhas e tubulações verticais que
+       conduzem a água para a rede de drenagem pluvial ou cisternas.
+       O sistema de águas pluviais é o conjunto de elementos
+       utilizados para o escoamento das águas de chuva. Esses
+Disciplina
+
+DESENHO DE ARQUITETURA E
+URBANISMO
+
+       elementos que compõem essa estrutura podem ser de chapa
+       galvanizada, concreto, PVC, entre outros, e devem ser
+       dimensionadas de acordo com a quantidade de água pluvial
+       que o telhado pode receber. O sistema coletor pode ser
+       subdividido em: calhas, condutores verticais e condutores
+       horizontais. As calhas são responsáveis pelo recolhimento das
+       águas da cobertura. Podemos encontrar calha de beiral, calha
+       de platibanda e calha de água furtada conforme a Figura 13.
+       Essa calha, seja do tipo que for, encaminha para condutores
+       verticais (tubulação vertical destinada a recolher águas de
+       calhas) que, por sua vez, encaminha para condutores
+       horizontais (tubulação horizontal), geralmente enterrada no
+       solo, destinada a recolher e conduzir águas pluviais até os
+       locais de despejo, permitidos pelo código de obras vigente.
+       Figura 13 | Tipos de calhas.
+
+       Fonte: Nesse e Silva, 2017.
+       Nos projetos arquitetônicos, os planos de cobertura compõem a
+       Planta de Cobertura, apresentadas geralmente nas escalas:
+       1:50, 1:100, 1:200 ou 1:500. Se for preciso a apresentação de
+Disciplina
+
+DESENHO DE ARQUITETURA E
+URBANISMO
+
+       um detalhe construtivo, a escala pode ser maior, ou se o projeto
+       for muito grande, a escala pode ser menor.
+
+  Cálculo de cobertura
+
+       Entre as inúmeras questões relacionadas aos materiais e
+       elementos da cobertura, o arquiteto deve definir a quantidade
+       de águas da cobertura, essa é uma escolha estética que
+       interfere na estrutura e no custo da obra. As dificuldades
+       encontradas para a execução da cobertura dependem do
+       número de águas, ou seja, quanto maior o número de
+       inclinações, mais complexo será o projeto e sua construção.
+       O objetivo de calcular a inclinação do telhado é determinar a
+       sua altura (cumeeira), no entanto, o que determina a inclinação
+       mínima e máxima é o tipo de telha que será utilizada.
+       Normalmente, ao escolher o material para se utilizar de
+       telhamento, ou seja, de acabamento, a inclinação máxima
+       permitida desse material é definida pelo próprio fornecedor.
+       Já para as coberturas horizontais (lajes de cobertura), a
+       inclinação pode variar entre 1% a 3%, no máximo, um plano com
+       inclinação maior do que 3% já é considerado cobertura
+       inclinada. As principais variações de inclinação das telhas são:
+       telha cerâmica: variação entre 20% e 35%; telha de fibrocimento:
+       variação entre 3% e 20%; telha metálica: variação entre 3% e
+       10%.
+Disciplina
+
+DESENHO DE ARQUITETURA E
+URBANISMO
+
+       As plantas de coberturas devem apresentar o formato, o
+       material, a inclinação e a quantidade de águas dessa cobertura.
+       Para isso, são utilizadas setas, indicando o sentido de caimento
+       da água pluvial, hachuras para a representação do material, e a
+       porcentagem de inclinação (Figura 14).
+       Figura 14 | Número de águas de uma cobertura.
+
+       Fonte: Nesse e Silva, 2017.
+       Para calcular a inclinação de um telhado é necessário saber a
+       altura e a largura da cobertura. A fórmula para calcular a
+       inclinação é:
+
+            Inclinação (%) = Altura do telhado (m) / Largura (m) x 100
+       Observe a figura 15 a seguir, onde, por exemplo, um telhado
+       com inclinação de 10% é igual a 10/100, ou seja, 10 dividido por
+       100. A cada 10 cm que você avança na vertical você deve
+       avançar 100 cm na horizontal.
+       Figura 15 | Exemplo de inclinação de telhado.
+Disciplina
+
+DESENHO DE ARQUITETURA E
+URBANISMO
+
+       Fonte: Nesse e Silva, 2017.
+       Uma vez que a inclinação já foi determinada pelo fabricante da
+       telha escolhida e a largura do telhado é identificada pela planta,
+       a variável desconhecida desta equação é a altura, que será
+       fundamental para determinar a altura final da construção a fim
+       de adequá-la às normas do plano diretor municipal ou a outros
+       elementos que limitem a altura final da construção.
+
+   Vamosexercitar
+
+  VAMOS EXERCITAR
+
+   Desenhando a cobertura
+
+       A norma que define como deve ser o desenho técnico é a NBR
+       6492 (ABNT, 2021), onde o telhado deverá estar representado
+       em três desenhos principais: planta de cobertura, cortes e
+       elevações. Ainda, a projeção da cobertura deve aparecer nas
+       plantas dos pavimentos e na implantação.
+Disciplina
+
+DESENHO DE ARQUITETURA E
+URBANISMO
+
+       O projeto de cálculo do madeiramento da cobertura precisa
+       levar em consideração a distância e o número de apoios (laje
+       maciça ou treliçada), as dimensões da cobertura, o tipo de telha
+       especificado, entre outras. Algumas normas são estabelecidas
+       para a execução de telhados e devem ser conhecidas. Algumas
+       normas são disponibilizadas sobre esse tema como: NBR
+       15575-5:2013 – Edificações habitacionais — Desempenho –
+       Requisitos para os sistemas de coberturas; NBR 13858-1:1997
+       – Telhas de concreto – Projeto e execução de telhados; NBR
+       7190:1997 – Projeto de estruturas de madeira.
+
+   Planta de cobertura
+
+       Para projetar um telhado em planta deve-se, em primeiro lugar,
+       definir as medidas do telhado (geralmente seguindo as paredes
+       externas) e a inclinação das águas. Em seguida, é necessário
+       desenhar o esboço do telhado em uma escala adequada,
+       indicando a posição das águas e o direcionamento das telhas.
+       Na planta, o telhado é representado por linhas contínuas que
+       correspondem às suas extremidades e uma seta indicando a
+       inclinação. As áreas do telhado são preenchidas com hachuras
+       para identificar o material utilizado. A planta baixa deve mostrar
+       também a posição das calhas, rufos, platibandas e outros
+       elementos da cobertura, como a projeção das paredes externas
+       da construção em linha tracejada estreita, indicação do norte,
+       escala, acessos, curvas de nível, cotas gerais e cotas de nível.
+Disciplina
+
+DESENHO DE ARQUITETURA E
+URBANISMO
+
+       Em um telhado aparente, as águas podem desembocar
+       diretamente no beiral, que avança alguns centímetros além das
+       alvenarias externas (Figura 16). Já em telhados embutidos, é
+       necessário desenhar uma parede de fechamento na borda do
+       telhado, chamada de platibanda, que frequentemente coincide
+       com as paredes da construção. Além disso, é necessário
+       desenhar uma calha na parte mais baixa do telhado a fim de
+       captar a água da chuva e direcioná-la para um sistema de
+       escoamento adequado.
+       Figura 16 | Planta de cobertura de telhado aparente.
+Disciplina
+
+DESENHO DE ARQUITETURA E
+URBANISMO
+
+       Fonte: Nesse e Silva, 2017.
+
+   Corte
+
+       No desenho do telhado em corte é importante identificar a
+       inclinação e a estrutura de sustentação. Frequentemente estão
+       representados cada elemento da cobertura, como as telhas, as
+       partes internas da estrutura, a platibanda, as calhas e as
+       camadas de isolamento térmico e acústico, quando houver.
+       Veja o corte de telhado na Figura 17.
+       Figura 17 | Corte de telhado.
+
+       Fonte: Nesse e Silva, 2017.
+       Uma forma fácil e eficiente de desenhar a inclinação do telhado
+       é desenhando um triângulo reto com 100 centímetros de base e
+       altura correspondente à inclinação desejada (em porcentagem).
+       A linha angulada traçada a partir do fechamento desses dois
+       lados será a inclinação do telhado. Por exemplo, se o telhado
+       tem inclinação de 25%, primeiro desenha-se uma linha
+Disciplina
+
+DESENHO DE ARQUITETURA E
+URBANISMO
+
+       horizontal com 100 cm, depois uma linha vertical conectada a
+       uma das extremidades da linha já desenhada com 25 cm, e por
+       fim, traça-se uma linha angulada fechando o triângulo. A última
+       linha inclinada será a linha da inclinação do telhado, como
+       mostra Figura 18.
+       Figura 18 | Triângulo usado como base para desenho do telhado
+       (exemplo de inclinação com 25%).
+
+       Fonte: Nesse e Silva, 2017.
+
+   Elevação
+
+       Na elevação, o telhado é representado com suas inclinações,
+       beirais, calhas e platibandas (Figura 19). Além disso, deve
+       mostrar também a altura total do telhado, indicando a sua
+       posição em relação ao restante da construção. É importante
+       que a elevação mostre todos os detalhes de acabamento do
+       telhado, como as telhas, cumeeiras e rufos. Na elevação, deve-
+       se incluir a escala, os fechamentos externos, esquadrias,
+Disciplina
+
+DESENHO DE ARQUITETURA E
+URBANISMO
+
+       elementos estruturais aparentes, relevo do terreno e cotas de
+       nível.
+       Figura 19 | Elevação.
+
+       Fonte: Nesse e Silva, 2017
+       Representar um telhado corretamente no desenho técnico, de
+       forma clara e detalhada, é essencial para que todos os
+       envolvidos no projeto possam entender e visualizar com
+       precisão a estrutura da cobertura da construção.
+
+   Saibamais
+
+  SAIBA MAIS
+
+       Olá, estudante!
+       Para ampliar seu conhecimentos, além dos tipos de telhado
+       citados, ainda existe o telhado verde. Você o conhece?
+       O telhado verde é uma técnica que utiliza plantas e substratos
+       para cobrir a superfície de um telhado, transformando-o em um
+       espaço vegetalizado e funcional. Os telhados verdes possuem
+Disciplina
+
+DESENHO DE ARQUITETURA E
+URBANISMO
+
+       algumas vantagens com relação aos telhados convencionais,
+       trazendo benefícios de conforto, ambientais e estéticos. O
+       estudo desenvolvido por Bernardo Misaka apresenta um
+       comparativo entre as telhas de fibrocimento, ecológica e o
+       telhado verde em termos de conforto térmico, e a partir dele foi
+       possível concluir que a cobertura verde teve um desempenho
+       melhor no que diz respeito à inércia térmica.
+       Avaliação do conforto térmicoentre os sistemas de telhado
+       verde, ecológico e convencional.
+
+   Referências
+
+  REFERÊNCIAS
+
+       ASSOCIAÇÃO BRASILEIRA DE NORMAS TÉCNICAS - ABNT. NBR
+       6492: Documentação técnica para projetos arquitetônicos e
+       urbanísticos – Requisitos. Rio de Janeiro: ABNT, 2021.
+       GASPAR, F. Manual de detalhes construtivos. 2. ed. São Paulo:
+       Blucher, 2012.
+       MISAKA, B. L. S. Avaliação do conforto térmico entre os
+       sistemas de telhado verde, ecológico e convencional. 2021.
+       Trabalho de Conclusão de Curso (Bacharel em Engenharia Civil).
+       Alegrete: Universidade Federal do Pampa, 2021. Disponível
+       em: https://repositorio.unipampa.edu.br/bitstream/riu/6015/1/
+Disciplina
+
+DESENHO DE ARQUITETURA E
+URBANISMO
+
+       Bernardo%20Lyoh%20Sugawara%20Misaka%20-%202021.pdf.
+       Acesso em: set. 2024.
+       NESSE, Paola P. L.; SILVA, Samuel S. M. Detalhamento de
+       cobertura. Londrina: Editora e Distribuidora Educacional S.A.
+       (WL), 2017.
+       MISAKA, B. L. S. Avaliação do conforto térmico entre os
+       sistemas de telhado verde, ecológico e convencional. 2021.
+       Trabalho de Conclusão de Curso (Bacharel em Engenharia Civil).
+       Universidade Federal do Pampa: Alegrete, 2021. Disponível em:
+       https://repositorio.unipampa.edu.br/bitstream/riu/6015/1/Bern
+       ardo%20Lyoh%20Sugawara%20Misaka%20-%202021.pdf&gt;.
+       Acesso em set. 2024
+       PILETTI, J. Manual de desenho técnico arquitetônico. 9. ed. São
+       Paulo: Editora Edgar Blucher, 2009.
+
+  Aula 2
+
+    Aula 17
+
+   Videoaula
+
+  Escadas e elevadores
+
+       Olá, estudante!
+Disciplina
+
+DESENHO DE ARQUITETURA E
+URBANISMO
+
+       Nesta videoaula você aprenderá sobre a representação de
+       circulações verticais em desenhos técnicos, como escadas e
+       elevadores. É importante seguir as normas de acessibilidade e
+       segurança, além de definir corretamente as dimensões dos
+       elementos e escolher uma escala que permita a clareza e
+       precisão na representação gráfica. Existem particularidades na
+       representação em planta baixa e em corte dos elementos de
+       circulação vertical que você deve aprender a fim de garantir um
+       desenho técnico preciso e legível.
+       Este tema é fundamental para arquitetos, designers de
+       interiores, engenheiros e demais profissionais envolvidos no
+       projeto e construção de edificações e espaços públicos.
+       Vamos aprender!
+
+   Pontodepartida
+
+  PONTO DE PARTIDA
+
+       Olá, estudante! Boas-vindas ao estudo desta unidade.
+       Nesta aula, você irá aprender sobre as circulações verticais, que
+       são elementos frequentemente presentes no nosso dia a dia e,
+       e muitas vezes, não paramos para pensar em como eles foram
+       projetados e como influenciam nossa acessibilidade e
+       mobilidade em diferentes espaços. Nesta aula, você irá
+Disciplina
+
+DESENHO DE ARQUITETURA E
+URBANISMO
+
+       aprender sobre dois tipos de circulação vertical que poderá
+       utilizar em seus projetos: as escadas e os elevadores.
+       Você irá conhecer assuntos pertinentes sobre o tema, como as
+       normas e regulamentações específicas que garantem a
+       segurança e o conforto de quem utiliza estes elementos, bem
+       como suas representações gráficas em um desenho técnico.
+       Vamos lá?
+
+   Vamoscomeçar
+
+  VAMOS COMEÇAR
+  Tipos de Escadas e
+  Elevadores
+
+       Quando há diferença de nível em uma construção é preciso
+       utilizar um elemento para realizar a circulação vertical entre os
+       níveis. Estes elementos correspondem às escadas, elevadores e
+       rampas.
+       No que diz respeito às escadas, identificamos diferentes tipos
+       que variam de acordo com o formato, o material e a forma de
+       construção. Os materiais utilizados podem ser o concreto, aço,
+       madeira, entre outros.
+       Entre os tipos mais comuns de escada, destacam-se:
+Disciplina
+
+DESENHO DE ARQUITETURA E
+URBANISMO
+
+             Escada reta: não apresenta mudança de direção, e é
+             desenhada com ou sem patamar intermediário de
+             descanso. Geralmente é utilizada quando a largura do
+             espaço é reduzida (Figuras 1 e 2).
+       Figura 1 | Exemplo de Planta baixa de escada Reta.
+
+       Fonte: Nesse e Silva (2017).
+       Figura 2 | Exemplo de escada Reta.
+
+       Fonte: Pexels.
+             Escada em “L”: tem um formato em "L", é usada quando há
+             mudança de direção no trajeto a 90º graus, com patamar
+             intermediário em leque ou de descanso. Este modelo é
+             muito utilizado em edifícios (Figuras 3 e 4).
+Disciplina
+
+DESENHO DE ARQUITETURA E
+URBANISMO
+
+       Figura 3 | Exemplo de Planta baixa de escada em “L".
+
+       Fonte: Nesse e Silva 2017.
+       Figura 4 | Exemplo de escada em “L".
+
+       Fonte: Pexels.
+             Escada em “U”: possui um formato em "U", é desenhada
+             com mudança de direção para o lado oposto, com patamar
+             intermediário de descanso. Esta escada é mais confortável
+Disciplina
+
+DESENHO DE ARQUITETURA E
+URBANISMO
+
+             e muito utilizada em residências e escadas de emergência
+             de edifícios (Figuras 5 e 6).
+       Figura 5 | Exemplo de Planta baixa de escada em “U".
+
+       Fonte: Nesse e Silva (2017).
+       Figura 6 | Exemplo de escada em “U".
+Disciplina
+
+DESENHO DE ARQUITETURA E
+URBANISMO
+
+       Fonte: Pexels.
+Disciplina
+
+DESENHO DE ARQUITETURA E
+URBANISMO
+
+             Escada Curva, helicoidal ou caracol: a escada curva se
+             apresenta em forma de curva sem um eixo central,
+             necessitando de muito espaço. Já a escada caracol ou
+             helicoidal também em curva, porém com um eixo central
+             que direciona os degraus. Geralmente pré-moldadas em
+             concreto ou em estrutura metálica, são pouco confortáveis
+             (Figuras 7 e 8).
+       Figura 7 | Exemplo de Planta baixa de escada curva (helicoidal
+       ou caracol).
+
+       Fonte: Nesse e Silva (2017).
+       Figura 8 | Exemplo de escada caracol.
+Disciplina
+
+DESENHO DE ARQUITETURA E
+URBANISMO
+
+       Fonte: Pexels.
+       As escadas podem ser definidas com uma sequência de três ou
+       mais degraus, projetadas em diversos formatos e
+       desempenhando a função de circulação vertical e de estética.
+       Assim, integrada ao ambiente, as escadas podem ser
+       executadas com diferentes materiais e estruturas, podendo ser
+       suspensas, apoiadas ou até mesmo bem requintadas e
+       luxuosas. O importante, independentemente de sua estética ou
+       material, é sempre dimensioná-la corretamente e atender às
+       normas estabelecidas, para garantir conforto e segurança ao
+       usuário.
+       Além da forma, as escadas também podem ser classificadas de
+       acordo com a sua estrutura. As escadas autoportantes são
+       aquelas que possuem sua própria estrutura, enquanto as
+       escadas apoiadas são fixadas em paredes ou pilares. As
+       escadas suspensas, por sua vez, são aquelas que são fixadas
+Disciplina
+
+DESENHO DE ARQUITETURA E
+URBANISMO
+
+       apenas em um ponto e parecem estar flutuando, conferindo um
+       elemento estético bastante interessante.
+       Já em relação aos elevadores, os tipos variam de acordo com a
+       capacidade, a velocidade e o sistema de acionamento. Entre os
+       mais comuns, estão:
+
+             Elevadores elétricos: são os mais comuns e utilizados em
+             edificações de diferentes portes. Funcionam por meio de
+             um motor elétrico.
+             Elevadores hidráulicos: são acionados por um sistema
+             hidráulico, sendo utilizados em edificações de menor porte
+             e com menor fluxo de pessoas pois possuem capacidade
+             para poucos andares.
+             Elevadores de carga: são utilizados para transporte de
+             cargas em edificações comerciais e industriais.
+             Elevadores panorâmicos: têm um design diferenciado, com
+             paredes de vidro na cabine, permitindo uma vista
+             panorâmica. Podem ser elétricos ou hidráulicos.
+
+       A escolha entre escadas e elevadores deve levar em
+       consideração o número de pavimentos e a distância entre eles,
+       a capacidade de fluxo de pessoas, a altura total da edificação e
+       a velocidade de deslocamento. É comum que o Código de
+       Obras Municipal recomende a instalação de elevadores a partir
+       de um determinado número de pavimentos. Por exemplo, no
+       Código de Obras de São Paulo (SÃO PAULO, 2017) exige-se o
+       uso de elevadores para edifícios com mais de 5 pavimentos ou
+Disciplina
+
+DESENHO DE ARQUITETURA E
+URBANISMO
+
+       com desnível total superior a 12 metros. A legislação ainda
+       acrescenta que, em edifícios com mais de 10 pavimentos, são
+       necessários no mínimo dois elevadores. Por isso, é importante
+       verificar a legislação vigente na cidade onde o projeto será
+       executado para garantir o cumprimento das normas e evitar
+       problemas futuros.
+       Um edifício nunca contará apenas com os elevadores como
+       meio de circulação vertical devido ao baixo desempenho em
+       situações de emergência, bem como em casos de inutilização
+       do equipamento por conta de falta de energia, danos
+       mecânicos, entre outros problemas que podem surgir.
+       A escolha do tipo de escada ou elevador envolve não só as
+       questões técnicas, como também questões estéticas
+       desejáveis ao projeto. É importante ressaltar que as normas
+       técnicas devem ser seguidas para garantir a acessibilidade e a
+       segurança de todas as pessoas que utilizam as edificações.
+
+   Sigaemfrente
+
+  SIGA EM FRENTE
+  Cálculos para escadas
+Disciplina
+
+DESENHO DE ARQUITETURA E
+URBANISMO
+
+       As escadas devem ser projetadas levando em consideração o
+       espaço disponível em planta baixa, a altura do desnível e as
+       normas de acessibilidade para garantir a segurança e conforto
+       dos usuários, especialmente das pessoas com deficiência ou
+       mobilidade reduzida. Para isso, é necessário seguir as regras
+       estabelecidas na NBR 9050 (ABNT, 2021b), que define suas
+       dimensões e características.
+       Antes de partir para o dimensionamento adequado da escada,
+       vamos identificar quais são os elementos que a compõe, dentre
+       eles: os pisos, os espelhos, os patamares, os corrimãos e os
+       guarda-corpos (Figura 9).
+       Os pisos ou pisadas são as superfícies horizontais de apoio
+       para os pés durante a subida ou descida. Os espelhos são as
+       superfícies verticais que separam os degraus, sendo
+       responsáveis pela altura da escada. Os patamares são as
+       plataformas horizontais que interrompem a escada em
+       determinados pontos, permitindo uma pausa ou mudança de
+       direção durante a subida ou descida. Os corrimãos são os
+       apoios para mãos que se estendem ao longo da escada,
+       permitindo que as pessoas se segurem e se apoiem durante a
+       subida ou descida. Por fim, os guarda-corpos são as proteções
+       verticais de fechamento que ficam ao longo da escada, visando
+       a segurança das pessoas.
+       Figura 9 | Elementos de uma escada.
+Disciplina
+
+DESENHO DE ARQUITETURA E
+URBANISMO
+
+       Fonte: Souza, et al. (2018, p. 274)
+       A NBR 9050 (ABNT, 2021b) diz que a largura mínima permitida
+       para escadas em rotas acessíveis é de 120 centímetros. A
+       norma ainda estabelece que o piso (p) deve ser de 28 cm a 32
+       cm, e a altura do espelho (e) deve ficar entre 16 cm e 18 cm.
+       Veja e disposição destes elementos na Figura 10 a seguir.
+       Figura 10 | Piso, espelho e patamar de uma escada.
+Disciplina
+
+DESENHO DE ARQUITETURA E
+URBANISMO
+
+       Fonte: Nese e Silva 2017.
+       Para calcular o número de degraus necessários é preciso dividir
+       a altura total do desnível pelo valor máximo permitido para a
+       altura do espelho. Por exemplo, se a altura do desnível for de
+       350 cm e a altura máxima permitida para o espelho é de 18 cm,
+       serão necessários 20 degraus (350/18 = 19,44 = 20,
+       arredondando para cima). Neste exemplo, os espelhos terão
+       altura final de 17,5 cm (altura final do desnível dividido pelo
+       número de degraus, ou seja, 350 / 20 = 17,5).
+       Definido o tamanho dos espelhos, partimos para o cálculo do
+       piso. Existe uma relação ideal entre o piso e o espelho para
+       garantir o conforto e a segurança dos usuários. Para isso, usa-
+       se a fórmula definida pela NBR 9050 (ABNT, 2021b):
+
+                                                      60 cm ≤p + 2e ≤ 65cm
+
+       Para encontrar o tamanho do piso podemos usar a medida
+       intermediária definida pela norma de 64 cm. Continuando o
+       nosso exemplo anterior, numa escada com espelhos de 17,5
+Disciplina
+
+DESENHO DE ARQUITETURA E
+URBANISMO
+
+       cm, o dimensionamento ideal do piso é de 29 cm. Confira o
+       cálculo
+
+                                                          p+ (2x17,5) = 64
+                                                          p+ (35) = 64
+                                                          p= 64−35
+                                                          p= 29cm
+
+       Este valor atende aos requisitos da norma NBR 9050 (ABNT,
+       2021b), pois está entre 28 e 32 cm. Nossa escada foi
+       dimensionada adequadamente.
+
+  Elementos que compõem
+  as escadas
+
+       O desenho arquitetônico de uma escada deve ser traçado com
+       precisão, representando o que se quer construir. Na planta do
+       pavimento térreo, por exemplo, nem todos os degraus são
+       visíveis, metade da escada fica visível na linha de corte da
+       planta e metade superior não, dessa forma, os degraus que
+       estão localizados acima da linha de corte devem ser
+       representados por linhas tracejadas, conforme a Figura 11, a
+       seguir.
+       Figura 11 | Piso, espelho e patamar de uma escada.
+Disciplina
+
+DESENHO DE ARQUITETURA E
+URBANISMO
+
+       Fonte: Nese e Silva 2017.
+       Os elementos construtivos devem ser representados, assim
+       como os níveis, dimensões, cotas e outras informações
+       importantes para a leitura e a execução da escada devem ser
+       inseridas no desenho. No corte, são representados os
+       elementos internos e as alturas que não são representados em
+       planta baixa. Assim, sempre que possível, passar os planos de
+       corte pela escada, informando as cotas verticais dos elementos
+       em corte, níveis e outras informações complementares que
+       sejam necessárias para a compreensão do projeto.
+       Para desenhar a escada em corte, basta desenhar uma malha
+       esquemática com as linhas auxiliares horizontais representando
+       a altura do espelho e as linhas verticais a largura do piso,
+       conforme o exemplo da figura 12 a seguir. No corte, serão
+       representados a profundidade do piso, a altura do espelho, os
+       patamares, o corrimão e o guarda-corpo.
+       Figura 12 | Exemplo de desenho esquemático do corte da
+       escada.
+Disciplina
+
+DESENHO DE ARQUITETURA E
+URBANISMO
+
+       Fonte: Nese e Silva 2017.
+       Com o corte esquemático realizado, é preciso acrescentar as
+       outras informações, como a espessura da laje da escada, do
+       patamar e a representação do corrimão. Na Figura 13 é
+       apresentado esse corte da escada já detalhado com as
+       espessuras, o corrimão e as cotas de alturas principais.
+       Figura 13 | Exemplo de desenho esquemático do corte da
+       escada.
+Disciplina
+
+DESENHO DE ARQUITETURA E
+URBANISMO
+
+       Fonte: Nese e Silva 2017.
+       Quando não houver paredes laterais, as escadas devem
+       incorporar elementos de segurança, como guarda-corpo,
+       corrimãos e guia de balizamento. A guia de balizamento é uma
+       fiada de alvenaria que acompanha a rampa ou escada para
+       auxiliar, por exemplo, a pessoa cega, que, ao bater com a
+       bengala, serve como guia na circulação das transposições
+       verticais. Na Figura 14, é possível notar que essa guia pode ser
+       de alvenaria ou outro material, com altura mínima de 5 cm,
+       atendendo às especificações.
+Disciplina
+
+DESENHO DE ARQUITETURA E
+URBANISMO
+
+       De acordo com a NBR 9077/2001, o guarda-corpo é um
+       elemento construtivo que protege as pessoas contra quedas em
+       rampas, patamares, terraços, entre outros, sendo instalado em
+       áreas de uso coletivo quando o desnível é maior que 19 cm. A
+       altura de um guarda-corpo interno deve ser, no mínimo, de 1,05
+       m, conforme Figura 14.
+       Figura 14 | Guia de balizamento e guarda-corpo interno.
+
+       Fonte: Adaptada de NBR 9050, ABNT 2021.
+       O guarda-corpo pode ser feito com grades, telas, vidros, chapas
+       ou mesmo alvenaria, na condição de que, se feito um teste com
+       uma esfera de 15 cm de diâmetro, esta não passe por nenhuma
+       das aberturas do guarda-corpo. O material especificado
+       também deve ser resistente.
+       O corrimão, elemento de apoio ao usuário para o passeio nas
+       transposições verticais deve ser instalado tanto em rampas
+       quanto em escadas, em ambos os lados. Esse elemento é
+Disciplina
+
+DESENHO DE ARQUITETURA E
+URBANISMO
+
+       posicionado a 0,92 m (corrimão superior) e a 0,70 m (corrimão
+       inferior) do piso, essas medidas são referentes à face superior
+       do corrimão até o piso do degrau ou da rampa (Figura 14).
+       Os corrimãos devem ter as extremidades com acabamento
+       recurvado, fixados na parede ou no guarda-corpo, com duas
+       alturas e devem ser de materiais rígidos apropriados. Além
+       disso, ainda deve ser instalado nos patamares, pelo menos por
+       mais 0,30 m nas extremidades. O corrimão não pode interferir
+       nas áreas de circulação. Quando as escadas apresentarem
+       largura igual ou superior a 2,40 m, é necessário instalar um
+       corrimão intermediário, com largura mínima de 1,20 m,
+       conforme é apresentado na Figura 15, a seguir:
+       Figura 15 | Exemplo de corrimão.
+Disciplina
+
+DESENHO DE ARQUITETURA E
+URBANISMO
+
+       Fonte: ABNT 2021.
+       Note que tanto na imagem à esquerda quanto à direita, na
+       Figura 15, são apresentados uma faixa com padrões no início e
+       final da escada. Essa faixa hachurada com padrão circular
+       representa a sinalização do piso tátil. Essa sinalização do piso
+       tátil de alerta deve ser incluída no projeto para orientar pessoas
+       com deficiência, principalmente cegos, para atentar o início e ao
+       final da transposição vertical ao perceber com a bengala esse
+       relevo diferente no piso. O detalhamento do piso tátil de alerta é
+       apresentado na Figura 16, a seguir:
+       Figura 16 | Piso tátil de alerta.
+
+       Fonte: ABNT (2015, p. 49)
+       Além de conectar um nível ao outro, as escadas podem se
+       transformar em elementos decorativos. Dependendo da
+       criatividade do projeto, são concebidas em diferentes formatos,
+       materiais de revestimento, dimensões, visando ao conforto no
+       ato de subir e descer. O material da estrutura, do corrimão ou
+Disciplina
+
+DESENHO DE ARQUITETURA E
+URBANISMO
+
+       guarda-corpo também pode variar, resultando em estilos mais
+       rústicos, modernos, clássicos, entre outros. Faça as escolhas
+       que melhor se adaptem às dimensões do ambiente, uso da
+       edificação e estilo arquitetônico do seu projeto.
+       Já para os elevadores, a norma que trata dos cálculos
+       adequados é a NBR 16858-1 (ABNT, 2021c). Ela estabelece os
+       requisitos para o cálculo e a execução de projetos de
+       elevadores elétricos de passageiros visando a segurança, o
+       conforto, a eficiência energética e a acessibilidade. Para o
+       dimensionamento, você precisa se atentar à capacidade de
+       passageiros, ao tipo de abertura, dimensões da cabine e
+       sistema de acionamento. Você também pode fazer pesquisas
+       diretamente com os fabricantes destes equipamentos a fim de
+       obter informações importantes sobre o dimensionamento e
+       outras características. Muitos já possuem modelos pré-
+       dimensionados que podem ser incluídos facilmente no projeto.
+
+   Vamosexercitar
+
+  VAMOS EXERCITAR
+  Desenhando escadas e
+  elevadores
+Disciplina
+
+DESENHO DE ARQUITETURA E
+URBANISMO
+
+       De acordo com a NBR 6492 (ABNT, 2021a), para
+       representarmos as circulações verticais é preciso seguir
+       algumas diretrizes básicas que garantem a adequação das
+       dimensões e precisão no desenho técnico. Como em qualquer
+       desenho técnico, devemos representar corretamente as
+       dimensões e especificações das escadas ou elevadores,
+       utilizando linhas de diferentes espessuras e tipos, além de
+       símbolos e legendas que contribuem para a compreensão do
+       desenho.
+       Antes de começar o desenho é importante determinar a
+       localização, o tamanho e o tipo de escada ou elevador que será
+       utilizado no projeto. Em seguida, definir o dimensionamento
+       adequado de cada elemento. No caso das escadas, é preciso
+       definir as dimensões dos degraus, a altura do espelho e a
+       largura do piso de acordo com as normas de acessibilidade e
+       segurança, a NBR 9050 (ABNT, 2021b), conforme aprendemos
+       anteriormente. Já para os elevadores, é necessário dimensionar
+       adequadamente o equipamento de acordo com a sua
+       capacidade segundo as orientações da NBR 16858-1 (ABNT,
+       2021c).
+       Na representação das escadas em planta (Figura 17) usamos
+       as linhas para indicar o perímetro da escada e a posição dos
+       espelhos. Neste momento, devemos identificar no desenho qual
+       é o modelo da escada (reta, em L, em U ou caracol),
+       posicionamento do corrimão e guarda-corpo, se há patamares e
+       sua posição em relação à construção. Ainda, para podermos
+Disciplina
+
+DESENHO DE ARQUITETURA E
+URBANISMO
+
+       identificar o sentido da escada, devemos numerar os degraus,
+       do nível mais baixo para o mais alto, e colocar uma seta
+       indicando o sentido de subida. É comum que os últimos
+       degraus da escada, aqueles que estão a uma altura superior a
+       150 cm do piso, sejam desenhados com linha tracejada.
+       Figura 17 | Representação de escada em planta baixa.
+
+       Fonte: Adaptado de Xavier (2011)
+       Já para o desenho em corte (Figura 18), as linhas representam
+       os pisos e os espelhos, bem como o acabamento inferior da
+       escada. O mais importante é identificar as alturas dos espelhos,
+       corrimão e a diferença entre os níveis. Lembrando que, de
+       acordo com a NBR 9050 (ABNT, 2021b), o corrimão deve ter
+       duas alturas: 70 e 92 cm.
+       Figura 18 | Representação de escada em corte.
+Disciplina
+
+DESENHO DE ARQUITETURA E
+URBANISMO
+
+       Fonte: Adaptado de Xavier (2011)
+       Para representar os elevadores (Figura 19), é necessário
+       identificar as paredes externas, a cabine do elevador e a
+       localização da porta, pelo menos. Em desenhos mais
+       detalhados, inclui-se também o desenho do mecanismo, como
+       cordas, motores e roldanas. Para representações simples,
+       admite-se o desenho das paredes com um “X” na parte interna,
+       indicando o fosso do elevador. Já no corte, os elementos
+       representados serão basicamente os mesmos, acrescentando-
+       se os níveis de cada pavimento e o sentido de deslocamento do
+       elevador.
+       Figura 19 | Representação do elevador em planta baixa.
+Disciplina
+
+DESENHO DE ARQUITETURA E
+URBANISMO
+
+       Fonte: Adaptado de Xavier (2011)
+       Além da correta representação das dimensões e disposição dos
+       elementos das escadas e elevadores, é importante considerar a
+       escala do desenho técnico e a clareza da representação gráfica.
+       A escala deve ser escolhida de forma a permitir a representação
+       de todos os elementos com clareza e precisão, sem
+       comprometer a legibilidade do desenho. A representação
+Disciplina
+
+DESENHO DE ARQUITETURA E
+URBANISMO
+
+       gráfica deve ser clara e objetiva, utilizando símbolos e
+       convenções de desenho padronizadas segundo a NBR 6492
+       (ABNT, 2021a).
+       É importante realizar o desenho com bastante precisão para
+       que a execução seja feita de forma adequada. Por exemplo, não
+       se deve arredondar as casas decimais da altura do espelho da
+       escada, pois mesmo uma diferença muito pequena, de poucos
+       milímetros ou centímetros, pode resultar em degraus desiguais
+       propensos a causar acidentes, ou ainda na incompatibilidade do
+       desnível, sobrando ou faltando medidas para se alcançar o
+       patamar superior.
+
+   Saibamais
+
+  SAIBA MAIS
+
+       Olá, estudante!
+       Amplie seu conhecimento, já que estamos falando bastante
+       sobre acessibilidade, você sabia que existe um conceito muito
+       mais amplo sobre o tema?
+       Não basta apenas termos acessibilidade física, ou seja, adequar
+       as construções e os espaços para quem possui algum tipo de
+       deficiência ou baixa mobilidade. Também devemos levar em
+       consideração outros aspectos além das habilidades físicas,
+Disciplina
+
+DESENHO DE ARQUITETURA E
+URBANISMO
+
+       mas também as cognitivas ou sensoriais. Assim, surge o
+       Desenho Universal, cujo objetivo é eliminar barreiras e garantir
+       que todos tenham acesso igualitário à funcionalidade,
+       informação e interação com o ambiente. As diretrizes de
+       desenho universal incluem a consideração da diversidade
+       humana desde o início do processo de projeto, a incorporação
+       de flexibilidade e adaptabilidade para atender às necessidades
+       individuais, e a criação de produtos e ambientes intuitivos e
+       fáceis de usar. Saiba mais sobre o assunto no livro Desenho
+       Universal: Um Conceito para Todos. Boa leitura!
+
+   Referências
+
+  REFERÊNCIAS
+
+       ASSOCIAÇÃO BRASILEIRA DE NORMAS TÉCNICAS - ABNT. NBR
+       6492: Documentação técnica para projetos arquitetônicos e
+       urbanísticos – Requisitos. Rio de Janeiro: ABNT, 2021.
+       ASSOCIAÇÃO BRASILEIRA DE NORMAS TÉCNICAS - ABNT.
+       _______. NBR 9050: 2020 Versão Corrigida: 2021 - Acessibilidade
+       a edificações, mobiliário, espaços e equipamentos urbanos. Rio
+       de Janeiro: ABNT, 2021b.
+       ASSOCIAÇÃO BRASILEIRA DE NORMAS TÉCNICAS - ABNT.
+       _______. NBR 16858-1: Elevadores – Requisitos de segurança
+Disciplina
+
+DESENHO DE ARQUITETURA E
+URBANISMO
+
+       para construção e instalação - Parte 1: Elevadores
+       de passageiros e elevadores de passageiros e cargas. Rio de
+       Janeiro: ABNT, 2021c.
+       ASSOCIAÇÃO BRASILEIRA DE NORMAS TÉCNICAS - ABNT.
+       _______. NBR 9077: Saídas de emergência em edifícios. Rio de
+       Janeiro: ABNT, 2001.
+       CARLETTO, A. C.; CAMBIAGHI, S. Desenho Universal: Um
+       Conceito para Todos. 2007. Disponível em:
+       https://maragabrilli.com.br/wp-
+       content/uploads/2016/01/universal_web-1.pdf&gt;. Acesso
+       em: 05 de maio de 2023. Acesso em: fev. 2024.
+       NESSE, PAOLA P. L; SILVA, SAMUEL S. M. Detalhamento de
+       escadas. Londrina: Editora e Distribuidora Educacional S.A.
+       (WL), 2017.
+       SÃO PAULO. Código de Obras e Edificações. Lei nº 16.642, de 9
+       de maio de 2017. Decreto nº 57.776, de 7 de julho de 2017. São
+       Paulo: Prefeitura de São Paulo, 2017.
+       SOUZA, J. P.; MÄHLMANN, F. G.; MANO, C. M.; ALLEGRETTI, C.
+       A. L.; SCHEIBE, A. C.;
+       MIRANDA, J. S.; COPINI, W. M. Desenho técnico arquitetônico.
+       Porto Alegre: SAGAH, 2018.
+       XAVIER, Sinval. Apostila de Desenho Arquitetônico. Apostila do
+       curso das disciplinas de Desenho Arquitetônico dos cursos de
+       Engenharia Civil e Engenharia Civil Empresarial da Universidade
+       Federal do Rio Grande. Março demar. 2011. Disponível
+       em: https://bit.ly/3rDghwK Acesso em setembro set.de 2024.
+Disciplina
+
+DESENHO DE ARQUITETURA E
+URBANISMO
+
+  Aula 3
+
+    Aula 18
+
+   Videoaula
+
+  Rampas
+
+       Olá, estudante!
+       Nesta videoaula você aprenderá sobre a importância das
+       rampas na acessibilidade e mobilidade, garantindo a inclusão
+       de pessoas com deficiência ou dificuldades de locomoção. As
+       rampas são uma alternativa segura e conveniente às escadas e
+       elevadores, oferecendo autonomia e independência a todos.
+       Neste contexto, abordaremos os tipos de rampas, o cálculo
+       adequado para sua construção, as normas de acessibilidade e
+       como desenhar uma rampa em desenho técnico arquitetônico.
+       Através desse conhecimento, você poderá criar projetos
+       arquitetônicos que promovam a acessibilidade universal e a
+       segurança de todos os usuários.
+
+   Pontodepartida
+
+  PONTO DE PARTIDA
+Disciplina
+
+DESENHO DE ARQUITETURA E
+URBANISMO
+
+  PONTO DE PARTIDA
+
+       Olá, estudante! Boas-vindas ao estudo desta unidade.
+       Nesta aula vamos falar sobre acessibilidade. É um tema crucial
+       na arquitetura e na construção, buscando proporcionar
+       igualdade de oportunidades e inclusão para todas as pessoas.
+       Nesse contexto, as rampas desempenham um papel
+       fundamental ao permitir o acesso e a mobilidade de pessoas
+       com deficiência ou mobilidade reduzida.
+       Para garantir a adequação e segurança das rampas, é essencial
+       seguir as normas e diretrizes estabelecidas, como a NBR 9050
+       (ABNT, 2021b). Esta aula abordará os aspectos fundamentais
+       para representação de rampas em desenho técnico
+       arquitetônico, incluindo os cálculos e dimensionamentos
+       adequados.
+       Compreender e aplicar corretamente esses conceitos é
+       essencial para criar projetos acessíveis e inclusivos,
+       promovendo a autonomia, segurança e bem-estar de todas as
+       pessoas.
+       Vamos lá?
+
+   Vamoscomeçar
+
+VAMOS COMEÇAR
+Ti  dl d
+Disciplina
+
+DESENHO DE ARQUITETURA E
+URBANISMO
+
+                   Ç
+  Tipos e modelos de rampas
+
+       As rampas são superfícies de piso com declividade igual ou
+       superior a 5% e são boas alternativas para conectar os
+       desníveis de forma acessível. Embora ocupem um espaço
+       muito maior que as escadas, podem ser mais confortáveis,
+       suaves e seguras. Assim, precisam ser bem calculadas e
+       necessitam de espaços maiores para a sua implantação, tanto
+       para rampas internas quanto para rampas externas na
+       edificação.
+       Portanto, as rampas são um dos elementos de circulação
+       vertical que compõem um projeto quando há diferença de nível.
+       Essas estruturas arquitetônicas oferecem uma alternativa
+       segura e conveniente às escadas, garantindo a acessibilidade e
+       mobilidade de pessoas com deficiência ou com dificuldades de
+       locomoção, inclusive aquelas temporárias, como pessoas com
+       muletas ou carrinhos de bebê.
+       As rampas são o único elemento de circulação vertical capaz de
+       promover a autonomia durante a locomoção de qualquer
+       pessoa, independentemente de suas características ou
+       necessidades. É possível fazer essa afirmação com veracidade
+       se analisarmos as circulações verticais de maneira ampla. As
+       escadas apresentam grande dificuldade para pessoas com
+       locomoção reduzida e impossibilitam que pessoas em cadeira
+       de rodas ou com carrinho de bebê possam transpor a diferença
+       de nível. Já os elevadores apresentam grande facilidade de uso
+Disciplina
+
+DESENHO DE ARQUITETURA E
+URBANISMO
+
+       por todas as pessoas, porém estão suscetíveis às falhas
+       mecânicas, e muitas vezes possuem investimentos mais
+       dispendiosos. Portanto, as rampas são o meio mais seguro de
+       garantir a acessibilidade universal.
+       A norma que rege as condições de acessibilidade é a NBR
+       9050/2021b, e nela são encontradas as orientações para o
+       acesso universal a cadeirantes e deficientes visuais, físicos ou
+       auditivos, além de pessoas com mobilidade reduzida.
+       Os benefícios do uso de rampas em locais públicos e privados
+       vão além da garantia do acesso universal, de facilitar a
+       mobilidade, ao permitir a autonomia e promover a segurança
+       dos transeuntes. Os benefícios incluem também os aspectos
+       sociais e econômicos. Ao tornar os espaços acessíveis, as
+       rampas permitem que pessoas com deficiência participem
+       plenamente da vida social, educacional e profissional. Além
+       disso, a acessibilidade contribui para a inclusão no mercado de
+       trabalho e para o fortalecimento da economia, uma vez que
+       aumenta o potencial de consumo e a participação ativa desses
+       indivíduos na sociedade. Além disso, existem normas e
+       legislações que torna obrigatória a inclusão das rampas como
+       uma das possibilidades de acesso em diversas edificações.
+       Portanto, é importante que você conheça suas características e
+       saiba incluir este elemento em seus projetos.
+       As rampas mais comuns são fixas e podem ser construídas em
+       diversos materiais, como concreto, madeira e metal. São
+       projetadas para proporcionar uma inclinação adequada para a
+Disciplina
+
+DESENHO DE ARQUITETURA E
+URBANISMO
+
+       circulação segura de pessoas com mobilidade reduzida. Essas
+       rampas podem ser retas, em L, em U, em Z ou curvas,
+       dependendo das necessidades específicas do local e das
+       restrições de espaço. Entenda sobre cada uma delas a seguir.
+       Tipos de rampas:
+
+             Rampa reta: É o modelo mais simples, consistindo em uma
+             inclinação linear contínua, sem curvas ou mudanças de
+             direção (Figura 1a);
+             Rampa em Z: É uma rampa com duas seções retas,
+             conectadas por um patamar intermediário em forma de Z.
+             Essa configuração é frequentemente utilizada em espaços
+             estreitos (Figura 1b);
+             Rampa curva: São rampas cujo percurso se faz a partir de
+             um trajeto curvo ou circular (Figura 1c);
+             Rampa em L: Esse modelo é utilizado quando o
+             comprimento do espaço disponível é limitado. A rampa faz
+             um ângulo reto, proporcionando um caminho acessível em
+             duas direções perpendiculares (Figura 1d);
+             Rampa em U: Similar à rampa em L, porém, possui uma
+             curva suave em formato de U para permitir a mudança de
+             direção em 180 graus (Figura 1e).
+       a) Rampa reta no Congresso Nacional (Brasília - DF)
+Disciplina
+
+DESENHO DE ARQUITETURA E
+URBANISMO
+
+       Fonte: Pixabay.
+       b) Rampa em "Z" ou zigue-zague.
+Disciplina
+
+DESENHO DE ARQUITETURA E
+URBANISMO
+
+       FOnte: UNsplash.
+       c) Rampa Curva no Museu de Arte Contemporânea.
+Disciplina
+
+DESENHO DE ARQUITETURA E
+URBANISMO
+
+       Fonte: Pexels.
+       d) Rampa em “L”.
+Disciplina
+
+DESENHO DE ARQUITETURA E
+URBANISMO
+
+       Fonte: Unsplash.
+       e) Rampa em “U”.
+Disciplina
+
+DESENHO DE ARQUITETURA E
+URBANISMO
+
+       Fonte: Pixabay.
+Disciplina
+
+DESENHO DE ARQUITETURA E
+URBANISMO
+
+       A escolha do tipo de rampa deve levar em consideração o
+       desnível a ser vencido e a área disponível para implantação da
+       circulação vertical.
+
+   Sigaemfrente
+
+  SIGA EM FRENTE
+  Norma técnica para projeto
+  de rampas
+
+       Para desenhar uma rampa, o cálculo é fundamental para
+       garantir a acessibilidade e a segurança de pessoas com
+       mobilidade reduzida. A NBR 9050 (ABNT, 2021b) é a norma
+       técnica brasileira que estabelece diretrizes de acessibilidade a
+       edificações, mobiliário, espaços e equipamentos urbanos,
+       trazendo parâmetros específicos para o dimensionamento e a
+       inclinação das rampas.
+       De acordo com a NBR 9050 (ABNT, 2021b), a inclinação máxima
+       permitida para rampas é de 8,33% (ou aproximadamente 1:12).
+       Isso significa que, para cada 1 metro de altura, a rampa deve ter
+       um comprimento mínimo de 12 metros. No entanto, essa
+       inclinação está atrelada a um desnível máximo de 0,80 metro
+       por segmento. Para desníveis maiores, a norma estabelece
+Disciplina
+
+DESENHO DE ARQUITETURA E
+URBANISMO
+
+outros limites máximos para garantir uma circulação segura e
+confortável, evitando fadiga excessiva. Veja, na Tabela 1, as
+inclinações máximas permitidas por segmento de acordo com o
+desnível.
+
+Desníveis máximos de  Inclinação admissível     Número máximo de
+  cada segmendo de    em cada segmento de          segmentos de
+      rampa - h (m)                                      rampa
+                            rampa - i (%)
+
+1,50                  5,00 (1:20)               Sem limite
+
+1,00                  5,00 (1,20) < i ≤ 6,25    Sem limite
+
+                      (1:16)
+
+0,80                  6,25 (1,16) i ≤ 8,3 < 3   15
+
+                      (1:16)
+
+    Tabela 1 | Inclinações máximas de acordo com o desnível,
+     segundo a NBR 9050. Fonte: Adaptado de ABNT (2021b)
+Em casos de reforma, se forem esgotadas as possibilidades de
+implantação da rampa nos requisitos referentes à Tabela 1, é
+permitido que se utilize inclinações superiores a 8,33% até
+12,5%, conforme a Tabela 2.
+
+Desníveis máximos de  Inclinação admissível em  Número máximo de
+  cada segmento de    cada segmento de rampa       segmentos de
+      rampa - h (m)                                      rampa
+                                   - i (%)
+
+0,20                  8,33 (1:12) < i ≤ 10,00   4
+
+                      (1:10)
+
+0,75                  10,00(1:10) < i ≤ 12,50   1
+
+                      (1:10)
+Disciplina
+
+DESENHO DE ARQUITETURA E
+URBANISMO
+
+           Tabela 2 | Inclinações máximas em situações excepcionais,
+             segundo a NBR 9050. Fonte: Adaptado de ABNT (2021b)
+
+       A largura mínima recomendada para uma rampa acessível é de
+       1,20 metro, sendo que a medida recomendada é de 1,50 metro,
+       afim de permitir que pessoas em cadeiras de rodas e pedestres
+       possam transitar simultaneamente com conforto. É necessário
+       incluir patamares no início e fim de cada rampa com largura
+       mínima de 1,20 metro (Figura 2). Caso haja patamar
+       intermediário de descanso, a largura mínima também é de 1,20
+       metro. Nos patamares de mudança de direção, a largura deve
+       ser igual à da rampa (Figura 3).
+       Figura 2 | Planta baixa de rampa com patamar de descanso.
+
+       Fonte: Nese e Silva (2017)
+       Figura 3 | Planta baixa e corte de rampa com patamares de
+       descanso.
+Disciplina
+
+DESENHO DE ARQUITETURA E
+URBANISMO
+
+       Fonte: Nese e Silva (2017)
+       Além disso, a NBR 9050 (ABNT, 2021b) estabelece que as
+       rampas devem ser providas de corrimãos em duas alturas, 70
+       cm e 92 cm, em ambos os lados, para oferecer suporte e
+       estabilidade aos usuários. Portanto, quando não houver
+       paredes laterais, as rampas devem apresentar elementos de
+       segurança, como guarda-corpo, corrimãos ou guias de
+       balizamento.
+       Também devem prolongar-se paralelamente ao patamar, com
+       comprimento mínimo de 0,30 m nas extremidades, sem
+       interferir com áreas de circulação, como é apresentado na
+       Figura 4, a seguir.
+       Figura 4 | Corrimão de rampa.
+Disciplina
+
+DESENHO DE ARQUITETURA E
+URBANISMO
+
+       Fonte: ABNT 9050 (2021)
+       O corrimão deve ter as suas extremidades com acabamento
+       recurvado, fixados na parede ou no guarda-corpo e devem ser
+       fabricados em materiais rígidos apropriados para este uso. As
+       dimensões do corrimão, expressas em mm, estão
+       representadas na Figura 5 a seguir.
+       Figura 5 | Empunhadura e dimensões do Corrimão.
+Disciplina
+
+DESENHO DE ARQUITETURA E
+URBANISMO
+
+       Fonte: ABNT 9050 (2021)
+       A guia de balizamento, além de importante para pessoas com
+       deficiência visual, também é essencial para o cadeirante, que
+       utiliza desse elemento como apoio de segurança ao percorrer a
+       rampa. Na Figura 6, podemos observar o detalhe desse
+       elemento, que pode ser de alvenaria ou outro material, com
+       altura mínima de 5 cm.
+       Figura 6 | Guia de balizamento.
+Disciplina
+
+DESENHO DE ARQUITETURA E
+URBANISMO
+
+       Fonte: ABNT 9050 (2021)
+       A altura do guarda-corpo em rampas internas às edificações é
+       de, no mínimo, 92 cm medida do piso acabado ao topo, onde o
+       usuário vai apoiar sua mão. Em locais externos, quando a altura
+       ultrapassar 12 m do solo, o guarda-corpo deve ser de, no
+       mínimo, 1,30 m de altura. Lembrando que o piso tátil também é
+       importante para identificar, por exemplo, o início e o fim da
+       inclinação da rampa. Na Figura 7 é apresentada uma rampa
+       com dois segmentos, tendo o piso tátil indicando o início e o fim
+       da rampa.
+       Figura 7 | Exemplo de posicionamento do piso tátil em uma
+       rampa.
+Disciplina
+
+DESENHO DE ARQUITETURA E
+URBANISMO
+
+       Fonte: ABNT 9050 (2021)
+       Para o dimensionamento das rampas, o projetista deve seguir
+       as normativas, e também utilizar criatividade para integrar esse
+       elemento arquitetônico ao projeto, proporcionando segurança e
+       conforto aos seus usuários.
+
+  Cálculo para rampas
+
+       As normas técnicas são os grandes balizadores para a
+       construção de projetos de rampas acessíveis, as superfícies
+       das rampas, por exemplo, devem ser antiderrapantes para
+       garantir a segurança dos usuários.
+       Para calcular a inclinação de uma rampa, a NBR 9050 (ABNT,
+       2021b) define a seguinte fórmula:
+
+                                                              i= h x 100
+                                                                       c
+
+       Onde:
+             i = é a inclinação, expressa em porcentagem (%).
+             h = é a altura do desnível.
+Disciplina
+
+DESENHO DE ARQUITETURA E
+URBANISMO
+
+             c = é o comprimento da projeção horizontal.
+
+       Considere um exemplo prático para ilustrar o cálculo da
+       inclinação. Supondo que se deseja construir uma rampa para
+       vencer um desnível de 80 centímetros (0,8 metro) e o
+       comprimento que temos disponível é de 8 metros. Portanto:
+
+                                                         i = (0,8 x 100) / 8
+                                                         i = 80 / 8
+                                                         i = 10%
+
+       A inclinação da rampa, neste exemplo, é de 10%, o que está fora
+       dos limites estabelecidos pela NBR 9050 (ABNT, 2021b), que
+       permite uma inclinação máxima de 8,33%. Isso significa que o
+       comprimento disponível é insuficiente para atender aos
+       requisitos mínimos da norma, e que devemos aumentar o
+       número de segmentos da rampa a fim de cumprir o que foi
+       requisitado.
+       Para sabermos o comprimento exato da rampa que deveremos
+       usar, basta isolar esta variável e transformar a fórmula, que
+       passa a ser a seguinte:
+
+                                                              c= h x 100
+                                                                        i
+
+       Usando o mesmo exemplo anterior, com um desnível de 0,80
+       metro e a inclinação máxima permitida pela norma de 8,33%,
+       podemos chegar ao seguinte resultado:
+
+                                                       c= (0,80 x 100 / 8,33)
+                                                       c = 80 / 8,33
+                                                       c = 9,60metros
+
+       Assim, para vencer um desnível de 0,80 metro com inclinação
+       de 8,33%, a máxima permitida pela NBR 9050 (ABNT, 2021b), é
+Disciplina
+
+DESENHO DE ARQUITETURA E
+URBANISMO
+
+       necessária uma rampa com comprimento de 9,60 metros. É
+       importante lembrar que a esse comprimento excluem-se os
+       patamares (inicial, final e intermediário), devendo estes serem
+       acrescidos ao comprimento total da rampa.
+       Não se esqueça de adequar a largura e os corrimãos da rampa
+       às dimensões definidas pela norma. Consulte a norma para
+       outros tipos e modelos de cálculo para rampas.
+
+   Vamosexercitar
+
+  VAMOS EXERCITAR
+  Desenhando as rampas
+
+       Ao desenhar a rampa em desenho técnico arquitetônico, é
+       importante considerar todos os aspectos técnicos e
+       dimensionais para garantir sua correta representação de acordo
+       com a NBR 6492 (ABNT, 2021a). Além disso, é essencial seguir
+       as normas de acessibilidade, como a NBR 9050 (ABNT, 2021b),
+       para garantir a conformidade e a segurança do projeto.
+       Antes de começar a desenhar a rampa, é fundamental obter
+       todas as informações necessárias. Isso inclui a altura do
+       desnível a ser vencido, as dimensões do espaço disponível e os
+       requisitos de acessibilidade estabelecidos pelas normas locais.
+Disciplina
+
+DESENHO DE ARQUITETURA E
+URBANISMO
+
+       Essas informações irão guiar o desenho e garantir a
+       conformidade com as regulamentações vigentes.
+       Vamos utilizar um exemplo para ilustrar o pdrocesso de
+       desenho técnico de uma rampa. Suponha que estamos
+       projetando uma rampa para vencer um desnível de 0,80 metro
+       em um espaço com largura disponível de 7 metros. Ainda,
+       definimos que a largura da rampa será de 1,50 metro, conforme
+       a recomendação da norma. Com base nesses dados, podemos
+       calcular o comprimento da rampa com base na inclinação
+       máxima permitida pela NBR 9050 (ABNT, 2021b), que é de
+       8,33%. Assim, aplicando a fórmula vista anteriormente, temos
+       que o comprimento da rampa deverá ser de 9,60 metros.
+       Podemos dividi-la em 3 segmentos para adequar a circulação
+       vertical no espaço disponível de 7 metros. Lembre-se de que
+       precisamos prever o espaço para os patamares intermediários,
+       que terão 1,50 metro (a mesma largura da rampa, conforme a
+       norma).
+       Após realizar o cálculo de inclinação e definir o
+       dimensionamento da rampa já é possível estabelecer qual tipo
+       de rampa. Existem várias soluções e formatos de rampas
+       conforme mostra a Figura 8 a seguir.
+       Figura 8 | Exemplos de rampas de diferentes formatos e
+       quantidades de patamares.
+Disciplina
+
+DESENHO DE ARQUITETURA E
+URBANISMO
+
+       Fonte: Nese e Silva (2017)
+       Para obter uma circulação vertical mais compacta, podemos
+       utilizar a rampa em Z. Agora sim, podemos começar a
+       desenhar.
+       Em uma planta baixa, desenhamos as linhas que representam
+       os contornos da rampa, os patamares intermediários e os
+       corrimãos. Utilizamos setas para indicar a direção do percurso
+       da rampa, que é sempre ascendente. Veja, na Figura 9, como
+       fica a representação da rampa que acabamos de dimensionar.
+       Figura 9 | Representação da rampa em planta baixa.
+Disciplina
+
+DESENHO DE ARQUITETURA E
+URBANISMO
+
+       Fonte: Adaptado de Xavier (2011)
+       Para uma representação mais detalhada, é possível indicar os
+       materiais e as texturas utilizados. Por exemplo, podemos
+       utilizar linhas de chamada para mostrar que a superfície da
+       rampa será revestida com piso antiderrapante para garantir a
+       segurança dos usuários.
+       No desenho em corte, é importante representar a inclinação da
+       rampa, indicando os níveis (inclusive dos patamares) e a altura
+       dos corrimãos em relação ao piso. A Figura 10 representa o
+       desenho da rampa que simulamos.
+       Figura 10 | Representação da rampa em corte.
+
+       Fonte: Adaptado de Xavier (2011)
+       Não se esqueça de que todos os desenhos devem ser cotados
+       para identificar o dimensionamento adequado da rampa. Os
+       desenhos devem sempre estar em escala, bem como a
+       representação do entorno, para garantir a clareza e a precisão
+       das medidas. Determinar a escala adequada para o desenho é
+       essencial para representar corretamente as dimensões da
+       rampa e do espaço circundante.
+Disciplina
+
+DESENHO DE ARQUITETURA E
+URBANISMO
+
+       Desenhar uma rampa em desenho arquitetônico requer atenção
+       aos detalhes e conformidade com as normas de acessibilidade.
+       Ao seguir os passos descritos acima e considerar as
+       dimensões, inclinação, materiais e outros elementos relevantes,
+       é possível criar um desenho preciso e informativo da rampa.
+       Essas informações fornecem uma visão mais clara e facilitam a
+       compreensão do projeto por parte dos profissionais e
+       construtores envolvidos.
+       Lembre-se sempre de consultar as normas e os regulamentos
+       locais para garantir a conformidade e a segurança da rampa em
+       seu projeto arquitetônico.
+
+   Saibamais
+
+  SAIBA MAIS
+
+       Olá, estudante! Vamos ampliar seu conhecimento sobre as
+       rampas e acessibilidade?
+       Ainda existem muitas edificações que não seguem as
+       recomendações da NBR 9050 (ABNT, 2021b) para garantir a
+       acessibilidade dos usuários. Essa falha no cumprimento da
+       norma acontece inclusive em locais públicos, como em
+       universidades e hospitais, o que prejudica a inclusão de
+       pessoas com deficiência e com mobilidade reduzida.
+Disciplina
+
+DESENHO DE ARQUITETURA E
+URBANISMO
+
+       Existem vários artigos científicos que analisam os critérios de
+       acessibilidade em edificações a fim de verificar se todos os
+       requisitos de acessibilidade estão sendo cumpridos. Por
+       exemplo, o estudo realizado por Lorita Pagliuca, Antônia Aragão
+       e Paulo Almeida Acessibilidade e deficiência física:identificação
+       de barreiras arquitetônicas em áreas internas de hospitais
+       deSobral, Ceará analisou as áreas internas de quatro hospitais
+       da cidade de Sobral, no interior do Ceará. Uma das maiores
+       falhas apontadas pelo estudo foi justamente no
+       dimensionamento e projeto das rampas. Leia o artigo para
+       entender a importância de adaptar os projetos às normas de
+       acessibilidade.
+
+   Referências
+
+  REFERÊNCIAS
+
+       ASSOCIAÇÃO BRASILEIRA DE NORMAS TÉCNICAS - ABNT. NBR
+       6492: Documentação técnica para projetos arquitetônicos e
+       urbanísticos – Requisitos. Rio de Janeiro: ABNT, 2021.
+       ASSOCIAÇÃO BRASILEIRA DE NORMAS TÉCNICAS – ABNT.
+       NBR 9050: 2020 Versão Corrigida: 2021 - Acessibilidade a
+       edificações, mobiliário, espaços e equipamentos urbanos. Rio
+       de Janeiro: ABNT, 2021b.
+Disciplina
+
+DESENHO DE ARQUITETURA E
+URBANISMO
+
+       NESSE, PAOLA P. L.; SILVA, SAMUEL S. M. Detalhamento de
+       rampas. Londrina: Editora e Distribuidora Educacional S.A. (WL),
+       2017.
+       PAGLIUCA, L. M. F.; ARAGÃO, A. E. de A.; ALMEIDA, P. C.
+       Acessibilidade e deficiência física: identificação de barreiras
+       arquitetônicas em áreas internas de hospitais de Sobral, Ceará.
+       Revista da Escola de Enfermagem da USP, v. 41, n. 4, p. 581-588,
+       2007. Disponível
+       em: https://www.scielo.br/j/reeusp/a/TyGdYtGsHTNnrwP3xNYf
+       BRR/?
+       lang=pthttps://www.scielo.br/j/reeusp/a/TyGdYtGsHTNnrwP3x
+       NYfBRR/?lang=pt&gt;. Acesso em: setembro set. de 2024.
+       XAVIER, Sinval. Apostila de Desenho Arquitetônico. Apostila do
+       curso das disciplinas de Desenho Arquitetônico dos cursos de
+       Engenharia Civil e Engenharia Civil Empresarial da Universidade
+       Federal do Rio Grande. Março mar. de 2011. Disponível em:
+       https://bit.ly/3rDghwK https://bit.ly/3rDghwK. Acesso em:
+       setembro set.de 2024.
+
+  Aula 4
+
+    Aula 19
+
+   Videoaula
+
+  I â id
+Disciplina
+
+DESENHO DE ARQUITETURA E
+URBANISMO
+
+  Importância do
+  detalhamento em projetos
+
+       Olá, estudante!
+       Nesta videoaula você verá a importância do detalhamento
+       técnico em desenhos arquitetônicos. Você irá identificar alguns
+       dos elementos que merecem ser detalhados e aprenderá que o
+       detalhamento adequado evita erros e retrabalho, facilitando a
+       execução correta do projeto. Essas habilidades são essenciais
+       para uma comunicação clara e precisa no campo da arquitetura
+       e urbanismo.
+
+   Pontodepartida
+
+  PONTO DE PARTIDA
+
+       Olá, estudante! Boas-vindas ao estudo desta unidade.
+       Nesta aula você vai aprender sobre o detalhamento dos
+       desenhos técnicos, que é uma etapa crucial do processo de
+       projeto e construção de edifícios. Consiste na representação
+       precisa e detalhada de todos os elementos e componentes da
+       edificação, incluindo paredes, portas, janelas, instalações
+       elétricas e hidráulicas, coberturas, dentre outros detalhes que
+Disciplina
+
+DESENHO DE ARQUITETURA E
+URBANISMO
+
+       precisam ser especificados para garantir que o projeto seja
+       executado corretamente.
+       Esta aula irá auxiliar na identificação dos pontos importantes do
+       projeto que mereçam detalhamento, além de mostrar como
+       aplicar na prática as convenções do desenho técnico para criar
+       um detalhamento claro e preciso.
+       Sem o detalhamento preciso dos elementos, o projeto poderá
+       ficar suscetível a falhas de execução que poderão resultar em
+       retrabalho, gerando perda de tempo e dinheiro. Portanto, o
+       detalhamento bem feito é essencial para que o projeto se torne
+       realidade.
+       Vamos lá?
+
+   Vamoscomeçar
+
+  VAMOS COMEÇAR
+  Etapas de projeto e nível de
+  detalhamento
+
+       Quando projetamos um edifício percorremos diversas etapas
+       durante o desenvolvimento do conceito, dimensionamento e
+       funcionalidade da edificação. De acordo com a NBR 6492
+       (ABNT, 2021), um projeto consiste das seguintes etapas:
+Disciplina
+
+DESENHO DE ARQUITETURA E
+URBANISMO
+
+             Levantamento de dados para o projeto arquitetônico;
+             Programa de necessidades para o projeto arquitetônico;
+             Estudo de viabilidade de projeto arquitetônico (quando
+             necessário);
+             Estudo preliminar arquitetônico;
+             Anteprojeto arquitetônico;
+             Projeto para licenciamentos;
+             Projeto executivo arquitetônico;
+            Documentação como construído (“as built”).
+
+       Cada uma das etapas de projeto apresenta desenhos
+       específicos com níveis de detalhamento apropriados a cada
+       fase do desenvolvimento. Por exemplo, a etapa do estudo
+       preliminar tem a finalidade de demonstrar qual é o conceito
+       inicial do projeto, ou seja, é responsável por especificar quais
+       serão as funções, usos, formas e dimensões dos ambientes
+       construídos (ABNT, 2021). Neste momento, não é obrigatório,
+       por exemplo, a indicação de um material específico para o
+       acabamento da construção, pois o objetivo do estudo preliminar
+       é garantir que os partidos arquitetônicos tomados e o conceito
+       do projeto definido estejam coerentes e bem resolvidos.
+       Justamente por isso, é possível desenvolver diversos estudos
+       para o mesmo projeto, até que se defina qual é a melhor
+       solução e o melhor ponto de partida para cada caso específico.
+       Por outro lado, na etapa do projeto executivo é imprescindível
+       que os materiais, acabamentos, especificações e detalhes
+Disciplina
+
+DESENHO DE ARQUITETURA E
+URBANISMO
+
+       construtivos estejam representados no desenho para que seja
+       possível a correta execução do projeto. Também é nesta etapa
+       que são apresentadas planilhas orçamentárias e memoriais
+       descritivos e quantitativos dos materiais utilizados na obra.
+       Ambas as etapas citadas apresentam plantas baixas, cortes,
+       elevações, planta de implantação e planta de cobertura para
+       que o projeto se torne inteligível. No entanto, ainda que os tipos
+       de desenhos estejam presentes nas duas etapas, a quantidade
+       de informações e o nível de detalhamento apresentado é
+       diferente em cada um dos casos (XAVIER, 2011).
+       Veja algumas diferenças entre as etapas para compreender
+       mais sobre o nível de detalhamento:
+
+             Na etapa de estudo preliminar as cotas podem ser gerais,
+             enquanto no projeto executivo todas as dimensões do
+             projeto precisam estar devidamente cotadas para garantir a
+             precisão;
+             No estudo preliminar, basta descrever uma área como “área
+             permeável” para fins de cálculos de permeabilidade,
+             enquanto no projeto executivo o material permeável precisa
+             ser especificado: é grama? Qual espécie? É cascalho? Qual
+             tipo? É um piso drenante? Qual modelo?
+             No estudo preliminar, deve-se indicar a localização e o
+             dimensionamento das esquadrias da construção, enquanto
+             no projeto executivo, cada esquadria recebe um código a
+             fim de identificar, além das medidas, o tipo de abertura
+Disciplina
+
+DESENHO DE ARQUITETURA E
+URBANISMO
+
+             (giro, correr, pivotante), o material (vidro, alumínio, madeira,
+             entre outros), a quantidade de esquadrias do mesmo
+             modelo e dimensão. Ainda, é possível acrescentar o
+             orçamento de cada uma das portas e janelas e o montante
+             total que deverá ser dispensado para a compra das
+             esquadrias.
+
+       Perceba que o detalhamento dos desenhos técnicos é gradativo
+       à medida que o desenvolvimento do projeto avança. Os
+       detalhes construtivos se tornam fundamentais às etapas finais
+       do projeto, as quais serão diretamente responsáveis pela
+       correta execução do edifício.
+
+  Detalhes construtivos
+  externos
+
+       Você já entendeu a importância do detalhamento técnico, mas e
+       agora? O que deve ser detalhado no projeto?
+       Além de seguir os critérios básicos, como respeitar a hierarquia
+       e os tipos de linhas, ser preciso nas dimensões, utilizar os
+       padrões e simbologias corretamente, os desenhos técnicos
+       com maior nível de detalhamento devem conter as informações
+       necessárias para a compreensão do projeto como um todo,
+       permitindo assim a sua correta execução. Você pode desenhar
+       algum elemento arquitetônico específico em escala maior para
+       garantir que as informações estejam claras e compreensíveis.
+Disciplina
+
+DESENHO DE ARQUITETURA E
+URBANISMO
+
+       Instruções de execução, itens feitos sob medida ou algum
+       elemento que tenha sido criado especificamente para o projeto
+       são exemplos de alguns detalhes que podem ser incorporados
+       ao desenho. Em se tratando de design de interiores, por
+       exemplo, onde serão especificados móveis e outros objetos
+       menores, é interessante fazer detalhes de puxadores, do
+       mecanismo de utilização, encaixes entre os elementos, e o que
+       for necessário para o entendimento.
+       Para ficar mais claro do que se trata um detalhamento, vamos a
+       alguns exemplos.
+       Neste projeto para uma biblioteca pública municipal (Figura 1)
+       foi desenhado um modelo de esquadria deslizante que funciona
+       como painéis na fachada. O conceito é que as esquadrias
+       possam ser abertas ou fechadas, conforme a necessidade e
+       que, a depender da disposição dos painéis, a fachada se torne
+       dinâmica.
+       Figura 1 | Imagem do projeto de uma biblioteca municipal
+Disciplina
+
+DESENHO DE ARQUITETURA E
+URBANISMO
+
+       Fonte: Adaptado de Nesse e Silva (2017)
+       Esta esquadria foi projetada especificamente para este projeto,
+       sendo necessário fazer o detalhamento para a sua correta
+       execução. Neste caso, foram realizados os desenhos da vista
+       superior, vista frontal, do corte e um detalhe do mecanismo de
+       funcionamento (Figura 2).
+       Figura 2 | Detalhamento geral de esquadria.
+Disciplina
+
+DESENHO DE ARQUITETURA E
+URBANISMO
+
+       Fonte: Adaptado de Nesse e Silva (2017).
+
+   Sigaemfrente
+
+  SIGA EM FRENTE
+  Detalhes construtivos
+  internos
+Disciplina
+
+DESENHO DE ARQUITETURA E
+URBANISMO
+
+       Diversos outros elementos arquitetônicos podem ser
+       detalhados para garantir a clareza e precisão do projeto. Além
+       de esquadrias, também podem ser detalhados paginação de
+       pisos e acabamentos, estrutura de coberturas, calhas e rufos,
+       instalações elétricas ou hidráulicas, ornamentos arquitetônicos,
+       bem como qualquer elemento que o projetista julgar necessário
+       para a compreensão do projeto. Em projetos de interiores, é
+       comum o detalhe de mobiliário (especialmente quando feito
+       sob medida), especificação de acabamentos, elementos
+       vazados, entre outros. Veja o exemplo da Figura 3 a seguir do
+       detalhamento do posicionamento/instalação de painel de
+       madeira e porta de correr.
+       Figura 3 | Detalhamento de posicionamento de porta de correr
+
+       Fonte: Pinterest
+Disciplina
+
+DESENHO DE ARQUITETURA E
+URBANISMO
+
+       Veja mais um exemplo de detalhamento, agora para o projeto
+       de interiores. Se trata de um espelho com iluminação para um
+       lavabo na Figura 4 a seguir.
+       Figura 4 | Detalhamento de espelho com iluminação difusa
+
+       Fonte: Pinterest
+       Os detalhamentos podem incluir as vistas superior, frontal e
+       lateral, cortes e detalhes desse mobiliário, indicando materiais,
+       espessuras, encaixes, entre outros.
+       Não importa qual seja o elemento detalhado, é importante
+       manter os padrões de linhas, hierarquia de traços, simbologias e
+       outros recursos gráficos para permitir a legibilidade do desenho
+       técnico.
+
+   Vamosexercitar
+Disciplina
+
+DESENHO DE ARQUITETURA E
+URBANISMO
+
+  VAMOS EXERCITAR
+  Detalhando o projeto
+
+       Agora que você já sabe o que é um detalhamento e o que
+       precisa ser detalhado no projeto, vamos exemplificar como
+       funciona na prática.
+       Pense em todas as possibilidades de detalhamento que podem
+       ser feitos em apenas um ambiente, como uma sala de estar.
+       Nela, existem diversos elementos: da própria construção (piso,
+       paredes, teto, esquadrias), mobiliário, luminárias, tomadas e
+       interruptores, objetos de decoração, etc. Para que cada um
+       deles seja executado conforme o projeto de interiores, todas as
+       informações referentes a cada um dos elementos precisam ser
+       transmitidas por meio do desenho técnico detalhado e bem
+       executado.
+       No entanto, apenas um desenho talvez não seja suficiente. Uma
+       planta detalhada para o projeto de interiores possui diversas
+       informações, como os revestimentos, a iluminação, instalações
+       elétricas e hidráulicas, a especificação dos móveis utilizados,
+       bem como seus respectivos materiais, entre outros. Além disso,
+       se tiver algum elemento sob medida também deverá ser
+       detalhado individualmente.
+Disciplina
+
+DESENHO DE ARQUITETURA E
+URBANISMO
+
+       Ao colocar tantas especificações em apenas um desenho, as
+       cotas, linhas de chamada e outras informações ficarão
+       sobrepostas e dificultarão a compreensão, fugindo do principal
+       objetivo de um desenho técnico: ser claro e preciso. Você pode,
+       portanto, fazer diversos desenhos em outros formatos e
+       apresentações (plantas baixas, cortes, vistas, detalhes), cada
+       qual com a sua finalidade própria, para garantir que todos os
+       dados sejam transmitidos com exatidão.
+       Em um projeto de interiores é possível ter diferentes plantas: de
+       revestimentos (pintura, papel de parede, porcelanatos e outros),
+       de especificações de mobiliário e objetos, de posicionamento
+       da decoração, da localização dos pontos elétricos e hidráulicos
+       (se houver alteração), de paginação de piso, etc. Veja, na Figura
+       5, um exemplo de planta de iluminação.
+       Figura 5 | Planta de iluminação – projeto de interiores.
+Disciplina
+
+DESENHO DE ARQUITETURA E
+URBANISMO
+
+       Fonte: Acervo autora (2022)
+       Lembre-se de que a planta humanizada é muito importante para
+       seu cliente entender a sua proposta! Observe este projeto
+       construído em planta humanizada, na Figura 6 a seguir.
+       Figura 6 | Planta humanizada de sala estar/jantar – projeto de
+       interiores
+
+       Fonte: Acervo autora (2022)
+       Perceba que neste modelo de planta existem as linhas de
+       chamada identificando cada elemento da composição, mas se
+       preferir você pode criar uma tabela que relaciona o número com
+       o tipo de móvel, seu modelo, medidas, cores, materiais e outras
+       especificações, por exemplo, o nome do fornecedor e a loja
+       onde o cliente poderá encontrá-lo, o que facilitará e muito no
+       momento de orçar este projeto.
+Disciplina
+
+DESENHO DE ARQUITETURA E
+URBANISMO
+
+       Ainda, se houver algum mobiliário sob medida, não se esqueça
+       de desenhá-lo em detalhes para que a marcenaria ou loja
+       especializada possa executá-lo de forma correta. Veja, na
+       Figura 7, a perspectiva do resultado do projeto e na Figura 8 um
+       exemplo de detalhamento de mobiliário.
+       Figura 7 | Perspectivas com resultado final do projeto de
+       interiores
+
+       Fonte: Acervo autora (2022).
+       Figura 8 | Detalhe de móvel
+Disciplina
+
+DESENHO DE ARQUITETURA E
+URBANISMO
+
+       Fonte: Acervo autora (2022)
+       Também é interessante indicar as vistas das paredes para
+       garantir a compreensão do ambiente nas três dimensões, não
+       apenas em planta. Cada um dos desenhos será capaz de
+       esclarecer informações importantes para a correta
+       compreensão do projeto. Veja, na Figura 9, um modelo de vista
+       de uma parede interna.
+       Figura 9 | Vista de parede detalhada no projeto de interiores.
+Disciplina
+
+DESENHO DE ARQUITETURA E
+URBANISMO
+
+       Fonte: Acervo autora (2022)
+       Perceba as inúmeras possibilidades de detalhamento que você
+       acabou de descobrir e como poderá utilizá-las no seu dia a dia
+       profissional. Até mesmo a decoração pode ser detalhada. Onde
+       serão posicionados os quadros, e em qual altura? Qual o
+       tamanho e material do tapete? Use todo o domínio técnico que
+       você adquiriu para elaborar plantas baixas, cortes, elevações e
+       detalhamentos que garantam a compreensão e clareza nos
+       seus projetos. Não se esqueça de consultar as normas e
+       materiais técnicos sempre que tiver alguma dúvida.
+
+   Saibamais
+
+  SAIBA MAIS
+Disciplina
+
+DESENHO DE ARQUITETURA E
+URBANISMO
+
+  SAIBA MAIS
+
+       Olá, estudante! Vamos avançar com nosso conhecimento sobre
+       o detalhamento técnico, que é muito importante para garantir a
+       correta execução da construção. Veja o projeto da residência
+       Porto Madeiro, desenvolvido por Cristiana Pasquini do grupo
+       DEA Arquitetura. A casa possui estrutura mista de concreto e
+       aço, grandes brises pivotantes na varanda e ventilação cruzada
+       por meio de aberturas na cobertura. Imagine como seria
+       executar essa obra sem um detalhamento adequado.
+       Conheça mais sobre o projeto e veja o diagrama disponibilizado
+       no site do escritório de arquitetura para compreender todos os
+       detalhes da construção.
+       Residência Porto Madeiro.
+
+   Referências
+
+  REFERÊNCIAS
+
+       ASSOCIAÇÃO BRASILEIRA DE NORMAS TÉCNICAS - ABNT. NBR
+       6492: Documentação técnica para projetos arquitetônicos e
+       urbanísticos – Requisitos. Rio de Janeiro: ABNT, 2021.
+       GRUPO DEA ARQUITETURA. Residência Porto Madeiro. 2022.
+       Disponível
+Disciplina
+
+DESENHO DE ARQUITETURA E
+URBANISMO
+
+       em: https://www.grupodearquitetura.com.br/residenciaportoma
+       derohttps://www.grupodearquitetura.com.br/residenciaportoma
+       dero&gt;. Acesso em: fev. 2024.
+       NESSE, Paola P. L.; SILVA, Samuel S. M. Desenho arquitetônico.
+       Londrina: Editora e Distribuidora Educacional S.A. (WL), 2017.
+       XAVIER, Sinval. Apostila de Desenho Arquitetônico. Apostila do
+       curso das disciplinas de Desenho Arquitetônico dos cursos de
+       Engenharia Civil e Engenharia Civil Empresarial da Universidade
+       Federal do Rio Grande. Março. 2011. Disponível
+       em: https://bit.ly/3rDghwK. Acesso em: setembro set.de 2024.
+
+  Aula 5
+
+    Aula 20
+
+   Pontodechegada
+
+  PONTO DE CHEGADA
+  Coberturas, circulação
+  vertical e detalhamento
+
+       Para realizar um projeto arquitetônico, diversos elementos
+       devem ser representados no desenho técnico a fim de torná-lo
+Disciplina
+
+DESENHO DE ARQUITETURA E
+URBANISMO
+
+       acessível e completo. Dentre eles, podemos citar as coberturas
+       e os elementos de circulação vertical, que devem ser
+       dimensionados corretamente para evitar problemas estruturais
+       ou dificuldades na acessibilidade da construção.
+       Em se tratando das coberturas, diversos são os modelos e
+       materiais que podem ser empregados no projeto de um telhado.
+       Alguns dos tipos mais comuns são o telhado aparente, telhado
+       embutido e a laje plana. As telhas podem ser em cerâmica,
+       concreto, fibrocimento ou metal, variando suas características
+       de conforto termoacústico, inclinação e efeitos estéticos.
+       O cálculo de inclinação do telhado segue a fórmula:
+
+            Inclinação (%) = Altura do telhado (m) / Largura (m) x 100
+       Isso significa que a inclinação é a proporção entre a altura e a
+       largura do telhado. É dada em porcentagem e varia de 2% a 5%
+       no caso da laje plana, ou de 5% a 35% nos outros modelos de
+       telhado a depender da telha utilizada.
+       Já sobre as circulações verticais, existem três tipos: escadas,
+       rampas e elevadores. Os dois primeiros são dimensionados de
+       acordo com as exigências da norma de acessibilidade, a NBR
+       9050 (ABNT, 2021b), enquanto o último segue as
+       recomendações de segurança na NBR 16858-1 (ABNT, 2021c).
+       Os elementos da escada devem estar de acordo com o que
+       orienta a norma de acessibilidade. A profundidade do piso, a
+       altura do espelho e dos corrimãos e a relação entre ambos
+       precisa atender a critérios específicos para garantir o conforto e
+Disciplina
+
+DESENHO DE ARQUITETURA E
+URBANISMO
+
+       a segurança dos usuários. O número de degraus varia conforme
+       o desnível a ser vencido.
+       O dimensionamento das rampas também se apoia nas
+       diretrizes da norma, onde a inclinação máxima de acordo com
+       cada desnível é orientada para garantir o acesso de pessoas em
+       cadeiras de rodas ou com mobilidade reduzida.
+       Ainda, sobre a circulação vertical, os elevadores se tornam uma
+       alternativa mais rápida e com maior economia de espaço em
+       relação aos citados anteriormente. No entanto, por serem
+       equipamentos mecânicos, estão sujeitos a falhas e nunca deve
+       se apoiar apenas no uso de elevadores para garantir a
+       circulação vertical da construção. Os elevadores são
+       dimensionados de acordo com as diretrizes da norma NBR
+       16858-1 (ABNT, 2021c), que trata sobre os requisitos de
+       segurança para construção e instalação de elevadores elétricos
+       e hidráulicos.
+       Por fim, é muito importante que os elementos de um projeto
+       estejam detalhados adequadamente para garantir a correta
+       execução na obra. O detalhamento técnico possui uma
+       quantidade de informações maior, a fim de que todas as
+       orientações, medidas, materiais e formas de execução estejam
+       claras e precisas para a equipe de execução. Qualquer elemento
+       da construção pode ser detalhado e, em especial, recomenda-se
+       que aqueles de maior complexidade ou os que foram
+       projetados sob medida especificamente para a construção
+       recebam mais detalhes no desenho técnico. Algumas
+Disciplina
+
+DESENHO DE ARQUITETURA E
+URBANISMO
+
+       sugestões de elementos que podem ser detalhados são:
+       esquadrias, coberturas, circulações verticais, mobiliário, entre
+       outros.
+       Independentemente do que se esteja desenhando, lembre-se de
+       usar todas as convenções recomendadas pela NBR 6492
+       (ABNT, 2021a), que trata as diretrizes de padronização para os
+       desenhos técnicos arquitetônicos.
+       O que seria do projeto arquitetônico e do projeto de interiores se
+       não houvesse normas e diretrizes para a correta representação
+       dos elementos? Já pensou o que aconteceria se cada projetista
+       resolvesse representar os elementos da forma como bem
+       entendesse? Ninguém conseguiria compreender o projeto,
+       tampouco executá-lo de forma correta.
+       Não é um mero capricho o fato de existirem tantas convenções
+       de símbolos, espessuras e tipos de linhas, formas e
+       representações no que diz respeito ao desenho técnico. São
+       elas que orientam o desenhista para que cada linha traçada seja
+       compreendida corretamente.
+       Portanto, você como um futuro profissional deve adequar-se às
+       normas, especialmente à NBR 6492 (ABNT, 2021a), e NBR 9050
+       (2021b), para que não haja informações mal-entendidas e
+       falhas de interpretação no principal meio de comunicação que
+       todos os profissionais da área utilizam: o desenho técnico. Ele
+       deve, sozinho, conseguir transmitir tudo o que está na mente do
+       projetista para os outros profissionais envolvidos na obra.
+Disciplina
+
+DESENHO DE ARQUITETURA E
+URBANISMO
+
+   Videoauladeencerramento
+
+  VIDEOAULA DE
+  ENCERRAMENTO
+
+       Olá, estudante!
+       Desejo boas-vindas ao nosso conteúdo de revisão sobre a
+       representação de coberturas, circulações verticais e
+       detalhamentos em desenhos técnicos. Cada elemento possui
+       sua recomendação específica para dimensionamento e
+       algumas normas devem ser seguidas a fim de garantir a
+       acessibilidade e segurança da construção. Além disso, os
+       desenhos devem ser representados a partir do padrão técnico
+       determinado pela NBR 6492 (ABNT, 2021a) para permitir a
+       clareza e precisão na representação gráfica.
+       Vamos iniciar?
+
+   Éhoradepraticar
+
+  É HORA DE PRATICAR
+Disciplina
+
+DESENHO DE ARQUITETURA E
+URBANISMO
+
+       Muitas construções hoje, especialmente as mais antigas, não
+       abrangem a totalidade das recomendações de acessibilidade
+       da NBR 9050 (ABNT, 2021b). Isto é um problema, pois nunca se
+       sabe quando um indivíduo precisará dos meios acessíveis para
+       utilizar a construção. Mesmo que não existam condições de
+       saúde que prejudiquem a mobilidade, as pessoas podem passar
+       por alguma situação que dificulte momentaneamente a
+       locomoção, por exemplo, nos casos de pessoas que usam
+       muletas devido a uma perna quebrada ou pessoas com
+       carrinhos de bebê. Portanto, é necessário que se faça uma
+       reforma nas edificações que não seguem às exigências de
+       acessibilidade a fim de adequá-las à norma.
+       Imagine que você está encarregado pelo projeto de reforma de
+       uma construção comercial. A edificação onde hoje funciona a
+       loja possui dois pavimentos e telhado embutido. Os
+       proprietários decidiram expandir o comércio e utilizar o piso
+       superior, que era utilizado apenas como depósito, também
+       como parte da loja para exposição dos produtos. Porém, o
+       único meio de circulação vertical é uma escada em caracol,
+       completamente inadequada em termos de acessibilidade.
+       Para que possa adaptar a construção às normas, será
+       necessário a construção de novas formas de circulação
+       vertical. Como os proprietários não querem perder nenhuma
+       área interna do comércio, optou-se por utilizar uma área do
+       estacionamento externa à construção para implantar os
+Disciplina
+
+DESENHO DE ARQUITETURA E
+URBANISMO
+
+       elementos necessários para a adequação. Veja na Figura 1 a
+       localização da área disponível e o projeto atual da construção.
+       Figura 1 | Projeto da construção comercial. a) Planta baixa –
+       pavimento térreo
+
+       Fonte: Carolina C. de Assis (2023).
+       Figura 1 | Projeto da construção comercial - b) Planta baixa –
+       pavimento superior.
+Disciplina
+
+DESENHO DE ARQUITETURA E
+URBANISMO
+
+       Fonte: Carolina C. de Assis (2023).
+       Figura 1 | Projeto da construção comercial. c) Planta da
+       cobertura.
+Disciplina
+
+DESENHO DE ARQUITETURA E
+URBANISMO
+
+       Fonte: Carolina C. de Assis (2023).
+       Figura 1 | Projeto da construção comercial - d) Corte.
+Disciplina
+
+DESENHO DE ARQUITETURA E
+URBANISMO
+
+       Fonte: Carolina C. de Assis (2023).
+       Você deverá calcular e projetar a circulação vertical para
+       garantir a acessibilidade no projeto, bem como uma cobertura
+       que proteja os clientes e funcionários das intempéries. Fique
+       livre para incluir ou remover paredes e esquadrias ou outros
+       elementos para garantir que o projeto se adéque às normas,
+       seja funcional e apresente uma qualidade estética agradável.
+       Agora você deve colocar a mão na massa. Quais tipos de
+       circulação vertical você utilizará? Qual será o dimensionamento
+       adequado? Qual o modelo da cobertura? Essas questões devem
+       estar representadas no projeto através dos desenhos técnicos
+       que você elaborar. Utilize-se de plantas baixas, cortes, planta de
+       cobertura e detalhamentos para garantir a precisão e clareza
+       deste projeto de reforma.
+Disciplina
+
+DESENHO DE ARQUITETURA E
+URBANISMO
+
+   Dêoplay
+
+  DÊ O PLAY!
+
+       Para resolver o problema de acessibilidade, será necessário
+       incluir uma escada e uma rampa na área onde hoje é o
+       estacionamento para dar acesso ao segundo pavimento de uma
+       forma segura e confortável, conforme a NBR 9050 (ABNT,
+       2021b).
+
+   Cálculo da escada
+
+       Primeiramente, vamos realizar o cálculo da escada. No corte,
+       vimos que o pé-direito é de 3 metros. Isso significa que vamos
+       utilizar 17 degraus (300 / 18 = 16,66 = 17). Cada degrau terá um
+       espelho de 17,65 cm (300 / 17 = 17,65) e a largura da pisada
+       podemos definir como 29 cm. Vamos utilizar a fórmula de
+       conforto para verificar se a escada foi calculada corretamente:
+
+                                                     63 cm ≤p+2e ≤ 65cm
+                                                     63 ≤ 29+ (2 x 17,65) ≤ 65
+                                                     63 ≤ 29+ (35,3) ≤ 65
+                                                     63 ≤ 64,3 ≤ 65
+
+       Pelo resultado da fórmula, observamos que a escada foi
+       calculada corretamente.
+Disciplina
+
+DESENHO DE ARQUITETURA E
+URBANISMO
+
+       A largura da escada será de 120 cm, o recomendado pela NBR
+       9050 (ABNT, 2021b) para rotas acessíveis.
+
+   Cálculo da rampa
+
+       Para o cálculo da rampa, vamos utilizar a inclinação de 8,33%, a
+       máxima permitida pela norma. Isso significa que precisamos
+       dividir nosso desnível em segmentos com altura de até 80 cm.
+       Se fizermos 4 segmentos de rampa, cada um deles vencerá um
+       desnível de 75 cm (300 / 4 = 75 cm).
+       Para vencer um desnível de 75 cm com 8,33% de inclinação
+       precisamos de um comprimento de rampa de 9 metros ((0,75 /
+       8,33) x 100 = 0,09 x 100 = 9 m). Portanto, nossa rampa terá 4
+       segmentos de 9 metros cada, com desnível de 75 cm em cada
+       segmento.
+       A largura da rampa será de 150 cm, de acordo com as
+       recomendações da norma. Não devemos nos esquecer dos
+       patamares ao final de cada segmento, também com 150 cm.
+
+   Projetando a reforma
+
+       Agora, com estes dados em mãos, você deve avaliar o projeto
+       existente e como será possível incluir as circulações verticais
+       que calculamos.
+       Uma forma de resolver esse projeto seria utilizando uma rampa
+       em Z próximo às divisas do terreno, em continuidade com a
+Disciplina
+
+DESENHO DE ARQUITETURA E
+URBANISMO
+
+       edificação existente. Ao lado da rampa, podemos colocar uma
+       escada em L para dar acesso ao segundo pavimento. Observe,
+       na Figura 2, como ficaria esse projeto.
+       Figura 2 | Plantas baixas do projeto de reforma - a) Planta baixa
+       – pavimento térreo.
+
+       Fonte: acervo da autora.
+       Figura 2 | Plantas baixas do projeto de reforma - b) Planta baixa
+       – pavimento superior.
+Disciplina
+
+DESENHO DE ARQUITETURA E
+URBANISMO
+
+       Fonte: acervo da autora.
+       Para a cobertura, podemos seguir o modelo existente, com
+       telhado embutido e telha de fibrocimento. Isso garante a
+       mesma inclinação e altura similar de platibanda, para não
+       destoar das características existentes do projeto. Veja, na
+       Figura 3, como seria a cobertura.
+       Figura 3 | Planta de cobertura do projeto de reforma
+Disciplina
+
+DESENHO DE ARQUITETURA E
+URBANISMO
+
+       Fonte: acervo autora.
+       Por fim, o corte serve para mostrar como funciona a circulação
+       vertical, a altura da platibanda, bem como a integração entre a
+       construção existente e a nova. Veja o corte na Figura 4.
+       Figura 4 | Corte do projeto de reforma.
+
+       Fonte: acervo autora.
+Disciplina
+
+DESENHO DE ARQUITETURA E
+URBANISMO
+
+       Não se esqueça de detalhar os elementos importantes do
+       projeto para torná-lo mais claro e preciso. Você pode, por
+       exemplo, detalhar a escada, conforme a Figura 5.
+       Figura 5 | Planta baixa da escada.
+
+       Fonte: acervo autora.
+       Parabéns! Você conquistou a competência de desenvolver um
+       projeto com seus respectivos desenhos e detalhamentos
+       técnicos, de acordo com as normas de desenho, segurança e
+       acessibilidade!
+
+   Assimile
+
+  ASSIMILE
+Disciplina
+
+DESENHO DE ARQUITETURA E
+URBANISMO
+
+       Chegamos ao fim da nossa disciplina! Para desenvolver a
+       competência da unidade que é a compreensão dos
+       fundamentos da técnicas e representações de desenho técnico
+       para aplicação no desenvolvimento de coberturas, elementos
+       verticais (escadas, rampas e elevadores) e detalhamentos
+       importantes para o entendimento no momento da execução da
+       obra, em projetos de arquitetura e urbanismo, veja o resumo
+       visual desta unidade.
+
+   Referências
+
+  REFERÊNCIAS
+Disciplina
+
+DESENHO DE ARQUITETURA E
+URBANISMO
+
+       ASSOCIAÇÃO BRASILEIRA DE NORMAS TÉCNICAS – ABNT.
+       NBR 6492: Documentação técnica para projetos arquitetônicos
+       e urbanísticos - Requisitos. Rio de Janeiro: ABNT, 2021a.
+       ASSOCIAÇÃO BRASILEIRA DE NORMAS TÉCNICAS – ABNT.
+       NBR 9050:2020 Versão Corrigida: 2021: Acessibilidade a
+       edificações, mobiliário, espaços e equipamentos urbanos. Rio
+       de Janeiro: ABNT, 2021b.
+       ASSOCIAÇÃO BRASILEIRA DE NORMAS TÉCNICAS – ABNT.
+       NBR 16858-1: Elevadores – Requisitos de segurança para
+       construção e instalação - Parte 1: Elevadores de passageiros
+       e elevadores de passageiros e cargas. Rio de Janeiro: ABNT,
+       2021c.
+

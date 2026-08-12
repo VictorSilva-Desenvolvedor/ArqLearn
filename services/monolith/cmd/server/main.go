@@ -65,7 +65,7 @@ func main() {
 
 	gemini := questiongen.New(os.Getenv("GEMINI_API_KEY"))
 	if !gemini.Enabled() {
-		log.Print("aviso: GEMINI_API_KEY ausente — Modo Infinito de Maquetes não vai gerar lotes novos em segundo plano, só reaproveita o pool existente")
+		log.Print("aviso: GEMINI_API_KEY ausente — Modo Infinito dos tópicos com texto-fonte real (ver questiongen.HasSourceText) não vai gerar lotes novos em segundo plano, só reaproveita o pool existente")
 	}
 
 	r2 := objectstorage.New(

@@ -1,0 +1,528 @@
+Disciplina
+
+INFORMÁTICA APLICADA À
+ARQUITETURA E URBANISMO -
+PROJEÇÕES ORTOGONAIS
+
+New Escolha seu template
+A criação de um template é um dos passos mais importantes para tornar seu trabalho no
+AutoCAD mais profissional, rápido e organizado. Dominar essa etapa não é apenas saber
+configurar um arquivo — é construir sua identidade técnica e visual como projetista.
+Ao desenvolver seu template, você investirá na sua autonomia como designer, arquiteto ou
+engenheiro. É uma ferramenta simples, mas que transforma completamente o fluxo de trabalho.
+Agora, vamos praticar: Criaremos juntos o seu arquivo padrão personalizado!
+
+Siga em frente
+
+Siga em Frente
+
+Estilos de plotagem (CTB)
+
+Quando finalizamos um desenho no AutoCAD, é comum perceber que na tela tudo parece claro e
+harmônico. Porém, ao imprimir, algumas linhas podem sair muito grossas, outras quase
+invisíveis, algumas com cores fortes demais, enquanto elementos importantes perdem destaque.
+Esse é um problema frequente entre iniciantes, e um dos fatores que mais diferencia trabalhos
+amadores de produções profissionais. Para resolver isso, utilizamos os estilos de plotagem,
+conhecidos como CTB.
+
+a. O que é um CTB?
+
+O CTB é um arquivo de configuração que define como cada cor do desenho será impressa. Ou
+seja, ele determina:
+
+A espessura das linhas.
+Se a cor será impressa em preto, em escala de cinza ou na própria cor.
+A transparência.
+A qualidade da impressão daquele elemento.
+
+Em resumo: O CTB controla a legibilidade da prancha. Ele é responsável por garantir que o
+desenho fique claro e fácil de interpretar — algo essencial para apresentação a clientes,
+professores ou órgãos técnicos (Baldam; Costa; Oliveira, 2015).
+
+b. Como funciona a lógica de um CTB?
+
+A lógica é simples: No AutoCAD, cada cor corresponde a uma configuração de impressão
+(Oliveira; Baldam; Costa, 2012), por exemplo a Tabela 1:
+
+                                    Tabela 1| Exemplo de configuração de CTB.
+
+Cor no desenho Aparência na impressão Espessura da linha
+
+1 (Vermelho) Cinza claro   0.15 mm
+Disciplina
+
+INFORMÁTICA APLICADA À
+ARQUITETURA E URBANISMO -
+PROJEÇÕES ORTOGONAIS
+
+Cor no desenho Aparência na impressão Espessura da linha
+
+2 (Amarelo) Preto fino        0.10 mm
+
+8 (Cinza)  Preto espesso      0.40 mm
+
+30 (Azul escuro) Preto médio  0.25 mm
+
+Isso significa que, ao desenhar, você está “escolhendo a espessura da linha” pela cor, e não
+manualmente. Assim, seu trabalho fica mais organizado e padronizado.
+
+c. Criando ou editando um CTB
+
+Para criar ou modificar um estilo de plotagem:
+
+Vá até Plot (Ctrl + P).
+Selecione Plot Style Table (CTB), indicado na Figura 1.
+Clique em New, para criar, ou Edit, para alterar um existente.
+Será aberta a janela de configurações do CTB.
+
+Na Figura 1, podemos observar a interface do AutoCAD 2022 com a ferramenta de plotagem
+ativada, em que, após rolagem do mouse, é possível configurar novo CTB.
+Figura 1 | Localização da aba para modificar um CTB (rolar a lista até a opção "New").
+Disciplina
+
+INFORMÁTICA APLICADA À
+ARQUITETURA E URBANISMO -
+PROJEÇÕES ORTOGONAIS
+
+    Fonte: captura de tela do aplicativo Autodesk.
+    Dentro dela, você encontrará uma lista com todas as cores, Figura 2. Para cada cor, defina:
+
+            Lineweight (Espessura da linha)
+            Color (Cor de saída)
+Disciplina
+
+INFORMÁTICA APLICADA À
+ARQUITETURA E URBANISMO -
+PROJEÇÕES ORTOGONAIS
+
+            Dithering / Grayscale (Escala de cinza)
+            Screening (Intensidade da tinta)
+    Na Figura 2, podemos observar a interface do AutoCAD 2022 com a ferramenta de configuração
+    de CTBativada, em que, após rolagem do mouse, é possível configurar novo CTB.
+    Figura 2 | Janela de configuração de CTB ativada.
+Disciplina
+
+INFORMÁTICA APLICADA À
+ARQUITETURA E URBANISMO -
+PROJEÇÕES ORTOGONAIS
+
+    Fonte: captura de tela do aplicativo Autodesk.
+    No Layout, trabalhamos na escala da impressão, e não mais na escala real.
+    Passo a passo para criar uma prancha:
+Disciplina
+
+INFORMÁTICA APLICADA À
+ARQUITETURA E URBANISMO -
+PROJEÇÕES ORTOGONAIS
+
+            Escolha o formato da folha. Vá em PAGE SETUP Modify selecione o tamanho (exemplo:
+            A3 420x297 mm).
+            Insira ou desenhe o carimbo: Você pode desenhar diretamente no Layout ou inserir um
+            bloco pronto de carimbo padronizado.
+           Crie a viewport. Use o comando: MV Enter Clique e arraste para criar a janela.
+           Aplique a escala: Clique dentro da viewport e na barra inferior selecione a escala desejada,
+            ex: 1:50.
+           Trave a viewport. Para evitar que o enquadramento “pule”: Properties Display Locked Yes
+
+    Exemplo prático:Você possui a planta de uma casa pronta no Model Space. No Layout, cria uma
+    folha A3, insere o carimbo “Projeto Residencial – Planta Baixa”, cria uma viewport centralizada e
+    define sua visualização em 1:75. Agora, sua planta está pronta para ser lida e entendida por
+    qualquer pessoa.
+
+     3. Inserção de textos (Text e Mtext)
+
+    A comunicação visual de um projeto não depende apenas das linhas, mas também da clareza
+    das informações escritas. Por isso, é fundamental trabalhar corretamente os textos no AutoCAD.
+    Existem dois principais comandos para textos:
+
+            TEXT: cria textos simples (uma linha).
+            MTEXT: cria textos multilinhas, indicado para anotações maiores.
+
+    Comando MTEXT – exemplo prático
+    Você deseja adicionar o nome de um ambiente em uma planta:
+
+            Digite: MTEXT Enter
+            Clique no local desejado e arraste para definir o quadro de texto.
+            Digite: SALA DE ESTAR
+            Ajuste o tamanho da fonte considerando sua escala final.
+
+    Dica importante: Textos devem ser legíveis na prancha, não no Model Space. Ou seja, o tamanho
+    aparente deve respeitar o padrão gráfico (geralmente 2,5 mm a 4 mm no papel).
+
+    Siga em frente
+
+  Siga em Frente
+
+   Métodos de dimensionamento e definição de escalas no
+   AutoCAD
+Disciplina
+
+INFORMÁTICA APLICADA À
+
+ARQUITETURA E URBANISMO -
+
+PROJEÇÕES ORTOGONAIS
+
+    Quando desenhamos no AutoCAD, trabalhamos sempre em escala real, ou seja, uma parede de 4
+    metros deve ser desenhada com valor 4.00, uma mesa de 1,20 metro deve ter 1.20, e assim por
+    diante. Esse princípio, à primeira vista, pode parecer simples, mas é justamente ele que permite
+    precisão, comunicação correta com a obra e compatibilidade entre desenhos técnicos. Porém,
+    para que esse desenho seja lido, interpretado e construído no mundo real, precisamos
+    representar essa realidade em papel, que é limitado em tamanho. É aí que entram os métodos de
+    dimensionamento e a definição de escalas, elementos fundamentais para transformar o desenho
+    técnico em informação clara e prática para execução.
+    A escala é a relação entre o tamanho real e o tamanho representado na prancha (Tuller, 2013).
+    Assim, uma escala 1:50 significa que 1 unidade no papel equivale a 50 unidades no real. Na
+    prática, isso permite reduzir o desenho de maneira proporcional para caber em uma folha, sem
+    perder suas dimensões reais.
+    Antes de pensar na escala da impressão, é importante compreender que a base do
+    dimensionamento deve sempre ser feita com medidas reais. Por isso, o comando DIM e seus
+    complementos são tão relevantes. Eles fornecem informações precisas ao leitor da prancha,
+    mostrando medidas, alturas, distâncias e alinhamentos.
+    Vamos observar isso de maneira prática. Suponha que você desenhou um quarto de 3,00 m x
+    4,00 m no Model Space. Para cotar o comprimento da parede maior, você pode usar: DIMLINEAR
+
+      Enter.
+    Clique no primeiro ponto da parede, no segundo ponto, e mova o cursor para posicionar a cota. O
+    AutoCAD exibirá um número, como 4.00. Isso informa ao leitor que aquele trecho corresponde a
+    quatro metros no mundo real.
+    Para cotar uma medida inclinada, como o comprimento de uma escada ou o comprimento
+    diagonal de um pergolado: DIMALIGNED Enter.
+    Esse comando acompanha a inclinação do objeto, evitando distorções ou interpretações
+    equivocadas.
+    É importante também definir o estilo das cotas para que o desenho fique padronizado e legível na
+    prancha. Para isso, utilizamos: DIMSTYLE Enter.
+    No painel, podemos ajustar fonte, tamanho da seta, posicionamento do texto e, principalmente, a
+    altura do texto da cota, que deve ser pensada para a escala da impressão. Uma cota ilegível ou
+    exagerada compromete completamente a leitura do projeto. De acordo com a ABNT NBR
+    6492:2021 – Representação de projetos de arquitetura, o texto da cota no papel deve ter 2,5 mm
+    independentemente da escala escolhida.
+    Agora, avancemos para o momento de representar o desenho na prancha, que acontece no
+    Layout. Nesse ambiente, utilizamos viewports para “enquadrar” a área desejada. Uma vez que a
+    viewport é criada, definimos a escala visual do desenho dentro dela. Isso é feito no canto inferior
+    direito da tela, onde aparece a lista de escalas padrão do AutoCAD, indicado em vermelho na
+    Figura 3 (Baldam; Costa; Oliveira, 2015). Na Figura 3, podemos observar a interface do AutoCAD
+    2022 apresentando o layout com indicação de ícone onde se altera a escala do viewport.
+    Figura 3 | Interface do AutoCAD com a indicação em vermelho de campo onde se define a escala
+    do viewport.
+Disciplina
+
+INFORMÁTICA APLICADA À
+ARQUITETURA E URBANISMO -
+PROJEÇÕES ORTOGONAIS
+
+    Fonte: captura de tela do aplicativo Autodesk.
+    Por exemplo, suponha que você tenha um Layout configurado em folha A3 e criou uma viewport.
+    Clique dentro dela e selecione 1:50. Automaticamente, o desenho será exibido reduzido
+Disciplina
+
+INFORMÁTICA APLICADA À
+ARQUITETURA E URBANISMO -
+PROJEÇÕES ORTOGONAIS
+
+           Clique no ícone de "sol" para congelar o layer naquela viewport.
+
+    Exemplo prático: No exemplo anterior da planta da residência:
+
+           Na viewport 1:100, você deseja mostrar a planta com mobiliário.
+           Na viewport 1:25 da cozinha, você deseja ocultar os textos e as cotas, deixando apenas o
+            detalhamento das bancadas e armários.
+
+    Passos:
+
+           Selecione a viewport do detalhe.
+            No Layer Properties coluna VP Freeze (Figura 2)
+           Congele layers como: COTAS, TEXTO, MOBILIÁRIO EXTRA, etc.
+            As linhas relevantes permanecem, mas as informações que poluem a leitura são removidas
+            somente naquela janela.
+
+    Resultado: Você limpa a visualização, sem apagar nada do desenho original.
+    Na Figura 2, podemos observar a interface do AutoCAD 2022 apresentando o layer properties
+    manager, com a opção layer freeze destacada em vermelho.
+    Figura 2 | Indicação de layer freeze, em vermelho.
+Disciplina
+
+INFORMÁTICA APLICADA À
+ARQUITETURA E URBANISMO -
+PROJEÇÕES ORTOGONAIS
+
+    Fonte: captura de tela do aplicativo Autodesk.
+
+     4. Criando layers exclusivos para o Layout
+Disciplina
+
+INFORMÁTICA APLICADA À
+ARQUITETURA E URBANISMO -
+PROJEÇÕES ORTOGONAIS
+
+    Além dos layers do desenho, você pode criar layers exclusivamente para elementos de
+    apresentação, tais como:
+
+            Linhas de enquadramento
+            Tarjas de destaque
+            Linhas para separar pranchas
+            Notas explicativas
+
+    Criando um layer somente para o layout:
+
+            Abra o Layer Properties.
+            Clique em New Layer.
+            Nomeie como: LAYOUT_TEXTOS ou VIEWPORT_FRAMES.
+            Aplique cor fina e discreta (por exemplo, cinza claro).
+           Insira textos adicionais no Layout utilizando esse layer.
+
+    Exemplo prático: Você deseja destacar uma área da planta para a banca examinadora ou cliente.
+
+           Crie um retângulo no Layout sobre a viewport, no novo layer.
+            Ajuste sua cor para um tom leve.
+            Ele não interfere no desenho original.
+
+    Isso cria um recurso visual de apresentação, sem contaminar o projeto.
+    Quando você domina layers no Layout e nas viewports, você:
+
+            Ganha clareza visual.
+            Evita ruídos na leitura do projeto.
+            Cria hierarquia de informações.
+            Mostra exatamente o que deve ser visto.
+            Monta pranchas profissionais e limpas.
+
+    Vamos exercitar
+
+  Vamos Exercitar?
+
+   Mãos à massa
+
+    Na situação-problema apresentada, você recebeu um arquivo DWG completo contendo a planta
+    arquitetônica de uma residência com vários layers e precisou montar uma prancha A2 no Layout.
+Disciplina
+
+INFORMÁTICA APLICADA À
+ARQUITETURA E URBANISMO -
+PROJEÇÕES ORTOGONAIS
+
+    O objetivo era apresentar a planta geral em escala 1:100 e um detalhe ampliado da cozinha em
+    1:25. No entanto, ao criar duas viewports, a visualização ficou poluída, especialmente no detalhe,
+    pois continha cotas, textos e mobiliários que não eram essenciais na ampliação. Além disso, foi
+    enviado um arquivo externo do layout da cozinha que precisava ser integrado. Agora, vamos
+    resolver esse desafio passo a passo, de forma prática e clara.
+
+     1. Preparação do Layout e criação das viewports
+
+            Antes de tudo, abra o Layout onde será montada a prancha. Suponha que você já tenha sua
+            prancha (moldura + selo). Se ainda não tiver, basta:
+            Digitar INSERT Selecionar o bloco da prancha Inserir no Layout.
+
+    Agora, vamos criar as janelas de visualização:
+
+     Comando:
+
+    Layout Viewport Retangular
+
+           Crie a primeira viewport grande, que ocupará a parte principal da prancha.
+           Crie uma segunda viewport menor ao lado, destinada ao detalhe da cozinha.
+
+    Ajuste de escalas:
+
+           Selecione a viewport da planta geral Na barra de propriedades, selecione 1:100.
+           Selecione a viewport do detalhe da cozinha Ajuste a escala para 1:25.
+
+    Isso já cria a diferenciação necessária entre visão geral e detalhe.
+    Mas ainda temos o problema da “poluição visual”. Vamos resolver.
+
+     2. Organizando a visualização com VP Freeze
+
+    No Model Space, todos os elementos estão presentes ao mesmo tempo. O segredo está em
+    controlar o que aparece em cada viewport individualmente, sem apagar nada e sem criar
+    confusão. Para isso, usamos o VP Freeze.
+    Como usar o VP Freeze no Layout:
+
+           Clique na borda da viewport que você deseja modificar (por exemplo, a viewport da cozinha
+            1:25).
+            Abra o Layer Properties (atalho: LA).
+            Localize a coluna VP Freeze.
+           Congele (ícone do sol apagado) layers que estão deixando a visualização poluída.
+
+    Exemplo prático:
+    Viewport da cozinha em 1:25 Congele: COTAS, TEXTOS, EIXOS, HACHURAS EXCESSIVAS.
+    Resultado imediato: A visualização mostra somente o que importa, como bancadas,
+    eletrodomésticos e divisórias. A leitura fica limpa, clara e objetiva.
+    Dica profissional: Você pode congelar layers diferentes em cada viewport. Isso significa que:
+Disciplina
+
+INFORMÁTICA APLICADA À
+
+ARQUITETURA E URBANISMO -
+
+PROJEÇÕES ORTOGONAIS
+
+            Extents (pega tudo que está desenhado).
+
+    Exemplo prático: Ao imprimir direto do Layout, sempre escolha Layout em Plot Area — isso
+    garante que o carimbo, margens e viewport serão incluídos corretamente.
+    d. Plot scale (Escala da impressão): Quando trabalhamos no Layout, a escala é definida na
+    viewport. Aqui, apenas confirmamos a escala “1:1”. Se a impressão for pelo Model, definimos
+    manualmente (exemplo: 1mm = 50 unidades 1:50).
+    2. Visualização antes da impressão: A pré-visualização é uma das ferramentas mais importantes
+    na etapa de plotagem. Ela permite conferir: se o desenho está centralizado na folha, se a escala
+    está correta, se o carimbo aparece por completo, se nenhuma linha está fina demais ou espessa
+    demais (Oliveira; Baldam; Costa, 2012).
+    Exemplo prático de pré-visualização:
+
+            Pressione CTRL + P.
+            Ajuste as configurações desejadas.
+            Clique em Preview.
+
+    Caso algo esteja desalinhado, feche a visualização e ajuste novamente, sem imprimir nada.
+    Dica: Sempre revise zoom, margens e posições antes de confirmar.
+    3. Tipos de saídas de impressão: A plotagem pode gerar diferentes tipos de resultados. Cada
+    formato atende a uma necessidade específica.
+
+         a. Impressão em impressoras tamanho A4/A3 – Utilizadas para rascunhos rápidos, revisões e
+            anotações. Boa para etapas intermediárias do projeto.
+            Exemplo prático: Você está revisando uma planta de layout de interiores. Imprime em A3,
+            faz anotações à mão e ajusta no AutoCAD antes da entrega final.
+
+         b. Impressão em plotter (A1, A0 e rolo contínuo) – Usada para pranchas finais, apresentações
+            e documentação técnica completa. Ideal para detalhamento e entrega profissional.
+            Exemplo prático: Ao preparar uma prancha para aprovação na prefeitura, você enviará em
+            A1 ou A0, para garantir clareza de cotas e informações normativas.
+
+         c. Saída Digital em PDF – É a opção mais comum atualmente para envio remoto. Mantém
+            escala e qualidade e pode ser arquivado e compartilhado sem perda de conteúdo.
+            Exemplo prático: Antes de imprimir na papelaria, gere um PDF com o nome organizado,
+            como:
+            Projeto_Sala_Escala1.50_A1.pdf
+
+         d. Saída em arquivo PLT (para plotagem técnica) – é usada principalmente em gráficas e
+           plotters industriais. Formato leve, não perde configuração de linha.
+            A etapa de plotagem é, ao mesmo tempo, técnica e estratégica. Cada escolha feita —
+            equipamento, formato, escala e saída — influencia diretamente na clareza e qualidade com
+            que o seu projeto será interpretado.
+Disciplina
+
+INFORMÁTICA APLICADA À
+ARQUITETURA E URBANISMO -
+PROJEÇÕES ORTOGONAIS
+
+    Quanto mais você praticar, mais intuitivo esse processo se torna. Teste, gere PDFs, visualize,
+    ajuste e experimente diferentes tamanhos de folha. A experiência se constrói com repetição.
+    Seu projeto merece ser bem comunicado — e agora você tem as ferramentas para fazer isso com
+    segurança e profissionalismo.
+
+    Vamos exercitar
+
+  Vamos Exercitar?
+
+   Configuração de prancha para plotagem
+
+    Vamos relembrar a situação proposta: Você está finalizando uma prancha de um projeto de sala
+    de atendimento terapêutico para apresentar ao cliente. A prancha está no Layout, com carimbo e
+    viewport ajustados. Porém, ao visualizar a impressão, percebe que parte do desenho está sendo
+    cortada na borda inferior da folha e que o mobiliário está pequeno, dificultando a leitura. A
+    prancha será entregue em A1 e também deverá ser enviada em PDF, com possibilidade de
+    impressão em plotter posteriormente.
+    Diante disso, o objetivo é realizar ajustes nas configurações de área de plotagem, escala, papel e
+    tipo de saída de impressão, garantindo um resultado técnico claro e profissional.
+    1. Ajuste da área de impressão: O corte da prancha na pré-visualização indica que a área de
+    impressão não está centralizada ou que a margem do Layout não está respeitando o tamanho do
+    papel. Neste caso, trabalharemos diretamente na janela de plotagem.
+    Passo a passo prático:
+
+            Acesse o Layout e pressione CTRL + P.
+            No campo Plot Area, selecione Layout.
+            Em seguida, marque a opção Center the Plot.
+            Visualize novamente com Preview.
+
+    Esse simples ajuste garante que a prancha seja centralizada na folha, evitando recortes
+    indesejados.
+    Caso o corte ainda persista, significa que a prancha no Layout está maior que o papel definido, e
+    então devemos verificar o tamanho da folha.
+    2. Verificação e seleção do tamanho do papel: Como a entrega será em A1, é importante
+    confirmar se esse formato está selecionado corretamente.
+    3. Ajuste da escala da viewport para melhor leitura: A percepção de que o mobiliário está
+    pequeno indica que a escala da viewport não está apropriada para o nível de detalhe desejado.
+Disciplina
+
+INFORMÁTICA APLICADA À
+ARQUITETURA E URBANISMO -
+PROJEÇÕES ORTOGONAIS
+
+    No Layout, é possível alterar somente a escala da janela de visualização sem modificar o
+    desenho.
+    4. Nova verificação da visualização (preview): Antes de finalizar, visualize novamente:
+
+            Pressione CTRL + P.
+            Clique em Preview.
+
+    5. Seleção do tipo de saída de impressão (arquivo): Como o cliente deseja uma cópia digital para
+    aprovação e também a possibilidade de impressão posterior em gráfica, a melhor escolha é gerar
+    PDF de alta qualidade.
+    Após ajustadas a área de plotagem, a escala da viewport, o formato da folha e a saída de
+    impressão em PDF, sua prancha agora possui:
+
+            Informações completas e visíveis.
+            Legibilidade adequada dos elementos e textos.
+            Proporção adequada dos objetos.
+            Centralização correta.
+           Compatibilidade com impressão em plotter.
+
+    Ou seja: você garantiu uma comunicação clara, precisa e profissional do seu projeto.
+
+    Saiba mais
+
+  Saiba Mais
+
+    Para aprofundar o que aprendemos em aula sobre plotagem e visualização, leia o capítulo
+    “Configuração da folha de impressão: Model e Layout – PAGESETUP” do livro AutoCAD 2016 –
+    Utilizando Totalmente. Nesse trecho, você compreenderá como configurar folhas, margens e
+    escalas de forma prática e profissional. O conteúdo mostra, passo a passo, como aplicar o
+    comando PAGESETUP, garantindo eficiência e qualidade nas impressões. Aproveite essa leitura
+    para consolidar seus conhecimentos e dominar a preparação final das pranchas!
+
+    Referências
+
+  Referências
+Disciplina
+
+INFORMÁTICA APLICADA À
+ARQUITETURA E URBANISMO -
+PROJEÇÕES ORTOGONAIS
+
+    BALDAM, R. de L.; COSTA, L.; OLIVEIRA, A. de. AutoCAD 2016: utilizando totalmente. Rio de
+    Janeiro: Érica, 2015. p. 256. E-book. Disponível em:
+    https://app.minhabiblioteca.com.br/reader/books/9788536518893/. Acesso em: 26 nov. 2025.
+    OLIVEIRA, A. de; BALDAM, R. de L.; COSTA, L. AutoCAD 2013: utilizando totalmente. Rio de
+    Janeiro: Érica, 2012. p. 281. E-book. Disponível em:
+    https://app.minhabiblioteca.com.br/reader/books/9788536505336/. Acesso em: 26 nov. 2025.
+    TULER, M.; WHA, C. K. Exercícios para autocad: roteiro de atividades.Porto Alegre: Bookman,
+    2013. p. 81. (Série Tekne). E-book. Disponível em:
+    https://app.minhabiblioteca.com.br/reader/books/9788582600528/. Acesso em: 26 nov. 2025
+
+   Aula 5
+
+    Aula 20
+
+    Ponto de chegada
+
+  Ponto de Chegada
+
+    Encerramos esta unidade de ensino com a compreensão de um dos momentos mais
+    importantes dentro do fluxo de trabalho no AutoCAD: a preparação, configuração e finalização do
+    desenho para impressão e plotagem. Muitas vezes, dedicamos horas ao desenvolvimento de um
+    projeto, mas é no momento da impressão que ele realmente se comunica com o mundo externo
+    — seja para apresentação ao cliente, aprovação técnica ou registro documental. Por isso,
+    dominar esses procedimentos é essencial para garantir clareza, precisão e profissionalismo.
+    Iniciamos a unidade revisando os arquivos padrões (TEMPLATE) e sua importância na
+    padronização. Ao configurar um template, organizamos previamente estilos de textos, cotas,
+    layers e unidades, o que otimiza o workflow e evita retrabalhos. Em seguida, exploramos os
+    estilos de plotagem (CTB), fundamentais para controlar espessuras, cores e comportamentos
+    gráficos durante a impressão. A escolha adequada de CTB torna o desenho mais legível,
+    valorizando as informações que realmente precisam de destaque.
+    Avançamos para a compreensão do Model Space e Layout, diferenciando o espaço de
+    modelagem, onde construímos o desenho na escala real (1:1), do espaço de apresentação, onde
+    organizamos pranchas, carimbos e viewports. Aprendemos a inserir textos, atributos e ajustar
+    escalas de visualização, garantindo que as medidas representadas na prancha correspondam
+    corretamente ao espaço real. Esse entendimento é crucial para um projeto claro e coerente.
+    Também trabalhamos com a janela de visualização (viewport), entendendo como controlar
+    camadas e elementos visíveis em cada vista. Discutimos ainda o processo de importar arquivos
+

@@ -1,0 +1,1654 @@
+Disciplina
+
+CONSTRUÇÕES SUSTENTÁVEIS
+
+Unidade 3
+
+Uso dos Recursos Naturais e a Geração de Resíduos da Construção Civil
+
+   Aula 1
+
+    Água: Conservação e Reuso
+
+    Água: conservação e reúso
+
+                     Este conteúdo é um vídeo!
+
+                       Para assistir este conteúdo é necessário que você acesse o AVA pelo
+                       computador ou pelo aplicativo. Você pode baixar os vídeos direto no aplicativo
+                       para assistir mesmo sem conexão à internet.
+
+                                Dica para você
+
+                       Aproveite o acesso para baixar os slides do vídeo, isso pode deixar sua
+                       aprendizagem ainda mais completa.
+
+    Olá, estudante! Nesta videoaula você conhecerá os principais conceitos referentes à preservação
+    e ao uso consciente da água na construção civil. Além disso, será possível verificar quais os
+    equipamentos e sistemas mais eficientes para a preservação e redução do uso de água. Este
+    conteúdo será de grande importância para que você obtenha consciência ecológica na utilização
+    da água em seus projetos.
+
+    Ponto de Partida
+
+    Olá, estudante! A necessidade de economizar água tem levado o segmento da construção civil a
+    repensar suas ações. Uma das estratégias que podem ser adotadas em busca de melhorias é
+    incorporar essa preocupação no momento da concepção do projeto. Outra medida interessante é
+    reequipar-se com máquinas projetadas para demandar menos água ou promover o reúso do
+    efluente. Por fim, também é válido explorar tecnologias visando à redução e à reutilização da
+    água usada nos processos construtivos.
+Disciplina
+
+CONSTRUÇÕES SUSTENTÁVEIS
+
+    Nesta aula você compreenderá a importância da água, verificando como a construção civil deve
+    agir para preservar e manter esse valioso recurso natural.
+
+    Você sabia que existem diversos equipamentos, como as bacias sanitárias, que já colaboram
+    com o uso consciente da água? Vamos conhecê-los?
+
+    Vamos Começar!
+
+    A água é o recurso natural mais importante da Terra. Por meio dela, desenvolvem-se as plantas e
+    algas, que fornecem oxigênio a toda vida terrestre. Trata-se, portanto, de um solvente universal.
+    Além disso, a maioria das necessidades e atividades humanas demanda o uso de água.
+
+    Apesar de a água ser tão essencial para a sobrevivência humana, as ações antrópicas têm
+    comprometido cada vez mais a qualidade desse bem, do qual tanto necessitamos. No Brasil, a
+    poluição hídrica gerada pelo lançamento de efluentes derivados das atividades industriais, de
+    esgotos sem tratamento e a aplicação de defensivos na agricultura constituem-se como as
+    principais ameaças à qualidade da água.
+
+    De acordo com Bassoi e Guazelli (2004), as fontes de poluição da água são categorizadas em
+    relação ao seu uso e ocupação do solo, sendo que cada tipo apresenta características próprias
+    acerca dos poluentes que o compõem.
+
+    A primeira categoria apresentada pelos autores citados anteriormente corresponde à poluição
+    natural, que ocorre por meio do arraste da água da chuva, a qual é carregada com partículas
+    orgânicas e inorgânicas do solo, além de resíduos de animais silvestres e folhas ou galhos da
+    vegetação. Bassoi e Guazelli (2004) ressaltam que esse tipo de poluição dificilmente altera as
+    características da água a ponto de torná-la imprópria para o consumo.
+
+    Outra categoria de poluição é a causada por esgotos sanitários gerados em residências,
+    indústrias, comércios e serviços, a qual apresenta, segundo os autores, a maior incidência de
+    poluição hídrica. Essa forma de poluição altera as características biológicas e físico-químicas da
+    água. Tal modificação varia a depender do tratamento realizado antes do lançamento, bem como
+    do grau de diluição proporcionado pelo corpo receptor.
+
+    No ambiente urbano, a poluição provocada pelo escoamento superficial da água é originada do
+    escoamento decorrente das águas da chuva, que movem os materiais acumulados em valas,
+    bueiros e vias públicas. A intensidade dessa poluição varia segundo a deficiência do serviço de
+    limpeza pública. Já a poluição superficial agrícola tem seus efeitos relacionados às práticas
+    aplicadas, à época do ano em que se efetua a preparação do terreno para o plantio e à
+    intensidade do emprego de fertilizantes e defensivos agrícolas, pois os resíduos provenientes
+    dessas atividades resultam em poluentes lançados nos corpos d’água, alterando suas
+    características físicas, químicas e biológicas.
+Disciplina
+
+CONSTRUÇÕES SUSTENTÁVEIS
+
+    No setor de construção civil, a água é utilizada em praticamente todas as atividades
+    desenvolvidas, suprindo desde a extração de matéria-prima, fabricação dos materiais, execução
+    de obras até a operação das edificações. O aumento gradual da poluição hídrica e a falta de
+    proteção das áreas de mananciais de abastecimento humano estão entre as principais causas
+    da escassez de água com qualidade. As consequências de uma crise hídrica, com um possível
+    racionamento, afetam diretamente o segmento da construção civil.
+
+    A água é um dos componentes fundamentais para a confecção de concretos e argamassas.
+    Também é imprescindível na umidificação do solo para a compactação de aterros. Trata-se,
+    portanto, de um componente nobre na construção civil, pois influencia diretamente o
+    desenvolvimento e a qualidade dos serviços de uma obra.
+
+    A utilização da água em uma obra requer cuidados quanto à presença de impurezas e corpos
+    estranhos, a fim de que as atividades aconteçam dentro dos parâmetros recomendados pelas
+    normas técnicas. A água potável, como descreve a Portaria nº 518/2004, do Ministério da Saúde,
+    que estabelece os procedimentos e responsabilidades relativos ao controle e vigilância da
+    qualidade para consumo humano, pode ser usada sem restrição na construção civil. Já quando
+    for oriunda de fontes subterrâneas ou de captação pluvial, poderá ser utilizada desde que atenda
+    aos parâmetros de qualidade exigidos para a atividade/serviço pretendido. Ou seja, nesse último
+    caso, o uso da água nos processos construtivos será permitido se houver o monitoramento
+    adequado da qualidade das fontes alternativas.
+
+    O Comitê Brasileiro de Cimento, Concreto e Agregados (ABNT/CB-18) criou a norma NBR 15900
+    (água para amassamento do concreto), que apresenta a classificação da água em função de sua
+    origem e estabelece os requisitos a serem obedecidos para que possa ser utilizada na
+    preparação de concreto (ABNT, 2009). Para a execução das obras, podem-se adotar algumas
+    estratégias de racionalização do consumo de água, como a instalação de reservatórios extras
+    para a captação pluvial, além da compra de água não potável, trazida por caminhões-pipa, e
+    práticas de reutilização durante as atividades desenvolvidas. No canteiro de obras, o reúso da
+    água pode ocorrer na lavagem de rodas de caminhões, na lavagem de equipamentos, assim
+    como na limpeza dos pátios e nos vasos sanitários.
+
+    É importante ressaltar que para a instalação tanto de um sistema de reúso quanto de
+    aproveitamento pluvial é necessário verificar a qualidade da água e, ainda, destiná-la a atividades
+    específicas. O reúso ou reciclagem de água possibilita que esse recurso seja utilizado mais de
+    uma vez. Apesar de serem empregados com frequência como sinônimos, os termos reúso e
+    reciclagem têm significados distintos. O reúso ocorre quando se reutiliza a água em outra
+    aplicação que não seja a original. Já a reciclagem consiste na reutilização da água na mesma
+    aplicação em que foi usada inicialmente.
+
+    Para obter sucesso na utilização de um sistema de reúso, é preciso avaliar o grau de potabilidade
+    necessário para o uso a que se destina. É possível, por exemplo, utilizar a água não potável na
+    descarga de bacias sanitárias e mictórios. Por outro lado, para o cozimento de alimentos, a água
+    deve ser potável. A “água servida”, ou água cinza, corresponde ao esgoto sanitário de chuveiros,
+Disciplina
+
+CONSTRUÇÕES SUSTENTÁVEIS
+
+    lavatórios, máquinas de lavar, etc. Se não inclui restos de alimentos ou dejetos humanos, ela é
+    chamada de “água fecal”.
+Disciplina
+
+CONSTRUÇÕES SUSTENTÁVEIS
+
+                       Figura 1 | Esquematização do uso de sistemas de águas cinzas em residências. Fonte: May (2009, p. 71).
+
+    O uso da “água servida” em uma edificação contribui para a redução da carga direcionada ao
+    sistema de esgoto público. Os elementos necessários para a instalação de um sistema de reúso
+    devem ser contemplados desde a etapa de projeto. Para que sua implementação seja viável
+    tecnicamente, a edificação precisa ter espaço suficiente para a instalação da infraestrutura, que
+    abrange, por exemplo, tubulação independente para o esgotamento da “água servida” e tanques
+    de tratamento. Ou seja, o sistema de reúso da “água servida” (águas cinzas) deve ser separado
+    do sistema de esgotamento da “água fecal” e requer espaço para a sua implantação. Para que
+    esse processo seja viável economicamente, é necessário que haja consumo suficiente de água
+    potável para gerar uma quantidade de “água servida” adequada aos usos apropriados a ela.
+    Cuidados devem ser tomados na implementação de um sistema de reúso ou reciclagem da
+    água. Recomenda-se contar com a supervisão das autoridades locais em função dos aspectos
+    relativos à saúde pública.
+
+    De acordo com Keeler e Burke (2010), dentre as melhores práticas de manejo para controle e
+    tratamento das águas pluviais, encontram-se a infiltração, a biofiltragem, a detenção, a
+    sedimentação e o aproveitamento da água da chuva.
+
+    Os mesmos autores ainda explicam que a infiltração permite remover os poluentes ao levar a
+    água da chuva a um reservatório, para que ela se infiltre lentamente no solo, o qual, por sua vez,
+    retira as partículas poluentes da água. Para que esse processo seja praticável, o solo deve
+    apresentar taxas de permeabilidade moderadas, uma vez que solos com taxas de infiltração altas
+    liberam a água da chuva diretamente no lençol freático, sem filtrar os poluentes antes do
+    contato. O extremo inverso também é perigoso, pois solos com taxas de infiltração muito baixas
+    nem chegam a absorver a água. Já a biofiltragem faz com que a água da chuva seja filtrada
+    através de plantas em vez do solo.
+
+    Como afirmam Keeler e Burke (2010), por meio da detenção e da sedimentação, pode-se reduzir
+    uma grande quantidade de sedimentos, viabilizando seu acúmulo em bacias de detenção secas
+    ou úmidas. Por fim, o aproveitamento da água da chuva – técnica relativamente simples, mas
+    com inúmeros benefícios – é utilizado para minimizar o consumo de água potável em atividades
+    específicas. Nesse contexto, a água é armazenada em cisternas e pode funcionar como uma
+    fonte de apoio em situações de emergência, em casos de necessidade de redução de consumo
+    da água ou como fonte complementar. A água, quando coletada das coberturas ou de outras
+    superfícies, ajuda a diminuir os fluxos de água da chuva e possíveis alagamentos.
+
+    Siga em Frente...
+
+    Para Leal (2000 apud May, 2004), diante do funcionamento do sistema de aproveitamento de
+    água de chuva, ela é coletada por meio de áreas impermeáveis, normalmente telhados. Em
+Disciplina
+
+CONSTRUÇÕES SUSTENTÁVEIS
+
+    seguida, passa por um processo de filtragem e é armazenada em reservatórios para distribuição,
+    como pode ser visto na Figura 2.
+
+               Figura 2 | Esquema de funcionamento do sistema de coleta e aproveitamento de águas pluviais com reservatório de
+                                                                    autolimpeza. Fonte: May (2009, p. 5).
+
+    Antes de instalar sistemas de reúso ou de coleta de água de chuva em edifícios em uso, é
+    necessário realizar um levantamento das condições da área e também do consumo de água, na
+    intenção de verificar a viabilidade da implementação do projeto. Confirmada a viabilidade,
+    devem-se prever os locais destinados à implantação dos reservatórios e dos equipamentos de
+    tratamento para a água coletada. Geralmente a implantação do sistema requer a quebra de pisos
+    e de paredes para a passagem de tubulação e instalação de tanques, o que gera desconforto aos
+    usuários da edificação. Portanto, para empreendimentos em uso, é preciso avaliar caso a caso
+    as implicações das modificações e o incômodo que será causado aos usuários. Já no contexto
+    de obras novas, a relação custo-benefício da instalação desses sistemas comumente é
+    vantajosa.
+    Na escala do edifício, a redução do consumo de água demanda a implementação de estratégias
+    eficientes. O uso de água pode ser reduzido significativamente com a instalação de tubulações
+    separadas para água potável e para água servida. Já a diminuição do consumo de água na
+    escala do terreno pode ser alcançada com o aproveitamento da água servida ou a coleta da
+    chuva para irrigação de jardins.
+Disciplina
+
+CONSTRUÇÕES SUSTENTÁVEIS
+
+    A integração do manejo pluvial à etapa do projeto de uma edificação facilita o potencial de
+    controle adequado das águas pluviais. Segundo Keeler e Burke (2010), o projeto de baixo
+    impacto é aquele que inclui o manejo das águas pluviais no planejamento e projeto urbano, com
+    a finalidade de promover uma abordagem completa, baseada em bacias de drenagem.
+    A redução da área pavimentada e/ou o uso de materiais permeáveis possibilita a redução do
+    escoamento da água da chuva e o aumento da recarga do lençol freático. Superfícies permeáveis
+    podem ser constituídas de pisos “secos” ou coberturas vegetais capazes de permitir que a água
+    se infiltre no solo. Os pavimentos de materiais permeáveis evitam o escoamento superficial da
+    água pluvial urbana e minimizam o fluxo de poluentes, geralmente empregados em
+    estacionamentos, calçadas e até mesmo em pistas de rolamento.
+    Dentre as opções de superfícies permeáveis disponíveis atualmente, podemos citar: grelhas
+    plásticas, asfalto poroso, blocos porosos, concreto poroso de cimento Portland. O tipo de uso
+    associado a um determinado espaço é o que indicará o modelo de superfície mais adequado. De
+    acordo com Kwok e Grondzik (2013), os sistemas de grelhas plásticas são projetados para
+    suportar cargas de pedestres ou tráfego leve (Figura 3).
+
+                                                                Figura 3 | Grelhas plásticas. Fonte: Piniweb.
+Disciplina
+
+CONSTRUÇÕES SUSTENTÁVEIS
+
+    Os pavimentos asfálticos porosos são indicados para estradas e estacionamentos, já os de
+    blocos porosos são construídos com elementos interconectados de tijolo, pedra ou concreto.
+    Geralmente são instalados sobre uma base de agregado convencional com leito de areia. É
+    possível usar esse material em vias de grande fluxo de veículos, assim como em locais com
+    tráfego de fluxo menos intenso, como passeios e acessos de veículo. O concreto poroso de
+    cimento Portland é apropriado para diversos tipos de pavimentação, como ruas e
+    estacionamentos.
+
+    Em resumo, a utilização de superfícies permeáveis pode ser aplicada a diversos locais. É
+    necessário prever um material apropriado para a carga prevista. As decisões de projeto devem
+    considerar a adequação do tráfego, seja de pedestres, seja de veículos, sobre o pavimento.
+
+    Diante da crise hídrica do Brasil nos últimos anos e da necessidade de redução do consumo da
+    água, as construtoras e empresas do setor da construção civil têm buscado soluções
+    alternativas para otimizar o aproveitamento da água e evitar desperdícios.
+
+    Outra estratégia interessante para diminuir o desperdício e maximizar a eficiência é o uso de
+    aparelhos com tecnologia de redução do consumo de água, pois funcionam com menor vazão
+    e/ou evitam o desperdício. Desse modo, apresentam maior eficiência hídrica em comparação
+    aos aparelhos convencionais.
+
+    Para Oliveira (2005 apud Bazzarella, 2005), os desperdícios de água em aparelhos como
+    chuveiros, mictórios, bacias sanitárias e torneiras ocorrem por causa de vazamentos, dispersão
+    dos jatos, vazão excessiva e tempo de utilização prolongado.
+
+    Há diversas ferramentas disponíveis no mercado que podem cooperar com a economia de água,
+    como arejadores para torneiras, válvulas de descarga com duplo fluxo (para líquidos e sólidos),
+    bacias sanitárias com caixa acoplada, chuveiros com detector de presença e baixa vazão, além
+    de torneiras com redutor de vazão.
+
+    O maior consumidor de água é o chuveiro, e as opções mais usuais para a redução do consumo
+    de água nesse caso são: chuveiros com reguladores da vazão de litros d’água e chuveiros tipo
+    ducha, que permitem uma lavagem concentrada em cada parte do corpo.
+
+    Vamos Exercitar?
+
+    Para promover a economia de água nas bacias sanitárias, podem-se utilizar caixas acopladas
+    (Figura 4), bacias com volume reduzido de descarga e a válvula de descarga com duplo
+    acionamento (Figura 5), com um volume menor para dejetos líquidos e maior para dejetos
+    sólidos.
+Disciplina
+
+CONSTRUÇÕES SUSTENTÁVEIS
+
+                                                     Figura 4 | Bacia sanitária com caixa acoplada. Fonte: Pexels.
+Disciplina
+
+CONSTRUÇÕES SUSTENTÁVEIS
+
+                                              Figura 5 | Válvula de descarga com duplo acionamento. Fonte: Pexels.
+Disciplina
+
+CONSTRUÇÕES SUSTENTÁVEIS
+
+    Há, ainda, aparelhos para economia de água utilizados em edificações situadas em locais
+    públicos, como: chuveiro e torneira com acionamento de pedal; chuveiro de acionamento
+    hidromecânico (com um tempo determinado para fechar automaticamente); torneira e mictório
+    (Figura 6) acionados por sensor infravermelho (os quais detectam a presença das mãos e
+    liberam o fluxo de água).
+
+                                                   Figura 6 | Mictório com sensor de acionamento. Fonte: Pexels.
+
+    O surgimento de exigências legais, inovações tecnológicas e a pressão exercida pelos
+    consumidores induzem o setor da construção civil a buscar alternativas para a redução do
+    consumo da água. Apesar de o conceito de sustentabilidade ter se tornado um tema frequente
+    entre os gestores, estamos longe de uma situação ideal no que diz respeito a essa questão.
+    As ações para o uso consciente da água podem ser aplicadas em várias etapas do processo de
+    construção, que compreende desde o planejamento, execução, operação até a demolição das
+Disciplina
+
+CONSTRUÇÕES SUSTENTÁVEIS
+
+    edificações. Dessa forma, é preciso contar com a dedicação de todos os envolvidos nessas
+    atividades para alcançar a efetivação das práticas sustentáveis de conservação e reúso da água.
+
+    Saiba mais
+
+    Caro estudante, aprofunde seu entendimento sobre o uso racional da água em edificações
+    fazendo a leitura do texto Casa eficiente: uso racional da água, especialmente das páginas 17 a
+    34.
+
+    Referências
+
+    ABNT. Associação Brasileira de Normas Técnicas. NBR 15900-1: água para amassamento do
+    concreto: parte 1. Rio de Janeiro: ABNT, 2009.
+
+    BASSOI, L. J.; GUAZELLI, M. R. Controle ambiental da água. In: PHILIPPI, JÚNIOR, A.; ROMÉRIO,
+    M. A.; BRUNA, G. C. (Eds.). Curso de gestão ambiental. Barueri: Manole, 2004.
+
+    BAZZARELLA, B. B. Caracterização e aproveitamento de água cinza para uso não potável em
+    edificações. 2005. 165 f. Dissertação (Mestrado em Engenharia Ambiental) – Centro
+    Tecnológico, Universidade Federal do Espírito Santo, Vitória, ES, 2005.
+
+    BRASIL. Ministério da Saúde. Secretaria de Vigilância em Saúde. Coordenação-Geral de Vigilância
+    em Saúde Ambiental. Portaria MS nº 518/2004. Brasília: Editora do Ministério da Saúde, 2005.
+
+    KEELER, M.; BURKE, B. Fundamentos de projeto de edificações sustentáveis. Porto Alegre:
+    Bookman, 2010.
+
+    KWOK, A. G.; GRONDZIK, W. T. Manual de arquitetura ecológica. Porto Alegre: Bookman, 2013.
+
+    LAMBERTS, R. et al. Casa eficiente: uso racional da água. Florianópolis: UFSC/LabEEE, 2010.
+    Disponível em:
+    http://www.labeee.ufsc.br/sites/default/files/publicacoes/livros/CasaEficiente_vol_III_WEB.pdf.
+    Acesso em: 11 abr. 2024.
+
+    LEAL, U. Ciclo da água na edificação. Téchne, v. 9, n. 48, 2000.
+
+    MAY, S. Caracterização, tratamento e reúso de águas cinzas e aproveitamento de águas pluviais
+    em edificações. 2009. 223 f. Tese (Doutorado em Engenharia) – Escola Politécnica, Universidade
+    de São Paulo, São Paulo, 2009.
+Disciplina
+
+CONSTRUÇÕES SUSTENTÁVEIS
+
+    MAY, S. Estudo da viabilidade do aproveitamento de água de chuva para consumo não potável
+    em edificações. 2004. 189 f. Dissertação (Mestrado em Engenharia) – Escola Politécnica,
+    Universidade de São Paulo, São Paulo, 2004.
+    OLIVEIRA, L. H. Tecnologias para otimização do uso da água no domicílio: relatório parcial.
+    Programa de pesquisa em saúde e saneamento. Goiânia: Funasa, 2005.
+
+   Aula 2
+
+    Eficiência Energética e Fontes Sustentáveis
+
+    Eficiência energética e fontes sustentáveis
+
+                     Este conteúdo é um vídeo!
+
+                       Para assistir este conteúdo é necessário que você acesse o AVA pelo
+                       computador ou pelo aplicativo. Você pode baixar os vídeos direto no aplicativo
+                       para assistir mesmo sem conexão à internet.
+
+                                Dica para você
+
+                       Aproveite o acesso para baixar os slides do vídeo, isso pode deixar sua
+                       aprendizagem ainda mais completa.
+
+    Olá, estudante! Na videoaula a seguir você conhecerá os principais conceitos referentes à
+    eficiência energética na construção civil, bem como os equipamentos e sistemas de geração de
+    energia mais usados. Este conteúdo será de grande importância para que você utilize os
+    conceitos de eficiência energética em seus projetos.
+
+    Ponto de Partida
+
+    Olá, estudante! A urbanização e a grande concentração de população e de massa edificada nas
+    cidades brasileiras vêm gerando a necessidade de elevar significativamente a oferta de energia.
+    A alternativa mais viável para suprir a demanda das cidades é investir na conservação da energia
+    por meio da adoção de fontes renováveis.
+    Nesta aula você compreenderá como a eficiência energética deve ser pensada durante o projeto
+    e a construção de edifícios.
+Disciplina
+
+CONSTRUÇÕES SUSTENTÁVEIS
+
+    Você sabe como funciona a geração de energia a partir dos raios solares? Trata-se da famosa
+    energia fotovoltaica. Vamos conhecê-la mais a fundo?
+
+    Vamos Começar!
+
+    No Brasil, a construção civil se apresenta como uma das principais atividades causadoras de
+    impactos ao meio ambiente, pois consome intensamente recursos naturais. A quantidade de
+    energia empregada nas atividades do setor denota a necessidade urgente de planejá-las de
+    modo a adotar práticas e tecnologias sustentáveis, evitando, assim, os impactos ambientais
+    decorrentes do seu próprio consumo.
+
+    Quando tratamos de fontes de energia, é importante lembrar que estas são constituídas por
+    energias não renováveis e energias renováveis. Dentre as energias não renováveis, encontram-se
+    os combustíveis fósseis (petróleo, carvão e gás natural) e a energia nuclear. Fazem parte das
+    energias renováveis a energia solar, a gerada por hidrelétricas, por biocombustíveis (cana-de-
+    açúcar, mamona, canola, entre outros materiais), a eólica e a produzida pelas ondas das marés.
+    O uso de fontes alternativas de energia tem por objetivo substituir ou minimizar o consumo das
+    fontes energéticas convencionais, a fim de impedir a degradação ambiental. Tais fontes
+    alternativas de energia são consideradas renováveis por utilizarem recursos que podem ser
+    repostos ou que são, a princípio, inesgotáveis.
+
+    A maioria dos processos produtivos é baseada em combustíveis fósseis, ou seja, a matriz
+    energética mundial não é renovável. Dentre tais processos, destaca-se o setor da construção civil
+    pelo intenso consumo de energia para o desenvolvimento de suas atividades. Esse segmento é
+    considerado um causador de grandes impactos ao meio ambiente.
+
+    A construção civil apresenta um modelo tradicionalmente ineficiente em função do predomínio
+    do uso de combustíveis fósseis, o que gera uma intensa poluição decorrente das emissões de
+    gases de efeito estufa para a atmosfera. Para Abreu (2012), é expressivo o consumo de energia
+    pela construção civil nas etapas de extração de materiais, fabricação, transporte e
+    processamento dos insumos.
+
+    De acordo com Roberto Kauffmann, presidente do Sindicato da Indústria da Construção Civil no
+    Estado do Rio de Janeiro, de 50% da energia elétrica consumida pelo setor industrial brasileiro,
+    30% se restringem à produção de cimento, aço, alumínio, ferroliga, petroquímica e papel e
+    celulose. Ele ressalta que os setores de cimento, aço e alumínio fornecem insumos essenciais da
+    construção civil.
+
+    Benite (2011) destaca que nas produções de cimento, aço e cal ocorrem as maiores emissões de
+    dióxido de carbono (CO2), sendo que as atividades de transporte desses materiais também
+    geram significativas emissões. Já no segmento de edificações, o mesmo autor enfatiza que 10 a
+    20% dessas emissões estão ligadas à extração e ao processamento das matérias-primas, à
+    fabricação de materiais e às etapas de construção e demolição. Os 80 a 90% restantes são
+Disciplina
+
+CONSTRUÇÕES SUSTENTÁVEIS
+
+    gerados na etapa de operação e uso do edifício, por causa do aquecimento, condicionamento de
+    ar, iluminação e uso de equipamentos.
+
+    Portanto, é urgente a necessidade de reduzir custos da energia na composição de preço no setor
+    da construção civil, quer seja pela diminuição do valor do consumo dessa energia, quer seja pela
+    iniciativa de buscar a sustentabilidade na adoção de uma fonte alternativa de energia.
+
+    De acordo com o Plano Nacional de Eficiência Energética (Brasil, 2011), há três situações
+    relacionadas ao consumo de energia em uma edificação:
+
+         1. Quando a energia consumida é resultante da construção. Nesse caso, considera-se a
+            energia embutida na produção e transporte dos materiais de construção, assim como na
+            empregada nas atividades da construção propriamente dita.
+
+         2. A energia consumida pelas atividades-fim desenvolvidas no prédio, decorrente do uso de
+            equipamentos necessários e indispensáveis às atividades-fim exercidas pelos usuários,
+            como o transporte de pessoas por elevador.
+
+         3. A energia destinada a prover aos usuários as condições de conforto necessárias à
+            habitabilidade.
+
+    Esse cenário insustentável vem alterando e degradando o ambiente, o que torna urgente a
+    necessidade de mudar as práticas atuais do setor da construção civil, a fim de alcançar a
+    promoção da redução do consumo de energia e a ampliação da eficiência energética.
+
+    Em virtude do avanço da tecnologia em equipamentos no setor da construção, é crescente o
+    consumo de energia elétrica nos canteiros de obra. Diversos equipamentos precisam de energia
+    elétrica para que funcionem. No entanto, em determinados locais, afastados do centro
+    urbanizado, não há rede elétrica disponível nas proximidades. Nesse contexto, a única saída é
+    usar fontes de energia alternativa, como a solar ou eólica – que são ótimas opções, pois
+    propiciam maior mobilidade.
+
+    Segundo Abreu (2012) e Benite (2011), na fase de construção e gerenciamento da obra, a
+    redução do consumo de energia pode ser obtida por meio do reaproveitamento de recursos e
+    utilização de materiais renováveis, bem como pelo emprego de técnicas de reciclagem de
+    resíduos da construção civil. Tais práticas contribuem para a economia energética decorrente da
+    quantidade de energia evitada para produção e transporte de materiais.
+
+    Já na fase de uso, os autores citados anteriormente recomendam a substituição de sistemas
+    elétricos ou a gás pelo uso de energia solar, utilização de equipamentos de condicionamento de
+    ar mais eficientes, implantação de sistemas de iluminação mais sustentáveis, com luminárias e
+    lâmpadas de alto desempenho e eficiência energética, e emprego de produtos economizadores
+    de energia.
+
+    Burke e Ornstein (1998) ressaltam que as atividades antrópicas estão associadas à busca por
+    resultados a curto prazo, sem levar em conta os custos a longo prazo. O raciocínio imediatista é
+Disciplina
+
+CONSTRUÇÕES SUSTENTÁVEIS
+
+    um dos principais problemas da falta de sustentabilidade na construção civil. Nesse sentido, faz-
+    se necessária uma mudança de postura dos profissionais do setor, tanto no ato de planejar como
+    de construir. Também é preciso adotar novas tecnologias para gerar construções mais eficientes.
+
+    As edificações têm como função básica servir de abrigo ao homem, proporcionando-lhe
+    conforto. No Plano Nacional de Eficiência Energética (Brasil, 2011), consta que o conforto está
+    relacionado às variáveis térmicas, visuais, acústicas e de qualidade do ar. Portanto, cabe ao
+    edifício proporcionar ambientes tão confortáveis quanto o ambiente externo em condições
+    climáticas amenas.
+
+    Tempos atrás, a manutenção desse conforto era obtida por meio do desenvolvimento de uma
+    arquitetura regionalista, adequada ao clima e à paisagem local. Nessa época, o emprego de
+    mecanismos artificiais para conseguir conforto ambiental não era tão comum.
+
+    No entanto, com o passar dos anos, a garantia do conforto nas edificações passou a ser obtida
+    por meio da adoção de mecanismos artificiais, decorrentes do crescente desenvolvimento
+    tecnológico propiciado pela Revolução Industrial. A arquitetura começou a adotar um estilo
+    baseado na mecanização, em que a prática tradicional, que levava em consideração as
+    características climáticas, foi substituída pelo chamado estilo internacional, dependente de
+    mecanismos artificiais de energia para assegurar o conforto ao homem. Esse modelo de
+    edificação requer um grande aporte de energia, o qual é incompatível com o conceito a ser
+    adotado nas construções sustentáveis.
+
+    De acordo com o Ministério do Meio Ambiente, a eficiência energética está na relação entre a
+    quantidade de energia efetivamente usada em uma determinada atividade e a disponibilizada
+    para sua realização. Ou seja, encontra-se na melhor utilização da energia. O conceito de
+    eficiência energética, segundo o Plano Nacional de Energia – PNE 2030 (Brasil, 2007),
+    corresponde às medidas de redução de energia consumida, sem perda na qualidade, além da
+    substituição de fontes de energia, com ganhos sistêmicos de eficiência. De acordo com a
+    Eletrobras, trata-se de utilizar a energia da melhor maneira possível, sem que seja necessário se
+    desfazer do conforto e dos benefícios que ela proporciona. Ou seja, o objetivo é alcançar uma
+    redução no consumo, diminuindo os custos, sem perder a eficiência e a qualidade dos serviços.
+
+    Para Hinrichs, Kleinbach e Reis (2010), a exploração racional dos recursos naturais pode ser
+    obtida a partir da conservação da energia elétrica. Isto é, conservar a energia elétrica ou suprimir
+    seu desperdício é o meio de produção mais econômico que existe, o qual não polui o meio
+    ambiente. Para os autores mencionados, a eficiência energética é a forma mais efetiva de reduzir
+    os custos e os impactos ambientais locais e globais, o que contribui para o desenvolvimento
+    sustentável do país.
+
+    Como explicam Lamberts, Dutra e Pereira (2004), a eficiência energética é definida como a
+    obtenção de um serviço com baixo dispêndio de energia. Trata-se do uso eficiente e racional da
+    energia, da redução do consumo e, consequentemente, da contribuição para a minimização dos
+    níveis de emissões de gases na atmosfera. No âmbito da arquitetura e da construção civil,
+Disciplina
+
+CONSTRUÇÕES SUSTENTÁVEIS
+
+    segundo os autores, um edifício é considerado mais eficiente em comparação a outro quando
+    oferece as mesmas condições ambientais com um menor consumo de energia.
+
+    Aprendemos que são diversos os conceitos atribuídos ao tema “eficiência energética”, mas todos
+    tendem a atender aos princípios de sustentabilidade. A obtenção da eficiência energética requer
+    a adoção de soluções que visam à economia de energia, as quais devem ser incorporadas desde
+    a fase de projeto, como ventilação e iluminação naturais, com o intuito de reduzir a dependência
+    dos sistemas mecânicos de iluminação e climatização. A adoção de energias renováveis (solar,
+    eólica, etc.), a preferência por materiais com baixo impacto ambiental e a previsão de
+    mecanismos de controle de consumo de energia são exemplos de soluções sustentáveis para a
+    diminuição do consumo de energia.
+
+    Diante de uma crise energética e, consequentemente, ambiental, fica evidente a necessidade de
+    mudança da solução arquitetônica utilizada atualmente, não apenas para a arquitetura, mas para
+    todo o desenvolvimento mundial.
+
+    Siga em Frente...
+
+    Com base no conceito apresentado para o desenvolvimento sustentável no Plano Nacional de
+    Eficiência Energética (Brasil, 2011), a arquitetura é aquela que modifica o ambiente natural de
+    forma a conceber um espaço confortável, adequado ao clima local, energicamente eficiente e
+    com baixo custo de manutenção, causando um baixo impacto ambiental.
+
+    Para Corbella e Corner (2015), a arquitetura bioclimática é aquela voltada à adequação da
+    construção ao clima, visando ao conforto térmico, acústico e visual do usuário. Para atingir
+    essas propriedades, segundo os autores, o arquiteto precisa conhecer o clima do local e o
+    comportamento dos materiais em relação às suas características térmicas, lumínicas e
+    acústicas.
+
+    Um projeto adaptado ao clima é o meio mais eficiente de reduzir o consumo de energia, pois
+    evita a necessidade de instalação de um sistema de refrigeração mecânica. Segundo Kwok e
+    Grondzik (2013), a iluminação natural é essencial para um bom desempenho energético, assim
+    como para a satisfação, produtividade e saúde do usuário. Os autores ainda enfatizam que essa
+    questão deve ser abordada no início do processo de definição do partido, já que os requisitos
+    para uma iluminação natural de qualidade costumam ter grandes implicações para a volumetria
+    da edificação e o zoneamento das atividades.
+
+    Em edificações residenciais, por exemplo, principalmente em locais com clima quente, o
+    sombreamento é um recurso importante a ser pensado para que a construção não acumule calor
+    durante o dia. Em edificações residenciais medidas, a instalação de venezianas e brises nas
+    janelas, uma vegetação estrategicamente projetada, o aquecimento de água com energia solar,
+    dispositivos para iluminação sem uso de energia elétrica, como as lâmpadas de garrafa PET, que
+    deixam passar os raios do sol para iluminar o ambiente, e o uso de lâmpadas eficientes
+Disciplina
+
+CONSTRUÇÕES SUSTENTÁVEIS
+
+    contribuem para a economia de energia. Já em edificações comerciais, dois aspectos são
+    importantes de serem considerados: a iluminação e o condicionamento do ar. Geralmente essas
+    edificações apresentam grandes áreas envidraçadas. O excesso de vidro pode provocar
+    ofuscamento com a entrada excessiva de luz natural no ambiente interno. Durante a concepção
+    do projeto, é importante tirar partido das melhores condições de iluminação e ventilação para
+    proporcionar conforto aos usuários da edificação.
+
+    O uso das energias renováveis tem como enfoque a eficiência energética e se apresenta como
+    uma das principais estratégias para a obtenção de edificações sustentáveis. Tais edificações
+    garantem o conforto ambiental dos usuários e empregam a energia de forma eficiente,
+    minimizando os danos ao ambiente. Apesar de o Brasil contar com um grande potencial eólico,
+    essa alternativa de geração de energia ainda é pouco explorada. A obtenção de energia a partir
+    dos ventos se configura como uma opção de energia renovável, mas o seu potencial de
+    aproveitamento varia de acordo com alguns fatores, como topografia da região, rugosidade do
+    solo e existência de obstáculos nas proximidades.
+
+    Vamos Exercitar?
+
+    Na escala da edificação, o método mais comum de geração de energia elétrica in loco é a
+    aplicação do sistema com células fotovoltaicas. Nesse sistema, a energia é obtida por meio da
+    conversão da energia solar em energia elétrica. Tal método se tornou atraente por ser silencioso,
+    além de possuir placas de fácil instalação, as quais podem ser ocultadas na cobertura ou
+    exibidas de maneira integrada ao projeto da edificação (Figura 1).
+Disciplina
+
+CONSTRUÇÕES SUSTENTÁVEIS
+
+                                     Figura 1 | Placas fotovoltaicas em uma residência. Fonte: Multi Aquecedores (2022).
+
+    Os micro e minigeradores solares fotovoltaicos são sistemas de geração elétrica de pequena
+    potência instalados para produzir energia suficiente para alimentar uma residência ou um
+    edifício. Alguns modelos podem até mesmo alimentar uma indústria, a depender de sua
+    atividade.
+    Esse sistema pode funcionar de forma isolada em uma edificação ou ser conectado à rede
+    pública de energia. Quando a instalação do sistema ocorre de maneira isolada, a energia gerada
+    pode ser acumulada em baterias. Normalmente os sistemas isolados são utilizados em locais
+    distantes do centro urbanizado ou onde o custo de conexão à rede elétrica é alto. Já o sistema
+    interligado à rede pública substitui ou complementa a energia elétrica convencional. Ou seja, a
+    eletricidade excedente é repassada automaticamente à rede pública.
+    De acordo com Dorigo, Pinto e Santos (2009), esse sistema é constituído por células
+    fotoelétricas, transformadores, cabeamentos, inversores e sistemas de integração. Os autores
+    explicam que as células fotoelétricas convencionais impedem a visibilidade entre áreas internas
+    e externas. Por esse motivo, geralmente são utilizadas em fachadas cegas ou coberturas. A
+    aplicação da tecnologia de placas fotovoltaicas translúcidas ou transparentes ainda se mostra
+    inviável em muitos casos por causa dos altos custos envolvidos. Em qualquer um desses
+Disciplina
+
+CONSTRUÇÕES SUSTENTÁVEIS
+
+    sistemas, é essencial que as placas sejam instaladas em superfícies privilegiadas e
+    estrategicamente posicionadas para aproveitar uma maior incidência dos raios solares.
+
+    Como afirmam Kwok e Grondzik (2013), a seleção da melhor estratégia para a geração de
+    energia in loco dependerá de alguns fatores, como tipo e localização do projeto, climas regionais
+    e microclimas, preço da energia elétrica e possíveis incentivos fiscais e financeiros para energias
+    renováveis.
+
+    Uma produção de energia mais eficiente requer investimentos em fontes alternativas, que
+    representa um dos principais caminhos para a sustentabilidade.
+
+    Saiba mais
+
+    Caro estudante, aprofunde seu entendimento sobre eficiência energética fazendo a leitura de
+    uma entrevista com o professor Dr. Roberto Lamberts realizada pelo Conselho Brasileiro de
+    Construção Sustentável (CBCS), especificamente das páginas 9 a 11.
+
+    Referências
+
+    ABREU, W. G. de. Manutenção predial sustentável: diretrizes e práticas em shopping centers.
+    2012. 150 f. Dissertação (Mestrado em Engenharia Civil) – Pós-Graduação em Engenharia Civil,
+    Universidade Federal Fluminense, Niterói, RJ, 2012.
+
+    BENITE, A. Emissões de carbono e a construção civil. São Paulo: Centro de Tecnologia de
+    Edificações, 2011.
+
+    BRASIL. Empresa de Pesquisa Energética. Plano Nacional de Energia – PNE 2030. Rio de Janeiro:
+    EPE, 2007. Disponível em: https://www.epe.gov.br/sites-pt/publicacoes-dados-
+    abertos/publicacoes/Documents/Relat%C3%B3rio%20final%20PNE%202030.pdf. Acesso em: 11
+    abr. 2024.
+
+    BRASIL. Ministério das Minas e Energia. Plano nacional de eficiência energética. Brasília, DF:
+    MME, 2011.
+
+    BURKE, J.; ORNSTEIN, R. O presente do fazedor de machados: os dois gumes da história da
+    cultura humana. Rio de Janeiro: Bertrand Brasil, 1998.
+
+    CORBELLA, O.; CORNER, V. Manual de arquitetura bioclimática tropical para a redução do
+    consumo energético. 2. ed. Rio de Janeiro: Revan, 2015.
+Disciplina
+
+CONSTRUÇÕES SUSTENTÁVEIS
+
+    DORIGO, A. L.; PINTO, C. L. da S.; SANTOS, C. B. Utilização de fontes renováveis de energia no
+    campus da Universidade Tuiuti. Ciência e Cultura, Curitiba, n. 42, p. 151-167, 2009.
+    ENTREVISTA com Roberto Lamberts. CBCS Notícias, v. 7, p. 9-11, abr. 2013. Disponível em:
+    http://pbeedifica.com.br/sites/default/files/projetos/etiquetagem/clipping/cbcsnoticias_7ed.pdf.
+    Acesso em: 11 abr. 2024.
+    HINRICHS, R. A.; KLEINBACH, M.; REIS, L. B. Energia e meio ambiente. 4. ed. São Paulo: Cengage
+    Learning, 2010.
+    KWOK, A. G.; GRONDZIK, W. T. Manual de arquitetura ecológica. Porto Alegre: Bookman, 2013.
+    LAMBERTS, R.; DUTRA, L.; PEREIRA, F. O. R. Eficiência energética na arquitetura. São Paulo:
+    Procel, 2004.
+    QUAIS as vantagens de um aquecedor solar? Multi Aquecedores, 15 ago. 2022. Disponível em:
+    https://multiaquecedores.com.br/aquecedor-solar/. Acesso em: 27 maio 2024.
+
+   Aula 3
+
+    Resíduos Sólidos Urbanos
+
+    Resíduos sólidos urbanos
+
+                     Este conteúdo é um vídeo!
+
+                       Para assistir este conteúdo é necessário que você acesse o AVA pelo
+                       computador ou pelo aplicativo. Você pode baixar os vídeos direto no aplicativo
+                       para assistir mesmo sem conexão à internet.
+
+                                Dica para você
+
+                       Aproveite o acesso para baixar os slides do vídeo, isso pode deixar sua
+                       aprendizagem ainda mais completa.
+
+    Olá, estudante! Nesta videoaula você conhecerá os principais conceitos relacionados à
+    classificação de resíduos sólidos urbanos. Além disso, este material apresentará questões
+    relevantes quanto ao gerenciamento e à destinação final desses resíduos. Este conteúdo será de
+    grande importância para que você descubra os problemas que os resíduos sólidos podem gerar
+    para as cidades.
+Disciplina
+
+CONSTRUÇÕES SUSTENTÁVEIS
+
+    Ponto de Partida
+
+    Olá, estudante! Você já deve ter observado ao seu redor o grande impacto que os resíduos
+    sólidos causam ao meio ambiente. Seja nos processos industriais ou em nossas casas, é difícil
+    distanciar o estilo de vida atual de uma atividade que não produza nenhum tipo de resíduo.
+    Diante disso, podemos adiantar que os grandes desafios para a otimização da preservação dos
+    recursos naturais, neste momento, são a gestão e a diminuição dos resíduos sólidos.
+
+    Por esse motivo, nesta etapa de aprendizagem, você estudará os resíduos sólidos, seus
+    diferentes tipos, a legislação brasileira relativa a esse assunto e a correta destinação dos
+    resíduos. Para finalizar este conteúdo, você entenderá o que são os aterros sanitários e seu
+    respectivo método de funcionamento.
+
+    Você sabia que a construção civil é o setor que mais gera resíduos sólidos? Como são
+    classificados esses resíduos? Vamos descobrir?
+
+    Vamos Começar!
+
+    O exagerado consumo de bens materiais atrelado ao desenvolvimento tecnológico tem feito com
+    que as alterações no meio ambiente sejam cada vez mais intensificadas. Esse cenário marcante
+    da modernidade é responsável (em grande parte) pelos impactos ambientais, como a alta
+    produção do resíduo sólido (Mucelin; Bellini; 2008).
+
+    Assim, podemos afirmar que atualmente alguns dos maiores problemas ambientais envolvem o
+    chamado resíduo sólido e os “fins” (descarte) que ele possui na nossa vida cotidiana. O que será
+    que acontece com o resíduo após o descarte nas residências?
+
+    Antes de entender qual é o tamanho desse problema, é importante compreendermos a definição
+    de resíduos sólidos. Aquilo que há algum tempo era chamado simplesmente de lixo hoje em dia
+    passou a ser classificado de duas formas: resíduos sólidos e rejeito. Os resíduos sólidos
+    correspondem à parte do lixo que de alguma maneira poderá ser majoritariamente reaproveitada,
+    enquanto os rejeitos compreendem a parte do lixo que não é reaproveitada.
+
+    No Brasil, a Lei nº 12.305, sancionada em 2010 (Brasil, 2010), é a responsável pelo regimento dos
+    resíduos sólidos. Esse dispositivo legal é conhecido como Política Nacional de Resíduos Sólidos
+    (PNRS) e, em seu art. 3º, define resíduo sólido do seguinte modo:
+
+    Inciso XVI - resíduos sólidos: material, substância, objeto ou bem descartado resultante de
+    atividades humanas em sociedade, a cuja destinação final se procede, se propõe proceder ou se
+    está obrigado a proceder, nos estados sólido ou semissólido, bem como gases contidos em
+    recipientes e líquidos cujas particularidades tornem inviável o seu lançamento na rede pública de
+Disciplina
+
+CONSTRUÇÕES SUSTENTÁVEIS
+
+    esgotos ou em corpos d’água, ou exijam para isso soluções técnicas ou economicamente
+    inviáveis em face da melhor tecnologia disponível. (Brasil, 2010, [s. p.]).
+
+    Perceba que, ao analisarmos o conceito de resíduos sólidos sob a ótica da Política Nacional de
+    Resíduos Sólidos (PNRS), ele se torna um pouco mais amplo, incluindo os resíduos líquidos e
+    gasosos (se contidos em recipientes). Você pode estar se perguntando: qual a diferença entre os
+    resíduos sólidos e os esgotos? Os resíduos líquidos não podem ser descartados em redes de
+    esgoto comuns por causa de seu potencial poluidor, dada sua composição. Muitas vezes, os
+    líquidos caracterizados como resíduos (ou contidos nos resíduos) apresentam-se com uma
+    elevada concentração, necessitando de tratamento específico antes do lançamento (caso seja
+    viável) em um corpo receptor.
+
+    Dentro da lei, também são propostas algumas classificações dos resíduos sólidos. Uma delas
+    leva em consideração a origem desses resíduos (Brasil, 2010):
+
+            Resíduos domiciliares: originados das residências urbanas. Podem ser secos (plásticos,
+            papéis, metais, vidros e outras embalagens) ou úmidos (resíduos orgânicos, como restos
+            de alimentos, cascas, sementes, entre outros elementos).
+            Resíduos de limpeza urbana: originados da limpeza urbana de vias públicas e de outros
+            serviços urbanos.
+            Resíduos sólidos urbanos: junção dos resíduos domiciliares com os resíduos de limpeza
+            urbana.
+            Resíduos de estabelecimentos comerciais e prestadores de serviços: não se encaixam nas
+            categorias de resíduos já citadas (ou seja, não abrangem os provenientes de limpeza
+            urbana, resíduos dos serviços públicos de saneamento básico, resíduos de serviços de
+            saúde, resíduos da construção civil e resíduos de serviços de transporte).
+            Resíduos dos serviços públicos de saneamento básico: são oriundos de atividades de
+            saneamento básico, exceto os resíduos sólidos urbanos.
+            Resíduos industriais: oriundos de processos industriais (produção e instalações).
+            Resíduos de serviços da saúde: oriundos dos serviços da saúde, listados em normas
+            estabelecidas por órgãos do Sistema Nacional do Meio Ambiente (Sisnama) e do Sistema
+            Nacional de Vigilância Sanitária (SNVS).
+            Resíduos da construção civil: provenientes da construção civil, de demolições, reformas ou
+            reparos. Essa categoria também inclui os resíduos de etapas de preparação e escavação
+            de terrenos para obras em geral.
+            Resíduos agrossilvopastoris: derivam das atividades agropecuárias e silviculturais, além
+            dos insumos que porventura foram utilizados nesses processos. Podem ser orgânicos
+            (restos de vegetais ou resíduos de animais abatidos) e inorgânicos (agrotóxicos,
+            fertilizantes, embalagens, entre outros).
+            Resíduos de serviços de transportes: oriundos de atividades em portos, aeroportos,
+            terminais alfandegários, rodoviários e ferroviários, além das fronteiras em geral.
+            Resíduos de mineração: provenientes de atividades de pesquisas, extrações ou
+            beneficiamentos de minérios como um todo.
+Disciplina
+
+CONSTRUÇÕES SUSTENTÁVEIS
+
+    Além da classificação em relação à origem, a PNRS ainda faz uma distinção entre os resíduos
+    quanto ao seu grau de periculosidade, categorizando-os em resíduos perigosos e não perigosos.
+    Os resíduos perigosos são aqueles que apresentam características que os tornam inflamáveis,
+    corrosivos, reativos, tóxicos, patogênicos, carcinogênicos, teratogênicos e mutagênicos, de
+    maneira que estejam atrelados a algum grau de risco à saúde das pessoas ou à qualidade
+    ambiental. De modo oposto, os resíduos considerados não perigosos são aqueles não
+    classificados como perigosos. Os resíduos radioativos não são tratados na PNSR, possuindo
+    uma legislação específica.
+
+    Ainda levando em consideração a periculosidade dos resíduos, a NBR 1004/2004, da Associação
+    Brasileira de Normas Técnicas (ABNT, 2004), divide os resíduos em dois grupos: Classe I
+    (perigosos) e Classe II (não perigosos). Na Classe II, eles podem ser, ainda, subdivididos em
+    Classe II A (não inertes) e Classe II B (inertes).
+
+    Os resíduos sólidos precisam ser descartados de modo correto. Para tanto, deve-se contar com
+    uma etapa de planejamento e gerenciamento. A PNRS define essa prática da seguinte maneira:
+
+    Inciso X - gerenciamento de resíduos sólidos: conjunto de ações exercidas, direta ou
+    indiretamente, nas etapas de coleta, transporte, transbordo, tratamento e destinação final
+    ambientalmente adequada dos resíduos sólidos e disposição final ambientalmente adequada
+    dos rejeitos, de acordo com plano municipal de gestão integrada de resíduos sólidos ou com
+    plano de gerenciamento de resíduos sólidos, exigidos na forma desta Lei. (Brasil, 2010, [s. p.]).
+
+    Note que é na fase do gerenciamento de resíduos sólidos que estão englobadas todas as ações
+    que buscam por soluções em termos de coleta, transporte, tratamento e destinação final desses
+    resíduos. Também estão incluídas na gestão dos resíduos as dimensões políticas, ambientais,
+    econômicas, culturais e sociais (Brasil, 2010). Com base nesses fatores, elabora-se um plano de
+    gestão ou gerenciamento de resíduos, o qual demonstrará à sociedade (e à comunidade
+    internacional) o que se planeja fazer para garantir o controle e a destinação final dos resíduos
+    gerados no país. Vale destacar que as comunidades rurais devem ser inseridas nos planos
+    municipais de integração dos resíduos sólidos.
+
+    De acordo com a PNRS, a destinação final ambientalmente adequada contempla uma finalidade
+    que também leve em consideração (em ordem preferencial) as situações de não geração,
+    reutilização, reciclagem, tratamento e disposição final dos rejeitos.
+
+    Mas o que seria a etapa de tratamento dos resíduos? O tratamento abrange uma série de
+    técnicas (ou operações) que utilizam tecnologias apropriadas para que seja reduzida a
+    quantidade final dos resíduos, com o propósito de diminuir os impactos ambientais negativos
+    que eles produzem.
+
+    Quando não são tratados corretamente, os resíduos sólidos promovem uma série de problemas
+    ambientais, os quais compreendem desde a poluição de lençóis freáticos até a proliferação de
+Disciplina
+
+CONSTRUÇÕES SUSTENTÁVEIS
+
+vetores e a transmissão de doenças. Com o aumento das adversidades relacionadas ao descarte
+inadequado dos resíduos, evidencia-se cada vez mais a necessidade de um tratamento eficaz.
+
+Atualmente, temos disponíveis alguns tipos de tratamento, os quais são divididos
+essencialmente em tratamentos físicos e bioquímicos. Os tratamentos do tipo físico englobam
+processos térmicos e mecânicos. Os tratamentos físicos do tipo térmico utilizam técnicas que
+exploram altas temperaturas, em que o principal objetivo é a redução do volume do resíduo e a
+eliminação de microrganismos. Já os do tipo mecânico abarcam processos como trituração e
+quebra para a diminuição da granulometria dos resíduos.
+
+Por sua vez, os tratamentos biológicos, também chamados de bioquímicos em alguns casos,
+utilizam organismos (como minhocas) e microrganismos para a decomposição das partículas.
+Confira no Quadro 1, a seguir, os diversos tratamentos de resíduos sólidos existentes e suas
+principais características.
+
+                   Térmicos   Incineração: queima pela ação
+                              de um combustível, causando
+Tratamento físico             a oxidação da matéria
+                              orgânica.
+                   Mecânicos
+                              Secagem: utilização de
+                              correntes de ar para a retirada
+                              da umidade do resíduo.
+
+                              Pirólise: decomposição do
+                              resíduo pela ação de altas
+                              temperaturas em um ambiente
+                              com pouco ou sem oxigênio.
+
+                              Plasma: gás formado pela
+                              queima do resíduo, sendo um
+                              gás ionizado.
+
+                              Coprocessamento: utilização
+                              das cinzas produzidas na
+                              queima de resíduos para
+                              aproveitamento em outro
+                              produto, como o cimento.
+
+                              Centrifugação: processo
+                              mecânico de separação pela
+                              ação da força centrífuga.
+
+                              Separação gravitacional:
+
+                              processo que utiliza um
+                              líquido com densidade
+Disciplina
+
+CONSTRUÇÕES SUSTENTÁVEIS
+
+Tratamento biológico  intermediária para a
+                      separação de diferentes
+                      compostos.
+
+                      Redução de partículas:
+
+                      processo que visa à
+                      diminuição do tamanho das
+                      partículas, utilizando
+                      equipamentos como moinhos
+                      e peneiras.
+
+                      Biodigestão: decomposição
+                      da matéria orgânica em
+                      ambiente anaeróbio, em locais
+                      chamados de biodigestores.
+
+                      Compostagem: decomposição
+                      da matéria orgânica em
+                      ambiente aeróbio, como em
+                      usinas de compostagem.
+
+Quadro 1 | Principais tratamentos de resíduos sólidos. Fonte: adaptado de Barbosa e Ibrahin
+(2014, p. 134).
+
+Siga em Frente...
+
+Os aterros sanitários
+
+Todos os resíduos sólidos residenciais são transportados por empresas especializadas e
+credenciadas pela prefeitura para as fases seguintes, como as de tratamento e destinação final.
+Antigamente, era comum a prática de descartar os resíduos sólidos em locais chamados de
+lixões. Os lixões são áreas “ao ar livre” de disposição final dos resíduos sólidos, os quais são
+descarregados sem cuidado, planejamento ou proteção ao meio ambiente. Com base nessas
+características, você já pode perceber que os lixões são espaços impróprios para o
+armazenamento e a destinação final dos resíduos. Diante disso, a PNRS determinou, em 2010,
+que os lixões deveriam ser extintos.
+
+Provavelmente você já ouviu alguém dizer que os termos “lixão” e “aterro” são sinônimos.
+Contudo, os aterros sanitários possuem grandes diferenças em comparação aos lixões (Figura
+1). E quais são essas diferenças? Descubra, a seguir, o conceito correto de aterros sanitários.
+
+Figura 1 | Disposição final de resíduos sólidos: lixões/aterros sanitários. Fonte: Shutterstock.
+Disciplina
+
+CONSTRUÇÕES SUSTENTÁVEIS
+
+    O aterro sanitário é um local planejado com o objetivo de armazenar os resíduos sólidos em um
+    espaço predeterminado, alternando camadas de um material inerte (comumente o solo) com
+    camadas de resíduos. O aterro sanitário conta com uma proteção da base e das laterais
+    propiciada pela utilização de um material impermeável, que impede a contaminação do lençol
+    freático e dos solos próximos ao local. Além disso, há coleta e tratamento dos gases que ali são
+    produzidos e dos líquidos gerados.
+    Já os denominados aterros controlados são locais em que os resíduos também são
+    armazenados, nos quais existe uma certa impermeabilização e camadas de solo intercaladas
+    com os resíduos. Contudo, trata-se de um tipo de destinação final semelhante aos lixões, em que
+    pode haver ou não a drenagem dos líquidos produzidos.
+    Nos aterros (Figura 2), diferentemente dos lixões, há uma preocupação com o solo e os lençóis
+    freáticos próximos ao local. Por isso existe a utilização de mantas impermeáveis na base, para
+    promover a proteção dessas áreas, bem como a drenagem dos seus líquidos. Os líquidos
+    provenientes dos aterros sanitários são chamados de lixiviado, percolado ou, como é mais
+    popular, chorume. O lixiviado é um líquido de cor escura, originado da decomposição do resíduo
+    sólido somada à precipitação que possa ter ocorrido no local, possuindo pH ácido, malcheiroso e
+    concentrado – com altas concentrações de demanda bioquímica de oxigênio (DBO), demanda
+    química de oxigênio (DQO), compostos nitrogenados, compostos tóxicos e microrganismos
+    patogênicos. O lixiviado coletado nos aterros sanitários deve ser tratado em uma Estação de
+    Tratamento de Esgoto (ETE) ou no próprio aterro antes do descarte em corpos receptores.
+Disciplina
+
+CONSTRUÇÕES SUSTENTÁVEIS
+
+         Figura 2 | Esquema vertical comumente utilizado em aterros sanitários. Fonte: Braga et al. (2005 apud Rocha; Rosa; Cardoso,
+                                                                                    2009, p. 230).
+
+    Os aterros efetuam parte do tratamento, realizando uma decomposição dos resíduos pela ação
+    de microrganismos anaeróbios. Uma das desvantagens do aterro sanitário é a sua demanda por
+    grandes áreas, que serão inutilizadas para muitas atividades após a desativação do
+    empreendimento, como construções que exigem fundações profundas. Além disso, o aterro
+    geralmente requer áreas amplas para sua implantação. Caso não seja viável economicamente a
+    implementação do aterro em uma cidade, é comum que algumas cidades dividam o mesmo
+    aterro, de modo que os resíduos dessas regiões sejam transportados até ele.
+
+    Vamos Exercitar?
+
+    A construção civil é uma das atividades que mais produzem resíduos sólidos atualmente, seja
+    em práticas de construção de estruturas ou de demolições. Na literatura, existem menções de
+    que a parcela dos RCC no resíduo total varie de 51% a 70% (Marques Neto, 2005). Os resíduos
+    nesse setor correspondem majoritariamente a restos de alvenaria, asfaltos, gessos, argamassas
+    e concretos, restos de fiações, madeiras e materiais metálicos. De forma geral, o grande
+    problema dos resíduos provenientes da construção civil é o seu grande volume. Porém é
+    importante enfatizar que é possível reciclar, nessas atividades, diversos materiais, promovendo,
+Disciplina
+
+CONSTRUÇÕES SUSTENTÁVEIS
+
+    por exemplo, o reaproveitamento de aço, madeira e do próprio concreto. O Conama, em sua
+    Resolução nº 307/2002 (Brasil, 2002), classifica os RCC nas classes A, B, C e D. Confira, a seguir,
+    a principais características desses grupos, de acordo com Cardoso, Galatto e Guadagnin (2014,
+    p. 2):
+
+            Classe A: são os resíduos reutilizáveis ou recicláveis como agregados, como os de:
+                   Construção, demolição, reformas e reparos de pavimentação, e de outras obras de
+                   infraestrutura, até mesmo de solos provenientes de terraplanagem.
+                   Construção, demolição, reformas e reparos de edificações: componentes cerâmicos
+                   (tijolos, blocos, telhas, placas de revestimento, etc.), argamassa e concreto.
+                   Processo de fabricação e/ou demolição de peças pré-moldadas em concreto (blocos,
+                   tubos, meios-fios, etc.) produzidas nos canteiros de obras.
+
+            Classe B: são os resíduos recicláveis para outras destinações, como: plásticos,
+            papel/papelão, metais, vidros, madeiras, gesso e outros.
+            Classe C: são os resíduos para os quais não foram desenvolvidas tecnologias ou
+            aplicações economicamente viáveis que permitam a sua reciclagem/recuperação.
+            Classe D: são os resíduos perigosos oriundos do processo de construção, como tintas,
+            solventes, óleos, lâmpadas fluorescentes, pilhas e baterias, ou aqueles contaminados
+            oriundos de demolições, reformas e reparos de clínicas radiológicas, instalações
+            industriais, telhas de amianto e outros.
+
+    Saiba mais
+
+    Caro estudante, para conhecer alguns dos resíduos sólidos classificados como provenientes de
+    serviços de saúde, faça a leitura, especificamente das páginas 149 a 154, do livro Resíduos
+    sólidos: impactos, manejo e gestão ambiental, disponível na Biblioteca Virtual.
+
+    Referências
+
+    ABNT. Associação Brasileira de Normas Técnicas. ABNT NBR 1004: resíduos sólidos:
+    classificação. Rio de Janeiro: ABNT, 2004.
+
+    BARBOSA, R. P.; IBRAHIN, F. I. D. Resíduos sólidos: impactos, manejo e gestão ambiental. São
+    Paulo: Érica, 2014. Disponível em:
+    https://integrada.minhabiblioteca.com.br/reader/books/9788536521749/pageid/0. Acesso em:
+    11 abr. 2024.
+
+    BRASIL. Conselho Nacional do Meio Ambiente. Resolução nº 307, de 5 de julho de 2002.
+    Estabelece diretrizes, critérios e procedimentos para a gestão dos resíduos da construção civil.
+    Diário Oficial da União, Brasília, DF: 17 jul. 2002.
+Disciplina
+
+CONSTRUÇÕES SUSTENTÁVEIS
+
+    BRASIL. Lei nº 12.305, de 2 de agosto de 2010. Institui a Política Nacional de Resíduos Sólidos;
+    altera a Lei nº 9.605, de 12 de fevereiro de 1998; e dá outras providências. Diário Oficial da União,
+    Brasília, DF: 3 ago. 2010.
+    CARDOSO, A. da C. F.; GALATTO S. L.; GUADAGNIN, M. R. Estimativa de geração de resíduos da
+    construção civil e estudo de viabilidade de usina de triagem e reciclagem. Revista Brasileira de
+    Ciências Ambientais, n. 31, mar. 2014.
+    MUCELIN, C. A.; BELLINI, M. Lixo e impactos ambientais perceptíveis no ecossistema urbano.
+    Sociedade & Natureza, Uberlândia, v. 20, n. 1, p. 111-124, 2008.
+    MARQUES NETO, J. da C. Gestão dos resíduos de construção e demolição no Brasil. São Carlos:
+    Rima, 2005.
+    ROCHA, J. C.; ROSA, A.; CARDOSO, A. A. Introdução à química ambiental. 2. ed. Porto Alegre:
+    Bookman, 2009.
+
+   Aula 4
+
+    Gestão e Gerenciamento dos Resíduos da Construção Civil-RCC
+
+    Gestão e gerenciamento dos resíduos da construção Civil (RCC)
+
+                     Este conteúdo é um vídeo!
+
+                       Para assistir este conteúdo é necessário que você acesse o AVA pelo
+                       computador ou pelo aplicativo. Você pode baixar os vídeos direto no aplicativo
+                       para assistir mesmo sem conexão à internet.
+
+                                Dica para você
+
+                       Aproveite o acesso para baixar os slides do vídeo, isso pode deixar sua
+                       aprendizagem ainda mais completa.
+
+    Olá, estudante! Nesta videoaula você conhecerá os principais conceitos e diretrizes referentes ao
+    Plano de Gerenciamento de Resíduos da Construção Civil (PGRCC). Este conteúdo será de
+    grande importância para que você entenda como os resíduos da construção civil devem ser
+    tratados na intenção de evitar a poluição ambiental.
+Disciplina
+
+CONSTRUÇÕES SUSTENTÁVEIS
+
+    Ponto de Partida
+
+    Olá, estudante! Quando pensamos em desenvolvimento sustentável, logo nos vem à mente a
+    gestão de resíduos sólidos. Existem vários tipos de resíduos, dentre eles os resíduos oriundos da
+    construção e demolição de edificações. O setor da construção civil tem se empenhado para
+    gerenciar adequadamente esses resíduos, principalmente porque há exigências legais que
+    requerem do setor uma nova postura. Em muitas cidades, o licenciamento de obras demanda a
+    apresentação do Plano de Gerenciamento dos Resíduos da Construção Civil (PGRCC).
+
+    Nesta aula você descobrirá como os resíduos da construção civil (RCC) devem ser tratados
+    durante os processos de construção, demolição e descarte.
+
+    Você sabe elaborar um PGRCC? Vamos entender como esse instrumento deve ser desenvolvido?
+
+    Vamos Começar!
+
+    O crescimento das cidades, evidenciado pelas contínuas atividades de construção, reforma e
+    demolição de edificações e de infraestrutura urbana, vem expandindo significativamente a
+    geração de resíduos da construção civil (RCC). No Brasil, os resíduos da construção civil
+    representam cerca de 50% do total de resíduos sólidos urbanos (Angulo et al., 2004). Como
+    explicam Ribeiro et al. (2008), estima-se que a construção civil extraia algo entre 20 e 50% do
+    total de recursos naturais consumidos pela sociedade. A Resolução do Conselho Nacional do
+    Meio Ambiente – Conama nº 307/2002 (Brasil, 2002, p. 1) apresenta a definição do termo
+    “resíduos da construção civil”, categorizando-o como os resíduos sólidos “provenientes de
+    construções, reformas, reparos e demolições, e os resultantes da preparação e da escavação de
+    terrenos”. O aumento exponencial da produção desses resíduos, adicionado aos impactos
+    decorrentes da gestão inadequada, tem representado uma forte ameaça à sustentabilidade do
+    planeta.
+
+    Parte da discussão sobre a sustentabilidade ambiental está relacionada ao ambiente construído
+    e à forma de atuação da indústria da construção civil. Para Lima (2012), a atividade da
+    construção civil tem grande impacto sobre o ambiente em razão do consumo de recursos
+    naturais ou extração de jazidas, do consumo de energia elétrica nas fases de extração,
+    transformação, fabricação, transporte e aplicação, e da consequente geração de resíduos
+    provenientes de perdas, desperdício e demolições.
+
+    Diante desse panorama, é necessário que a gestão e o gerenciamento dos RCC tenham como
+    premissa a sustentabilidade. De acordo com Leite (1997), a diferenciação entre os termos
+    “gestão” e “gerenciamento” pode ser explicada da seguinte forma: a gestão de resíduos sólidos
+    abrange atividades referentes às tomadas de decisões estratégicas e à organização do setor
+    para esse fim, englobando instituições, políticas, instrumentos e meios. Já o gerenciamento de
+    resíduos está relacionado aos aspectos tecnológicos e operacionais da questão, que incluem
+Disciplina
+
+CONSTRUÇÕES SUSTENTÁVEIS
+
+    fatores administrativos, gerenciais, econômicos, ambientais e de desempenho. Logo, esse último
+    conceito corresponde às práticas de prevenção, redução, segregação, reutilização,
+    acondicionamento, coleta, transporte, tratamento, recuperação de resíduos sólidos e destinação
+    final.
+
+    A Política Nacional de Resíduos Sólidos (PNRS) foi instituída por meio da publicação da Lei
+    Federal nº 12.305/2010 (Brasil, 2010) e constitui-se como o principal marco regulatório para a
+    gestão dos resíduos sólidos, situando o desenvolvimento sustentável como premissa. A PNRS
+    tem como propósito subsidiar as ações para a solução dos atuais problemas na gestão dos
+    resíduos sólidos. Essa política é constituída por princípios, objetivos e instrumentos, e estabelece
+    responsabilidades tanto do poder público como dos geradores de resíduos sólidos.
+
+    Uma das inovações trazidas por um dos princípios da PNRS é a visão sistêmica na gestão dos
+    resíduos sólidos, que deve considerar as variáveis ambiental, social, cultural, econômica,
+    tecnológica e de saúde pública. Esse princípio requer uma compreensão global da gestão, com
+    base nas diversas dimensões e na interação entre elas. Outra questão importante referente à
+    gestão dos resíduos é o princípio da responsabilidade compartilhada pelo ciclo de vida dos
+    produtos, o qual enfatiza a atribuição da responsabilidade de forma individualizada, mas
+    encadeada aos envolvidos, que podem ser os fabricantes, importadores, distribuidores,
+    comerciantes, consumidores e o poder público. Ou seja, a responsabilidade pela destinação dos
+    resíduos é de todos os participantes da cadeia de produção e consumo.
+
+    A PNRS apresenta diversos instrumentos, como a logística reversa, que imputa aos fabricantes,
+    importadores, distribuidores e comerciantes de agrotóxicos e suas embalagens; pilhas e
+    baterias; pneus; óleos lubrificantes e suas embalagens; lâmpadas fluorescentes; e produtos
+    eletroeletrônicos a obrigação de implementar procedimentos para retorno ao processo produtivo
+    desses produtos pós-consumo.
+
+    Outro instrumento interessante da PNRS é o Plano Municipal de Gestão Integrada de Resíduos
+    Sólidos, que é exigido a todos os municípios e ao Distrito Federal como condição de acesso aos
+    recursos da União. Esse documento tem como finalidade estabelecer os programas e ações de
+    forma a atender às demandas da comunidade a partir de um diagnóstico da situação dos
+    resíduos sólidos gerados.
+
+    Em 2002, a Resolução Conama nº 307 (Brasil, 2002), que trata dos resíduos da construção civil,
+    definiu diretrizes para a gestão municipal dos RCC. Essa Resolução definiu os geradores de RCC
+    como “pessoas, físicas ou jurídicas, públicas ou privadas, responsáveis por atividades ou
+    empreendimentos que gerem resíduos de construção civil” (Brasil, 2002, p. 2). O referido texto
+    distingue os geradores de RCC entre pequenos e grandes. Os pequenos são aqueles que geram
+    uma quantidade máxima de RCC, estabelecida pela administração municipal, de até 1.000 litros
+    por gerador, quantidade equivalente a 1 m3 de resíduos da construção civil por obra. Grandes
+    geradores são pessoas físicas ou jurídicas que produzem uma quantidade superior à
+    determinada pela administração municipal.
+Disciplina
+
+CONSTRUÇÕES SUSTENTÁVEIS
+
+    A Resolução Conama nº 448:2012 (Brasil, 2012, p. 2) propõe que os geradores de RCC devem ter
+    como objetivo prioritário “a não geração de resíduos e, secundariamente, a redução, a
+    reutilização, a reciclagem, o tratamento dos resíduos sólidos e a disposição final ambientalmente
+    adequada dos rejeitos”. Essa hierarquia na gestão dos resíduos é compatível com os objetivos
+    da Política Nacional de Resíduos Sólidos (Brasil, 2010).
+
+    Essa Resolução ainda versa sobre a proibição da disposição dos resíduos em quaisquer outros
+    locais que não sejam aterros específicos para tal finalidade. Ou seja os RCC “não poderão ser
+    dispostos em aterros de resíduos sólidos urbanos, em áreas de ‘bota fora’, em encostas, corpos
+    d’água, lotes vagos e em áreas protegidas por lei” (Brasil, 2010, p. 2). Quando não passíveis de
+    aproveitamento imediato, devem ser enviados para aterros específicos, denominados de aterro
+    de resíduos classe A, os quais devem ser reservados para usos futuros.
+
+    A geração de resíduos sólidos ocorre em diversas etapas, a princípio no canteiro de obras,
+    durante a manutenção e, por fim, na demolição das obras e edificações (John, 2000). Essas
+    fases foram abordadas por John e Agopyan (2000) ao estudarem o ciclo de vida da construção
+    civil, resultando nas três fases em que os RCC podem ser gerados. Para esses autores, na fase
+    de construção os resíduos são provenientes das perdas decorrentes dos processos construtivos.
+    John e Agopyan (2000) ressaltam que parte dessas perdas permanece incorporada nas
+    construções, na forma de componentes, e outra parcela se converte em resíduo de construção. A
+    redução das perdas geradas nessa etapa diminuiria a quantidade de material incorporada às
+    obras e, consequentemente, minimizaria a geração de resíduo nas fases de manutenção e
+    demolição, além de baixar os custos.
+
+    A segunda fase é a de manutenção, na qual a geração do RCC está associada a diversos
+    procedimentos, como correção de defeitos, reformas ou modernização do edifício, práticas que
+    podem exigir demolições parciais, e descarte de componentes que tenham se degradado e
+    atingido o final da vida útil, necessitando ser substituídos. John e Agopyan (2000) enfatizam que
+    a geração de RCC poderia ser reduzida por meio da qualificação da mão de obra, evitando
+    manutenções provocadas por defeitos, assim como pela elaboração de projetos mais flexíveis,
+    capazes de permitir modificações nas construções sem a perda de materiais. Segundo os
+    autores, a redução de resíduos na fase da demolição depende da tecnologia utilizada para
+    demolição ou desmontagem, a qual precisa viabilizar a reutilização dos componentes (John;
+    Agopyan, 2000).
+
+    Considerando a composição média dos RCC, observa-se que grande parte dos materiais
+    componentes é recuperável e pode ser reutilizada ou reciclada se for previamente segregada por
+    categorias, de acordo com sua constituição. Logo, o potencial de reciclagem para os RCC é
+    significativo.
+
+    Leite (2001) explica que diversos fatores interferem na composição média dos resíduos de
+    construção, como a tipologia construtiva utilizada, as técnicas construtivas existentes e os
+    materiais disponíveis em cada local. Além disso, a geração per capita de resíduos da construção
+    civil pode variar a depender de certos aspectos, como grau de urbanização, tamanho da
+Disciplina
+
+CONSTRUÇÕES SUSTENTÁVEIS
+
+    localidade, densidade populacional, potencial construtivo, nível de renda, padrões de consumo,
+    nível socioeconômico da população, tipo e quantidade de recursos econômicos e tecnológicos
+    disponíveis para a reciclagem, tratamento ou aproveitamento dos resíduos, capacidade de
+    gestão institucional e seu nível de eficiência.
+
+    Para oportunizar o gerenciamento adequado dos RCC, é necessário conhecer a classificação
+    desses resíduos. No Brasil, a categorização dos RCC é dada pela Resolução nº 307:2002 (Brasil,
+    2002), que classifica os RCC em quatro classes: A, B, C e D. A Resolução nº 348:2004 (Brasil,
+    2004) complementa a classificação mencionada anteriormente, incluindo o amianto na classe de
+    resíduos perigosos. Já a Resolução nº 431, de 2011 (Brasil, 2011), altera a classificação do
+    gesso da classe C para a classe B. De acordo com Valença (2008), essa classificação indica que
+    para cada classe de resíduos deverá haver um gerenciamento adequado, considerando as
+    atividades de segregação na origem, acondicionamento, coleta, transporte, tratamento e
+    disposição final apropriada.
+
+    Como exposto na Resolução Conama nº 307 (Brasil, 2002 p. 3), “resíduos classe A são os
+    resíduos reutilizáveis ou recicláveis como agregados”. São exemplos de integrantes dessa classe
+    de resíduos os gerados em “pavimentação e de outras obras de infraestrutura, inclusive solos
+    provenientes de terraplanagem” (Brasil, 2002, p. 3). Na fase de construção, alguns resíduos
+    oriundos das edificações são os componentes cerâmicos, a argamassa e o concreto, bem como
+    resíduos provenientes de processos de fabricação de peças pré-moldadas em concreto que
+    podem ser reutilizados ou reciclados na forma de agregados. Além disso, os resíduos das
+    demolições podem ser reutilizados ou encaminhados a áreas de aterro específico de RCC, os
+    quais deverão ser dispostos de modo a permitir sua utilização ou reciclagem futura.
+
+    Os resíduos classe B são aqueles recicláveis para outros destinos, “tais como plásticos,
+    papel/papelão, metais, vidros, madeiras e outros” (Brasil, 2002, p. 3). Eles podem ser reutilizados
+    ou encaminhados para reciclagem ou mesmo ser encaminhados para áreas de armazenamento
+    ou disposição temporária.
+
+    Os resíduos classe C são aqueles “para os quais não foram desenvolvidas tecnologias ou
+    aplicações economicamente viáveis que permitam a sua reciclagem/recuperação (Brasil, 2002,
+    p. 3).
+
+    Já os resíduos classe D são considerados perigosos, abrangendo tintas, solventes, óleos,
+    produtos que contenham amianto e os resíduos gerados em atividades médicas envolvendo
+    radiologia e instalações industriais. O gerenciamento desses resíduos requer cuidados especiais.
+    Por exemplo, o armazenamento, o transporte e a destinação devem atender a normas técnicas
+    específicas.
+
+    De acordo com Castro (2003), a construção civil vem sofrendo inúmeras alterações em seus
+    processos e materiais, modernizando-se por meio da adoção de novos métodos construtivos e
+    materiais de construção, bem como encontrando utilidades inovadoras para antigos materiais.
+Disciplina
+
+CONSTRUÇÕES SUSTENTÁVEIS
+
+    Para esse autor, os processos de reciclagem também vêm sendo incorporados e objetivam o
+    máximo aproveitamento dos RCC, seja dentro ou fora da própria atividade construtiva.
+
+    Siga em Frente...
+
+    Como estratégias de aproveitamento de RCC dentro da própria obra, Grigoli (1999) cita algumas
+    medidas que não representariam risco para a edificação, como utilização de resíduos cerâmicos
+    para enchimento de degraus, contrapiso de interiores e preparo de concreto para piso que
+    receberá pouca carga. Nos canteiros de obra, é comum a reutilização desses materiais em
+    estado bruto, na forma de enchimentos ou pequenos aterros. Outras possibilidades de uso
+    desses resíduos podem surgir durante a execução ou manutenção de estruturas viárias ou de
+    sistemas de drenagem.
+
+    Outro aspecto importante nesse contexto é a destinação dos RCC. A Resolução nº 307/2002
+    (Brasil, 2002) estabelece que os aterros para resíduos da construção civil devem visar à
+    “reservação” dos RCC, dispostos com a intenção de sua futura utilização, no menor volume
+    possível e sem causar danos ambientais ou sanitários. De acordo com a Resolução nº 448:2012,
+    os RCC “classe A deverão ser reutilizados ou reciclados na forma de agregados ou
+    encaminhados a aterro de resíduos classe A de reservação de material para usos futuros” (Brasil,
+    2012, p. 2). Os resíduos da classe B deverão ser encaminhados para áreas de armazenamento ou
+    disposição temporária, sendo dispostos de modo a permitir sua utilização ou reciclagem futura.
+    Os da classe C e D devem ser armazenados, transportados e destinados obedecendo a normas
+    técnicas específicas. Por fim, os resíduos perigosos deverão ser destinados para aterros de
+    resíduos classe I.
+
+    O Plano de Gerenciamento de Resíduos da Construção Civil é exigido no momento do
+    licenciamento de atividades ou empreendimentos pelo órgão ambiental competente. A fase de
+    planejamento dos RCC é essencial, pois consiste na elaboração de um plano de gerenciamento
+    que é específico para cada obra. “Os Planos de Gerenciamento de Resíduos da Construção Civil
+    serão elaborados e implementados pelos grandes geradores e terão como objetivo estabelecer
+    os procedimentos necessários para o manejo e destinação ambientalmente adequados dos
+    resíduos” (Brasil, 2012, p. 1).
+
+    No estágio de planejamento de uma obra, é fundamental considerar aspectos que visem à
+    minimização da geração de RCC, como a compatibilidade entre os diversos projetos
+    (arquitetônico, estrutural, hidráulico, elétrico, etc.). É importante que esses projetos contemplem
+    a exatidão em relação à apresentação de cotas, níveis e alturas, para evitar improvisações na
+    obra, além da especificação clara dos materiais e componentes, de modo que reparos não sejam
+    necessários. A falta de detalhamento nos projetos resulta em equívocos e retrabalhos na obra, o
+    que aumenta a produção de RCC.
+
+    A Associação Brasileira de Normas Técnicas (ABNT) publicou em 2004 cinco normas
+    relacionadas aos resíduos da construção civil. Três dessas normas apresentam uma descrição
+Disciplina
+
+CONSTRUÇÕES SUSTENTÁVEIS
+
+    de áreas de triagem e transbordo, áreas de reciclagem e aterro de resíduos da construção civil. A
+    primeira delas, NBR 15112 (ABNT, 2004a), expõe as diretrizes para projeto, implantação e
+    operação de áreas de triagem e transbordo. A segunda, NBR 15113 (ABNT, 2004b), relaciona as
+    diretrizes para projeto, implantação e operação de aterros. Por fim, a NBR 15114 (ABNT, 2004c)
+    estabelece diretrizes para projeto, implantação e operação de áreas de reciclagem.
+
+    As outras duas normas publicadas em 2004 referem-se a critérios para uso de agregados
+    reciclados. A NBR 15115 (ABNT, 2004d) descreve procedimentos para execução de camadas de
+    pavimentação utilizando agregados reciclados de resíduos da construção. Por sua vez, a norma
+    NBR 15116 (ABNT, 2004e) apresenta requisitos para utilização em pavimentos e preparo de
+    concreto sem função estrutural com agregados reciclados de resíduos da construção.
+
+    Vamos Exercitar?
+
+    Para solidificar os conhecimentos apreendidos nesta aula, você deve elaborar, a partir de agora,
+    um plano que apresente informações gerais de um empreendimento, como identificação do
+    empreendedor, do responsável técnico pela obra e da equipe técnica encarregada da preparação
+    do plano de RCC e dos projetos.
+
+    Para caracterizar o empreendimento adequadamente, leve em consideração os seguintes
+    fatores: localização, com endereço completo (croquis de localização); caracterização do sistema
+    construtivo; área total do terreno; área de projeção da construção e área total construída;
+    quantidade de trabalhadores, incluindo os terceirizados; e cronograma de execução da obra.
+
+    Etapas do plano de gerenciamento de resíduos da construção civil
+
+         1. Caracterização e quantificação: nesta fase, estima-se a geração de RCC conforme o
+            cronograma de execução de obra. A caracterização é realizada com base na classificação
+            das Resoluções Conama nos 307/02 e 348/04, que são fundamentais para a identificação
+            das possibilidades de aproveitamento dos RCC.
+
+         2. Minimização dos resíduos: neste campo, descrevem-se os procedimentos que serão
+            adotados para a redução da geração dos RCC.
+
+         3. Segregação dos resíduos: nesta seção, apontam-se os procedimentos a serem efetuados
+            quanto à segregação dos resíduos. A segregação deverá ser feita prioritariamente nos
+            locais de origem dos resíduos, logo após a sua geração. Uma vez segregados, os resíduos
+            deverão ser adequadamente acondicionados, em depósitos ou recipientes distintos, para
+            que possam ser aproveitados no próprio canteiro de obras ou fora dele. A segregação,
+            quando executada por classe de resíduos, de acordo com as resoluções do Conama,
+            potencializa a utilização futura desses resíduos. A contaminação do resíduo compromete a
+            sua reutilização e, em certos casos, até inviabiliza o posterior aproveitamento, dificultando
+            o gerenciamento, ao mesmo tempo em que a segregação bem realizada assegura a
+            qualidade do resíduo.
+Disciplina
+
+CONSTRUÇÕES SUSTENTÁVEIS
+
+         4. Acondicionamento e armazenamento: nesta fase, descrevem-se os procedimentos a serem
+            adotados para o acondicionamento dos resíduos sólidos, de forma a garantir a integridade
+            dos materiais. É importante que os locais de armazenamento sejam constituídos de
+            materiais adequados aos resíduos que serão armazenados. Esses locais devem ser
+            devidamente identificados. Indique, no plano, as características construtivas dos locais de
+            armazenamento (dimensões, capacidade volumétrica, material construtivo, etc.).
+
+         5. Transporte interno: nesta seção, apontam-se os procedimentos relativos ao transporte
+            interno, vertical e horizontal dos RCC. De acordo com Lima e Lima (2009), o transporte
+            interno dos RCC entre o acondicionamento inicial e final geralmente é feito por carrinhos,
+            elevadores de carga, gruas e guinchos.
+
+         6. Reutilização e reciclagem: neste campo, descrevem-se os procedimentos que serão
+            adotados para a reutilização e reciclagem dos RCC. É preciso atentar-se para as
+            recomendações das normas técnicas, a fim de que os materiais estejam enquadrados no
+            padrão de qualidade por elas exigidos. São exemplos de aplicação de agregados
+            reciclados: confecção de pavers para pisos, alvenaria, concretos e argamassas, bases para
+            pisos de concreto sem função estrutural, confecção de blocos de concreto, etc.
+
+         7. Transporte externo: nesta etapa, identificam-se a empresa licenciada para a realização do
+            transporte dos resíduos, os tipos de veículos e equipamentos a serem utilizados, bem
+            como a previsão de frequência de coleta. O transporte dos RCC normalmente é efetuado
+            por uma empresa terceirizada, utilizando caminhões poliguindastes que transportam as
+            caçambas. É importante que haja o controle das destinações dos RCC. Esse documento
+            contém a identificação do gerador, da empresa que realiza os serviços de transporte, bem
+            como da unidade de destinação final.
+
+         8. Transbordo de resíduos: neste campo, aponta-se a localização, com endereço completo
+            (croquis de localização).
+
+         9. Destinação dos resíduos: nesta seção, apontam-se os procedimentos que deverão ser
+            adotados com relação à destinação dos RCC por classe, de acordo com a Resolução
+            Conama nº 307/2002. Nesse contexto, é preciso apresentar a carta de viabilidade de
+            recebimento/destinação de empresa licenciada para destinação ou de área de triagem e
+            transbordo (ATT) da classe/tipo de resíduo. Os RCC classe A deverão ser encaminhados
+            para áreas de triagem e transbordo, áreas de reciclagem ou aterros da construção civil. Já
+            os resíduos classe B podem ser comercializados com empresas ou associações de
+            catadores de materiais recicláveis, ou até mesmo ser usados como combustível para
+            fornos e caldeiras. Para os resíduos das categorias C e D, as etapas de segregação,
+            transporte, armazenamento e destinação deverão atender às normas técnicas pertinentes.
+
+       10. Comunicação e educação socioambiental: nesta fase, descrevem-se as ações educativas
+            dos trabalhadores com o intuito de sensibilizá-los quanto a minimização, reutilização e
+            reciclagem dos RCC.
+
+       11. Cronograma de implantação do plano de gerenciamento de RCC: neste último campo,
+            apresenta-se o cronograma de implantação do plano para todo o período da obra.
+
+    Saiba mais
+Disciplina
+
+CONSTRUÇÕES SUSTENTÁVEIS
+
+    Caro estudante, aprofunde seu entendimento sobre o gerenciamento adequado dos resíduos da
+    construção civil fazendo a leitura do Guia para elaboração de projeto de gerenciamento de
+    resíduos da construção civil, publicado pelo CREA/PR.
+
+    Referências
+
+    ANGULO, S. C. et al. Caracterização de agregados de resíduos de construção e demolição
+    reciclados separados por líquidos densos. In: CONGRESSO LATINO-AMERICANO DE
+    CONSTRUÇÃO SUSTENTÁVEL, 2004, 10., São Paulo, 2004. Anais... Porto Alegre: PNUMA/ANTAC,
+    2004. Disponível em: https://repositorio.usp.br/directbitstream/e62b056e-5dfa-4a11-
+    9bf0a42078aee11b/John-2004-caracterizacao.pdf. Acesso em: 12 abr. 2024.
+
+    ABNT. Associação Brasileira de Normas Técnicas. NBR 15112: diretrizes para projeto,
+    implantação e operação de áreas de triagem e transbordo. Rio de Janeiro: ABNT, 2004a.
+
+    ABNT. Associação Brasileira de Normas Técnicas. NBR 15113: diretrizes para projeto,
+    implantação e operação de aterros. Rio de Janeiro: ABNT, 2004b.
+
+    ABNT. Associação Brasileira de Normas Técnicas. NBR 15114: diretrizes para projeto,
+    implantação e operação de áreas de reciclagem. Rio de Janeiro: ABNT, 2004c.
+
+    ABNT. Associação Brasileira de Normas Técnicas. NBR 15115: procedimentos para execução de
+    camadas de pavimentação utilizando agregados reciclados de resíduos da construção. Rio de
+    Janeiro: ABNT, 2004d.
+
+    ABNT. Associação Brasileira de Normas Técnicas. NBR 15116: requisitos para utilização em
+    pavimentos e preparo de concreto sem função estrutural com agregados reciclados de resíduos
+    da construção. Rio de Janeiro: ABNT, 2004e.
+
+    BRASIL. Lei nº 12.305, de 2 de agosto de 2010. Institui a Política Nacional de Resíduos Sólidos;
+    altera a Lei no 9.605, de 12 de fevereiro de 1998; e dá outras providências. Diário Oficial da União,
+    Brasília, DF: 3 ago. 2010.
+
+    BRASIL. Resolução Conama nº 307, de 5 de julho de 2002. Estabelece diretrizes, critérios e
+    procedimentos para a gestão dos resíduos da construção civil. Diário Oficial da União, Brasília,
+    DF: 17 jul. 2002. Disponível em: https://conama.mma.gov.br/index.php?
+    option=com_sisconama&task=documento.download&id=18556. Acesso em 12 abr. 2024.
+
+    BRASIL. Resolução Conama nº 348, de 16 de agosto de 2004. Altera a Resolução CONAMA n.
+    307, de 5 de julho de 2002, incluindo o amianto na classe de resíduos perigosos. Diário Oficial da
+    União, Brasília, DF: 17 ago. 2004. Disponível em: https://conama.mma.gov.br/?
+    option=com_sisconama&task=arquivo.download&id=440. Acesso em 12 abr. 2024.
+Disciplina
+
+CONSTRUÇÕES SUSTENTÁVEIS
+
+    BRASIL. Resolução Conama nº 431, de 24 de maio de 2011. Altera o art. 3º da Resolução n. 307,
+    de 5 de julho de 2002, do Conselho Nacional do Meio Ambiente - CONAMA, estabelecendo nova
+    classificação para o gesso. Diário Oficial da União, Brasília, DF: 25 maio 2011. Disponível em:
+    https://www.legisweb.com.br/legislacao/?id=114767. Acesso em 12 abr. 2024.
+
+    BRASIL. Resolução Conama nº 448, de 18 de janeiro de 2012. Altera os arts. 2º, 4º, 5º, 6º, 8º, 9º,
+    10º, 11º da Resolução nº 307, de 5 de julho de 2002. Ministério do Meio Ambiente. Diário Oficial
+    da União, Brasília, DF: 19 jan. 2012. Disponível em: https://conama.mma.gov.br/?
+    option=com_sisconama&task=arquivo.download&id=652. Acesso em 12 abr. 2024.
+
+    CASTRO, L. O. de A. Destinação dos resíduos de construção e demolição na área insular do
+    município de Santos e seus impactos sanitários e ambientais. 2003. 141 f. Dissertação
+    (Mestrado em Saúde Ambiental) – Faculdade de Saúde Pública, Universidade de São Paulo, São
+    Paulo, 2003.
+
+    GRIGOLI, A. S. Entulho de obra: reciclagem, e consumo na própria obra que o gerou. In:
+    ENCONTRO NACIONAL DA INDÚSTRIA DA CONSTRUÇÃO CIVIL, 71., 1999, Salvador. Anais...
+    Salvador: SINDUSCON, 1999.
+
+    JOHN, V. M.; AGOPYAN, V. Reciclagem de resíduos da construção. In: SEMINÁRIO RECICLAGEM
+    DE RESÍDUOS SÓLIDOS DOMICILIARES, 2000, São Paulo. Anais... São Paulo: PCC/USP, 2000.
+    Disponível em: http://www.ietsp.com.br/static/media/media-
+    files/2015/01/23/LV_Vanderley_John_ ReciclagemResiduos_Construcao_Civil.pdf. Acesso em:
+    11 abr. 2024.
+
+    JOHN, V. M. Reciclagem de resíduos na construção civil: contribuição a metodologia de pesquisa
+    e desenvolvimento. 2000. 102 f. Tese (Livre Docência) – Escola Politécnica, Universidade de São
+    Paulo, São Paulo, 2000.
+
+    LEITE, M. B. Avaliação de propriedades mecânicas de concretos produzidos com agregados
+    reciclados de resíduos da construção e demolição. 2001. 290 f. Tese (Doutorado em Engenharia
+    Civil) – Escola de Engenharia, Universidade Federal do Rio Grande do Sul, Porto Alegre, RS, 2001.
+
+    LEITE, W. C. de A. Estudo da gestão de resíduos sólidos: uma proposta de modelo tomando a
+    Unidade de Gerenciamento de Recursos Hídricos (UGRHI) como referência. 1997. Tese
+    (Doutorado em Engenharia Hidráulica e Saneamento) – Escola de Engenharia, Universidade de
+    São Paulo, São Paulo, 1997.
+
+    LIMA, R. M. S. R.; LIMA, R. R. R. Guia para elaboração de projeto de gerenciamento de resíduos da
+    construção civil. Curitiba: Conselho Regional de Engenharia e Agronomia, 2009. Disponível em:
+    https://www.cuiaba.mt.gov.br/upload/arquivo/cartilhaResiduos_web2012.pdf. Acesso em: 11
+    abr. 2024.
+Disciplina
+
+CONSTRUÇÕES SUSTENTÁVEIS
+
+    LIMA, R. M. S. R. Sistema de avaliação da gestão integrada de resíduos da construção civil na
+    esfera municipal. 2012. 174 f. Tese (Doutorado em Saúde Pública) – Faculdade de Saúde Pública,
+    Universidade de São Paulo, São Paulo, 2012.
+    VALENÇA, M. Z. Resíduos da construção civil: o papel das empresas de coleta e transporte de
+    entulho de obras para uma gestão integrada e sustentável na cidade do Recife, a partir da
+    Resolução CONAMA 307/2002. 2008. 149 f. Dissertação (Mestrado em Gestão e Políticas
+    Ambientais) – Universidade Federal de Pernambuco, Recife, 2008.
+
+   Aula 5
+
+    Encerramento da Unidade
+
+    Videoaula de Encerramento
+
+                     Este conteúdo é um vídeo!
+
+                       Para assistir este conteúdo é necessário que você acesse o AVA pelo
+                       computador ou pelo aplicativo. Você pode baixar os vídeos direto no aplicativo
+                       para assistir mesmo sem conexão à internet.
+
+                                Dica para você
+
+                       Aproveite o acesso para baixar os slides do vídeo, isso pode deixar sua
+                       aprendizagem ainda mais completa.
+
+    Olá, estudante! Nesta videoaula você relembrará a importância dos cuidados com o meio
+    ambiente e os recursos naturais, revisitando algumas estratégias de preservação. O uso
+    consciente da água, a geração adequada de energia e a destinação correta dos resíduos sólidos
+    são medidas essenciais para a manutenção da saúde do nosso planeta. Esses fatores
+    evidenciam que precisamos nos atentar ao exercício de atividades que possam causar danos
+    ambientais.
+
+    Ponto de Chegada
+Disciplina
+
+CONSTRUÇÕES SUSTENTÁVEIS
+
+    Olá, estudante! Para desenvolver a competência associada a esta unidade de aprendizagem, que
+    é “Conhecer e ser capaz de identificar, analisar e aplicar ações relacionadas à otimização de
+    recursos naturais na construção civil”, você deverá, antes de tudo, conhecer os conceitos
+    fundamentais relativos ao uso e à conservação da água, sobretudo no âmbito da construção
+    civil. Também é interessante que você assimile saberes relacionados à eficiência energética e às
+    fontes sustentáveis, saiba como os resíduos devem ser tratados e quais os efeitos da falta de
+    cuidados durante sua destinação final, e, por fim, conheça as diferentes opções de tratamento e
+    de resíduos sólidos provenientes da construção civil.
+
+    As atividades de construção, reforma, operação e demolição de edifícios promovem a
+    degradação ambiental, principalmente por causa do excessivo consumo de recursos naturais e
+    do grande volume de geração de resíduos sem destinação adequada. É urgente a necessidade de
+    minimizar os impactos ambientais gerados pelas edificações por meio da adoção de práticas e
+    tecnologias sustentáveis, visando à redução do uso da água e energia, além do gerenciamento
+    apropriado dos resíduos da construção civil. Isso exige uma postura proativa dos diversos
+    segmentos do setor da construção civil.
+
+    Por essa razão, a preservação da água, as iniciativas inovadoras de geração de energia e o
+    correto tratamento e destinação dos resíduos sólidos produzidos são assuntos de grande
+    importância, que devem ser considerados como urgentes para a sustentabilidade do nosso
+    planeta.
+
+    É Hora de Praticar!
+
+                     Este conteúdo é um vídeo!
+
+                       Para assistir este conteúdo é necessário que você acesse o AVA pelo
+                       computador ou pelo aplicativo. Você pode baixar os vídeos direto no aplicativo
+                       para assistir mesmo sem conexão à internet.
+
+    Para contextualizar a sua aprendizagem, imagine a seguinte situação: você foi convidado a
+    assumir a gerência do setor de projetos e obras de uma construtora que atua há mais de vinte
+    anos em sua cidade. Os sócios dessa empresa esperam que você traga uma nova perspectiva de
+    operação para os empreendimentos a serem lançados. O objetivo é oferecer empreendimentos
+    que sejam considerados sustentáveis ambientalmente.
+    Em sua nova função de gerente, você precisa cuidar para que o gerenciamento dos resíduos da
+    construção civil ocorra de forma adequada. Nas cidades em que serão lançados os novos
+    empreendimentos, a apresentação do plano de gerenciamento de resíduos é uma das exigências
+    para o licenciamento. Logo, é necessário que você se aprofunde nas seguintes questões:
+Disciplina
+
+CONSTRUÇÕES SUSTENTÁVEIS
+
+            O que é o Plano de Gerenciamento de Resíduos da Construção Civil?
+            Qual deve ser o conteúdo presente nesse documento?
+
+    Para consolidar o que foi apreendido durante as aulas, reflita sobre as seguintes questões:
+
+            Como desenvolver sistemas mais eficientes para o consumo e tratamento de água?
+            Como reduzir a poluição gerada pelo excesso de consumo?
+            Quais as melhores alternativas para a manutenção de um planeta sustentável?
+
+    Diante da realização de uma obra, é importante atentar-se para o gerenciamento dos resíduos da
+    construção civil. Nesse contexto, desenvolver um planejamento é fundamental, pois deve-se
+    tomar como premissa a não geração dos resíduos. O planejamento dos resíduos deve estar
+    inserido na logística das atividades efetuadas em um canteiro de obras, com a definição das
+    áreas de segregação, armazenamento e acesso de veículos para retirada dos resíduos.
+    Diversas cidades já exigem a apresentação do Plano de Gerenciamento de Resíduos da
+    Construção Civil (PGRCC) para o licenciamento de obras e demolição. Esse plano é um
+    documento que apresenta informações sobre a geração e os procedimentos a serem executados
+    nas etapas do gerenciamento dos resíduos. Portanto, é importante estimar o volume de resíduos
+    a ser gerado e classificá-los com base nas Resoluções Conama nos 307/2002 e 348/2004. Essa
+    estimativa de geração deve estar compatibilizada com o cronograma de execução de obra para
+    subsidiar o dimensionamento das áreas de armazenamento e a frequência de coleta de resíduos.
+    A geração é uma informação necessária para avaliar a possibilidade de reaproveitamento dos
+    resíduos. A forma de segregação, acondicionamento e armazenamento desses resíduos é
+    essencial para verificar a viabilidade de aproveitamento futuro dos RCC. No PGRCC, descreve-se,
+    também, como será realizado o transporte dos resíduos e ressalta-se que o gerador deve manter
+    os documentos que comprovem a contratação de uma empresa devidamente licenciada para o
+    transporte e a destinação dos resíduos.
+    É importante que esse documento apresente as ações a serem efetuadas em relação à
+    minimização, reutilização e reciclagem dos resíduos. Ele também deve atender aos requisitos
+    apresentados nas normas técnicas para a utilização dos resíduos e agregados reciclados.
+    A capacitação é indispensável para a efetiva implantação do Plano. No PGRCC, é preciso indicar
+    a forma de sensibilização e capacitação dos trabalhadores envolvidos.
+    Com base no conteúdo estudado durante as aulas desta unidade de aprendizagem, agora você
+    se tornará capaz de elaborar um relatório contendo medidas de redução da água, de utilização de
+    fontes renováveis nas edificações, como também o Plano de Gerenciamento dos Resíduos da
+    Construção Civil exigido para o primeiro empreendimento a ser lançado pela construtora.
+Disciplina
+
+CONSTRUÇÕES SUSTENTÁVEIS
+
+    Fonte: adaptado de Fundação Espaço Eco (2023).
+    ABNT. Associação Brasileira de Normas Técnicas. NBR 15900-1: água para amassamento do
+    concreto: parte 1. Rio de Janeiro: ABNT, 2009.
+    BASSOI, L. J.; GUAZELLI, M. R. Controle ambiental da água. In: PHILIPPI, JÚNIOR, A.; ROMÉRIO,
+    M. A.; BRUNA, G. C. (Eds.). Curso de gestão ambiental. Barueri: Manole, 2004.
+    BAZZARELLA, B. B. Caracterização e aproveitamento de água cinza para uso não potável em
+    edificações. 2005. 165 f. Dissertação (Mestrado em Engenharia Ambiental) – Centro
+    Tecnológico, Universidade Federal do Espírito Santo, Vitória, ES, 2005.
+    BRASIL. Resolução Conama nº 307, de 5 de julho de 2002. Estabelece diretrizes, critérios e
+    procedimentos para a gestão dos resíduos da construção civil. Diário Oficial da União, Brasília,
+    DF: 17 jul. 2002. Disponível em: https://conama.mma.gov.br/index.php?
+    option=com_sisconama&task=documento.download&id=18556. Acesso em 12 abr. 2024.
+Disciplina
+
+CONSTRUÇÕES SUSTENTÁVEIS
+
+    BRASIL. Resolução Conama nº 348, de 16 de agosto de 2004. Altera a Resolução CONAMA n.
+    307, de 5 de julho de 2002, incluindo o amianto na classe de resíduos perigosos. Diário Oficial da
+    União, Brasília, DF: 17 ago. 2004. Disponível em: https://conama.mma.gov.br/?
+    option=com_sisconama&task=arquivo.download&id=440. Acesso em 12 abr. 2024.
+    BENITE, A. Emissões de carbono e a construção civil. São Paulo: Centro de Tecnologia de
+    Edificações, 2011.
+    JOHN, V. M. Reciclagem de resíduos na construção civil: contribuição a metodologia de pesquisa
+    e desenvolvimento. 2000. 102 f. Tese (Livre Docência) – Escola Politécnica, Universidade de São
+    Paulo, São Paulo, 2000.
+
