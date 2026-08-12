@@ -4,6 +4,7 @@ import { Card } from "@/components/ui/Card";
 import type { IconName } from "@/components/ui/Icon";
 import { colors, type } from "@/theme/tokens";
 import { CurrentLessonNode } from "./CurrentLessonNode";
+import { FogOverlay } from "./FogOverlay";
 import { LessonNode, type LessonNodeVariant } from "./LessonNode";
 import { PathConnector } from "./PathConnector";
 
@@ -30,8 +31,21 @@ const statusBadge: Record<UnitStatus, { label: string; tone: BadgeTone }> = {
   locked: { label: "Bloqueado", tone: "neutral" },
 };
 
+// Espelha apps/web's UnitSection.tsx: quantos nós "foggy" de fachada renderizar depois do
+// último visível de verdade — fixo, não escala com quantas lições realmente existem depois.
+// Sem isso dava pra rolar a tela, medir a altura da névoa e contar quantas lições estão
+// escondidas — truncar aqui garante o mesmo visual independente de faltarem 3 ou 300 lições.
+const TEASER_FOGGY_COUNT = 2;
+
 export function UnitSection({ title, subtitle, status, nodes }: UnitSectionProps) {
   const badge = statusBadge[status];
+  const firstFoggyIndex = nodes.findIndex((n) => n.variant === "foggy");
+  const visibleNodes = firstFoggyIndex >= 0 ? nodes.slice(0, firstFoggyIndex + TEASER_FOGGY_COUNT) : nodes;
+  // Começa a névoa um pouco antes do primeiro nó "foggy" (não em cima dele) — esmaece
+  // gradual em vez de corte seco. Calculado sobre visibleNodes, que é o que define a altura
+  // real do container.
+  const fogTopPercent =
+    firstFoggyIndex >= 0 ? Math.max(0, (firstFoggyIndex / visibleNodes.length) * 100 - 10) : null;
 
   return (
     <View style={[styles.wrap, status === "locked" && styles.dimmed]}>
@@ -56,8 +70,8 @@ export function UnitSection({ title, subtitle, status, nodes }: UnitSectionProps
         )}
       </Card>
       <View style={styles.path}>
-        {nodes.length > 1 && <PathConnector dashed={status === "current"} />}
-        {nodes.map((node, index) => (
+        {visibleNodes.length > 1 && <PathConnector dashed={status === "current"} />}
+        {visibleNodes.map((node, index) => (
           <View
             key={node.lessonId}
             style={[styles.nodeSlot, { transform: [{ translateX: index % 2 === 0 ? -32 : 32 }] }]}
@@ -69,6 +83,7 @@ export function UnitSection({ title, subtitle, status, nodes }: UnitSectionProps
             )}
           </View>
         ))}
+        {fogTopPercent !== null && <FogOverlay topPercent={fogTopPercent} />}
       </View>
     </View>
   );

@@ -4,7 +4,7 @@ import { DailyGoalCard } from "@/components/home/DailyGoalCard";
 import { LearningMap, type LearningMapUnit } from "@/components/home/LearningMap";
 import { TopAppBar } from "@/components/home/TopAppBar";
 import type { LessonNodeVariant } from "@/components/home/LessonNode";
-import type { UnitStatus } from "@/components/home/UnitSection";
+import type { UnitNodeData, UnitStatus } from "@/components/home/UnitSection";
 import { useAuth } from "@/hooks/useAuth";
 import { listTrackLessons } from "@/lib/api/resources/lessons";
 import { listTracks } from "@/lib/api/resources/tracks";
@@ -13,6 +13,9 @@ import { colors } from "@/theme/tokens";
 import type { Track, TrackLesson } from "@/types/api";
 
 const DAILY_GOAL_XP = 50;
+// Espelha apps/web's (shell)/page.tsx: quantas missões à frente da atual ficam visíveis
+// ("locked" normal) antes da névoa começar — só revela o que está perto de ser alcançado.
+const FOG_WINDOW = 5;
 
 function variantFor(progressStatus: string, isCheckpoint: boolean | undefined): LessonNodeVariant {
   if (isCheckpoint) return "checkpoint";
@@ -27,23 +30,37 @@ function unitStatusFor(lessons: { progress_status: string }[]): UnitStatus {
   return "locked";
 }
 
+// Só some quando a pessoa se aproxima (índice dentro da janela de FOG_WINDOW a partir da
+// lição atual) — checkpoints ficam de fora de propósito, servem de marco visível à distância.
+function applyFog(nodes: UnitNodeData[]): UnitNodeData[] {
+  const currentIndex = nodes.findIndex((n) => n.variant === "current");
+  if (currentIndex === -1) return nodes;
+  return nodes.map((node, index) =>
+    node.variant === "locked" && index > currentIndex + FOG_WINDOW
+      ? { ...node, variant: "foggy" as const }
+      : node,
+  );
+}
+
 function toUnit(track: Track, trackLessons: TrackLesson[]): LearningMapUnit {
   return {
     trackId: track.id,
     title: track.title,
     subtitle: track.description,
     status: unitStatusFor(trackLessons),
-    nodes: trackLessons.map(({ lesson, progress_status }) => {
-      const presentation = lessonNodePresentation[lesson.id];
-      const variant = variantFor(progress_status, presentation?.isCheckpoint);
-      return {
-        lessonId: lesson.id,
-        icon: presentation?.icon ?? "school",
-        variant,
-        href: `/trilhas/${track.id}/${lesson.id}/sessao`,
-        ctaLabel: variant === "current" ? "Continuar lição" : undefined,
-      };
-    }),
+    nodes: applyFog(
+      trackLessons.map(({ lesson, progress_status }) => {
+        const presentation = lessonNodePresentation[lesson.id];
+        const variant = variantFor(progress_status, presentation?.isCheckpoint);
+        return {
+          lessonId: lesson.id,
+          icon: presentation?.icon ?? "school",
+          variant,
+          href: `/trilhas/${track.id}/${lesson.id}/sessao`,
+          ctaLabel: variant === "current" ? "Continuar lição" : undefined,
+        };
+      }),
+    ),
   };
 }
 

@@ -62,6 +62,8 @@ const glyphs = {
   filePpt: "file-powerpoint-outline",
   fileImage: "file-image-outline",
   fileVideo: "file-video-outline",
+  // --- Fase 4 (névoa no mapa de aprendizado) ---
+  foggy: "weather-fog",
 } as const;
 
 export type IconName = keyof typeof glyphs;
