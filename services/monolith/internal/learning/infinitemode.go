@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"log"
+	"math"
 	"math/rand"
 	"net/http"
 	"time"
@@ -314,7 +315,9 @@ func handleEndInfiniteMode(pool *pgxpool.Pool, mongoDB *mongo.Database) http.Han
 		var accuracyRate float64
 		var avgTimeMs int64
 		if sess.QuestionsAnswered > 0 {
-			accuracyRate = float64(sess.CorrectCount) / float64(sess.QuestionsAnswered)
+			// Percentual (0-100), não fração (0-1) — mesmo bug já corrigido em
+			// progress.go#handleProgressSummary; o front só faz `${accuracy_rate}%` direto.
+			accuracyRate = math.Round(float64(sess.CorrectCount) / float64(sess.QuestionsAnswered) * 100)
 			avgTimeMs = sess.TotalTimeMs / int64(sess.QuestionsAnswered)
 
 			// Só conta como "rodada" pra conquista de sessões se pelo menos 1 pergunta foi
