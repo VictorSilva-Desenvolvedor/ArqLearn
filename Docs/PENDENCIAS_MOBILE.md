@@ -415,3 +415,31 @@ shim usado só durante o teste, nunca commitado, revertido ao original no final)
 reportados pelo usuário confirmados corrigidos, mais o modal de data de desbloqueio de conquista —
 16 interações verificadas ao vivo no total, zero erro de console. `tsc --noEmit` e
 `expo export --platform web` também limpos.
+
+### 10. EAS Update (OTA) configurado — usuário pediu pra parar de reinstalar APK a cada mudança
+
+Até aqui, toda mudança (mesmo só JS/TS) exigia gerar um APK novo no EAS Build e reinstalar no
+device manualmente. Configurado `expo-updates` (`npx expo install expo-updates` +
+`npx eas-cli@latest update:configure`), que adicionou `updates.url` e `runtimeVersion.policy:
+"appVersion"` em `app.json` e o campo `channel` no profile `development` do `eas.json` (`preview`
+e `production` já tinham `channel` desde a Fase de build inicial).
+
+**Como funciona daqui pra frente:** só cobre mudanças de JS/TS/assets — o app baixa e aplica
+sozinho na próxima abertura, sem passar pelo EAS Build nem pedir reinstalação. Qualquer mudança em
+código nativo (novo pacote nativo, permissão em `app.json`, bump de SDK do Expo) continua exigindo
+um build novo (`eas build`) e reinstalação do APK — `runtimeVersion.policy: "appVersion"` garante
+que um update só é oferecido a instalações com o mesmo `version` do `app.json`, evitando que uma
+mudança nativa incompatível seja empurrada por OTA sem querer.
+
+Fluxo pra publicar um update depois de qualquer mudança JS/TS:
+```bash
+cd apps/mobile
+EXPO_TOKEN=... npx eas-cli@latest update --branch preview --message "descrição da mudança"
+```
+(usar `--branch production` quando esse profile existir de verdade em uso).
+
+**Importante:** o APK que o usuário já tem instalado (build anterior ao PR de configuração do EAS
+Update) **não** inclui o runtime nativo do `expo-updates` — não vai receber nenhum update OTA. É
+preciso um build novo (`eas build --profile preview`) pelo menos mais uma vez pra "ativar" a
+capacidade de update automático; builds seguintes desse profile em diante recebem updates OTA
+sem precisar de nova instalação, contanto que a mudança seja só JS/TS/assets.
