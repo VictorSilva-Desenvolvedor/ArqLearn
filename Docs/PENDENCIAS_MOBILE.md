@@ -112,15 +112,28 @@ usar bloqueio de ofensiva (se disponível), abrir Configurações → editar nom
 testar o fluxo de exclusão de conta (digitar a frase, segurar o botão 10s, conferir a tela de
 "exclusão agendada").
 
-**Explorar e Liga continuam placeholder.** `explorar.tsx` já ganhou uma seção de Modo Infinito na
-Fase 2 e "Meus Materiais" na Fase 3, mas segue sem busca/trilhas recomendadas; `liga.tsx` segue
-estático. Precisam virar reais, espelhando `apps/web/src/app/(shell)/{explorar,liga}/page.tsx`.
-Inclui portar `ThemeContext` (seleção de tema global, hoje só no web) e, no Home, `AllDonePrompt`
-(modal oferecendo Modo Infinito quando a trilha em destaque termina) — os dois ficaram
-deliberadamente fora da Fase 2 por dependerem desta fase. Também inclui o fluxo de upload de
-verdade (`UploadPromptCard`, seletor de arquivo via `expo-document-picker` — ainda não instalado
-—, `initiateUpload`/`completeUpload`/`getUploadStatus` de `lib/api/resources/uploads.ts`, polling
-de status), deixado fora da Fase 3 pelo mesmo motivo.
+**Liga concluída, mas nunca testada num device/simulador de verdade.** Espelha
+`apps/web/src/app/(shell)/liga/page.tsx` — header com tier atual (`trophy` + rótulo por
+`league_tier`), aviso estático "Encerra em: 2d 14h 32m" (mesmo placeholder hardcoded do web —
+fechamento semanal real ainda não existe, TDD §6 fora de escopo) e
+`LeagueRankingList`/`LeagueRankRow`/`LeagueZoneBanner` (banners de zona de promoção/rebaixamento
+nas posições 1 e `ranking.length - LEAGUE_DEMOTION_SLOTS + 1`, linha do usuário atual destacada).
+Novo `getLeague` em `lib/api/resources/gamification.ts` + `mockLeague`/`LEAGUE_PROMOTION_SLOTS`/
+`LEAGUE_DEMOTION_SLOTS` em `mocks/fixtures/gamification.ts` (porte direto do web). Verificado só
+por `tsc --noEmit` (limpo) e `expo export --platform web` (bundla sem erro) — mesma limitação dos
+itens anteriores: login sempre Supabase real, não dá pra validar ponta a ponta sem device/
+simulador + conta real. Ação necessária: `npx expo start`, abrir a aba Liga, conferir tier/
+ranking reais e os banners de promoção/rebaixamento.
+
+**Explorar continua placeholder.** Já ganhou uma seção de Modo Infinito na Fase 2 e "Meus
+Materiais" na Fase 3, mas segue sem busca/trilhas recomendadas. Precisa virar real, espelhando
+`apps/web/src/app/(shell)/explorar/page.tsx`. Inclui portar `ThemeContext` (seleção de tema
+global, hoje só no web) e, no Home, `AllDonePrompt` (modal oferecendo Modo Infinito quando a
+trilha em destaque termina) — os dois ficaram deliberadamente fora da Fase 2 por dependerem desta
+fase. Também inclui o fluxo de upload de verdade (`UploadPromptCard`, seletor de arquivo via
+`expo-document-picker` — ainda não instalado —, `initiateUpload`/`completeUpload`/
+`getUploadStatus` de `lib/api/resources/uploads.ts`, polling de status), deixado fora da Fase 3
+pelo mesmo motivo.
 
 ### 6. Fase 5 — Loja, Notificações, Ajuda e Bugs
 Ausentes por completo no mobile (nem placeholder existe) — espelhar

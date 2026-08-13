@@ -1,21 +1,53 @@
-import { StyleSheet, Text, View } from "react-native";
+import { useEffect, useState } from "react";
+import { ScrollView, StyleSheet, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { Badge } from "@/components/ui/Badge";
 import { Icon } from "@/components/ui/Icon";
+import { LeagueRankingList } from "@/components/features/league/LeagueRankingList";
 import { useAuth } from "@/hooks/useAuth";
-import { colors, type } from "@/theme/tokens";
+import { getLeague } from "@/lib/api/resources/gamification";
+import { colors, spacing, type } from "@/theme/tokens";
+import type { League } from "@/types/api";
 
+const tierLabel: Record<string, string> = {
+  bronze: "Liga Bronze",
+  prata: "Liga Prata",
+  ouro: "Liga Ouro",
+  platina: "Liga Platina",
+  diamante: "Liga Diamante",
+};
+
+// Espelha apps/web/src/app/(shell)/liga/page.tsx.
 export default function LigaScreen() {
-  const { gamification } = useAuth();
+  const { user } = useAuth();
+  const [league, setLeague] = useState<League | null>(null);
+
+  useEffect(() => {
+    let cancelled = false;
+    getLeague().then((result) => {
+      if (!cancelled) setLeague(result);
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   return (
     <SafeAreaView style={styles.screen} edges={["top"]}>
-      <View style={styles.center}>
-        <Icon name="league" size={48} color={colors.outline} />
-        <Text style={[type.headlineMd, styles.title]}>Liga Semanal</Text>
-        {gamification.league_tier && <Badge tone="secondary">{gamification.league_tier}</Badge>}
-        <Text style={[type.bodyMd, styles.caption]}>Ranking e promoção/rebaixamento em construção.</Text>
-      </View>
+      <ScrollView contentContainerStyle={styles.content}>
+        <View style={styles.header}>
+          <Icon name="trophy" size={36} color={colors.secondary} />
+          <View style={styles.headerText}>
+            <Text style={[type.displayLg, styles.title]}>{tierLabel[league?.tier ?? ""] ?? "Liga"}</Text>
+            <Text style={[type.bodySm, styles.caption]}>
+              Os 10 melhores avançam de liga. Os 5 piores caem para a liga anterior.
+            </Text>
+          </View>
+        </View>
+        <Text style={[type.bodySm, styles.countdown]}>
+          Encerra em: <Text style={styles.countdownValue}>2d 14h 32m</Text>
+        </Text>
+        {league && <LeagueRankingList ranking={league.ranking} currentUserId={user.id} />}
+      </ScrollView>
     </SafeAreaView>
   );
 }
@@ -25,19 +57,32 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: colors.background,
   },
-  center: {
-    flex: 1,
+  content: {
+    padding: spacing.md,
+    paddingBottom: spacing.lg,
+    gap: spacing.md,
+  },
+  header: {
+    flexDirection: "row",
     alignItems: "center",
-    justifyContent: "center",
-    gap: 8,
-    paddingHorizontal: 32,
+    gap: spacing.sm,
+  },
+  headerText: {
+    flex: 1,
   },
   title: {
     color: colors.onSurface,
-    marginTop: 8,
+    fontWeight: "700",
   },
   caption: {
     color: colors.onSurfaceVariant,
-    textAlign: "center",
+    marginTop: 2,
+  },
+  countdown: {
+    color: colors.onSurfaceVariant,
+  },
+  countdownValue: {
+    color: colors.primary,
+    fontWeight: "700",
   },
 });
