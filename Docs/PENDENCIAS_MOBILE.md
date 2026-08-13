@@ -363,3 +363,55 @@ tinha sido testado ao vivo (só confirmado por leitura de código antes):
 Nenhum bug novo encontrado nesta passada — os únicos 2 problemas reais do app (itens 1 e 2 acima)
 já tinham sido corrigidos e mesclados antes dela começar. Terceiro build EAS (perfil `preview`,
 com os 2 fixes) gerado em seguida pro usuário confirmar no device físico.
+
+### 9. Terceira rodada — 7 itens reportados no device físico + varredura adicional (13/08/2026)
+
+Usuário testou o terceiro APK (com os fixes do item #8) e reportou 7 elementos que pareciam
+clicáveis sem reagir: ícones de streak/vidas/gemas na `TopAppBar`, uma conquista desbloqueada, o
+card "Máximo" (streak_best), o cabeçalho da Liga, uma linha de outro usuário na Liga, os cards de
+"Progresso Geral" e o `StreakFreezeCard`. Diferente do item #8 (onde a maioria das lacunas já
+existia igual no `apps/web`), aqui a instrução do usuário foi: tornar tudo interativo mesmo que o
+web nunca tenha tido essa interação — usando toast informativo mínimo ou reaproveitando telas/
+diálogos já existentes no app, nunca inventando feature nova do zero.
+
+1. **`components/home/TopAppBar.tsx`** — ícones de streak e vidas na barra de stats (linha de 3
+   pílulas) não abriam nada; no web (`apps/web/.../TopAppBar.tsx`) eles abrem `StreakDialog`/
+   `NoHeartsDialog` — gap real de paridade, não intencional. Portado `StreakDialog` do web (não
+   existia no mobile) e ligado os dois ícones aos diálogos correspondentes (`NoHeartsDialog` já
+   existia, só nunca tinha sido acoplado à barra do topo — só à tela de quiz). O ícone de gemas
+   (mudo também no web) ganhou navegação pra `/loja`, já que a Loja é a tela natural pra gastar
+   gemas.
+2. **`components/features/profile/AchievementBadge.tsx`** — conquistas desbloqueadas eram só
+   decorativas (o modal "toque pra revelar" só existia pro estado bloqueado, espelhando o web). A
+   API já retorna `unlocked_at` (`Achievement.unlocked_at`) mas nem web nem mobile mostravam isso
+   em lugar nenhum. Adicionado modal pro estado desbloqueado também, reaproveitando a mesma
+   estrutura visual do modal de bloqueada, com a data formatada (`toLocaleDateString("pt-BR")`).
+   Precisou trocar `AchievementGrid`'s `Set<type>` por um `Map<type, unlocked_at>` pra propagar a
+   data pro badge.
+3. **`components/features/lessonSummary/StatCard.tsx`** — componente compartilhado (usado por
+   `ProfileStatsGrid` e `ProgressSummaryCard`, 8 cards no total) ganhou uma prop `onPress?`
+   opcional que envolve o conteúdo num `Pressable` só quando fornecida — não muda nada pra quem já
+   usa o componente sem a prop (ex.: resumo de lição). Cada um dos 8 cards ganhou um handler
+   próprio: `XP Total`/`Máximo`/`Trilhas Concluídas`/`Lições (7 dias)`/`Precisão` mostram um toast
+   informativo com o dado formatado (não existe tela dedicada pra nenhum desses); `Sequência`
+   reaproveita o `StreakDialog` recém-portado; `Gemas` e `Em Andamento` reaproveitam navegação já
+   existente (`/loja` e `/explorar`, respectivamente).
+4. **`app/(tabs)/liga.tsx`** — cabeçalho (troféu + nome da liga + regras) virou `Pressable` com
+   toast reforçando o nome da liga e a regra de promoção/rebaixamento (mesmo texto que já
+   aparecia estático abaixo, só reafirmado ao toque — não existe tela de "detalhe de liga").
+5. **`components/features/league/LeagueRankRow.tsx`** — linha de ranking (você ou outro
+   competidor) virou `Pressable` com toast mostrando posição + XP da semana (não existe perfil
+   público de outro usuário em nenhum dos dois apps).
+6. **`components/features/profile/StreakFreezeCard.tsx`** — só o botão "Usar" reagia; o corpo do
+   card (ícone + texto) ficava mudo. Corpo agora também é `Pressable`: usa o bloqueio na hora se
+   houver algum disponível (mesma função do botão "Usar"), ou navega pra `/loja` se não houver
+   nenhum — mesmo padrão de reaproveitamento dos itens acima.
+
+Verificado ao vivo (`expo start --web` + Playwright headless + login real, mesmo setup de sempre;
+precisou também corrigir o shim local de teste do `expo-secure-store` — os métodos certos do
+módulo nativo são `getValueWithKeyAsync`/`setValueWithKeyAsync`/`deleteValueWithKeyAsync`, não
+`getItemAsync`/`setItemAsync`/`deleteItemAsync` como um teste anterior desta sessão presumiu;
+shim usado só durante o teste, nunca commitado, revertido ao original no final). Todos os 7 itens
+reportados pelo usuário confirmados corrigidos, mais o modal de data de desbloqueio de conquista —
+16 interações verificadas ao vivo no total, zero erro de console. `tsc --noEmit` e
+`expo export --platform web` também limpos.

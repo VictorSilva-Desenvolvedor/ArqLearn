@@ -1,9 +1,10 @@
 import { useEffect, useState } from "react";
-import { ScrollView, StyleSheet, Text, View } from "react-native";
+import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 import { Icon } from "@/components/ui/Icon";
 import { LeagueRankingList } from "@/components/features/league/LeagueRankingList";
 import { TopAppBar } from "@/components/home/TopAppBar";
 import { useAuth } from "@/hooks/useAuth";
+import { useToast } from "@/hooks/useToast";
 import { getLeague } from "@/lib/api/resources/gamification";
 import { colors, spacing, type } from "@/theme/tokens";
 import type { League } from "@/types/api";
@@ -19,6 +20,7 @@ const tierLabel: Record<string, string> = {
 // Espelha apps/web/src/app/(shell)/liga/page.tsx.
 export default function LigaScreen() {
   const { user } = useAuth();
+  const { showToast } = useToast();
   const [league, setLeague] = useState<League | null>(null);
 
   useEffect(() => {
@@ -35,7 +37,15 @@ export default function LigaScreen() {
     <View style={styles.screen}>
       <TopAppBar />
       <ScrollView contentContainerStyle={styles.content}>
-        <View style={styles.header}>
+        <Pressable
+          style={styles.header}
+          onPress={() =>
+            showToast(
+              `Você está na ${tierLabel[league?.tier ?? ""] ?? "Liga"}. Os 10 melhores avançam de liga; os 5 piores caem para a liga anterior.`,
+              "success",
+            )
+          }
+        >
           <Icon name="trophy" size={36} color={colors.secondary} />
           <View style={styles.headerText}>
             <Text style={[type.displayLg, styles.title]}>{tierLabel[league?.tier ?? ""] ?? "Liga"}</Text>
@@ -43,7 +53,7 @@ export default function LigaScreen() {
               Os 10 melhores avançam de liga. Os 5 piores caem para a liga anterior.
             </Text>
           </View>
-        </View>
+        </Pressable>
         <Text style={[type.bodySm, styles.countdown]}>
           Encerra em: <Text style={styles.countdownValue}>2d 14h 32m</Text>
         </Text>
