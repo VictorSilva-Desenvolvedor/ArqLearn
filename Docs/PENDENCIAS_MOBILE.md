@@ -90,15 +90,37 @@ placeholder, pontos-chave, dica do arquiteto), "Tirar Dúvidas" → enviar pergu
 entrar; tocar em "Planta Baixa Residencial" (imagem, sem histórico) e conferir que abre limpo.
 
 ### 5. Fase 4 — Explorar, Liga e Perfil ainda são placeholder
-`explorar.tsx`/`liga.tsx`/`perfil.tsx` são telas estáticas de "em construção" — precisam virar
-reais, espelhando `apps/web/src/app/(shell)/{explorar,liga,perfil}/page.tsx` (`explorar.tsx` já
-ganhou uma seção de Modo Infinito na Fase 2 e "Meus Materiais" na Fase 3, mas segue sem busca/
-trilhas recomendadas). Inclui portar `ThemeContext` (seleção de tema global, hoje só no web) e, no
-Home, `AllDonePrompt` (modal oferecendo Modo Infinito quando a trilha em destaque termina) — os
-dois ficaram deliberadamente fora da Fase 2 por dependerem desta fase. Também inclui o fluxo de
-upload de verdade (`UploadPromptCard`, seletor de arquivo via `expo-document-picker` — ainda não
-instalado —, `initiateUpload`/`completeUpload`/`getUploadStatus` de `lib/api/resources/uploads.ts`,
-polling de status), deixado fora da Fase 3 pelo mesmo motivo.
+
+**Perfil concluído, mas nunca testado num device/simulador de verdade.** Espelha
+`apps/web/src/app/(shell)/perfil/{page.tsx,configuracoes/page.tsx}` — sem o ramo de professor/
+admin do web (fora de escopo do mobile). `perfil.tsx` (tab) ganhou `ProfileHeader` (avatar, nível/
+título, barra de XP), `ProfileStatsGrid`, `ProgressSummaryCard` (novo resource
+`lib/api/resources/progress.ts` + `getProgressSummary`), `StreakFreezeCard` (novo `freezeStreak`
+em `lib/api/resources/gamification.ts`), `AchievementGrid`/`AchievementBadge` (reaproveita
+`lib/gamification/achievementCatalog.ts`, já portado nas fases anteriores) e o menu
+(`ProfileMenuLink`/`LogoutMenuLink`) com "Loja"/"Ajuda e Bugs" como "Em breve" (Fase 5) e
+"Configurações" real. Nova rota `app/perfil/configuracoes.tsx` — edição de nome/fuso horário
+(novo resource `lib/api/resources/profile.ts`, `updateMe`/`deleteMe`, gated por
+`users-write` como no web) e exclusão de conta com confirmação por frase + hold-to-confirm de
+10s (`Pressable` `onPressIn`/`onPressOut`, sem equivalente RN de `onPointerDown`/`onPointerUp`).
+Novo `lib/gamification/levelTitle.ts` (porte direto do web) e tipo `ProgressSummary` adicionado a
+`types/api.ts`. `Button` ganhou variant `"danger"`. Verificado só por `tsc --noEmit` (limpo) e
+`expo export --platform web` (bundla sem erro) — mesma limitação dos itens #1-#4: login sempre
+Supabase real, não dá pra validar ponta a ponta sem device/simulador + conta real. Ação
+necessária: `npx expo start`, abrir a aba Perfil, conferir XP/nível/streak/gemas/conquistas reais,
+usar bloqueio de ofensiva (se disponível), abrir Configurações → editar nome/fuso e salvar, e
+testar o fluxo de exclusão de conta (digitar a frase, segurar o botão 10s, conferir a tela de
+"exclusão agendada").
+
+**Explorar e Liga continuam placeholder.** `explorar.tsx` já ganhou uma seção de Modo Infinito na
+Fase 2 e "Meus Materiais" na Fase 3, mas segue sem busca/trilhas recomendadas; `liga.tsx` segue
+estático. Precisam virar reais, espelhando `apps/web/src/app/(shell)/{explorar,liga}/page.tsx`.
+Inclui portar `ThemeContext` (seleção de tema global, hoje só no web) e, no Home, `AllDonePrompt`
+(modal oferecendo Modo Infinito quando a trilha em destaque termina) — os dois ficaram
+deliberadamente fora da Fase 2 por dependerem desta fase. Também inclui o fluxo de upload de
+verdade (`UploadPromptCard`, seletor de arquivo via `expo-document-picker` — ainda não instalado
+—, `initiateUpload`/`completeUpload`/`getUploadStatus` de `lib/api/resources/uploads.ts`, polling
+de status), deixado fora da Fase 3 pelo mesmo motivo.
 
 ### 6. Fase 5 — Loja, Notificações, Ajuda e Bugs
 Ausentes por completo no mobile (nem placeholder existe) — espelhar

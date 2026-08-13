@@ -62,6 +62,13 @@ const glyphs = {
   filePpt: "file-powerpoint-outline",
   fileImage: "file-image-outline",
   fileVideo: "file-video-outline",
+  // --- Fase 4 (Perfil real) ---
+  eventAvailable: "calendar-check",
+  eventBusy: "calendar-remove",
+  freeze: "snowflake",
+  settings: "cog-outline",
+  help: "help-circle-outline",
+  logout: "logout",
 } as const;
 
 export type IconName = keyof typeof glyphs;

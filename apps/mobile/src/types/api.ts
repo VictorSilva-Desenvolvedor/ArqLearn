@@ -50,6 +50,13 @@ export interface League {
   ranking: LeagueRankingEntry[];
 }
 
+export interface ProgressSummary {
+  tracks_in_progress: number;
+  tracks_completed: number;
+  lessons_completed_last_7d: number;
+  accuracy_rate: number;
+}
+
 export type ShopItemType = "hearts_refill" | "streak_freeze" | "cosmetic";
 
 export interface ShopItem {

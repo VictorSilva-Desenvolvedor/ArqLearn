@@ -1,25 +1,58 @@
-import { StyleSheet, Text, View } from "react-native";
+import { useEffect, useState } from "react";
+import { ScrollView, StyleSheet, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { Avatar } from "@/components/ui/Avatar";
-import { StatPill } from "@/components/ui/StatPill";
+import { AchievementGrid } from "@/components/features/profile/AchievementGrid";
+import { LogoutMenuLink } from "@/components/features/profile/LogoutMenuLink";
+import { ProfileHeader } from "@/components/features/profile/ProfileHeader";
+import { ProfileMenuLink } from "@/components/features/profile/ProfileMenuLink";
+import { ProfileStatsGrid } from "@/components/features/profile/ProfileStatsGrid";
+import { ProgressSummaryCard } from "@/components/features/profile/ProgressSummaryCard";
+import { StreakFreezeCard } from "@/components/features/profile/StreakFreezeCard";
 import { useAuth } from "@/hooks/useAuth";
-import { colors, type } from "@/theme/tokens";
+import { getGamificationProfile } from "@/lib/api/resources/gamification";
+import { getProgressSummary } from "@/lib/api/resources/progress";
+import { colors, spacing } from "@/theme/tokens";
+import type { Achievement, ProgressSummary } from "@/types/api";
 
+// Espelha apps/web/src/app/(shell)/perfil/page.tsx — sem o ramo de professor/admin do web
+// (fora de escopo do mobile, ver Docs/PENDENCIAS_MOBILE.md).
 export default function PerfilScreen() {
   const { user, gamification } = useAuth();
+  const [achievements, setAchievements] = useState<Achievement[] | null>(null);
+  const [progress, setProgress] = useState<ProgressSummary | null>(null);
+
+  useEffect(() => {
+    let cancelled = false;
+    Promise.all([getGamificationProfile(), getProgressSummary()]).then(([gamificationMe, progressSummary]) => {
+      if (cancelled) return;
+      setAchievements(gamificationMe.achievements);
+      setProgress(progressSummary);
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   return (
     <SafeAreaView style={styles.screen} edges={["top"]}>
-      <View style={styles.center}>
-        <Avatar name={user.name} size={72} />
-        <Text style={[type.headlineMd, styles.title]}>{user.name}</Text>
-        <Text style={[type.bodySm, styles.caption]}>{user.email}</Text>
-        <View style={styles.stats}>
-          <StatPill tone="secondary" icon="streak" value={gamification.streak_current} />
-          <StatPill tone="primary" icon="gems" value={gamification.gems} />
+      <ScrollView contentContainerStyle={styles.content}>
+        <ProfileHeader name={user.name} level={gamification.level} xpTotal={gamification.xp_total} />
+        <ProfileStatsGrid
+          xpTotal={gamification.xp_total}
+          streakCurrent={gamification.streak_current}
+          streakBest={gamification.streak_best}
+          gems={gamification.gems}
+        />
+        {progress && <ProgressSummaryCard summary={progress} />}
+        <StreakFreezeCard />
+        {achievements && <AchievementGrid unlocked={achievements} />}
+        <View style={styles.menu}>
+          <ProfileMenuLink icon="storefront" label="Loja" />
+          <ProfileMenuLink icon="help" label="Ajuda e Bugs" />
+          <ProfileMenuLink href="/perfil/configuracoes" icon="settings" label="Configurações" />
+          <LogoutMenuLink />
         </View>
-        <Text style={[type.bodyMd, styles.caption]}>Nível {gamification.level} · {gamification.xp_total} XP</Text>
-      </View>
+      </ScrollView>
     </SafeAreaView>
   );
 }
@@ -29,25 +62,12 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: colors.background,
   },
-  center: {
-    flex: 1,
-    alignItems: "center",
-    justifyContent: "center",
-    gap: 8,
-    paddingHorizontal: 32,
+  content: {
+    padding: spacing.md,
+    paddingBottom: spacing.lg,
+    gap: spacing.lg,
   },
-  title: {
-    color: colors.onSurface,
-    marginTop: 8,
-  },
-  caption: {
-    color: colors.onSurfaceVariant,
-    textAlign: "center",
-  },
-  stats: {
-    flexDirection: "row",
-    gap: 24,
-    marginTop: 8,
-    marginBottom: 4,
+  menu: {
+    gap: spacing.xs,
   },
 });
