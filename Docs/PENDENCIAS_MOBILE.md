@@ -333,3 +333,33 @@ Verificado ao vivo (mesmo setup `expo start --web` + Playwright + login real): t
 Erros" aparece corretamente; tocar num `TrackCard` troca o tema selecionado de verdade (conferido
 no `TopAppBar`, no `InfiniteModePromptCard` e no badge "Selecionado" do próprio card). Nenhum erro
 de console.
+
+**Segunda passada, exaustiva (mesmo dia)** — usuário pediu pra testar item por item até tudo ter
+interação, não só revisão de código. Cliquei em todo elemento visualmente interativo que ainda não
+tinha sido testado ao vivo (só confirmado por leitura de código antes):
+
+- `StreakFreezeCard` "Usar" (Perfil) — corretamente desabilitado (conta de teste tinha 0
+  bloqueios de ofensiva disponíveis; comprar um na Loja habilitaria). Não é mockup, é estado
+  desabilitado correto.
+- `AchievementBadge` bloqueada (Perfil) — toque abre o modal com critério de desbloqueio + botão
+  "Entendi", como esperado.
+- `ShopFeatureCard`/`ShopCosmeticItem` (Loja) — botões de compra corretamente desabilitados (conta
+  de teste com 5 gemas, preços de 200-800) — toque forçado não causa erro nem efeito colateral.
+  Mesma observação: desabilitado ≠ mockup, é a regra de negócio funcionando.
+- `BugReportForm` (Ajuda) — fluxo completo tipo "bug" (diferente do teste anterior, que só cobriu
+  "sugestão"): chip de tipo de dispositivo seleciona visualmente, campo de modelo, envio chega na
+  tela de confirmação com o texto certo pro tipo ("ganha 10 gemas" pra bug vs. "50" pra sugestão).
+- `NotificationItem` streak_at_risk (Notificações) — toque não navegou desta vez; investigado e
+  **não é bug**: o deep-link só existe quando `findCurrentLessonHref()` encontra uma lição
+  `in_progress` de verdade, e a conta de teste não tinha nenhuma sessão literalmente em andamento
+  no momento do teste (comportamento correto, idêntico ao que `apps/web` faria com os mesmos
+  dados — a lógica é um porte direto).
+- `SearchBar` (Explorar) — filtra "Trilhas Recomendadas" de verdade (testado buscando
+  "Urbanismo", só o card correspondente ficou visível).
+- `UploadPromptCard` "Novo Upload" (Explorar) — toque não lança erro (o picker nativo em si só é
+  testável num device real, limitação já documentada).
+- Barra de abas (Início/Explorar/Liga/Perfil) — navega corretamente entre as 4 rotas.
+
+Nenhum bug novo encontrado nesta passada — os únicos 2 problemas reais do app (itens 1 e 2 acima)
+já tinham sido corrigidos e mesclados antes dela começar. Terceiro build EAS (perfil `preview`,
+com os 2 fixes) gerado em seguida pro usuário confirmar no device físico.
