@@ -1,9 +1,9 @@
 import { isResourceReal } from "../config";
 import { apiFetch, ApiError } from "../http";
 import { mockDelay } from "../mocks/delay";
-import { mockAchievementUnlocks, mockGamificationProfile } from "../mocks/fixtures/gamification";
+import { mockAchievementUnlocks, mockGamificationProfile, mockLeague } from "../mocks/fixtures/gamification";
 import { mockShopCatalog } from "../mocks/fixtures/shopCatalog";
-import type { Achievement, GamificationProfile, PurchaseResult } from "@/types/api";
+import type { Achievement, GamificationProfile, League, PurchaseResult } from "@/types/api";
 
 export interface GamificationMeResponse extends GamificationProfile {
   achievements: Achievement[];
@@ -14,6 +14,13 @@ export async function getGamificationProfile(): Promise<GamificationMeResponse> 
     return apiFetch<GamificationMeResponse>("/v1/gamification/me");
   }
   return mockDelay({ ...mockGamificationProfile, achievements: mockAchievementUnlocks });
+}
+
+export async function getLeague(): Promise<League> {
+  if (isResourceReal("gamification")) {
+    return apiFetch<League>("/v1/gamification/league");
+  }
+  return mockDelay(mockLeague);
 }
 
 export async function purchaseShopItem(itemId: string, idempotencyKey: string): Promise<PurchaseResult> {

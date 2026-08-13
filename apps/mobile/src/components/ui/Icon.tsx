@@ -69,6 +69,10 @@ const glyphs = {
   settings: "cog-outline",
   help: "help-circle-outline",
   logout: "logout",
+  // --- Fase 4 (Liga real) ---
+  trophy: "trophy",
+  trendingUp: "trending-up",
+  trendingDown: "trending-down",
 } as const;
 
 export type IconName = keyof typeof glyphs;
