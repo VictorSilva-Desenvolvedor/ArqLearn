@@ -55,6 +55,9 @@ function RootNavigator() {
         <Stack.Screen name="materiais/[uploadId]/resumo" />
         <Stack.Screen name="materiais/[uploadId]/chat" />
         <Stack.Screen name="perfil/configuracoes" />
+        <Stack.Screen name="loja" />
+        <Stack.Screen name="notificacoes" />
+        <Stack.Screen name="ajuda" />
       </Stack.Protected>
       <Stack.Protected guard={!isLoggedIn}>
         <Stack.Screen name="login" />
