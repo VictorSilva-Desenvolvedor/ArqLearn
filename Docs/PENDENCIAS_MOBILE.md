@@ -39,61 +39,51 @@ em background (`AppState` + `startAutoRefresh`, comportamento que só existe no 
 export web) e a criptografia real do `expo-secure-store` (Keychain/Keystore — no web ele nem tem
 implementação, ver item #5).
 
-### 2. Fase 1 concluída, mas nunca testada num device/simulador de verdade
+### 2. Fase 1 (quiz) — bloqueada nesta máquina por MongoDB indisponível, não é bug do app
 `useQuizSession` foi portado (`src/components/features/quiz/`), com telas de sessão/resumo/
 conquista em `app/trilhas/[trackId]/[lessonId]/`, os componentes de quiz (`QuestionCard`,
 `AnswerOption`, `FillBlankInput`, `QuizActionBar`, `HeartsRow`, `QuizHeader`) e os modais de
 gamificação (`NoHeartsDialog`, `HeartsCountdown`, `LevelUpCelebration`, este último montado
-globalmente em `app/_layout.tsx`). Verificado só por `tsc --noEmit` (limpo) e
-`expo export --platform web` (bundla 1056 módulos sem erro) — mesma limitação já registrada no
-antigo item #1 desta lista: como login é sempre Supabase real (nunca mockado), não dá pra validar
-o fluxo ponta a ponta sem device/simulador + conta real. Ação necessária: `npx expo start` em
-`apps/mobile`, logar com conta real, abrir uma lição da trilha `t2-l1` (banco de perguntas Gótico,
-cobre os 5 tipos de pergunta) e percorrer: responder certo/errado, "Explique melhor", zerar vidas
-(`NoHeartsDialog` + restaurar com gemas), completar com 100% de acerto (tela de conquista credita
-XP/gemas uma única vez), e forçar um level-up (`LevelUpCelebration` global).
+globalmente em `app/_layout.tsx`). **Diferente das Fases 2/3 (itens #3/#4, verificadas ao vivo na
+mesma sessão)**: `tracks`/`lessons` estão em `EXPO_PUBLIC_API_REAL_RESOURCES` (reais, não mock) —
+sessão de quiz precisa de perguntas de verdade, que vêm do MongoDB (`services/monolith`). Nesta
+máquina o MongoDB Atlas está com a credencial rejeitando autenticação (`aviso: sem conexão com
+MongoDB: ... auth error ... authentication failed`, log do `services/monolith`) — problema de
+credencial/infra, sem relação com o código desta fase; `/v1/tracks` responde 503 "Banco de
+documentos indisponível" pra qualquer conta, então não dá nem pra abrir uma trilha pra testar.
+Corrigir isso depende de checar/rotacionar a credencial no painel do Atlas — fora do que dá pra
+resolver sem acesso a essa conta. Ação necessária (assim que o Mongo estiver acessível — nesta
+máquina ou outra): `npx expo start`, logar com conta real, abrir uma lição, percorrer: responder
+certo/errado, "Explique melhor", zerar vidas (`NoHeartsDialog` + restaurar com gemas), completar
+com 100% de acerto (tela de conquista credita XP/gemas uma única vez), e forçar um level-up
+(`LevelUpCelebration` global). Continua precisando de device/simulador nativo real pra cobrir o
+que o `expo start --web` não alcança (gestos, `SecureStore` nativo).
 
-### 3. Fase 2 concluída, mas nunca testada num device/simulador de verdade
-`useInfiniteModeSession` foi portado (`src/components/features/infiniteMode/`), com telas em
+### 3. Fase 2 (Modo Infinito) — verificado ao vivo, sem bugs encontrados
+`useInfiniteModeSession` (`src/components/features/infiniteMode/`), telas em
 `app/infinito/[topic]/{sessao,resumo}.tsx`, reaproveitando `QuestionCard`/`AnswerOption`/
-`FillBlankInput` da Fase 1 e `StatCard` do resumo de lição. Componentes próprios:
-`InfiniteModeActionBar`, `InfiniteModeHeader`, `InfiniteModeSummaryPanel` — level-up aqui é um
-toast (`useToast`), não o modal `LevelUpCelebration` da Fase 1. Ponto de entrada: seção "Modo
-Infinito" adicionada à tela `explorar.tsx` (ainda um placeholder no resto — busca/upload continuam
-"em construção"), listando `themeCatalog` (portado em `lib/api/mocks/fixtures/themes.ts`, ~44
-temas) sem filtrar por `hasContent`; um tema sem banco cai na tela "ainda não está pronto" da
-própria sessão. **Não portados** (fora de escopo, ficam pra Fase 4 — Explorar/Home reais):
-`ThemeContext` (seleção de tema global) e `AllDonePrompt` (modal do Home oferecendo Modo Infinito
-quando uma trilha termina) — **portados na Fase 4** (ver item #5 abaixo). Verificado só por
-`tsc --noEmit` (limpo) e
-`expo export --platform web` (bundla sem erro) — mesma limitação dos itens #1/#2: login sempre
-Supabase real, não dá pra validar ponta a ponta sem device/simulador + conta real. Ação necessária:
-`npx expo start`, abrir Explorar → tocar num tema com banco (ex. `fundamentos`), responder
-perguntas, testar "Desistir" (encerra na hora, sem diálogo), esgotar o banco mock (9 perguntas) e
-cair no resumo automaticamente; tocar num tema sem banco (ex. `arquitetura_brasileira`) e conferir
-a tela "ainda não está pronto".
+`FillBlankInput` da Fase 1. `infinite-mode` **não** está em `EXPO_PUBLIC_API_REAL_RESOURCES` —
+usa banco de perguntas mock, sem depender do MongoDB (por isso deu pra verificar mesmo com o
+Mongo fora do ar nesta máquina, diferente do item #2). **Verificado ao vivo** (`expo start --web`
++ Playwright + login real, mesmo setup dos itens #5/#6): abri `fundamentos` (tema com banco),
+respondi 3 perguntas (opção certa destacada em verde, XP creditado até bater o teto diário —
+aviso apareceu corretamente), toquei "Desistir" e caí direto no resumo com as estatísticas exatas
+de quem tinha respondido até ali (3 questões, 100% precisão, +20 XP) — sem diálogo de confirmação,
+como o comportamento documentado exige. Nenhum bug encontrado. **Não testado ao vivo**: um tema
+sem banco (`hasContent: false`) caindo na tela "ainda não está pronto" — não teria como acontecer
+via UI normal de qualquer forma, ver nota no item #5 sobre o `ThemeSelector` desabilitar esses
+temas no picker.
 
-### 4. Fase 3 concluída, mas nunca testada num device/simulador de verdade
-`materials.ts` foi portado (`getUploadSummary`/`listChatHistory`/`sendChatMessage`), com telas em
-`app/materiais/[uploadId]/{resumo,chat}.tsx` e os componentes de `components/features/
-materialSummary/` (`SummaryHeader`, `DiagramCard`, `KeyPointsChecklist`, `ArchitectTipCallout`) e
-`components/features/materialChat/` (`useMaterialChat`, `ChatInputBar`, `ChatMessageBubble`) —
-diferente do web, que inlina a lógica de chat direto na página, aqui ficou num hook colocado na
-pasta da feature, mesma convenção das Fases 1/2. Sem streaming (chat é request/response simples).
-Ponto de entrada: seção "Meus Materiais" na tela `explorar.tsx`, listando `listMyUploads()` (só
-`uploads.ts` parcial — `listMyUploads`/`fileTypeFromMime`). **Não portados** (fora de escopo,
-ficam pra Fase 4 junto com o Explorar real): o fluxo de upload de verdade
-(`initiateUpload`/`completeUpload`/`getUploadStatus`, polling de status, seletor de arquivo —
-precisa de `expo-document-picker`, ainda não instalado) — **portado na Fase 4** (ver item #5
-abaixo) — e a revisão de perguntas do professor (`listUploadQuestions`/`reviewUploadQuestion`,
-fora de escopo do mobile por decisão já registrada, permanece de fora).
-Verificado só por `tsc --noEmit` (limpo) e `expo export --platform web` (bundla sem erro) — mesma
-limitação dos itens #1-#3: login sempre Supabase real, não dá pra validar ponta a ponta sem
-device/simulador + conta real. Ação necessária: `npx expo start`, abrir Explorar → seção "Meus
-Materiais" → tocar em "Sistemas Construtivos" (PDF), conferir Resumo (sinopse, card de diagrama
-placeholder, pontos-chave, dica do arquiteto), "Tirar Dúvidas" → enviar pergunta com "modulação"
-(deve citar página 14) e uma genérica (página 12), conferir que o histórico seedado aparece ao
-entrar; tocar em "Planta Baixa Residencial" (imagem, sem histórico) e conferir que abre limpo.
+### 4. Fase 3 (Materiais) — verificado ao vivo, sem bugs encontrados
+`materials.ts` (`getUploadSummary`/`listChatHistory`/`sendChatMessage`), telas em
+`app/materiais/[uploadId]/{resumo,chat}.tsx`. `materials` **também não** está em
+`EXPO_PUBLIC_API_REAL_RESOURCES` — mock, sem depender do MongoDB, mesmo motivo do item #3.
+**Verificado ao vivo**: abri o Resumo Inteligente de "Sistemas Construtivos" (sinopse, card de
+diagrama placeholder, 3 pontos-chave, dica do arquiteto) e o Chat — o histórico seedado (pergunta
+sobre concreto vs. aço) apareceu certo ao entrar; mandei "O que é modulação?" e a resposta mock
+voltou citando a página certa ("Página 14") com a citação exata do documento, exatamente como o
+mock descreve. Abri também "Planta Baixa Residencial" (imagem, sem histórico) — abriu limpo, sem
+nenhum resquício do outro material. Nenhum bug encontrado.
 
 ### 5. Fase 4 — Explorar, Liga e Perfil (concluído, verificado ponta a ponta via web+Playwright)
 
