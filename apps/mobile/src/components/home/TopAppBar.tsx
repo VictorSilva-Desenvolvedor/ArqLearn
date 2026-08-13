@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { useRouter } from "expo-router";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
@@ -5,13 +6,20 @@ import { Avatar } from "@/components/ui/Avatar";
 import { Icon } from "@/components/ui/Icon";
 import { IconButton } from "@/components/ui/IconButton";
 import { StatPill } from "@/components/ui/StatPill";
+import { NoHeartsDialog } from "@/components/features/gamification/NoHeartsDialog";
+import { StreakDialog } from "@/components/features/gamification/StreakDialog";
 import { useAuth } from "@/hooks/useAuth";
 import { colors, type } from "@/theme/tokens";
 import { ThemeSelector } from "./ThemeSelector";
 
+// Espelha apps/web/src/components/layout/TopAppBar.tsx — lá o streak/hearts do header abrem
+// StreakDialog/NoHeartsDialog ao toque (gemas não, nem no web); aqui o mobile só tinha o
+// NoHeartsDialog acoplado à tela de quiz (zerar vidas durante a sessão), nunca à barra do topo.
 export function TopAppBar() {
   const router = useRouter();
   const { user, gamification } = useAuth();
+  const [streakDialogOpen, setStreakDialogOpen] = useState(false);
+  const [heartsDialogOpen, setHeartsDialogOpen] = useState(false);
 
   // Web mostra a pílula de stats inline no header em telas largas e move para uma segunda
   // faixa abaixo em mobile (`md:hidden`) — aqui só existe a variante mobile.
@@ -38,10 +46,18 @@ export function TopAppBar() {
         <ThemeSelector />
       </View>
       <View style={styles.statsRow}>
-        <StatPill tone="secondary" icon="streak" value={gamification.streak_current} />
-        <StatPill tone="error" icon="hearts" value={gamification.hearts_current} />
-        <StatPill tone="primary" icon="gems" value={gamification.gems} />
+        <Pressable onPress={() => setStreakDialogOpen(true)}>
+          <StatPill tone="secondary" icon="streak" value={gamification.streak_current} />
+        </Pressable>
+        <Pressable onPress={() => setHeartsDialogOpen(true)}>
+          <StatPill tone="error" icon="hearts" value={gamification.hearts_current} />
+        </Pressable>
+        <Pressable onPress={() => router.push("/loja" as never)}>
+          <StatPill tone="primary" icon="gems" value={gamification.gems} />
+        </Pressable>
       </View>
+      <StreakDialog open={streakDialogOpen} onOpenChange={setStreakDialogOpen} />
+      <NoHeartsDialog open={heartsDialogOpen} onOpenChange={setHeartsDialogOpen} />
     </SafeAreaView>
   );
 }

@@ -1,5 +1,6 @@
 import { useState } from "react";
-import { StyleSheet, Text, View } from "react-native";
+import { useRouter } from "expo-router";
+import { Pressable, StyleSheet, Text, View } from "react-native";
 import { Card } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
 import { Icon } from "@/components/ui/Icon";
@@ -8,13 +9,18 @@ import { freezeStreak } from "@/lib/api/resources/gamification";
 import { ApiError } from "@/lib/api/http";
 import { colors, type } from "@/theme/tokens";
 
-// Espelha apps/web/src/components/features/profile/StreakFreezeCard.tsx.
+// Espelha apps/web/src/components/features/profile/StreakFreezeCard.tsx — lá só o botão "Usar"
+// reage ao clique, o corpo do card (ícone+texto) é mudo. Aqui o corpo também reage: usa o
+// bloqueio na hora se houver algum disponível, ou navega pra Loja (já reaproveitada em outros
+// pontos do app) pra comprar um quando não houver.
 export function StreakFreezeCard() {
+  const router = useRouter();
   const { streakFreezesAvailable, adjustStreakFreezes } = useAuth();
   const [pending, setPending] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
 
   const handleUse = async () => {
+    if (pending) return;
     setPending(true);
     setMessage(null);
     try {
@@ -28,18 +34,28 @@ export function StreakFreezeCard() {
     }
   };
 
+  const handleBodyPress = () => {
+    if (streakFreezesAvailable > 0) {
+      handleUse();
+    } else {
+      router.push("/loja" as never);
+    }
+  };
+
   return (
     <Card padding="md" radius="lg" style={styles.card}>
-      <Icon name="freeze" size={28} color={colors.primary} />
-      <View style={styles.textBlock}>
-        <Text style={[type.bodyLg, styles.title]}>Bloqueio de Ofensiva</Text>
-        <Text style={[type.bodySm, styles.caption]}>
-          {streakFreezesAvailable > 0
-            ? `${streakFreezesAvailable} disponível${streakFreezesAvailable > 1 ? "is" : ""} — protege sua sequência caso falte um dia.`
-            : "Sem bloqueios disponíveis — compre um na Loja."}
-        </Text>
-        {message && <Text style={[type.bodySm, styles.message]}>{message}</Text>}
-      </View>
+      <Pressable style={styles.body} onPress={handleBodyPress} disabled={pending}>
+        <Icon name="freeze" size={28} color={colors.primary} />
+        <View style={styles.textBlock}>
+          <Text style={[type.bodyLg, styles.title]}>Bloqueio de Ofensiva</Text>
+          <Text style={[type.bodySm, styles.caption]}>
+            {streakFreezesAvailable > 0
+              ? `${streakFreezesAvailable} disponível${streakFreezesAvailable > 1 ? "is" : ""} — protege sua sequência caso falte um dia.`
+              : "Sem bloqueios disponíveis — compre um na Loja."}
+          </Text>
+          {message && <Text style={[type.bodySm, styles.message]}>{message}</Text>}
+        </View>
+      </Pressable>
       <Button variant="ghost" size="sm" disabled={streakFreezesAvailable === 0 || pending} onPress={handleUse}>
         {pending ? "Usando…" : "Usar"}
       </Button>
@@ -49,6 +65,12 @@ export function StreakFreezeCard() {
 
 const styles = StyleSheet.create({
   card: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 12,
+  },
+  body: {
+    flex: 1,
     flexDirection: "row",
     alignItems: "center",
     gap: 12,
