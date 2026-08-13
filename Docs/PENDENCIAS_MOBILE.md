@@ -39,25 +39,36 @@ em background (`AppState` + `startAutoRefresh`, comportamento que só existe no 
 export web) e a criptografia real do `expo-secure-store` (Keychain/Keystore — no web ele nem tem
 implementação, ver item #5).
 
-### 2. Fase 1 (quiz) — bloqueada nesta máquina por MongoDB indisponível, não é bug do app
-`useQuizSession` foi portado (`src/components/features/quiz/`), com telas de sessão/resumo/
-conquista em `app/trilhas/[trackId]/[lessonId]/`, os componentes de quiz (`QuestionCard`,
-`AnswerOption`, `FillBlankInput`, `QuizActionBar`, `HeartsRow`, `QuizHeader`) e os modais de
-gamificação (`NoHeartsDialog`, `HeartsCountdown`, `LevelUpCelebration`, este último montado
-globalmente em `app/_layout.tsx`). **Diferente das Fases 2/3 (itens #3/#4, verificadas ao vivo na
-mesma sessão)**: `tracks`/`lessons` estão em `EXPO_PUBLIC_API_REAL_RESOURCES` (reais, não mock) —
-sessão de quiz precisa de perguntas de verdade, que vêm do MongoDB (`services/monolith`). Nesta
-máquina o MongoDB Atlas está com a credencial rejeitando autenticação (`aviso: sem conexão com
-MongoDB: ... auth error ... authentication failed`, log do `services/monolith`) — problema de
-credencial/infra, sem relação com o código desta fase; `/v1/tracks` responde 503 "Banco de
-documentos indisponível" pra qualquer conta, então não dá nem pra abrir uma trilha pra testar.
-Corrigir isso depende de checar/rotacionar a credencial no painel do Atlas — fora do que dá pra
-resolver sem acesso a essa conta. Ação necessária (assim que o Mongo estiver acessível — nesta
-máquina ou outra): `npx expo start`, logar com conta real, abrir uma lição, percorrer: responder
-certo/errado, "Explique melhor", zerar vidas (`NoHeartsDialog` + restaurar com gemas), completar
-com 100% de acerto (tela de conquista credita XP/gemas uma única vez), e forçar um level-up
-(`LevelUpCelebration` global). Continua precisando de device/simulador nativo real pra cobrir o
-que o `expo start --web` não alcança (gestos, `SecureStore` nativo).
+### 2. Fase 1 (quiz) — verificado ao vivo, sem bugs encontrados
+`useQuizSession` (`src/components/features/quiz/`), telas de sessão/resumo/conquista em
+`app/trilhas/[trackId]/[lessonId]/`, componentes de quiz (`QuestionCard`, `AnswerOption`,
+`FillBlankInput`, `QuizActionBar`, `HeartsRow`, `QuizHeader`) e os modais de gamificação
+(`NoHeartsDialog`, `HeartsCountdown`, `LevelUpCelebration`, montado globalmente em
+`app/_layout.tsx`). **Bloqueio de MongoDB resolvido em 13/08/2026** (senha do Atlas estava
+desatualizada em `services/monolith/.env` — usuário forneceu a senha nova, ver memória do
+projeto) — isso desbloqueou a verificação ao vivo desta fase, que precisa de `tracks`/`lessons`/
+perguntas reais (diferente das Fases 2/3, mockadas).
+
+**Verificado ao vivo** (`expo start --web` + Playwright + login real + `services/monolith`
+local): troquei o tema selecionado pra "Construções Sustentáveis" (fazendo a Home destacar a
+primeira lição da trilha como "Em andamento", já que a conta de teste não tinha progresso nela
+ainda), abri a lição de verdade
+(`track_s01_construcoes_sustentaveis/lesson_construcoes_sustentaveis_u3_p1`) e respondi 10
+perguntas reais (geradas via Gemini, revisadas via `cmd/review-questions`, sobre o texto de
+Construções Sustentáveis Unidade 3) — mistura de certo/errado, vidas descontadas nas erradas,
+"Explique melhor" funcionando de ponta a ponta com resposta real do Groq (destaque da opção
+certa + explicação curta + aprofundamento). Cheguei em "Lição Concluída!" com XP/precisão/
+sequência/vidas reais (90% de precisão, +255 XP, "Progresso do módulo 75%" — a lição é 1 de 4
+partes da Unidade 3, ver `seeds/004_divide_novas_materias_em_licoes_de_10.js` em
+`PENDENCIAS_IA.md`), e "Continuar para o Mapa" voltou pra Home corretamente. Nenhum erro de
+console em nenhum passo. **Nenhum bug encontrado.**
+
+**Não testado ao vivo** (não fui atrás de propósito — exigiria forçar erros/progresso específico
+numa conta compartilhada de teste): zerar vidas até aparecer o `NoHeartsDialog` e restaurar com
+gemas, completar uma lição com 100% de acerto pra ver a tela de conquista (distinta do resumo
+normal, credita XP/gemas uma única vez), e forçar um level-up (`LevelUpCelebration`). Continua
+precisando de device/simulador nativo real pra cobrir o que o `expo start --web` não alcança
+(gestos, `SecureStore` nativo).
 
 ### 3. Fase 2 (Modo Infinito) — verificado ao vivo, sem bugs encontrados
 `useInfiniteModeSession` (`src/components/features/infiniteMode/`), telas em
