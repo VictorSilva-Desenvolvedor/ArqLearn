@@ -141,3 +141,23 @@ unidade antiga (por ordem alfabética de arquivo), errada; confirmar o número r
 pegadinha acima) antes de rodá-lo.** Nenhuma ação foi tomada ainda sobre o PDF escaneado
 (Informática, Unidade 1) — depende de uma versão com texto ou de investir em OCR (fora de escopo
 desta fase, ver Seção 5 do `Estrategia_Bootstrap.md`).
+
+**Nota (13/08/2026) — `Docs/DocsFaculdade/` não existe fora da máquina original.** É pasta
+git-ignored (`.gitignore` linha 28, mesmo tratamento de `Docs/ignorar/`) — em qualquer ambiente
+que seja só um clone do repositório (sandbox, outra máquina, CI), essa pasta e o script
+`GERAR_PERGUNTAS.sh` genuinamente não existem. O único material acessível fora da máquina original
+é o que já foi commitado em `services/monolith/internal/questiongen/sourcetext/<disciplina>/
+unidade{1..4}.txt` (usado pela geração dinâmica do Modo Infinito) — só que **esses arquivos têm o
+mesmo problema de numeração da pegadinha acima**: só o `unidade1.txt` de cada disciplina (o PDF
+lido por inteiro, que é a unidade já publicada) se auto-declara ("Unidade N" no início do texto);
+os outros 3 arquivos por disciplina (as amostras) raramente têm essa declaração no trecho
+extraído — confirmado que só 1 dos 12 arquivos-amostra (`informatica_projecoes_ortogonais/
+unidade2.txt`, que contém literalmente "o início da Unidade 2") permite confirmar o número real
+sem acesso ao PDF original. Tentativa de gerar mesmo assim pra esse 1 caso confirmado
+(`cmd/generate-questions -count=1`, teste): a geração via Gemini funcionou (pergunta passou na
+validação estrutural), mas a gravação falhou — MongoDB Atlas com credencial inválida nesta sessão
+(ver memória do projeto, mesmo bloqueio que afeta a Fase 1 do app mobile). Ou seja, mesmo o único
+caso resolvível sem o PDF original está bloqueado por infra até a credencial do Atlas ser
+corrigida. Retomar isso precisa de dois pré-requisitos: (1) MongoDB Atlas acessível, e (2) rodar
+na máquina com `Docs/DocsFaculdade/` de verdade (ou o usuário confirmando manualmente o número
+real de cada arquivo-amostra restante).
