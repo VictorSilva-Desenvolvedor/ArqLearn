@@ -2,6 +2,7 @@ import { StyleSheet, Text, View } from "react-native";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
 import { ProgressBar } from "@/components/ui/ProgressBar";
+import { useToast } from "@/hooks/useToast";
 import { colors, type } from "@/theme/tokens";
 
 interface DailyGoalCardProps {
@@ -9,7 +10,12 @@ interface DailyGoalCardProps {
   goal: number;
 }
 
+// "Revisar Erros" não tem tela/endpoint próprio ainda em nenhum dos dois apps (web também não
+// tem onClick aqui, apps/web/src/components/features/home/DailyGoalCard.tsx) — sem isso o toque
+// não dava feedback nenhum. Toast informativo até a funcionalidade existir de verdade.
 export function DailyGoalCard({ xpToday, goal }: DailyGoalCardProps) {
+  const { showToast } = useToast();
+
   return (
     <Card radius="xl" style={styles.card}>
       <View style={styles.info}>
@@ -21,7 +27,11 @@ export function DailyGoalCard({ xpToday, goal }: DailyGoalCardProps) {
           </Text>
         </View>
       </View>
-      <Button variant="primary" size="md">
+      <Button
+        variant="primary"
+        size="md"
+        onPress={() => showToast("Revisão de erros ainda não está disponível — em breve!")}
+      >
         Revisar Erros
       </Button>
     </Card>

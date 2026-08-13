@@ -1,4 +1,4 @@
-import { StyleSheet, Text, View } from "react-native";
+import { Pressable, StyleSheet, Text, View } from "react-native";
 import { Badge } from "@/components/ui/Badge";
 import { Card } from "@/components/ui/Card";
 import { Icon } from "@/components/ui/Icon";
@@ -7,27 +7,33 @@ import type { RecommendedTrack } from "@/lib/api/mocks/fixtures/exploreTracks";
 
 interface TrackCardProps extends RecommendedTrack {
   isSelectedTheme?: boolean;
+  onPress?: () => void;
 }
 
-// Espelha apps/web/src/components/features/explore/TrackCard.tsx.
-export function TrackCard({ track, difficulty, durationMinutes, icon, isSelectedTheme }: TrackCardProps) {
+// Espelha apps/web/src/components/features/explore/TrackCard.tsx — lá o card também não tem
+// onClick (mesma lacuna, sem tela de "detalhe de trilha" em nenhum dos dois apps ainda); aqui o
+// toque reaproveita o ThemeSelector (mesmo setTopic do explorar.tsx) pra pelo menos ter um efeito
+// real e coerente com o resto da tela, em vez de ficar mudo.
+export function TrackCard({ track, difficulty, durationMinutes, icon, isSelectedTheme, onPress }: TrackCardProps) {
   return (
-    <Card padding="md" radius="lg" style={[styles.card, isSelectedTheme && styles.selected]}>
-      {isSelectedTheme && (
-        <View style={styles.badgeWrap}>
-          <Badge tone="primary">Selecionado</Badge>
+    <Pressable onPress={onPress} disabled={!onPress}>
+      <Card padding="md" radius="lg" style={[styles.card, isSelectedTheme && styles.selected]}>
+        {isSelectedTheme && (
+          <View style={styles.badgeWrap}>
+            <Badge tone="primary">Selecionado</Badge>
+          </View>
+        )}
+        <Icon name={icon} size={28} color={colors.primary} />
+        <Text style={[type.questionSm, styles.title]}>{track.title}</Text>
+        <View style={styles.meta}>
+          <Badge tone="primary">{difficulty}</Badge>
+          <View style={styles.duration}>
+            <Icon name="schedule" size={16} color={colors.onSurfaceVariant} />
+            <Text style={[type.bodySm, styles.durationText]}>{durationMinutes}min</Text>
+          </View>
         </View>
-      )}
-      <Icon name={icon} size={28} color={colors.primary} />
-      <Text style={[type.questionSm, styles.title]}>{track.title}</Text>
-      <View style={styles.meta}>
-        <Badge tone="primary">{difficulty}</Badge>
-        <View style={styles.duration}>
-          <Icon name="schedule" size={16} color={colors.onSurfaceVariant} />
-          <Text style={[type.bodySm, styles.durationText]}>{durationMinutes}min</Text>
-        </View>
-      </View>
-    </Card>
+      </Card>
+    </Pressable>
   );
 }
 

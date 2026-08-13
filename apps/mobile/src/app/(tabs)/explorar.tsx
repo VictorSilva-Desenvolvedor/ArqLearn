@@ -7,6 +7,7 @@ import { UploadedContentItem } from "@/components/features/explore/UploadedConte
 import { UploadPromptCard } from "@/components/features/explore/UploadPromptCard";
 import { TopAppBar } from "@/components/home/TopAppBar";
 import { useTheme } from "@/hooks/useTheme";
+import { useToast } from "@/hooks/useToast";
 import { ApiError } from "@/lib/api/http";
 import { mockRecommendedTracks } from "@/lib/api/mocks/fixtures/exploreTracks";
 import {
@@ -28,7 +29,8 @@ export default function ExplorarScreen() {
   const [query, setQuery] = useState("");
   const [uploads, setUploads] = useState<UploadedContent[]>([]);
   const [uploadError, setUploadError] = useState<string | null>(null);
-  const { theme } = useTheme();
+  const { theme, setTopic } = useTheme();
+  const { showToast } = useToast();
   const activePolls = useRef(new Set<string>());
 
   useEffect(() => {
@@ -121,7 +123,14 @@ export default function ExplorarScreen() {
           <View style={styles.trackGrid}>
             {filteredTracks.map((item) => (
               <View key={item.track.id} style={styles.trackCell}>
-                <TrackCard {...item} isSelectedTheme={item.track.topic === theme.topic} />
+                <TrackCard
+                  {...item}
+                  isSelectedTheme={item.track.topic === theme.topic}
+                  onPress={() => {
+                    setTopic(item.track.topic);
+                    showToast(`Tema "${item.track.title}" selecionado`);
+                  }}
+                />
               </View>
             ))}
           </View>
