@@ -1,6 +1,5 @@
 import { useEffect, useState } from "react";
 import { ScrollView, StyleSheet, View } from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
 import { AchievementGrid } from "@/components/features/profile/AchievementGrid";
 import { LogoutMenuLink } from "@/components/features/profile/LogoutMenuLink";
 import { ProfileHeader } from "@/components/features/profile/ProfileHeader";
@@ -8,6 +7,7 @@ import { ProfileMenuLink } from "@/components/features/profile/ProfileMenuLink";
 import { ProfileStatsGrid } from "@/components/features/profile/ProfileStatsGrid";
 import { ProgressSummaryCard } from "@/components/features/profile/ProgressSummaryCard";
 import { StreakFreezeCard } from "@/components/features/profile/StreakFreezeCard";
+import { TopAppBar } from "@/components/home/TopAppBar";
 import { useAuth } from "@/hooks/useAuth";
 import { getGamificationProfile } from "@/lib/api/resources/gamification";
 import { getProgressSummary } from "@/lib/api/resources/progress";
@@ -34,7 +34,8 @@ export default function PerfilScreen() {
   }, []);
 
   return (
-    <SafeAreaView style={styles.screen} edges={["top"]}>
+    <View style={styles.screen}>
+      <TopAppBar />
       <ScrollView contentContainerStyle={styles.content}>
         <ProfileHeader name={user.name} level={gamification.level} xpTotal={gamification.xp_total} />
         <ProfileStatsGrid
@@ -53,7 +54,7 @@ export default function PerfilScreen() {
           <LogoutMenuLink />
         </View>
       </ScrollView>
-    </SafeAreaView>
+    </View>
   );
 }
 
