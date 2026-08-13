@@ -38,6 +38,12 @@
         "projectId": "692aff4e-c78b-45dc-8957-fba9351a8ec6"
       }
     },
-    "owner": "victor-silvadevs-team"
+    "owner": "victor-silvadevs-team",
+    "runtimeVersion": {
+      "policy": "appVersion"
+    },
+    "updates": {
+      "url": "https://u.expo.dev/692aff4e-c78b-45dc-8957-fba9351a8ec6"
+    }
   }
 }
