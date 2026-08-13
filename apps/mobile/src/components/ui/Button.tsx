@@ -2,7 +2,7 @@ import type { ReactNode } from "react";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 import { colors, type } from "@/theme/tokens";
 
-type ButtonVariant = "primary" | "gamification" | "ghost";
+type ButtonVariant = "primary" | "gamification" | "ghost" | "danger";
 type ButtonSize = "sm" | "md" | "lg";
 
 interface ButtonProps {
@@ -70,6 +70,8 @@ function variantStyle(variant: ButtonVariant) {
       };
     case "ghost":
       return { backgroundColor: "transparent", borderWidth: 2, borderColor: colors.primary };
+    case "danger":
+      return { backgroundColor: colors.error, borderWidth: 2, borderColor: colors.error };
   }
 }
 
@@ -81,6 +83,8 @@ function variantTextColor(variant: ButtonVariant) {
       return colors.onSecondaryContainer;
     case "ghost":
       return colors.primary;
+    case "danger":
+      return colors.onError;
   }
 }
 
