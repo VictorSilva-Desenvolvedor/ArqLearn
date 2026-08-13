@@ -27,13 +27,17 @@ Mobile foca 100% na experiência do aluno.
 
 ## Pendências
 
-### 1. Login real não validado num device/simulador de verdade
-A Fase 0 foi verificada só por `tsc --noEmit` (limpo) e `expo export --platform web` (bundla sem
-erro) — os dois são smoke tests de import/tipo, não confirmam que o fluxo de login
-email/senha funciona de ponta a ponta contra o backend real (Supabase + `services/monolith`) num
-dispositivo físico ou emulador Android/iOS. Ação necessária: abrir o app (`npx expo start` em
-`apps/mobile`, Expo Go ou simulador) e testar login com uma conta real (ex. `maria.aluna@...`),
-incluindo o caso de token expirando/renovando em background (`AppState` + `startAutoRefresh`).
+### 1. Login real — validado via web+Playwright (item #5 tem os detalhes), falta device nativo
+A Fase 0 foi verificada originalmente só por `tsc --noEmit`/`expo export --platform web` (smoke
+tests de import/tipo). Na verificação real feita durante a Fase 4 (ver item #5, bloco
+"Verificação real feita") o fluxo de login email/senha foi testado de ponta a ponta contra o
+backend real (Supabase + `services/monolith` local) com uma conta real
+(`maria.aluna@arqlearn.test`) — achou e corrigiu um bug real na guarda de rota pós-login (item #5,
+bug 1). Isso foi via `expo start --web`, não device/emulador nativo — ainda falta: testar em
+Android/iOS de verdade (Expo Go ou simulador), especialmente o caso de token expirando/renovando
+em background (`AppState` + `startAutoRefresh`, comportamento que só existe no app nativo, não no
+export web) e a criptografia real do `expo-secure-store` (Keychain/Keystore — no web ele nem tem
+implementação, ver item #5).
 
 ### 2. Fase 1 concluída, mas nunca testada num device/simulador de verdade
 `useQuizSession` foi portado (`src/components/features/quiz/`), com telas de sessão/resumo/
@@ -91,9 +95,48 @@ placeholder, pontos-chave, dica do arquiteto), "Tirar Dúvidas" → enviar pergu
 (deve citar página 14) e uma genérica (página 12), conferir que o histórico seedado aparece ao
 entrar; tocar em "Planta Baixa Residencial" (imagem, sem histórico) e conferir que abre limpo.
 
-### 5. Fase 4 — Explorar, Liga e Perfil (concluído, pendente de teste em device real)
+### 5. Fase 4 — Explorar, Liga e Perfil (concluído, verificado ponta a ponta via web+Playwright)
 
-**Perfil concluído, mas nunca testado num device/simulador de verdade.** Espelha
+**Verificação real feita** (não é device/simulador nativo, mas vai muito além de `tsc`/
+`expo export`): `npx expo start --web` + Playwright headless, login de verdade com uma conta
+Supabase real (`maria.aluna@arqlearn.test`) contra `services/monolith` rodando localmente
+(Postgres real; MongoDB indisponível nesta máquina por credencial expirada no Atlas — sem relação
+com este trabalho, `/v1/tracks` responde 503 e a Home mostra só o erro de bundler dev do Metro
+quando isso acontece, não afeta Perfil/Liga/Explorar que não dependem de Mongo).
+`expo-secure-store` não tem implementação web (`ExpoSecureStore.web.js` é um `export default {}`
+vazio de propósito, nunca vai ter — SecureStore é nativo-only por design) — contornado só para
+este teste com um shim local em `node_modules` (localStorage), revertido ao final; não é código
+do app, não afeta native. Resultado: Perfil (stats/conquistas/streak, Configurações
+editar+salvar), Liga (ranking real do bronze único, TDD §6 simplificado) e Explorar (busca, upload
+prompt, grade de trilhas, `ThemeSelector` completo com as ~50 entradas do catálogo, seleção de
+tema propagando pra `InfiniteModePromptCard`/badge "Selecionado") — todos renderizando e
+funcionando com dados reais. Segue faltando o que só um device/emulador real cobre: comportamento
+de `expo-secure-store`/AsyncStorage nativos de verdade (Keychain/Keystore), gestos touch nativos,
+seletor de arquivo nativo (`expo-document-picker`), performance/memória reais.
+
+Dois bugs reais encontrados e corrigidos nessa verificação (nenhum dos dois é específico de
+Perfil/Liga/Explorar — afetavam o app inteiro, só nunca tinham sido pegos porque nada tinha
+testado login ponta a ponta antes):
+
+1. **Corrida na guarda de rota (`app/_layout.tsx`)** — o guard antigo era um `useEffect` +
+   `router.replace()` imperativo comparando `usePathname()`. Mas o `<Stack/>` já montado não
+   desmonta ao navegar (é a mesma instância trocando a tela ativa por conta própria, reagindo à
+   navegação sem esperar o componente pai re-renderizar) — entre `router.replace("/")` no login e
+   o efeito do pai redirecionar de volta, a rota protegida chegava a ficar ativa sem sessão e
+   `useAuth()` derrubava a tela com "useAuth chamado sem sessão ativa" (reproduzido ao vivo).
+   Trocado por `<Stack.Protected guard={...}>` (guarda declarativa do expo-router) — a tela
+   protegida nem existe na árvore do navigator enquanto o guard for falso, sem frame
+   intermediário pra derrubar. Precisou listar as rotas folha exatas (`trilhas/[trackId]/
+   [lessonId]/sessao` etc.) em vez do nome da pasta — `<Stack.Screen name="trilhas">` sozinho não
+   casa com nada e a tela fica inalcançável, silenciosamente (só um warning no console). `login.tsx`
+   não navega mais manualmente após o login — o guard reage sozinho assim que `AuthContext` popula
+   `user`.
+2. **`TopAppBar`/`ThemeSelector` só existiam na Home** — igual ao web
+   (`(shell)/layout.tsx` compartilha `TopAppBar` entre Home/Explorar/Liga/Perfil), mas no mobile só
+   `(tabs)/index.tsx` incluía `<TopAppBar/>`; Explorar/Liga/Perfil ficavam sem o seletor de tema
+   nem os stats do topo. Corrigido — as três telas agora incluem `<TopAppBar/>` também.
+
+**Perfil.** Espelha
 `apps/web/src/app/(shell)/perfil/{page.tsx,configuracoes/page.tsx}` — sem o ramo de professor/
 admin do web (fora de escopo do mobile). `perfil.tsx` (tab) ganhou `ProfileHeader` (avatar, nível/
 título, barra de XP), `ProfileStatsGrid`, `ProgressSummaryCard` (novo resource
@@ -106,28 +149,18 @@ em `lib/api/resources/gamification.ts`), `AchievementGrid`/`AchievementBadge` (r
 `users-write` como no web) e exclusão de conta com confirmação por frase + hold-to-confirm de
 10s (`Pressable` `onPressIn`/`onPressOut`, sem equivalente RN de `onPointerDown`/`onPointerUp`).
 Novo `lib/gamification/levelTitle.ts` (porte direto do web) e tipo `ProgressSummary` adicionado a
-`types/api.ts`. `Button` ganhou variant `"danger"`. Verificado só por `tsc --noEmit` (limpo) e
-`expo export --platform web` (bundla sem erro) — mesma limitação dos itens #1-#4: login sempre
-Supabase real, não dá pra validar ponta a ponta sem device/simulador + conta real. Ação
-necessária: `npx expo start`, abrir a aba Perfil, conferir XP/nível/streak/gemas/conquistas reais,
-usar bloqueio de ofensiva (se disponível), abrir Configurações → editar nome/fuso e salvar, e
-testar o fluxo de exclusão de conta (digitar a frase, segurar o botão 10s, conferir a tela de
-"exclusão agendada").
+`types/api.ts`. `Button` ganhou variant `"danger"`.
 
-**Liga concluída, mas nunca testada num device/simulador de verdade.** Espelha
+**Liga.** Espelha
 `apps/web/src/app/(shell)/liga/page.tsx` — header com tier atual (`trophy` + rótulo por
 `league_tier`), aviso estático "Encerra em: 2d 14h 32m" (mesmo placeholder hardcoded do web —
 fechamento semanal real ainda não existe, TDD §6 fora de escopo) e
 `LeagueRankingList`/`LeagueRankRow`/`LeagueZoneBanner` (banners de zona de promoção/rebaixamento
 nas posições 1 e `ranking.length - LEAGUE_DEMOTION_SLOTS + 1`, linha do usuário atual destacada).
 Novo `getLeague` em `lib/api/resources/gamification.ts` + `mockLeague`/`LEAGUE_PROMOTION_SLOTS`/
-`LEAGUE_DEMOTION_SLOTS` em `mocks/fixtures/gamification.ts` (porte direto do web). Verificado só
-por `tsc --noEmit` (limpo) e `expo export --platform web` (bundla sem erro) — mesma limitação dos
-itens anteriores: login sempre Supabase real, não dá pra validar ponta a ponta sem device/
-simulador + conta real. Ação necessária: `npx expo start`, abrir a aba Liga, conferir tier/
-ranking reais e os banners de promoção/rebaixamento.
+`LEAGUE_DEMOTION_SLOTS` em `mocks/fixtures/gamification.ts` (porte direto do web).
 
-**Explorar concluído, mas nunca testado num device/simulador de verdade.** Fase 4 fechada por
+**Explorar.** Fase 4 fechada por
 completo — sem placeholder restante. Espelha `apps/web/src/app/(shell)/explorar/page.tsx`:
 `SearchBar` (filtra trilhas recomendadas e "Meus Materiais" pelo mesmo campo de busca),
 `UploadPromptCard` (upload de verdade via `expo-document-picker`, instalado nesta fase —
@@ -153,13 +186,14 @@ genérico. Também inclui `AllDonePrompt` no Home (`components/home/AllDonePromp
 reabrir o app, mesmo efeito prático de uma aba nova no navegador) e a integração do tema
 selecionado na Home (`(tabs)/index.tsx`): trilha em destaque vem primeiro, primeira lição vira
 "atual" se a trilha ainda não tem progresso, e um aviso aparece quando o tema escolhido não tem
-conteúdo ainda (`hasContent: false`). Verificado só por `tsc --noEmit` (limpo) e
-`expo export --platform web` (bundla sem erro) — mesma limitação dos itens #1-#4: login sempre
-Supabase real, não dá pra validar ponta a ponta sem device/simulador + conta real. Ação
-necessária: `npx expo start`, testar busca (trilhas e materiais), trocar de tema pelo
-`ThemeSelector` (incluindo um tema sem conteúdo, pra ver o aviso na Home e o card do Modo
-Infinito atualizando), fazer um upload real de um arquivo pequeno e acompanhar o polling até
-"Pronto para revisão", e completar uma trilha em destaque pra ver o `AllDonePrompt` na Home.
+conteúdo ainda (`hasContent: false`) — banner defensivo: como o `ThemeSelector` já desabilita
+qualquer tema `hasContent: false` no picker (mesma regra do web), não tem caminho de UI normal
+pra alcançar esse estado; mantido por paridade 1:1 com o web, não é código morto sem motivo.
+Testado ao vivo (ver bloco "Verificação real" acima): busca, `ThemeSelector` completo (troca de
+tema propaga pra `InfiniteModePromptCard` e pro badge "Selecionado"), upload prompt visível.
+**Não testado nem ao vivo nem por device**: uma sessão de upload completa até "Pronto para
+revisão" (precisa de um arquivo real + tempo de espera do polling) e o `AllDonePrompt` (precisa de
+uma trilha 100% concluída, não dá pra alcançar isso rapidamente com uma conta nova).
 
 ### 6. Fase 5 — Loja, Notificações, Ajuda e Bugs
 Ausentes por completo no mobile (nem placeholder existe) — espelhar

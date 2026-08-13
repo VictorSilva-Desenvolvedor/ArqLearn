@@ -1,11 +1,11 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { ScrollView, StyleSheet, Text, View } from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
 import { InfiniteModePromptCard } from "@/components/features/explore/InfiniteModePromptCard";
 import { SearchBar } from "@/components/features/explore/SearchBar";
 import { TrackCard } from "@/components/features/explore/TrackCard";
 import { UploadedContentItem } from "@/components/features/explore/UploadedContentItem";
 import { UploadPromptCard } from "@/components/features/explore/UploadPromptCard";
+import { TopAppBar } from "@/components/home/TopAppBar";
 import { useTheme } from "@/hooks/useTheme";
 import { ApiError } from "@/lib/api/http";
 import { mockRecommendedTracks } from "@/lib/api/mocks/fixtures/exploreTracks";
@@ -104,7 +104,8 @@ export default function ExplorarScreen() {
   };
 
   return (
-    <SafeAreaView style={styles.screen} edges={["top"]}>
+    <View style={styles.screen}>
+      <TopAppBar />
       <ScrollView contentContainerStyle={styles.content}>
         <SearchBar value={query} onChange={setQuery} />
 
@@ -138,7 +139,7 @@ export default function ExplorarScreen() {
           </View>
         </View>
       </ScrollView>
-    </SafeAreaView>
+    </View>
   );
 }
 

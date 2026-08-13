@@ -1,5 +1,4 @@
 import { useContext, useState } from "react";
-import { useRouter } from "expo-router";
 import { KeyboardAvoidingView, Platform, StyleSheet, Text, TextInput, View } from "react-native";
 import { Button } from "@/components/ui/Button";
 import { Icon } from "@/components/ui/Icon";
@@ -8,7 +7,6 @@ import { colors, type } from "@/theme/tokens";
 
 export default function LoginScreen() {
   const auth = useContext(AuthContext);
-  const router = useRouter();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
@@ -18,8 +16,8 @@ export default function LoginScreen() {
     setError(null);
     setSubmitting(true);
     const result = await auth?.loginWithPassword(email, password);
-    setSubmitting(false);
     if (!result || result.error) {
+      setSubmitting(false);
       // Espelha apps/web/src/app/login/page.tsx: só traduz pro texto genérico quando a
       // Supabase de fato disse "credenciais inválidas" — qualquer outro erro (rate limit, rede,
       // provedor fora do ar) aparece como veio.
@@ -27,7 +25,12 @@ export default function LoginScreen() {
       setError(raw === "Invalid login credentials" || !raw ? "E-mail ou senha inválidos." : raw);
       return;
     }
-    router.replace("/");
+    // Sem router.replace aqui de propósito: `<Stack.Protected>` (app/_layout.tsx) reage sozinho
+    // assim que AuthContext popula `user` e navega pra fora desta tela — chamar router.replace
+    // manualmente tentaria ir pra uma rota que ainda nem existe no navigator nesse instante
+    // (guard ainda fechado), já que `user` só é setado depois que GET /v1/users/me resolver.
+    // `submitting` fica true até lá de propósito, pra não reabrir o formulário clicável por uma
+    // fração de segundo antes do redirect automático — a tela desmonta durante essa espera.
   };
 
   return (

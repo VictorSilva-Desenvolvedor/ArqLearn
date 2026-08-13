@@ -1,8 +1,8 @@
 import { useEffect, useState } from "react";
 import { ScrollView, StyleSheet, Text, View } from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
 import { Icon } from "@/components/ui/Icon";
 import { LeagueRankingList } from "@/components/features/league/LeagueRankingList";
+import { TopAppBar } from "@/components/home/TopAppBar";
 import { useAuth } from "@/hooks/useAuth";
 import { getLeague } from "@/lib/api/resources/gamification";
 import { colors, spacing, type } from "@/theme/tokens";
@@ -32,7 +32,8 @@ export default function LigaScreen() {
   }, []);
 
   return (
-    <SafeAreaView style={styles.screen} edges={["top"]}>
+    <View style={styles.screen}>
+      <TopAppBar />
       <ScrollView contentContainerStyle={styles.content}>
         <View style={styles.header}>
           <Icon name="trophy" size={36} color={colors.secondary} />
@@ -48,7 +49,7 @@ export default function LigaScreen() {
         </Text>
         {league && <LeagueRankingList ranking={league.ranking} currentUserId={user.id} />}
       </ScrollView>
-    </SafeAreaView>
+    </View>
   );
 }
 
