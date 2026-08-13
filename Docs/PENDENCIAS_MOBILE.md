@@ -241,18 +241,40 @@ Print de bug (arquivo real via `expo-document-picker`/`expo-file-system`) não f
 vivo — mesma limitação de sempre, precisa de device/simulador nativo de verdade pro seletor de
 arquivo nativo funcionar (aqui só valida a lógica/tipos).
 
-### 7. Build de teste (EAS) — config pronta, falta rodar (precisa da conta Expo do usuário)
-Com a Fase 5 fechada, o que faltava de escopo "nova tela" acabou. Preparado nesta sessão, tudo
-local e reversível: `apps/mobile/eas.json` (perfis `development`/`preview`/`production`, canal
-`preview` pra build de teste) e `app.json` ganhou `ios.bundleIdentifier`/`android.package`
-(`com.arqlearn.mobile`, mesmo domínio já usado em `api.arqlearn.com` na API Spec) — os dois são
-obrigatórios pro EAS gerar um binário nativo de verdade, e nenhum dos dois existia antes.
+### 7. Build de teste — Android via APK (decisão do usuário, 13/08/2026); iOS fora de escopo por enquanto
+Decisão do usuário: iOS não entra no escopo por enquanto — só Android, testado via APK. Isso é
+mais barato de validar que iOS (sem exigir conta Apple Developer paga) e é o caminho natural pra
+um primeiro teste real fora do smoke test de bundler.
 
-**Não dá pra ir além disso sem a conta Expo do usuário** — `eas login` (autenticação real, não é
-algo pra rodar por conta própria) e depois `eas init` (linka o projeto a um `projectId`, grava em
-`app.json` → `extra.eas.projectId`) precisam rodar interativamente com a sessão de quem tem (ou
-vai criar) a conta. Depois disso, `eas build --platform android --profile preview` já funciona
-sem exigir mais nada pago (EAS gera o keystore Android sozinho); iOS precisa de conta Apple
-Developer (US$99/ano) além da conta Expo, mesmo só pra build de teste via `TestFlight`/interno.
+Preparado nesta sessão, tudo local e reversível: `apps/mobile/eas.json` (perfis
+`development`/`preview`/`production`; `preview` gera APK — `android.buildType: "apk"` — em vez do
+AAB padrão, que não instala direto num aparelho sem passar pela Play Store) e `app.json` ganhou
+`ios.bundleIdentifier`/`android.package` (`com.arqlearn.mobile`, mesmo domínio já usado em
+`api.arqlearn.com` na API Spec) — obrigatórios pro EAS gerar um binário nativo de verdade.
+
+**Tentativa de build 100% local (sem EAS/conta nenhuma) — bloqueada por uma limitação real do
+Windows, não por falta de ferramenta.** A máquina já tinha Android Studio + SDK completo (API 36,
+NDK 27, build-tools) e JDK 21 (JBR do Android Studio) instalados, então rodei
+`npx expo prebuild --platform android` + `gradlew assembleDebug` direto, sem precisar de EAS.
+Chegou a compilar boa parte das dependências nativas (react-native-screens, reanimated,
+expo-modules-core...), mas travou comilando `react-native-worklets` (dependência nativa do
+Reanimated): o compilador C++ do NDK (`clang++`/`ninja`, toolchain do Android para Windows) não
+consegue abrir um header num caminho com caracteres não-ASCII —
+`D:\Programação\ArqLearn\ArqLearn` tem "ç"/"ã", e o clang do NDK claramente lê esse trecho do
+caminho com a codepage errada (`Programa<E7><E3>o` no log, mojibake clássico de ANSI vs UTF-8).
+`android.overridePathCheck=true` (sugerido pelo próprio Gradle) contorna só o *aviso* do AGP, não
+o erro real do compilador. Isso é uma limitação conhecida do NDK/clang no Windows com caminho
+não-ASCII, não um bug do projeto — **não mexi na pasta do repositório** (só quem usa a máquina
+deve decidir mover/renomear algo assim). A pasta `android/` gerada foi apagada de novo no final
+(local, sem afetar o repo — `/android` já está no `.gitignore`).
+
+**Isso não bloqueia o build de teste, só descarta a rota 100% local nesta máquina**: o build em
+nuvem do EAS roda em container Linux (paths ASCII, sem esse problema) — segue sendo o caminho
+viável, só que precisa da conta Expo do usuário (`eas login`, autenticação real, não é algo pra
+rodar por conta própria) e depois `eas init` (linka o projeto a um `projectId`, grava em
+`app.json` → `extra.eas.projectId`). Depois disso, `eas build --platform android --profile
+preview` já funciona sem exigir nada pago (EAS gera o keystore Android sozinho).
 Ação necessária: `npx eas login` (ou `eas-cli` global) na máquina de quem for rodar, depois
-`eas init`, depois `eas build --platform android --profile preview` como primeiro build de teste.
+`eas init`, depois `eas build --platform android --profile preview` pra gerar o primeiro APK de
+teste. Alternativa se quiser tentar local de novo: rodar de um caminho sem acento (clone/junction
+fora de `Programação`) ou usar WSL, onde esse problema de codepage do clang-Windows não existe.
