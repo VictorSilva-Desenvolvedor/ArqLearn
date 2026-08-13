@@ -195,10 +195,54 @@ tema propaga pra `InfiniteModePromptCard` e pro badge "Selecionado"), upload pro
 revisão" (precisa de um arquivo real + tempo de espera do polling) e o `AllDonePrompt` (precisa de
 uma trilha 100% concluída, não dá pra alcançar isso rapidamente com uma conta nova).
 
-### 6. Fase 5 — Loja, Notificações, Ajuda e Bugs
-Ausentes por completo no mobile (nem placeholder existe) — espelhar
-`apps/web/src/app/(shell)/{loja,notificacoes}/page.tsx` e a tela de Ajuda e Bugs do web.
+### 6. Fase 5 — Loja, Notificações, Ajuda e Bugs (concluído, verificado ponta a ponta via web+Playwright)
+
+Espelha `apps/web/src/app/(shell)/{loja,notificacoes,ajuda}/page.tsx`. Fecha o app mobile — não
+sobra nenhuma tela em placeholder.
+
+**Loja** (`app/loja.tsx`) — `ShopFeatureCard` (Recarga de Vidas/Bloqueio de Ofensiva,
+`purchaseShopItem` já existia desde a Fase 1/`NoHeartsDialog`) e `ShopCosmeticItem` (grade 2
+colunas, badge "Novo", estado bloqueado por nível). `mockShopCatalog` já estava portado desde a
+Fase 0 (usado só pelo item de recarga de vidas até agora) — os `id` são os UUIDs reais de
+`shop_items` (`migrations/0004_shop_items_seed`), não placeholders.
+
+**Notificações** (`app/notificacoes.tsx`) — `NotificationList`/`NotificationItem` (ícone/cor por
+`NotificationType`, destino clicável só em `streak_at_risk`, via `findCurrentLessonHref` — mesma
+derivação "primeira lição em andamento" que a Home usa pro nó atual, novo
+`lib/gamification/currentLesson.ts`) e `NotificationPreferencesPanel` (novo `Toggle` em
+`components/ui/`, sem `<select>`/toggle nativo do RN — estilizado do zero espelhando o CSS do
+web). Novo `lib/api/resources/notifications.ts`. Entrada nova: sino no `TopAppBar` (web esconde
+esse ícone em viewport estreito via `hidden md:inline-flex` — no app nativo não existe essa noção
+de viewport responsivo, então ficou sempre visível, adaptação deliberada, não um desvio do web).
+
+**Ajuda e Bugs** (`app/ajuda.tsx`) — `HelpFaqSection` (conteúdo fixo, 6 perguntas) e
+`BugReportForm` (alterna bug/sugestão, contador de caracteres, tipo/modelo de dispositivo só pra
+bug, print opcional). Seletor de print usa `expo-document-picker` (mesmo pacote da Fase 4) +
+`expo-file-system/legacy` (`readAsStringAsync` com encoding base64 — a API nova baseada em `File`
+não tem um método de ler base64 direto, só `arrayBuffer()`/`bytes()`) pra montar o data URI que o
+contrato espera (`screenshot_base64`), no lugar do `FileReader.readAsDataURL` do browser. Novo
+`lib/api/resources/bugReports.ts` (só `submitBugReport` — `listBugReports`/`resolveBugReport` são
+admin-only, fora de escopo do mobile, mesma decisão já registrada pra revisão de upload). Tipos
+`AppNotification`/`NotificationType`/`BugReport`/`BugReportType`/`BugReportStatus`/`DeviceType`
+adicionados a `types/api.ts` (faltavam completamente).
+
+**Verificado ao vivo** (mesmo setup do item #5: `expo start --web` + Playwright + login real +
+`services/monolith` local): Loja (preços/estado desabilitado por gemas insuficientes, badges),
+Notificações (toggle push ligando/desligando independente do de e-mail, lista com item lido
+esmaecido e não lido com indicador), Ajuda (troca bug↔sugestão, contador de caracteres, fluxo de
+envio completo até a tela de confirmação). Achado e corrigido **1 bug real** nessa verificação: os
+dois botões "Reportar bug"/"Sugerir melhoria" (`BugReportForm.tsx`) usavam `fullWidth` dentro de
+um container `flexDirection: "row"` — no CSS do web isso encolhe pra caber (flex-shrink padrão é
+1), mas no RN os itens de flex **não encolhem por padrão** (`flexShrink: 0`), então o segundo
+botão vazava pra fora do card. Corrigido envolvendo cada botão num `View` com `flex: 1`. Não achei
+esse padrão em nenhum outro lugar do app (só esse arquivo tinha dois botões `fullWidth` lado a
+lado numa `row`; os demais usos de `fullWidth` empilham verticalmente, sem risco).
+Print de bug (arquivo real via `expo-document-picker`/`expo-file-system`) não foi exercitado ao
+vivo — mesma limitação de sempre, precisa de device/simulador nativo de verdade pro seletor de
+arquivo nativo funcionar (aqui só valida a lógica/tipos).
 
 ### 7. Build de teste (EAS) ainda não gerado
 `apps/mobile` não tem `eas.json` — decisão do usuário foi terminar as telas (pendências #2-#6)
-antes de gerar qualquer build de teste. Retomar essa conversa só depois.
+antes de gerar qualquer build de teste. Com a Fase 5 fechada, essa é a única pendência de escopo
+"nova tela" que resta — o que falta agora é só validação (device/simulador nativo real, listado em
+cada item acima) e o próprio build EAS.

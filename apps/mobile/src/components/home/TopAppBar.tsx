@@ -3,6 +3,7 @@ import { Pressable, StyleSheet, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Avatar } from "@/components/ui/Avatar";
 import { Icon } from "@/components/ui/Icon";
+import { IconButton } from "@/components/ui/IconButton";
 import { StatPill } from "@/components/ui/StatPill";
 import { useAuth } from "@/hooks/useAuth";
 import { colors, type } from "@/theme/tokens";
@@ -21,10 +22,17 @@ export function TopAppBar() {
           <Icon name="logo" size={28} color={colors.primary} />
           <Text style={[type.displayLg, styles.brandText]}>ArqLearn</Text>
         </View>
-        <Pressable style={styles.profile} onPress={() => router.push("/perfil" as never)}>
-          <Text style={[type.labelCaps, { color: colors.primary }]}>{gamification.xp_total} XP</Text>
-          <Avatar name={user.name} size={32} />
-        </Pressable>
+        <View style={styles.actions}>
+          <IconButton
+            icon={<Icon name="notifications" size={22} color={colors.onSurfaceVariant} />}
+            label="Notificações"
+            onPress={() => router.push("/notificacoes" as never)}
+          />
+          <Pressable style={styles.profile} onPress={() => router.push("/perfil" as never)}>
+            <Text style={[type.labelCaps, { color: colors.primary }]}>{gamification.xp_total} XP</Text>
+            <Avatar name={user.name} size={32} />
+          </Pressable>
+        </View>
       </View>
       <View style={styles.themeRow}>
         <ThemeSelector />
@@ -77,6 +85,11 @@ const styles = StyleSheet.create({
     borderTopWidth: 1,
     borderTopColor: colors.outlineVariant,
     paddingVertical: 8,
+  },
+  actions: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 4,
   },
   profile: {
     flexDirection: "row",

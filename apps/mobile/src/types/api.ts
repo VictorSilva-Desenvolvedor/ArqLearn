@@ -87,6 +87,45 @@ export interface ApiErrorBody {
   details?: Record<string, unknown>;
 }
 
+export type NotificationType =
+  | "streak_at_risk"
+  | "league_promotion"
+  | "league_demotion"
+  | "new_challenge"
+  | "questions_ready_for_review"
+  | "welcome"
+  | "bug_fixed"
+  | "suggestion_implemented";
+
+export interface AppNotification {
+  id: string;
+  type: NotificationType;
+  message: string;
+  read: boolean;
+  created_at: string;
+}
+
+export type BugReportStatus = "open" | "fixed";
+export type BugReportType = "bug" | "suggestion";
+export type DeviceType = "mobile" | "desktop" | "tablet";
+
+// Ver API Spec §14 — enviado por qualquer usuário (POST /v1/bug-reports); listagem/resolução são
+// só do professor/admin (GET /v1/bug-reports, POST .../resolve), fora de escopo do mobile.
+export interface BugReport {
+  id: string;
+  user_id: string;
+  reporter_name?: string;
+  reporter_email?: string;
+  type: BugReportType;
+  description: string;
+  screenshot_base64?: string;
+  device_model?: string;
+  device_type?: DeviceType;
+  status: BugReportStatus;
+  created_at: string;
+  resolved_at?: string | null;
+}
+
 export type TrackOrigin = "curated" | "user_generated";
 
 export interface Track {

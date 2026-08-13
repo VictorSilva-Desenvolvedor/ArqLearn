@@ -119,6 +119,8 @@ const glyphs = {
   themePalette: "palette-outline",
   themeVisibility: "eye-outline",
   themeGroups: "account-multiple-outline",
+  // --- Fase 5 (Loja) ---
+  cosmetic: "palette-swatch-outline",
 } as const;
 
 export type IconName = keyof typeof glyphs;
