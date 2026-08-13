@@ -1,7 +1,7 @@
 {
   "expo": {
     "name": "ArqLearn",
-    "slug": "mobile",
+    "slug": "victorsilva-dev",
     "scheme": "arqlearn",
     "version": "1.0.0",
     "orientation": "portrait",
@@ -31,6 +31,13 @@
       "expo-splash-screen",
       "expo-secure-store",
       "expo-document-picker"
-    ]
+    ],
+    "extra": {
+      "router": {},
+      "eas": {
+        "projectId": "692aff4e-c78b-45dc-8957-fba9351a8ec6"
+      }
+    },
+    "owner": "victor-silvadevs-team"
   }
 }
