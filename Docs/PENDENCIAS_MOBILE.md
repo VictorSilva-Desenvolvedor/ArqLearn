@@ -242,7 +242,7 @@ Print de bug (arquivo real via `expo-document-picker`/`expo-file-system`) não f
 vivo — mesma limitação de sempre, precisa de device/simulador nativo de verdade pro seletor de
 arquivo nativo funcionar (aqui só valida a lógica/tipos).
 
-### 7. Build de teste — Android via APK (decisão do usuário, 13/08/2026); iOS fora de escopo por enquanto
+### 7. Build de teste — Android via APK — CONCLUÍDO (13/08/2026); iOS fora de escopo por enquanto
 Decisão do usuário: iOS não entra no escopo por enquanto — só Android, testado via APK. Isso é
 mais barato de validar que iOS (sem exigir conta Apple Developer paga) e é o caminho natural pra
 um primeiro teste real fora do smoke test de bundler.
@@ -275,7 +275,61 @@ viável, só que precisa da conta Expo do usuário (`eas login`, autenticação 
 rodar por conta própria) e depois `eas init` (linka o projeto a um `projectId`, grava em
 `app.json` → `extra.eas.projectId`). Depois disso, `eas build --platform android --profile
 preview` já funciona sem exigir nada pago (EAS gera o keystore Android sozinho).
-Ação necessária: `npx eas login` (ou `eas-cli` global) na máquina de quem for rodar, depois
-`eas init`, depois `eas build --platform android --profile preview` pra gerar o primeiro APK de
-teste. Alternativa se quiser tentar local de novo: rodar de um caminho sem acento (clone/junction
-fora de `Programação`) ou usar WSL, onde esse problema de codepage do clang-Windows não existe.
+**Feito**: usuário forneceu um Personal Access Token da conta Expo (`victor-silvadevs-team`) e o
+`projectId` de um projeto EAS já existente (`692aff4e-c78b-45dc-8957-fba9351a8ec6`) — usado só
+como `EXPO_TOKEN` na sessão, nunca gravado em arquivo do repo. `eas init --id ... --non-interactive`
+precisou de `slug` em `app.json` batendo com o slug já registrado no projeto EAS
+(`victorsilva-dev` — divergia de `mobile`, corrigido).
+
+**Primeiro build (perfil `preview`) rodou e instalou, mas o app abria e crashava na hora** — causa
+raiz: o build não tinha NENHUMA variável de ambiente configurada (log confirmou: "No environment
+variables ... found for the 'preview' environment on EAS"). `.env.local` só vale pro `expo start`
+local — nunca é lido pelo build em nuvem. Sem `EXPO_PUBLIC_SUPABASE_URL`/chave, o `createClient`
+do Supabase (`lib/supabase/client.ts`) recebe URL vazia e derruba o app assim que o `AuthProvider`
+monta. Corrigido com `eas env:set preview --name ... --value ...` pras 4 variáveis
+(`EXPO_PUBLIC_SUPABASE_URL`, `EXPO_PUBLIC_SUPABASE_PUBLISHABLE_KEY`,
+`EXPO_PUBLIC_API_REAL_RESOURCES` — agora com a lista completa dos recursos que o mobile já
+implementa: `users,tracks,lessons,gamification,progress,infinite-mode,materials,uploads-list,
+uploads,notifications,bug-reports,users-write` — e `EXPO_PUBLIC_API_BASE_URL`, apontando pro
+backend real em produção `https://arqlearn.onrender.com`, confirmado no ar, em vez do
+`localhost:8080` que só existe na máquina de dev). Segundo build confirmou as 4 variáveis
+carregadas no log e instalou/abriu sem crash — **primeiro teste real em device físico Android,
+com sucesso**.
+
+`npx expo-doctor` (roda como parte do build) aponta 1 warning não-bloqueante — dependência
+duplicada de `react`/`react-dom` entre `apps/web` (fixa a versão mais nova) e `apps/mobile` (fixa
+a versão exata que o SDK 57.0.12 exige) — estrutural de misturar Next.js + Expo no mesmo
+workspace, não dá pra alinhar sem piorar um dos dois lados; não trava build (dois builds seguidos
+terminaram com sucesso apesar do aviso).
+
+Restou só: testar em iOS (fora de escopo por decisão do usuário) e as validações que só um device
+de verdade cobre e ainda não foram exercitadas manualmente (gestos, comportamento em background,
+etc. — a lista completa por fase está nos itens #1-#6 acima).
+
+### 8. Auditoria de interatividade pós-APK (13/08/2026) — 2 achados corrigidos
+Usuário testou o APK de verdade num Android físico e reportou itens que pareciam clicáveis sem
+reagir ao toque. Rodei uma auditoria sistemática (grep + leitura) de todo `apps/mobile/src/app` e
+`apps/mobile/src/components/{home,features}` comparando com `apps/web` — achou exatamente 2 casos
+reais (o resto do app — Perfil, Liga, Loja, Notificações, Ajuda, quiz completo, Modo Infinito,
+Materiais/Chat, mapa de lições — já tinha handler funcional em cada elemento visualmente
+interativo, confirmado arquivo por arquivo):
+
+1. **`components/home/DailyGoalCard.tsx`** — botão "Revisar Erros" sem `onPress`. Não é regressão
+   mobile: `apps/web/src/components/features/home/DailyGoalCard.tsx` tem o mesmo botão sem
+   `onClick` — a funcionalidade de "revisão de erros" nunca foi construída em nenhum dos dois
+   apps (sem tela, sem endpoint). Corrigido com um toast informativo
+   ("Revisão de erros ainda não está disponível — em breve!", via `useToast()` já usado em outras
+   telas) — pelo menos dá feedback real ao toque em vez de silêncio total. A mesma lacuna
+   continua existindo no web (fora do escopo desta correção, mas vale reportar lá também).
+2. **`components/features/explore/TrackCard.tsx`** (grade "Trilhas Recomendadas" do Explorar) —
+   card inteiro sem `onPress`, mesma lacuna espelhando `apps/web/.../TrackCard.tsx` (também sem
+   `onClick`, sem rota de "detalhe de trilha" em nenhum dos dois apps). Corrigido reaproveitando o
+   `ThemeSelector` já existente: tocar no card agora chama `useTheme().setTopic(track.topic)`
+   (mesma função que o seletor de tema usa) + toast de confirmação — dá ao card um efeito real e
+   coerente com o resto da tela (o Modo Infinito e o badge "Selecionado" reagem à mudança),
+   em vez de inventar uma tela nova.
+
+Verificado ao vivo (mesmo setup `expo start --web` + Playwright + login real): toast do "Revisar
+Erros" aparece corretamente; tocar num `TrackCard` troca o tema selecionado de verdade (conferido
+no `TopAppBar`, no `InfiniteModePromptCard` e no badge "Selecionado" do próprio card). Nenhum erro
+de console.
