@@ -1,18 +1,22 @@
 import { useEffect, useState } from "react";
-import { ScrollView, StyleSheet, View } from "react-native";
+import { ScrollView, StyleSheet, Text, View } from "react-native";
+import { AllDonePrompt } from "@/components/home/AllDonePrompt";
 import { DailyGoalCard } from "@/components/home/DailyGoalCard";
 import { LearningMap, type LearningMapUnit } from "@/components/home/LearningMap";
 import { TopAppBar } from "@/components/home/TopAppBar";
+import { Icon } from "@/components/ui/Icon";
 import type { LessonNodeVariant } from "@/components/home/LessonNode";
 import type { UnitStatus } from "@/components/home/UnitSection";
 import { useAuth } from "@/hooks/useAuth";
+import { useTheme } from "@/hooks/useTheme";
 import { listTrackLessons } from "@/lib/api/resources/lessons";
 import { listTracks } from "@/lib/api/resources/tracks";
 import { lessonNodePresentation } from "@/lib/api/mocks/fixtures/lessons";
-import { colors } from "@/theme/tokens";
+import { colors, spacing, type } from "@/theme/tokens";
 import type { Track, TrackLesson } from "@/types/api";
 
 const DAILY_GOAL_XP = 50;
+const MAX_UNITS_SHOWN = 3;
 
 function variantFor(progressStatus: string, isCheckpoint: boolean | undefined): LessonNodeVariant {
   if (isCheckpoint) return "checkpoint";
@@ -25,6 +29,18 @@ function unitStatusFor(lessons: { progress_status: string }[]): UnitStatus {
   if (lessons.every((l) => l.progress_status === "completed")) return "completed";
   if (lessons.some((l) => l.progress_status === "in_progress")) return "current";
   return "locked";
+}
+
+// O tema selecionado (ThemeSelector no TopAppBar) vira o "conteúdo principal": a primeira lição
+// da trilha correspondente vira a atual, sem sobrescrever progresso real já existente. Espelha
+// featureSelectedTheme em apps/web/src/app/(shell)/page.tsx.
+function featureSelectedTheme(lessons: TrackLesson[]): TrackLesson[] {
+  const alreadyActive = lessons.some((l) => l.progress_status !== "not_started");
+  if (alreadyActive || lessons.length === 0) return lessons;
+
+  return lessons.map((entry, index) =>
+    index === 0 ? { ...entry, progress_status: "in_progress" as const } : entry,
+  );
 }
 
 function toUnit(track: Track, trackLessons: TrackLesson[]): LearningMapUnit {
@@ -49,15 +65,21 @@ function toUnit(track: Track, trackLessons: TrackLesson[]): LearningMapUnit {
 
 export default function HomeScreen() {
   const { gamification } = useAuth();
+  const { theme: selectedTheme } = useTheme();
   const [units, setUnits] = useState<LearningMapUnit[] | null>(null);
 
   useEffect(() => {
     let cancelled = false;
     async function load() {
       const { data: tracks } = await listTracks();
+      const featuredTrack = tracks.find((track) => track.topic === selectedTheme.topic);
+      const otherTracks = tracks.filter((track) => track.topic !== selectedTheme.topic);
+      const orderedTracks = [...(featuredTrack ? [featuredTrack] : []), ...otherTracks].slice(0, MAX_UNITS_SHOWN);
+
       const withLessons = await Promise.all(
-        tracks.map(async (track) => {
-          const { data: trackLessons } = await listTrackLessons(track.id);
+        orderedTracks.map(async (track) => {
+          const { data: rawLessons } = await listTrackLessons(track.id);
+          const trackLessons = track.topic === selectedTheme.topic ? featureSelectedTheme(rawLessons) : rawLessons;
           return toUnit(track, trackLessons);
         }),
       );
@@ -67,15 +89,30 @@ export default function HomeScreen() {
     return () => {
       cancelled = true;
     };
-  }, []);
+  }, [selectedTheme.topic]);
+
+  // "Tudo em dia" = a trilha em destaque (primeiro item de units, ver orderedTracks acima)
+  // concluída — só oferece Modo Infinito se o tema realmente tem conteúdo (hasContent).
+  const featuredUnit = units?.[0];
+  const allDone = Boolean(featuredUnit && featuredUnit.status === "completed" && selectedTheme.hasContent);
 
   return (
     <View style={styles.screen}>
       <TopAppBar />
       <ScrollView contentContainerStyle={styles.content}>
         <DailyGoalCard xpToday={gamification.xp_today} goal={DAILY_GOAL_XP} />
+        {!selectedTheme.hasContent && (
+          <View style={styles.notice}>
+            <Icon name="construction" size={20} color={colors.primary} />
+            <Text style={[type.bodySm, styles.noticeText]}>
+              Ainda estamos preparando as lições de <Text style={styles.bold}>{selectedTheme.label}</Text> —
+              mostrando sua trilha atual enquanto isso.
+            </Text>
+          </View>
+        )}
         {units && <LearningMap units={units} />}
       </ScrollView>
+      {allDone && <AllDonePrompt topic={selectedTheme.topic} themeLabel={selectedTheme.label} />}
     </View>
   );
 }
@@ -88,5 +125,23 @@ const styles = StyleSheet.create({
   content: {
     paddingHorizontal: 24,
     paddingVertical: 48,
+  },
+  notice: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: spacing.sm,
+    backgroundColor: colors.surfaceGray,
+    borderWidth: 2,
+    borderColor: colors.outlineVariant,
+    borderRadius: 16,
+    padding: spacing.md,
+    marginBottom: spacing.lg,
+  },
+  noticeText: {
+    flex: 1,
+    color: colors.onSurfaceVariant,
+  },
+  bold: {
+    fontWeight: "700",
   },
 });
