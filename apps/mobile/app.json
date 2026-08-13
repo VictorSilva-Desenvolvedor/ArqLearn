@@ -27,7 +27,8 @@
       "expo-status-bar",
       "expo-font",
       "expo-splash-screen",
-      "expo-secure-store"
+      "expo-secure-store",
+      "expo-document-picker"
     ]
   }
 }

@@ -6,6 +6,7 @@ import { Icon } from "@/components/ui/Icon";
 import { StatPill } from "@/components/ui/StatPill";
 import { useAuth } from "@/hooks/useAuth";
 import { colors, type } from "@/theme/tokens";
+import { ThemeSelector } from "./ThemeSelector";
 
 export function TopAppBar() {
   const router = useRouter();
@@ -24,6 +25,9 @@ export function TopAppBar() {
           <Text style={[type.labelCaps, { color: colors.primary }]}>{gamification.xp_total} XP</Text>
           <Avatar name={user.name} size={32} />
         </Pressable>
+      </View>
+      <View style={styles.themeRow}>
+        <ThemeSelector />
       </View>
       <View style={styles.statsRow}>
         <StatPill tone="secondary" icon="streak" value={gamification.streak_current} />
@@ -56,6 +60,14 @@ const styles = StyleSheet.create({
   brandText: {
     color: colors.primary,
     fontWeight: "700",
+  },
+  themeRow: {
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: colors.surfaceGray,
+    borderTopWidth: 1,
+    borderTopColor: colors.outlineVariant,
+    paddingVertical: 6,
   },
   statsRow: {
     flexDirection: "row",

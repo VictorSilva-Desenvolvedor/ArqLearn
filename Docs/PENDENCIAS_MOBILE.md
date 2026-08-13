@@ -60,7 +60,8 @@ Infinito" adicionada à tela `explorar.tsx` (ainda um placeholder no resto — b
 temas) sem filtrar por `hasContent`; um tema sem banco cai na tela "ainda não está pronto" da
 própria sessão. **Não portados** (fora de escopo, ficam pra Fase 4 — Explorar/Home reais):
 `ThemeContext` (seleção de tema global) e `AllDonePrompt` (modal do Home oferecendo Modo Infinito
-quando uma trilha termina). Verificado só por `tsc --noEmit` (limpo) e
+quando uma trilha termina) — **portados na Fase 4** (ver item #5 abaixo). Verificado só por
+`tsc --noEmit` (limpo) e
 `expo export --platform web` (bundla sem erro) — mesma limitação dos itens #1/#2: login sempre
 Supabase real, não dá pra validar ponta a ponta sem device/simulador + conta real. Ação necessária:
 `npx expo start`, abrir Explorar → tocar num tema com banco (ex. `fundamentos`), responder
@@ -79,8 +80,9 @@ Ponto de entrada: seção "Meus Materiais" na tela `explorar.tsx`, listando `lis
 `uploads.ts` parcial — `listMyUploads`/`fileTypeFromMime`). **Não portados** (fora de escopo,
 ficam pra Fase 4 junto com o Explorar real): o fluxo de upload de verdade
 (`initiateUpload`/`completeUpload`/`getUploadStatus`, polling de status, seletor de arquivo —
-precisa de `expo-document-picker`, ainda não instalado) e a revisão de perguntas do professor
-(`listUploadQuestions`/`reviewUploadQuestion`, fora de escopo do mobile por decisão já registrada).
+precisa de `expo-document-picker`, ainda não instalado) — **portado na Fase 4** (ver item #5
+abaixo) — e a revisão de perguntas do professor (`listUploadQuestions`/`reviewUploadQuestion`,
+fora de escopo do mobile por decisão já registrada, permanece de fora).
 Verificado só por `tsc --noEmit` (limpo) e `expo export --platform web` (bundla sem erro) — mesma
 limitação dos itens #1-#3: login sempre Supabase real, não dá pra validar ponta a ponta sem
 device/simulador + conta real. Ação necessária: `npx expo start`, abrir Explorar → seção "Meus
@@ -89,7 +91,7 @@ placeholder, pontos-chave, dica do arquiteto), "Tirar Dúvidas" → enviar pergu
 (deve citar página 14) e uma genérica (página 12), conferir que o histórico seedado aparece ao
 entrar; tocar em "Planta Baixa Residencial" (imagem, sem histórico) e conferir que abre limpo.
 
-### 5. Fase 4 — Explorar, Liga e Perfil ainda são placeholder
+### 5. Fase 4 — Explorar, Liga e Perfil (concluído, pendente de teste em device real)
 
 **Perfil concluído, mas nunca testado num device/simulador de verdade.** Espelha
 `apps/web/src/app/(shell)/perfil/{page.tsx,configuracoes/page.tsx}` — sem o ramo de professor/
@@ -125,15 +127,39 @@ itens anteriores: login sempre Supabase real, não dá pra validar ponta a ponta
 simulador + conta real. Ação necessária: `npx expo start`, abrir a aba Liga, conferir tier/
 ranking reais e os banners de promoção/rebaixamento.
 
-**Explorar continua placeholder.** Já ganhou uma seção de Modo Infinito na Fase 2 e "Meus
-Materiais" na Fase 3, mas segue sem busca/trilhas recomendadas. Precisa virar real, espelhando
-`apps/web/src/app/(shell)/explorar/page.tsx`. Inclui portar `ThemeContext` (seleção de tema
-global, hoje só no web) e, no Home, `AllDonePrompt` (modal oferecendo Modo Infinito quando a
-trilha em destaque termina) — os dois ficaram deliberadamente fora da Fase 2 por dependerem desta
-fase. Também inclui o fluxo de upload de verdade (`UploadPromptCard`, seletor de arquivo via
-`expo-document-picker` — ainda não instalado —, `initiateUpload`/`completeUpload`/
-`getUploadStatus` de `lib/api/resources/uploads.ts`, polling de status), deixado fora da Fase 3
-pelo mesmo motivo.
+**Explorar concluído, mas nunca testado num device/simulador de verdade.** Fase 4 fechada por
+completo — sem placeholder restante. Espelha `apps/web/src/app/(shell)/explorar/page.tsx`:
+`SearchBar` (filtra trilhas recomendadas e "Meus Materiais" pelo mesmo campo de busca),
+`UploadPromptCard` (upload de verdade via `expo-document-picker`, instalado nesta fase —
+`initiateUpload`/`completeUpload`/`getUploadStatus` portados para `lib/api/resources/uploads.ts`,
+com polling a cada 700ms até status terminal, mesma simulação de pipeline assíncrono do web em
+`mocks/fixtures/uploadProcessing.ts`; sem PUT de bytes pro `upload_url` — nem o web faz isso hoje,
+R2 ainda não habilitado, ver `Docs/PENDENCIAS_IA.md` #1 e memória do projeto), `TrackCard` (grade
+"Trilhas Recomendadas" a partir de `mocks/fixtures/exploreTracks.ts`, portado junto com as 4
+trilhas que faltavam em `mocks/fixtures/tracks.ts` pra ter paridade com o web) e
+`UploadedContentItem` (substitui a listagem antiga da Fase 3). `InfiniteModePromptCard` liga o
+tema selecionado ao Modo Infinito.
+
+Inclui os dois itens que tinham ficado deliberadamente de fora da Fase 2 por dependerem desta
+fase: `ThemeContext` — porte adaptado (sem cookie/SSR/`router.refresh`, que não existem no RN;
+persiste em AsyncStorage, ver `contexts/ThemeContext.tsx`) — e `ThemeSelector`
+(`components/home/ThemeSelector.tsx`, um `Modal` com lista rolável por semestre substituindo o
+dropdown do web, que não tem equivalente nativo direto; acionado a partir de um novo item no
+`TopAppBar`). O catálogo de temas (`mocks/fixtures/themes.ts`) trocou o campo `icon` de string
+livre (Material Symbols, só do web) para `IconName` do RN — precisou de ~35 glifos novos em
+`components/ui/Icon.tsx` (prefixo `theme*`) pra cobrir as quase 50 entradas sem cair num ícone
+genérico. Também inclui `AllDonePrompt` no Home (`components/home/AllDonePrompt.tsx` — sem
+`sessionStorage` no RN, dispensa fica num `Set` em memória de módulo, que reseta sozinho ao
+reabrir o app, mesmo efeito prático de uma aba nova no navegador) e a integração do tema
+selecionado na Home (`(tabs)/index.tsx`): trilha em destaque vem primeiro, primeira lição vira
+"atual" se a trilha ainda não tem progresso, e um aviso aparece quando o tema escolhido não tem
+conteúdo ainda (`hasContent: false`). Verificado só por `tsc --noEmit` (limpo) e
+`expo export --platform web` (bundla sem erro) — mesma limitação dos itens #1-#4: login sempre
+Supabase real, não dá pra validar ponta a ponta sem device/simulador + conta real. Ação
+necessária: `npx expo start`, testar busca (trilhas e materiais), trocar de tema pelo
+`ThemeSelector` (incluindo um tema sem conteúdo, pra ver o aviso na Home e o card do Modo
+Infinito atualizando), fazer um upload real de um arquivo pequeno e acompanhar o polling até
+"Pronto para revisão", e completar uma trilha em destaque pra ver o `AllDonePrompt` na Home.
 
 ### 6. Fase 5 — Loja, Notificações, Ajuda e Bugs
 Ausentes por completo no mobile (nem placeholder existe) — espelhar

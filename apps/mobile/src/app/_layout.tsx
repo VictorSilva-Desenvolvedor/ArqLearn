@@ -9,6 +9,7 @@ import { StatusBar } from "expo-status-bar";
 import { ActivityIndicator, View } from "react-native";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 import { AuthContext, AuthProvider } from "@/contexts/AuthContext";
+import { ThemeProvider } from "@/contexts/ThemeContext";
 import { ToastProvider } from "@/contexts/ToastContext";
 import { Toast } from "@/components/ui/Toast";
 import { LevelUpCelebration } from "@/components/features/gamification/LevelUpCelebration";
@@ -70,12 +71,14 @@ export default function RootLayout() {
   return (
     <SafeAreaProvider>
       <AuthProvider>
-        <ToastProvider>
-          <StatusBar style="dark" />
-          <RootNavigator />
-          <Toast />
-          <LevelUpCelebration />
-        </ToastProvider>
+        <ThemeProvider>
+          <ToastProvider>
+            <StatusBar style="dark" />
+            <RootNavigator />
+            <Toast />
+            <LevelUpCelebration />
+          </ToastProvider>
+        </ThemeProvider>
       </AuthProvider>
     </SafeAreaProvider>
   );
