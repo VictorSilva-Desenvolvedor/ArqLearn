@@ -241,8 +241,18 @@ Print de bug (arquivo real via `expo-document-picker`/`expo-file-system`) não f
 vivo — mesma limitação de sempre, precisa de device/simulador nativo de verdade pro seletor de
 arquivo nativo funcionar (aqui só valida a lógica/tipos).
 
-### 7. Build de teste (EAS) ainda não gerado
-`apps/mobile` não tem `eas.json` — decisão do usuário foi terminar as telas (pendências #2-#6)
-antes de gerar qualquer build de teste. Com a Fase 5 fechada, essa é a única pendência de escopo
-"nova tela" que resta — o que falta agora é só validação (device/simulador nativo real, listado em
-cada item acima) e o próprio build EAS.
+### 7. Build de teste (EAS) — config pronta, falta rodar (precisa da conta Expo do usuário)
+Com a Fase 5 fechada, o que faltava de escopo "nova tela" acabou. Preparado nesta sessão, tudo
+local e reversível: `apps/mobile/eas.json` (perfis `development`/`preview`/`production`, canal
+`preview` pra build de teste) e `app.json` ganhou `ios.bundleIdentifier`/`android.package`
+(`com.arqlearn.mobile`, mesmo domínio já usado em `api.arqlearn.com` na API Spec) — os dois são
+obrigatórios pro EAS gerar um binário nativo de verdade, e nenhum dos dois existia antes.
+
+**Não dá pra ir além disso sem a conta Expo do usuário** — `eas login` (autenticação real, não é
+algo pra rodar por conta própria) e depois `eas init` (linka o projeto a um `projectId`, grava em
+`app.json` → `extra.eas.projectId`) precisam rodar interativamente com a sessão de quem tem (ou
+vai criar) a conta. Depois disso, `eas build --platform android --profile preview` já funciona
+sem exigir mais nada pago (EAS gera o keystore Android sozinho); iOS precisa de conta Apple
+Developer (US$99/ano) além da conta Expo, mesmo só pra build de teste via `TestFlight`/interno.
+Ação necessária: `npx eas login` (ou `eas-cli` global) na máquina de quem for rodar, depois
+`eas init`, depois `eas build --platform android --profile preview` como primeiro build de teste.
