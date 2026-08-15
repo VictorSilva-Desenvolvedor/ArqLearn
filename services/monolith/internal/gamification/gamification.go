@@ -135,12 +135,23 @@ func handleGetGamificationMe(pool *pgxpool.Pool) http.HandlerFunc {
 
 // --- GET /v1/gamification/league ---
 
-// defaultLeagueTier: todo mundo entra na liga bronze (1) — fechamento semanal com promoção/
-// rebaixamento por posição (TDD §6) ainda não existe (nenhum job roda isso), então esta fase só
-// cobre "estar numa liga com XP da semana rastreado", não o ciclo de subir/descer de verdade.
+// defaultLeagueTier: usuário novo (sem user_gamification.current_tier ainda, caso defensivo —
+// a coluna tem DEFAULT 1 desde a migration 0007) entra na liga bronze (1), a mais baixa.
 const defaultLeagueTier = 1
 
+// minTier/maxTier: 1=bronze (pior) .. 5=diamante (melhor) — CloseLeagueWeek usa esses limites pra
+// não promover ninguém além de diamante nem rebaixar ninguém abaixo de bronze.
+const minTier = 1
+const maxTier = 5
+
+// PromotionSlots/DemotionSlots: TDD §6 "top 5 promovidos / bottom 5 rebaixados" — exportados (via
+// leagueResponse) pro frontend não precisar mais hardcodar esses números num mock separado.
+const PromotionSlots = 5
+const DemotionSlots = 5
+
 var tierNamesByNumber = map[int]string{1: "bronze", 2: "prata", 3: "ouro", 4: "platina", 5: "diamante"}
+
+var tierNumbersByName = map[string]int{"bronze": 1, "prata": 2, "ouro": 3, "platina": 4, "diamante": 5}
 
 func tierName(n int) string {
 	if name, ok := tierNamesByNumber[n]; ok {
@@ -161,19 +172,29 @@ func mondayOf(t time.Time) time.Time {
 }
 
 // ensureLeagueMembership garante que o usuário está numa leagues/league_members desta semana,
-// criando os dois (upsert) se ainda não existir — sem isso, "GET /league" não teria nada real pra
-// mostrar pra ninguém, já que o fechamento semanal automático (TDD §6) não roda ainda. Todo mundo
-// cai no mesmo group_number=1 da tier bronze por enquanto — particionar por grupo de <15 membros
-// só faz sentido quando o fechamento/promoção também existir.
+// criando os dois (upsert) se ainda não existir. A tier usada é user_gamification.current_tier —
+// atualizada pelo fechamento semanal (CloseLeagueWeek, TDD §6) sempre que o usuário promove ou
+// rebaixa; assim, a próxima vez que ele bater aqui (ex.: completando uma lição na semana nova),
+// já cai direto na liga certa. Todo mundo cai no mesmo group_number=1 da sua tier por enquanto —
+// particionar por grupo de <15 membros ativos (TDD §6 passo 1) não tem efeito real ainda, porque
+// nunca existe mais de um grupo por tier/semana com esse hardcode (ver comentário em
+// CloseLeagueWeek).
 func ensureLeagueMembership(ctx context.Context, pool *pgxpool.Pool, userID string) (leagueID uuid.UUID, err error) {
 	week := mondayOf(time.Now().UTC())
+
+	tier := defaultLeagueTier
+	if err = pool.QueryRow(ctx,
+		`SELECT current_tier FROM user_gamification WHERE user_id = $1`, userID,
+	).Scan(&tier); err != nil && err != pgx.ErrNoRows {
+		return uuid.Nil, err
+	}
 
 	err = pool.QueryRow(ctx, `
 		INSERT INTO leagues (id, week_reference, tier, group_number)
 		VALUES ($1, $2, $3, 1)
 		ON CONFLICT (week_reference, tier, group_number) DO UPDATE SET tier = leagues.tier
 		RETURNING id
-	`, uuid.New(), week, defaultLeagueTier).Scan(&leagueID)
+	`, uuid.New(), week, tier).Scan(&leagueID)
 	if err != nil {
 		return uuid.Nil, err
 	}
@@ -211,11 +232,52 @@ type leagueRankingEntry struct {
 	Position   int    `json:"position"`
 }
 
+// rankingTopN corta a resposta em até N posições — "top 50 de cada liga" pedido pro frontend;
+// não limita o cálculo de promoção/rebaixamento abaixo, que precisa do ranking inteiro.
+const rankingTopN = 50
+
 type leagueResponse struct {
-	LeagueID      string               `json:"league_id"`
-	Tier          string               `json:"tier"`
-	WeekReference string               `json:"week_reference"`
-	Ranking       []leagueRankingEntry `json:"ranking"`
+	LeagueID       string               `json:"league_id"`
+	Tier           string               `json:"tier"`
+	WeekReference  string               `json:"week_reference"`
+	Ranking        []leagueRankingEntry `json:"ranking"`
+	PromotionSlots int                  `json:"promotion_slots"`
+	DemotionSlots  int                  `json:"demotion_slots"`
+	// ViewerPosition/XPToPromotion só vêm preenchidos quando a consulta é da liga do próprio
+	// usuário autenticado (sem ?tier= na query, ou ?tier= igual à liga dele) — navegar por outra
+	// liga (ex.: espiar o ranking de Diamante estando em Bronze) não faz sentido ter "quanto falta
+	// pra subir" porque o usuário nem está competindo lá.
+	ViewerPosition *int `json:"viewer_position,omitempty"`
+	XPToPromotion  *int `json:"xp_to_promotion,omitempty"`
+}
+
+// queryLeagueRanking busca o ranking completo (sem corte de N) de uma liga já resolvida — usado
+// tanto pra montar a resposta (que corta em rankingTopN) quanto pro cálculo de "quanto falta pra
+// subir", que precisa enxergar além da 50ª posição se a liga for maior que isso.
+func queryLeagueRanking(ctx context.Context, pool *pgxpool.Pool, leagueID uuid.UUID) ([]leagueRankingEntry, error) {
+	rows, err := pool.Query(ctx, `
+		SELECT lm.user_id, u.name, lm.xp_this_week
+		FROM league_members lm JOIN users u ON u.id = lm.user_id
+		WHERE lm.league_id = $1
+		ORDER BY lm.xp_this_week DESC, u.name ASC
+	`, leagueID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var ranking []leagueRankingEntry
+	position := 0
+	for rows.Next() {
+		position++
+		var entry leagueRankingEntry
+		if err := rows.Scan(&entry.UserID, &entry.Name, &entry.XPThisWeek); err != nil {
+			return nil, err
+		}
+		entry.Position = position
+		ranking = append(ranking, entry)
+	}
+	return ranking, rows.Err()
 }
 
 func handleGetLeague(pool *pgxpool.Pool) http.HandlerFunc {
@@ -223,6 +285,48 @@ func handleGetLeague(pool *pgxpool.Pool) http.HandlerFunc {
 		userID, ok := authmiddleware.UserID(r.Context())
 		if !ok {
 			apierror.Write(w, http.StatusUnauthorized, "UNAUTHENTICATED", "Token inválido.")
+			return
+		}
+
+		// ?tier=ouro: navegar o ranking de outra liga (pra tela "top 50 de cada liga") em vez da
+		// liga do próprio usuário — não chama ensureLeagueMembership (o usuário não está
+		// necessariamente matriculado nessa tier), só lê o que já existir pra semana corrente.
+		if tierParam := r.URL.Query().Get("tier"); tierParam != "" {
+			tierNum, ok := tierNumbersByName[tierParam]
+			if !ok {
+				apierror.Write(w, http.StatusBadRequest, "INVALID_TIER", "Tier inválida — use bronze, prata, ouro, platina ou diamante.")
+				return
+			}
+			week := mondayOf(time.Now().UTC())
+
+			var leagueID uuid.UUID
+			var weekRef time.Time
+			err := pool.QueryRow(r.Context(), `
+				SELECT id, week_reference FROM leagues WHERE week_reference = $1 AND tier = $2 AND group_number = 1
+			`, week, tierNum).Scan(&leagueID, &weekRef)
+			if err == pgx.ErrNoRows {
+				// Ninguém está nessa tier ainda esta semana — resposta válida e vazia, não é erro.
+				writeJSON(w, http.StatusOK, leagueResponse{
+					Tier: tierName(tierNum), WeekReference: week.Format("2006-01-02"),
+					Ranking: []leagueRankingEntry{}, PromotionSlots: PromotionSlots, DemotionSlots: DemotionSlots,
+				})
+				return
+			}
+			if err != nil {
+				apierror.Write(w, http.StatusInternalServerError, "INTERNAL_ERROR", "Falha ao consultar liga.")
+				return
+			}
+
+			ranking, err := queryLeagueRanking(r.Context(), pool, leagueID)
+			if err != nil {
+				apierror.Write(w, http.StatusInternalServerError, "INTERNAL_ERROR", "Falha ao consultar ranking.")
+				return
+			}
+			resp := leagueResponse{
+				LeagueID: leagueID.String(), Tier: tierName(tierNum), WeekReference: weekRef.Format("2006-01-02"),
+				Ranking: capRanking(ranking, rankingTopN), PromotionSlots: PromotionSlots, DemotionSlots: DemotionSlots,
+			}
+			writeJSON(w, http.StatusOK, resp)
 			return
 		}
 
@@ -244,32 +348,144 @@ func handleGetLeague(pool *pgxpool.Pool) http.HandlerFunc {
 		resp.LeagueID = leagueID.String()
 		resp.Tier = tierName(tierNum)
 		resp.WeekReference = weekRef.Format("2006-01-02")
+		resp.PromotionSlots = PromotionSlots
+		resp.DemotionSlots = DemotionSlots
 
-		rows, err := pool.Query(r.Context(), `
-			SELECT lm.user_id, u.name, lm.xp_this_week
-			FROM league_members lm JOIN users u ON u.id = lm.user_id
-			WHERE lm.league_id = $1
-			ORDER BY lm.xp_this_week DESC, u.name ASC
-		`, leagueID)
+		ranking, err := queryLeagueRanking(r.Context(), pool, leagueID)
 		if err != nil {
 			apierror.Write(w, http.StatusInternalServerError, "INTERNAL_ERROR", "Falha ao consultar ranking.")
 			return
 		}
-		defer rows.Close()
-		position := 0
-		for rows.Next() {
-			position++
-			var entry leagueRankingEntry
-			if err := rows.Scan(&entry.UserID, &entry.Name, &entry.XPThisWeek); err != nil {
-				apierror.Write(w, http.StatusInternalServerError, "INTERNAL_ERROR", "Falha ao ler ranking.")
-				return
+		resp.Ranking = capRanking(ranking, rankingTopN)
+
+		// "Quanto falta pra subir": distância de XP até o último lugar da zona de promoção (TDD
+		// §6, top N=PromotionSlots), calculada em cima do ranking real da semana em curso — não
+		// depende do fechamento semanal já ter rodado, é só uma projeção do resultado se a semana
+		// fechasse agora. Só mostra a projeção quando o grupo já tem gente suficiente pra uma
+		// promoção de verdade acontecer no fechamento (mesmo limiar de CloseLeagueWeek,
+		// minGroupSizeForPromotion) — senão a mensagem prometeria uma subida que o fechamento
+		// real não vai conceder essa semana.
+		for _, entry := range ranking {
+			if entry.UserID != userID {
+				continue
 			}
-			entry.Position = position
-			resp.Ranking = append(resp.Ranking, entry)
+			pos := entry.Position
+			resp.ViewerPosition = &pos
+			if len(ranking) >= minGroupSizeForPromotion && pos > PromotionSlots && tierNum < maxTier {
+				cutoffXP := ranking[PromotionSlots-1].XPThisWeek
+				faltam := cutoffXP - entry.XPThisWeek + 1
+				if faltam < 0 {
+					faltam = 0
+				}
+				resp.XPToPromotion = &faltam
+			} else {
+				zero := 0
+				resp.XPToPromotion = &zero
+			}
+			break
 		}
 
 		writeJSON(w, http.StatusOK, resp)
 	}
+}
+
+func capRanking(ranking []leagueRankingEntry, n int) []leagueRankingEntry {
+	if ranking == nil {
+		return []leagueRankingEntry{}
+	}
+	if len(ranking) > n {
+		return ranking[:n]
+	}
+	return ranking
+}
+
+// --- Fechamento semanal de ligas (TDD §6) ---
+
+// minGroupSizeForPromotion: TDD §6 desenha as zonas de promoção/rebaixamento em cima de um grupo
+// de referência de ~30 membros — com menos gente que isso (a realidade da fase bootstrap, 5-20
+// usuários no total, ver Estrategia_Bootstrap), "top 5 / bottom 5" se sobrepõem ou cobrem o grupo
+// inteiro, o que não faz sentido como competição real. Abaixo desse tamanho, ninguém promove nem
+// rebaixa naquela tier nesta semana — fica pra quando houver gente suficiente competindo.
+const minGroupSizeForPromotion = PromotionSlots + DemotionSlots + 5
+
+// CloseLeagueWeek executa o fechamento semanal (TDD §6) da `week` informada: pra cada liga
+// daquela semana, ordena o ranking por xp_this_week, promove os PromotionSlots melhores, rebaixa
+// os DemotionSlots piores, e persiste o novo tier em user_gamification.current_tier — é esse
+// valor que ensureLeagueMembership lê pra decidir em qual liga colocar o usuário na semana
+// seguinte. Idempotente: rodar duas vezes pra mesma semana repete o mesmo cálculo em cima do
+// ranking (que não muda depois que a semana vira passado) e grava o mesmo resultado.
+//
+// Direção do tier: 1=bronze (pior) .. 5=diamante (melhor) — mesma numeração de tierNamesByNumber,
+// já exposta pro frontend. O TDD §6 descreve a direção como "promovido -> tier-1" / "rebaixado ->
+// tier+1", que é o inverso desse mapeamento concreto (nele, tier 1 seria a MELHOR liga). Aqui a
+// promoção move pra tier+1 (rumo a diamante) e o rebaixamento pra tier-1 (rumo a bronze),
+// coerente com bronze=1..diamante=5 já em produção — não com a redação literal do documento.
+//
+// Passo 1 do TDD (mesclar grupos com <15 membros ativos no group_number adjacente) não está
+// implementado: ensureLeagueMembership sempre usa group_number=1, então nunca existe mais de um
+// grupo por tier/semana com o código atual — não há nada real pra mesclar ainda.
+//
+// Passo 5 do TDD (emitir league.week_closed no barramento de eventos) também não está implementado
+// — nenhum consumidor existe ainda (mesmo estágio dos outros eventos deste pacote, ver
+// AddWeeklyXP); adicionar quando o Notifications/Analytics Service passar a consumir de verdade.
+func CloseLeagueWeek(ctx context.Context, pool *pgxpool.Pool, week time.Time) error {
+	week = mondayOf(week)
+
+	rows, err := pool.Query(ctx, `SELECT id, tier FROM leagues WHERE week_reference = $1`, week)
+	if err != nil {
+		return err
+	}
+	type leagueRow struct {
+		id   uuid.UUID
+		tier int
+	}
+	var leagues []leagueRow
+	for rows.Next() {
+		var l leagueRow
+		if err := rows.Scan(&l.id, &l.tier); err != nil {
+			rows.Close()
+			return err
+		}
+		leagues = append(leagues, l)
+	}
+	rows.Close()
+	if err := rows.Err(); err != nil {
+		return err
+	}
+
+	for _, l := range leagues {
+		ranking, err := queryLeagueRanking(ctx, pool, l.id)
+		if err != nil {
+			return err
+		}
+		n := len(ranking)
+		if n < minGroupSizeForPromotion {
+			log.Printf("liga %s (tier=%d, semana=%s): %d membros, abaixo do mínimo de %d pra promoção/rebaixamento — ninguém muda de tier",
+				l.id, l.tier, week.Format("2006-01-02"), n, minGroupSizeForPromotion)
+			continue
+		}
+
+		for _, entry := range ranking {
+			newTier := l.tier
+			switch {
+			case entry.Position <= PromotionSlots && l.tier < maxTier:
+				newTier = l.tier + 1
+			case entry.Position > n-DemotionSlots && l.tier > minTier:
+				newTier = l.tier - 1
+			}
+			if newTier == l.tier {
+				continue
+			}
+			if _, err := pool.Exec(ctx,
+				`UPDATE user_gamification SET current_tier = $1 WHERE user_id = $2`,
+				newTier, entry.UserID,
+			); err != nil {
+				return err
+			}
+		}
+	}
+
+	return nil
 }
 
 // --- POST /v1/gamification/streak/freeze ---
