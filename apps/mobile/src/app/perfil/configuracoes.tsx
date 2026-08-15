@@ -1,5 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { useRouter } from "expo-router";
+import * as FileSystem from "expo-file-system/legacy";
+import * as Sharing from "expo-sharing";
 import { Pressable, ScrollView, StyleSheet, Text, TextInput, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Button } from "@/components/ui/Button";
@@ -7,9 +9,15 @@ import { Card } from "@/components/ui/Card";
 import { Icon } from "@/components/ui/Icon";
 import { IconButton } from "@/components/ui/IconButton";
 import { Modal } from "@/components/ui/Modal";
+import { NotificationPreferencesPanel } from "@/components/features/notifications/NotificationPreferencesPanel";
+import { ThemeSelector } from "@/components/home/ThemeSelector";
 import { useAuth } from "@/hooks/useAuth";
-import { deleteMe, updateMe } from "@/lib/api/resources/profile";
+import { useToast } from "@/hooks/useToast";
+import { deleteMe, exportMyData, updateMe } from "@/lib/api/resources/profile";
+import { createSupabaseClient } from "@/lib/supabase/client";
 import { colors, spacing, type } from "@/theme/tokens";
+
+const MIN_PASSWORD_LENGTH = 6;
 
 // Tempo que o usuário precisa segurar o botão pra confirmar a exclusão — de propósito longo o
 // suficiente pra não ser um toque acidental (mesma fricção alta de
@@ -19,11 +27,21 @@ const HOLD_TO_CONFIRM_MS = 10_000;
 export default function ConfiguracoesScreen() {
   const router = useRouter();
   const { user, updateUser, logout } = useAuth();
+  const { showToast } = useToast();
 
   const [name, setName] = useState(user.name);
   const [timezone, setTimezone] = useState(user.timezone);
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
+
+  const [newPassword, setNewPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const [changingPassword, setChangingPassword] = useState(false);
+  const [passwordError, setPasswordError] = useState<string | null>(null);
+  const [passwordChanged, setPasswordChanged] = useState(false);
+  const passwordValid = newPassword.length >= MIN_PASSWORD_LENGTH && newPassword === confirmPassword;
+
+  const [exporting, setExporting] = useState(false);
 
   const [deleteOpen, setDeleteOpen] = useState(false);
   const [deleting, setDeleting] = useState(false);
@@ -100,6 +118,46 @@ export default function ConfiguracoesScreen() {
     router.replace("/login");
   };
 
+  const handleChangePassword = async () => {
+    if (!passwordValid || changingPassword) return;
+    setChangingPassword(true);
+    setPasswordError(null);
+    setPasswordChanged(false);
+    try {
+      const { error } = await createSupabaseClient().auth.updateUser({ password: newPassword });
+      if (error) throw error;
+      setPasswordChanged(true);
+      setNewPassword("");
+      setConfirmPassword("");
+    } catch (err) {
+      setPasswordError(err instanceof Error ? err.message : "Não foi possível alterar a senha agora.");
+    } finally {
+      setChangingPassword(false);
+    }
+  };
+
+  // Escreve o export num arquivo temporário (cache, não Documents — não precisa sobreviver ao
+  // app fechar) e abre a folha de compartilhamento nativa, já que RN não tem "salvar em Downloads"
+  // direto sem permissão extra — deixa o próprio usuário escolher onde salvar/enviar.
+  const handleExportData = async () => {
+    if (exporting) return;
+    setExporting(true);
+    try {
+      const data = await exportMyData(user);
+      const fileUri = `${FileSystem.cacheDirectory}arqlearn-meus-dados.json`;
+      await FileSystem.writeAsStringAsync(fileUri, JSON.stringify(data, null, 2), { encoding: "utf8" });
+      if (await Sharing.isAvailableAsync()) {
+        await Sharing.shareAsync(fileUri, { mimeType: "application/json", dialogTitle: "Exportar meus dados" });
+      } else {
+        showToast("Exportação pronta, mas compartilhamento não está disponível neste dispositivo.", "error");
+      }
+    } catch {
+      showToast("Não foi possível exportar seus dados agora.", "error");
+    } finally {
+      setExporting(false);
+    }
+  };
+
   if (deletionScheduledAt) {
     const formattedDate = new Date(deletionScheduledAt).toLocaleDateString("pt-BR");
     return (
@@ -152,6 +210,64 @@ export default function ConfiguracoesScreen() {
                 <Text style={[type.bodySm, styles.savedText]}>Salvo</Text>
               </View>
             )}
+          </View>
+        </Card>
+
+        <Card padding="lg" radius="lg" style={styles.card}>
+          <Text style={[type.headlineMd, styles.cardTitle]}>Trilha de estudo</Text>
+          <Text style={[type.bodySm, styles.cardCaption]}>Qual assunto você está estudando agora.</Text>
+          <ThemeSelector />
+        </Card>
+
+        <NotificationPreferencesPanel />
+
+        <Card padding="lg" radius="lg" style={styles.card}>
+          <Text style={[type.headlineMd, styles.cardTitle]}>Segurança</Text>
+
+          <View style={styles.field}>
+            <Text style={[type.labelCaps, styles.fieldLabel]}>Nova senha</Text>
+            <TextInput
+              style={styles.input}
+              value={newPassword}
+              onChangeText={setNewPassword}
+              secureTextEntry
+              autoCapitalize="none"
+              placeholder={`Pelo menos ${MIN_PASSWORD_LENGTH} caracteres`}
+              placeholderTextColor={colors.onSurfaceVariant}
+            />
+          </View>
+
+          <View style={styles.field}>
+            <Text style={[type.labelCaps, styles.fieldLabel]}>Confirmar nova senha</Text>
+            <TextInput
+              style={styles.input}
+              value={confirmPassword}
+              onChangeText={setConfirmPassword}
+              secureTextEntry
+              autoCapitalize="none"
+            />
+          </View>
+
+          {passwordError && <Text style={[type.bodySm, styles.passwordError]}>{passwordError}</Text>}
+          {passwordChanged && <Text style={[type.bodySm, styles.passwordSuccess]}>Senha alterada com sucesso!</Text>}
+
+          <View style={styles.saveRow}>
+            <Button variant="primary" disabled={!passwordValid || changingPassword} onPress={handleChangePassword}>
+              {changingPassword ? "Alterando…" : "Alterar senha"}
+            </Button>
+          </View>
+        </Card>
+
+        <Card padding="lg" radius="lg" style={styles.card}>
+          <Text style={[type.headlineMd, styles.cardTitle]}>Seus dados</Text>
+          <Text style={[type.bodyMd, styles.cardCaption]}>
+            Baixe uma cópia de tudo que guardamos sobre sua conta — perfil, XP, conquistas e progresso
+            (LGPD, direito de portabilidade de dados).
+          </Text>
+          <View style={styles.saveRow}>
+            <Button variant="ghost" disabled={exporting} onPress={handleExportData}>
+              {exporting ? "Exportando…" : "Exportar meus dados"}
+            </Button>
           </View>
         </Card>
 
@@ -250,6 +366,15 @@ const styles = StyleSheet.create({
   },
   cardTitle: {
     color: colors.onSurface,
+  },
+  cardCaption: {
+    color: colors.onSurfaceVariant,
+  },
+  passwordError: {
+    color: colors.error,
+  },
+  passwordSuccess: {
+    color: colors.tertiary,
   },
   field: {
     gap: 4,

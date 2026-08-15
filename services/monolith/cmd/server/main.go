@@ -81,7 +81,7 @@ func main() {
 	mux.HandleFunc("GET /health", handleHealth)
 	mux.HandleFunc("GET /ready", handleReady(pool, mongoClient))
 
-	users.RegisterRoutes(mux, pool, verifier)
+	users.RegisterRoutes(mux, pool, mongoDB, verifier)
 	learning.RegisterRoutes(mux, pool, mongoDB, verifier, groq, gemini)
 	gamification.RegisterRoutes(mux, pool, verifier)
 	ingestion.RegisterRoutes(mux, pool, verifier, r2)

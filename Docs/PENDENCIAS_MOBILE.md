@@ -452,3 +452,43 @@ Update) **não** inclui o runtime nativo do `expo-updates` — não vai receber 
 preciso um build novo (`eas build --profile preview`) pelo menos mais uma vez pra "ativar" a
 capacidade de update automático; builds seguintes desse profile em diante recebem updates OTA
 sem precisar de nova instalação, contanto que a mudança seja só JS/TS/assets.
+
+### 11. Quarta rodada — layout quebrado, modais de detalhe, liga e Configurações completa (15/08/2026)
+
+Usuário pediu 5 correções a partir de um print do Perfil mostrando os `StatCard` com tamanho
+inconsistente. Trabalho espelhado em `apps/web` desde o início (regra permanente,
+ver item anterior) e em `services/monolith` onde precisou de backend real.
+
+1. **Layout quebrado do `StatCard` (mobile)** — `Pressable` sem `flex: 1` (RN não estica flex por
+   padrão como o CSS do web) fazia os cards de uma mesma linha não dividirem o espaço igualmente.
+   Corrigido com um `style={{ flex: 1 }}` no `Pressable`.
+2. **Toasts → modais** — XP Total, Máximo, Trilhas Concluídas, Lições e Precisão agora abrem
+   `StatInfoDialog` (novo, reutilizável) com o dado formatado + explicação, em vez de só um toast;
+   Sequência/Máximo reaproveitam o `StreakDialog` já existente. XP Total ganhou barra de progresso
+   pro próximo nível.
+3. **Liga** — implementado o fechamento semanal de verdade (TDD §6: promove top 5 / rebaixa
+   bottom 5 por posição no ranking, grupos com <15 membros não mudam de tier) via
+   `user_gamification.current_tier` (migration nova) + `cmd/close-league-week` (operacional, sem
+   scheduler nesta fase) + `GET /v1/gamification/league?tier=` (navegar outras ligas, top 50).
+   Cabeçalho da Liga abre `LeagueTiersDialog`: quanto falta pra próxima promoção (dado real,
+   calculado ao vivo) + abas por liga. Divergência achada e resolvida com o usuário: mockup visual
+   original dizia "top 10/bottom 5", TDD diz "top 5/bottom 5" — mantido o TDD.
+4. **Nível em vez de XP no header** — `TopAppBar` mostra "Nível N / X XP p/ próx." (fórmula da
+   curva de nível portada do backend pra `lib/gamification/level.ts`, já que a API só expõe
+   `level` pronto, não o XP faltante).
+5. **Configurações completa** — 4 seções novas: "Trilha de estudo" (reaproveita `ThemeSelector`,
+   antes só na TopAppBar), "Notificações" (reaproveita `NotificationPreferencesPanel`, antes só na
+   tela de Notificações), "Segurança" (trocar senha via `supabase.auth.updateUser`, client-side,
+   nunca passa pelo backend) e "Seus dados" (`GET /v1/users/me/export` novo — LGPD, portabilidade:
+   perfil+gamificação+conquistas+progresso num JSON; mobile usa `expo-sharing` pra abrir a folha de
+   compartilhamento nativa, web dispara um download via Blob). Habilitado `users-write` no
+   `.env.local` do mobile (só faltava lá — a build EAS em produção já tinha).
+
+Verificado ao vivo (`expo start --web`/`next dev` + Playwright + login real contra o backend
+real): 6/6 (mobile) e 8/8 (web) checks de Configurações — incluindo um download real de
+`GET /v1/users/me/export` no teste web, com XP/nível/conquistas reais da conta de teste no JSON
+baixado. Liga/StatInfoDialog re-testados junto (16 checks adicionais, ver item anterior). Zero
+erro de console em qualquer navegador. `go build`/`vet`/`test`, `tsc --noEmit` (dois apps),
+`next build` e `expo export --platform web` todos limpos. Teste de troca de senha ficou restrito à
+validação client-side (campos/botão) — não submetido de propósito pra não invalidar a senha real
+da conta de teste usada em testes futuros.

@@ -1,7 +1,8 @@
 import { isResourceReal } from "../config";
 import { apiFetch } from "../http";
 import { mockDelay } from "../mocks/delay";
-import type { User } from "@/types/api";
+import { mockAchievementUnlocks, mockGamificationProfile } from "../mocks/fixtures/gamification";
+import type { ExportedUserData, User } from "@/types/api";
 
 // Espelha apps/web/src/lib/api/resources/profile.ts. updateMe/deleteMe são chamados da tela de
 // Configurações (já tem o User atual via useAuth()).
@@ -43,4 +44,29 @@ export async function deleteMe(): Promise<DeleteMeResponse> {
   }
   const scheduledAt = new Date(Date.now() + LGPD_DELETION_GRACE_DAYS * 24 * 60 * 60 * 1000).toISOString();
   return mockDelay({ deletion_scheduled_at: scheduledAt }, 300);
+}
+
+// GET /v1/users/me/export (LGPD, portabilidade de dados) — chamado da tela de Configurações.
+export async function exportMyData(current: User): Promise<ExportedUserData> {
+  if (isResourceReal("users-write")) {
+    return apiFetch<ExportedUserData>("/v1/users/me/export");
+  }
+  return mockDelay(
+    {
+      exported_at: new Date().toISOString(),
+      user: current,
+      gamification: {
+        xp_total: mockGamificationProfile.xp_total,
+        level: mockGamificationProfile.level,
+        streak_current: mockGamificationProfile.streak_current,
+        streak_best: mockGamificationProfile.streak_best,
+        hearts_current: mockGamificationProfile.hearts_current,
+        gems: mockGamificationProfile.gems,
+        current_tier: 2,
+      },
+      achievements: mockAchievementUnlocks,
+      progress: { tracks_in_progress: 1, tracks_completed: 1, lessons_completed_last_7d: 4, accuracy_rate: 85 },
+    },
+    300,
+  );
 }

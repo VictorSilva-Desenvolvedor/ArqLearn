@@ -202,6 +202,25 @@ anonimização/expurgo, retornando 202.
 { "deletion_scheduled_at": "datetime" }
 ```
 
+**`GET /v1/users/me/export`** — Portabilidade de dados (LGPD, direito de acesso). Reúne num único
+JSON tudo que este serviço guarda sobre a conta autenticada: perfil, gamificação, conquistas e
+resumo de progresso. Não inclui credenciais (e-mail/senha são do Supabase Auth, nunca passam por
+este serviço) nem dados de outros usuários. `Content-Disposition: attachment` já vem setado —
+pensado pra download direto.
+
+```json
+// Response 200
+{
+  "exported_at": "datetime",
+  "user": { "id", "name", "email", "role", "timezone", "created_at" },
+  "gamification": {
+    "xp_total", "level", "streak_current", "streak_best", "hearts_current", "gems", "current_tier"
+  },
+  "achievements": [ { "type", "unlocked_at" } ],
+  "progress": { "tracks_in_progress", "tracks_completed", "lessons_completed_last_7d", "accuracy_rate" }
+}
+```
+
 ## 6. Learning Service
 
 **`GET /v1/tracks`** — Lista trilhas disponíveis. Suporta filtro por `topic` e `origin`.

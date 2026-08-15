@@ -12,6 +12,23 @@ export interface User {
   created_at: string;
 }
 
+// Payload de GET /v1/users/me/export (LGPD, portabilidade de dados).
+export interface ExportedUserData {
+  exported_at: string;
+  user: User;
+  gamification: {
+    xp_total: number;
+    level: number;
+    streak_current: number;
+    streak_best: number;
+    hearts_current: number;
+    gems: number;
+    current_tier: number;
+  };
+  achievements: Achievement[];
+  progress: ProgressSummary;
+}
+
 export type LeagueTier = "bronze" | "prata" | "ouro" | "platina" | "diamante" | null;
 
 export interface GamificationProfile {
