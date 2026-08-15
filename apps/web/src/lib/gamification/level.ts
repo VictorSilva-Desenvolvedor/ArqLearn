@@ -1,7 +1,14 @@
 // Espelha a curva de nível de services/monolith/internal/gamification/algorithms.go (Nivel):
 // nivel(xp_total) = floor(sqrt(xp_total / 100)) + 1  =>  xp_min(N) = 100 * (N-1)^2.
-// A API já retorna `level` pronto (GamificationProfile.level) — isso aqui só inverte a fórmula
-// pra calcular quanto falta pro próximo nível, algo que o backend não expõe pronto.
+// A API já retorna `level` pronto (GamificationProfile.level) na maioria dos casos — nivelDoXp
+// só é usado onde o cliente precisa recalcular otimisticamente antes do servidor confirmar (ex.:
+// AuthContext ajustando xp_total localmente após ganhar XP).
+export function nivelDoXp(xpTotal: number): number {
+  return Math.floor(Math.sqrt(xpTotal / 100)) + 1;
+}
+
+// Inverte a fórmula pra calcular quanto falta pro próximo nível, algo que o backend não expõe
+// pronto (só devolve `level`).
 export function xpParaProximoNivel(level: number, xpTotal: number): number {
   const proximoNivelMin = 100 * level ** 2;
   return Math.max(0, proximoNivelMin - xpTotal);

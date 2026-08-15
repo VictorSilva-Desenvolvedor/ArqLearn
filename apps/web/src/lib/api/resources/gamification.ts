@@ -25,19 +25,17 @@ export async function getGamificationProfile(accessToken?: string): Promise<Gami
   return mockDelay({ ...mockGamificationProfile, achievements: mockAchievementUnlocks });
 }
 
-// Sem `tier`: liga do próprio usuário (matricula automaticamente, inclui viewer_position/
-// xp_to_promotion). Com `tier`: navega o ranking de outra liga (pra tela "top 50 de cada liga"),
-// sem matricular o usuário nela — usado do client (LeagueTiersDialog), por isso accessToken vem
-// do provider global nesse caso (ver comentário de getGamificationProfile acima).
-export async function getLeague(accessToken?: string, tier?: LeagueTierName): Promise<League> {
+// Sem `tier`: liga/divisão do próprio usuário (matricula automaticamente, inclui viewer_position/
+// xp_to_promotion). Com `tier` (e opcionalmente `division`, default 1): navega o ranking de outra
+// liga, sem matricular o usuário nela — usado do client (LeagueTiersDialog), por isso accessToken
+// vem do provider global nesse caso (ver comentário de getGamificationProfile acima).
+export async function getLeague(accessToken?: string, tier?: LeagueTierName, division?: number): Promise<League> {
   if (isResourceReal("gamification")) {
-    return apiFetch<League>(
-      tier ? `/v1/gamification/league?tier=${tier}` : "/v1/gamification/league",
-      undefined,
-      accessToken,
-    );
+    if (!tier) return apiFetch<League>("/v1/gamification/league", undefined, accessToken);
+    const query = `tier=${tier}${division ? `&division=${division}` : ""}`;
+    return apiFetch<League>(`/v1/gamification/league?${query}`, undefined, accessToken);
   }
-  return mockDelay(tier ? mockLeagueByTier[tier] : mockLeague);
+  return mockDelay(tier ? mockLeagueByTier(tier, division ?? 1) : mockLeague);
 }
 
 export async function purchaseShopItem(itemId: string, idempotencyKey: string): Promise<PurchaseResult> {

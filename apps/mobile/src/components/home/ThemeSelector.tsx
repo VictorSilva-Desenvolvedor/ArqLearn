@@ -26,12 +26,17 @@ export function ThemeSelector() {
 
   return (
     <>
-      <Pressable style={styles.trigger} onPress={() => setOpen(true)}>
-        <Icon name={theme.icon} size={16} color={colors.onSurfaceVariant} />
+      <Pressable
+        style={({ pressed }) => [styles.trigger, pressed && styles.triggerPressed]}
+        onPress={() => setOpen(true)}
+        accessibilityRole="button"
+        accessibilityLabel={`Trocar de matéria — atual: ${theme.label}`}
+      >
+        <Icon name={theme.icon} size={18} color={colors.primary} />
         <Text style={[type.labelCaps, styles.triggerLabel]} numberOfLines={1}>
           {theme.label}
         </Text>
-        <Icon name="expandMore" size={16} color={colors.onSurfaceVariant} />
+        <Icon name="expandMore" size={18} color={colors.primary} />
       </Pressable>
 
       <Modal open={open} onOpenChange={setOpen}>
@@ -88,11 +93,21 @@ const styles = StyleSheet.create({
   trigger: {
     flexDirection: "row",
     alignItems: "center",
-    gap: 4,
-    maxWidth: 160,
+    gap: 6,
+    maxWidth: 220,
+    backgroundColor: colors.surfaceBright,
+    borderWidth: 1.5,
+    borderColor: colors.primary,
+    borderRadius: 9999,
+    paddingHorizontal: 14,
+    paddingVertical: 7,
+  },
+  triggerPressed: {
+    backgroundColor: colors.primaryFixed,
   },
   triggerLabel: {
-    color: colors.onSurfaceVariant,
+    color: colors.primary,
+    fontWeight: "700",
     flexShrink: 1,
   },
   modalTitle: {

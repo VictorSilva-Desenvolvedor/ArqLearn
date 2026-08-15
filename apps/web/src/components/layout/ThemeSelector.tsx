@@ -19,10 +19,11 @@ export function ThemeSelector() {
       trigger={
         <button
           type="button"
-          className="flex items-center gap-1 font-label-caps text-label-caps text-on-surface-variant hover:text-primary transition-colors px-2 py-1 rounded-md hover:bg-surface-container"
+          aria-label={`Trocar de matéria — atual: ${theme.label}`}
+          className="flex items-center gap-1.5 font-label-caps text-label-caps text-primary bg-surface-bright hover:bg-primary-fixed transition-colors px-3 py-1.5 rounded-full border-2 border-primary"
         >
           <Icon name={theme.icon} filled className="text-base" />
-          <span className="hidden lg:inline max-w-40 truncate">{theme.label}</span>
+          <span className="hidden lg:inline max-w-40 truncate font-bold">{theme.label}</span>
           <Icon name="expand_more" className="text-base" />
         </button>
       }
