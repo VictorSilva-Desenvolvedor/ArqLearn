@@ -121,6 +121,19 @@ const glyphs = {
   themeGroups: "account-multiple-outline",
   // --- Fase 5 (Loja) ---
   cosmetic: "palette-swatch-outline",
+  // --- Liga: hierarquia de 10 ligas (madeira -> diamante), ver lib/gamification/leagueTiers.ts.
+  // Nomes web (Material Symbols) → MaterialCommunityIcons mais próximo, mesmo espírito do bloco
+  // de temas acima.
+  leagueMadeira: "forest",
+  leaguePedra: "image-filter-hdr",
+  leagueBronze: "shield",
+  leaguePrata: "medal-outline",
+  leagueOuro: "medal",
+  leaguePlatina: "diamond-outline",
+  leagueEsmeralda: "spa",
+  leagueSafira: "water",
+  leagueRubi: "fire",
+  leagueDiamante: "star",
 } as const;
 
 export type IconName = keyof typeof glyphs;

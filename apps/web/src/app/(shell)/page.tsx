@@ -8,6 +8,7 @@ import { getThemeByTopic } from "@/lib/api/mocks/fixtures/themes";
 import { THEME_COOKIE } from "@/lib/theme/constants";
 import { Icon } from "@/components/ui/Icon";
 import { DailyGoalCard } from "@/components/features/home/DailyGoalCard";
+import { ExploreMoreCard } from "@/components/features/home/ExploreMoreCard";
 import { LevelProgressCard } from "@/components/features/home/LevelProgressCard";
 import { LearningMap, type LearningMapUnit } from "@/components/features/home/LearningMap";
 import { AllDonePrompt } from "@/components/features/home/AllDonePrompt";
@@ -17,7 +18,9 @@ import type { TrackLesson } from "@/types/api";
 import type { UnitStatus } from "@/components/features/home/UnitSection";
 
 const DAILY_GOAL_XP = 50;
-const MAX_UNITS_SHOWN = 3;
+// Só a trilha em destaque (tema selecionado) — mostrar outras trilhas junto no mapa não fazia
+// mais sentido com a tela de Explorar já madura (busca, seletor de tema); ver ExploreMoreCard.
+const MAX_UNITS_SHOWN = 1;
 // Quantas missões à frente da atual ficam visíveis ("locked" normal) antes da névoa começar —
 // a pedido do usuário: só revela o que está perto de ser alcançado, o resto vira "foggy".
 const FOG_WINDOW = 5;
@@ -127,6 +130,7 @@ export default async function HomePage() {
         </div>
       )}
       <LearningMap units={units} />
+      <ExploreMoreCard />
       {allDone && <AllDonePrompt topic={featuredTopic} themeLabel={selectedTheme.label} />}
     </div>
   );

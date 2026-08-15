@@ -17,14 +17,16 @@ export async function getGamificationProfile(): Promise<GamificationMeResponse> 
   return mockDelay({ ...mockGamificationProfile, achievements: mockAchievementUnlocks });
 }
 
-// Sem `tier`: liga do próprio usuário (matricula automaticamente, inclui viewer_position/
-// xp_to_promotion). Com `tier`: navega o ranking de outra liga (pra tela "top 50 de cada liga"),
-// sem matricular o usuário nela.
-export async function getLeague(tier?: LeagueTierName): Promise<League> {
+// Sem `tier`: liga/divisão do próprio usuário (matricula automaticamente, inclui viewer_position/
+// xp_to_promotion). Com `tier` (e opcionalmente `division`, default 1): navega o ranking de outra
+// liga (pra tela de todas as ligas), sem matricular o usuário nela.
+export async function getLeague(tier?: LeagueTierName, division?: number): Promise<League> {
   if (isResourceReal("gamification")) {
-    return apiFetch<League>(tier ? `/v1/gamification/league?tier=${tier}` : "/v1/gamification/league");
+    if (!tier) return apiFetch<League>("/v1/gamification/league");
+    const query = `tier=${tier}${division ? `&division=${division}` : ""}`;
+    return apiFetch<League>(`/v1/gamification/league?${query}`);
   }
-  return mockDelay(tier ? mockLeagueByTier[tier] : mockLeague);
+  return mockDelay(tier ? mockLeagueByTier(tier, division ?? 1) : mockLeague);
 }
 
 export async function purchaseShopItem(itemId: string, idempotencyKey: string): Promise<PurchaseResult> {

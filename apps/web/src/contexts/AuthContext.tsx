@@ -7,7 +7,7 @@ import {
   getAccountById,
   type MockAccountId,
 } from "@/lib/api/mocks/fixtures/accounts";
-import { levelForXp } from "@/lib/api/mocks/fixtures/levelCurve";
+import { nivelDoXp } from "@/lib/gamification/level";
 import { clearAccountCookie, setAccountCookie } from "@/lib/auth/clientSession";
 import { createClient } from "@/lib/supabase/client";
 import { apiFetch, setAccessTokenProvider } from "@/lib/api/http";
@@ -198,7 +198,7 @@ export function AuthProvider({
       // consumidor). Se o caller já mandou `level` explícito, respeita e não recalcula.
       const nextLevel =
         patch.xp_total !== undefined && patch.level === undefined
-          ? levelForXp(patch.xp_total)
+          ? nivelDoXp(patch.xp_total)
           : (patch.level ?? current.level);
       if (nextLevel > current.level) {
         setJustLeveledUpTo(nextLevel);

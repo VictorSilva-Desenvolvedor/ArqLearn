@@ -1,6 +1,6 @@
 import { createContext, useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { AppState } from "react-native";
-import { levelForXp } from "@/lib/api/mocks/fixtures/levelCurve";
+import { nivelDoXp } from "@/lib/gamification/level";
 import { createSupabaseClient } from "@/lib/supabase/client";
 import { apiFetch, setAccessTokenProvider } from "@/lib/api/http";
 import { isResourceReal } from "@/lib/api/config";
@@ -139,7 +139,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setGamification((current) => {
       const nextLevel =
         patch.xp_total !== undefined && patch.level === undefined
-          ? levelForXp(patch.xp_total)
+          ? nivelDoXp(patch.xp_total)
           : (patch.level ?? current.level);
       if (nextLevel > current.level) {
         setJustLeveledUpTo(nextLevel);

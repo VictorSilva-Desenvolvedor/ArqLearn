@@ -2,6 +2,8 @@ import { useEffect, useState } from "react";
 import { ScrollView, StyleSheet, Text, View } from "react-native";
 import { AllDonePrompt } from "@/components/home/AllDonePrompt";
 import { DailyGoalCard } from "@/components/home/DailyGoalCard";
+import { ExploreMoreCard } from "@/components/home/ExploreMoreCard";
+import { LevelProgressCard } from "@/components/home/LevelProgressCard";
 import { LearningMap, type LearningMapUnit } from "@/components/home/LearningMap";
 import { TopAppBar } from "@/components/home/TopAppBar";
 import { Icon } from "@/components/ui/Icon";
@@ -16,7 +18,9 @@ import { colors, spacing, type } from "@/theme/tokens";
 import type { Track, TrackLesson } from "@/types/api";
 
 const DAILY_GOAL_XP = 50;
-const MAX_UNITS_SHOWN = 3;
+// Só a trilha em destaque (tema selecionado) — mostrar outras trilhas junto no mapa não fazia
+// mais sentido com a tela de Explorar já madura (busca, seletor de tema); ver ExploreMoreCard.
+const MAX_UNITS_SHOWN = 1;
 
 function variantFor(progressStatus: string, isCheckpoint: boolean | undefined): LessonNodeVariant {
   if (isCheckpoint) return "checkpoint";
@@ -101,6 +105,7 @@ export default function HomeScreen() {
       <TopAppBar />
       <ScrollView contentContainerStyle={styles.content}>
         <DailyGoalCard xpToday={gamification.xp_today} goal={DAILY_GOAL_XP} />
+        <LevelProgressCard level={gamification.level} xpTotal={gamification.xp_total} />
         {!selectedTheme.hasContent && (
           <View style={styles.notice}>
             <Icon name="construction" size={20} color={colors.primary} />
@@ -111,6 +116,7 @@ export default function HomeScreen() {
           </View>
         )}
         {units && <LearningMap units={units} />}
+        <ExploreMoreCard />
       </ScrollView>
       {allDone && <AllDonePrompt topic={selectedTheme.topic} themeLabel={selectedTheme.label} />}
     </View>

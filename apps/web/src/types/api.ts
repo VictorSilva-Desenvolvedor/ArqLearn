@@ -29,7 +29,19 @@ export interface ExportedUserData {
   progress: ProgressSummary;
 }
 
-export type LeagueTier = "bronze" | "prata" | "ouro" | "platina" | "diamante" | null;
+// Espelha LEAGUE_TIERS de lib/gamification/leagueTiers.ts (hierarquia de 10 ligas).
+export type LeagueTier =
+  | "madeira"
+  | "pedra"
+  | "bronze"
+  | "prata"
+  | "ouro"
+  | "platina"
+  | "esmeralda"
+  | "safira"
+  | "rubi"
+  | "diamante"
+  | null;
 
 export interface GamificationProfile {
   xp_total: number;
@@ -138,6 +150,7 @@ export interface LeagueRankingEntry {
 export interface League {
   league_id: string;
   tier: LeagueTier;
+  division: number;
   week_reference: string;
   ranking: LeagueRankingEntry[];
   promotion_slots: number;

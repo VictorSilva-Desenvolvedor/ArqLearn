@@ -492,3 +492,52 @@ erro de console em qualquer navegador. `go build`/`vet`/`test`, `tsc --noEmit` (
 `next build` e `expo export --platform web` todos limpos. Teste de troca de senha ficou restrito à
 validação client-side (campos/botão) — não submetido de propósito pra não invalidar a senha real
 da conta de teste usada em testes futuros.
+
+### 12. Quinta rodada — bug de barra de nível, Home, bo tão de matéria, liga redesenhada (15/08/2026)
+
+Usuário reportou mais 5 correções, a partir de prints do Perfil e de um mockup detalhado (HTML,
+"Stitch") pro novo formato da Liga.
+
+1. **Curva de nível duplicada e divergente** — achado ao investigar "barra sempre cheia":
+   `lib/api/mocks/fixtures/levelCurve.ts` (pré-existente, criava um `level` fake calibrado só
+   pro fixture) e o `lib/gamification/level.ts` (criado na rodada anterior, curva REAL do
+   backend) coexistiam e se contradiziam — `ProfileHeader`, o `LevelProgressCard` do web e os dois
+   `AuthContext` ainda usavam a curva errada. Consolidado: `levelCurve.ts` removido dos dois apps,
+   tudo migrado pra `level.ts` (ganhou `nivelDoXp`). `mockGamificationProfile.level` corrigido de
+   8 pra 3 (o valor real pra xp_total=520).
+2. **`LevelProgressCard` não existia no mobile Home** — só no web (DESIGN.md "XP Bar"); portado.
+3. **Final da Home mostrava outras matérias** — `MAX_UNITS_SHOWN` (3) empilhava até 2 outras
+   trilhas depois da trilha em foco; não fazia mais sentido com a tela de Explorar já madura.
+   Trocado pra `MAX_UNITS_SHOWN = 1` + novo `ExploreMoreCard` (CTA pra `/explorar`) no final.
+4. **Botão de seleção de matéria (`ThemeSelector`)** — trigger virou um chip com fundo, borda e
+   texto em `primary` (antes era texto solto cinza, sem affordance de "isso é clicável").
+5. **Liga redesenhada pra hierarquia de 10 ligas x 3 divisões** (Madeira, Pedra, Bronze, Prata,
+   Ouro, Platina, Esmeralda, Safira, Rubi, Diamante — cada uma com divisões 3/2/1, 30 posições
+   lineares no total, `user_gamification.current_tier` vira um rank 1..30 em vez de 1..5).
+   Promoção/rebaixamento passa de top 5/bottom 5 pra top 3/bottom 3 (confirmado com o usuário —
+   manteve rebaixamento, que não aparecia no mockup). `CloseLeagueWeek` reescrito pro novo
+   intervalo; `minGroupSizeForPromotion` recalculado pro mínimo matemático sem sobreposição (6, em
+   vez do buffer de +5 antigo — divisões são naturalmente menores agora, por design).
+   `GET /v1/gamification/league` ganha `?division=` (junto de `?tier=`) e `division` na resposta.
+   Migration nova alarga o `CHECK` de `current_tier` de 1-5 pra 1-30. Frontend: `LeagueHeader`
+   (cabeçalho com ícone circular por liga, descrição dinâmica "os N melhores avançam pra Liga X
+   Y", countdown), `LeagueProgressionTrack` (nova, trilha horizontal com as 10 ligas, a atual em
+   destaque, cada uma tocável) e `LeagueTiersDialog` reescrito pra navegar liga (10 ícones) +
+   divisão (3 abas) em vez do antigo seletor de 5 abas direto. `LeagueRankRow` ganha destaque
+   visual (cor terciária) pra quem está na zona de promoção, espelhando o mockup.
+
+Bug encontrado e corrigido durante o teste ao vivo (web): `max-w-md` no novo `LeagueHeader.tsx`
+colapsava o parágrafo de descrição pra 16px de largura (uma palavra por linha) — `globals.css`
+define `--spacing-md: 16px` mas nunca definiu um `--max-width-md` próprio, e o Tailwind v4 cai
+pro token de spacing na ausência de um mais específico. Nenhum outro lugar do app usa `max-w-md`
+hoje (não é uma quebra generalizada, só ninguém tinha pisado nessa combinação ainda); corrigido
+com `max-w-[28rem]` só neste componente, comentário deixado no código pra quem for usar
+`max-w-{sm,md,lg,xl}` no futuro.
+
+Verificado ao vivo (mesmo setup de sempre): 9/9 (mobile) e 8/8 (web) checks, incluindo a barra de
+nível confirmada NÃO mais sempre cheia (170/500 XP ≈ 34% de preenchimento real, medido via
+`getBoundingClientRect`), o modal de todas as ligas abrindo com os 10 ícones + 3 divisões, e a
+zona de promoção real da conta de teste. Zero erro de console. `go build`/`vet`/`test`,
+`tsc --noEmit` (dois apps), `next build` e `expo export --platform web` todos limpos. Migration
+0008 aplicada no banco real; `cmd/close-league-week` rodado de novo manualmente, confirmou a nova
+trava de tamanho mínimo (6) corretamente.

@@ -7,12 +7,15 @@ import type { LeagueRankingEntry } from "@/types/api";
 interface LeagueRankRowProps {
   entry: LeagueRankingEntry;
   isCurrentUser: boolean;
+  // Top N (promotion_slots) da divisão — destaque em tertiary (verde), espelhando o mockup de
+  // referência do usuário (posição/avatar em destaque pra quem já avançaria de divisão).
+  inPromotionZone?: boolean;
 }
 
 // Espelha apps/web/src/components/features/league/LeagueRankRow.tsx — lá a linha não reage ao
 // clique (não existe tela de perfil público de outro usuário em nenhum dos dois apps ainda);
 // aqui o toque mostra um toast com nome+XP da semana, em vez de ficar mudo.
-export function LeagueRankRow({ entry, isCurrentUser }: LeagueRankRowProps) {
+export function LeagueRankRow({ entry, isCurrentUser, inPromotionZone }: LeagueRankRowProps) {
   const { showToast } = useToast();
 
   return (
@@ -27,12 +30,16 @@ export function LeagueRankRow({ entry, isCurrentUser }: LeagueRankRowProps) {
         )
       }
     >
-      <Text style={[type.bodySm, styles.position]}>{entry.position}</Text>
-      <Avatar name={entry.name} size={32} />
+      <Text style={[type.bodySm, styles.position, inPromotionZone && styles.positionPromotion]}>
+        {entry.position}
+      </Text>
+      <View style={[styles.avatarWrap, inPromotionZone && styles.avatarWrapPromotion]}>
+        <Avatar name={entry.name} size={32} />
+      </View>
       <Text style={[type.bodyLg, styles.name]} numberOfLines={1}>
         {isCurrentUser ? "Você" : entry.name}
       </Text>
-      <Text style={[type.bodySm, styles.xp]}>{entry.xp_this_week} XP</Text>
+      <Text style={[type.bodySm, styles.xp, inPromotionZone && styles.xpPromotion]}>{entry.xp_this_week} XP</Text>
     </Pressable>
   );
 }
@@ -56,6 +63,17 @@ const styles = StyleSheet.create({
     width: 24,
     color: colors.onSurfaceVariant,
     fontWeight: "700",
+    textAlign: "center",
+  },
+  positionPromotion: {
+    color: colors.tertiary,
+  },
+  avatarWrap: {
+    borderRadius: 9999,
+  },
+  avatarWrapPromotion: {
+    borderWidth: 2,
+    borderColor: colors.tertiary,
   },
   name: {
     flex: 1,
@@ -64,5 +82,8 @@ const styles = StyleSheet.create({
   xp: {
     color: colors.primary,
     fontWeight: "700",
+  },
+  xpPromotion: {
+    color: colors.tertiary,
   },
 });
