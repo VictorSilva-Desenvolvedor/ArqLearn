@@ -34,9 +34,14 @@ export function Button({
 }: ButtonProps) {
   const sizeStyle = sizeStyles[size];
   return (
+    // Sem `disabled` no Pressable de propósito: um Pressable desabilitado dentro de uma
+    // ScrollView é uma armadilha conhecida do Android — o toque de arrastar pra rolar a lista
+    // fica "preso" no botão desabilitado em vez de ser repassado pro ScrollView (reproduzido ao
+    // vivo num device real). O bloqueio funcional continua — só vira no-op dentro do onPress —
+    // accessibilityState mantém o "desabilitado" pra leitor de tela sem tocar no touch handling.
     <Pressable
-      onPress={onPress}
-      disabled={disabled}
+      onPress={() => !disabled && onPress?.()}
+      accessibilityState={{ disabled }}
       style={fullWidth ? styles.fullWidth : undefined}
     >
       {({ pressed }) => (

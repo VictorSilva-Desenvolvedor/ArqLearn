@@ -74,10 +74,16 @@ function ThemeRow({
   active: boolean;
   onSelect: (topic: string) => void;
 }) {
+  // Sem `disabled` no Pressable de propósito: um Pressable desabilitado dentro de uma ScrollView
+  // é uma armadilha conhecida do Android — o toque de arrastar pra rolar a lista fica "preso" no
+  // row desabilitado em vez de ser repassado pro ScrollView (reproduzido ao vivo num device real,
+  // travava o gesto de arrastar assim que o dedo tocava uma das 7 trilhas em destaque, todas
+  // bloqueadas por padrão). O bloqueio funcional continua — só vira um no-op dentro do onPress —
+  // e accessibilityState mantém o "desabilitado" pra leitor de tela sem tocar no touch handling.
   return (
     <Pressable
-      disabled={!entry.hasContent}
-      onPress={() => onSelect(entry.topic)}
+      onPress={() => entry.hasContent && onSelect(entry.topic)}
+      accessibilityState={{ disabled: !entry.hasContent }}
       style={[styles.row, active && styles.rowActive, !entry.hasContent && styles.rowDisabled]}
     >
       <Icon name={entry.hasContent ? entry.icon : "lock"} size={18} color={active ? colors.primary : colors.onSurfaceVariant} />

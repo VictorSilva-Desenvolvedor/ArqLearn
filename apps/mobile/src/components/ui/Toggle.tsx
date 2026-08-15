@@ -8,15 +8,17 @@ interface ToggleProps {
   disabled?: boolean;
 }
 
-// Espelha apps/web/src/components/ui/Toggle.tsx.
+// Espelha apps/web/src/components/ui/Toggle.tsx. Sem `disabled` no Pressable de propósito —
+// dentro de uma ScrollView (ver NotificationPreferencesPanel), um Pressable desabilitado é uma
+// armadilha conhecida do Android que trava o gesto de arrastar (mesmo bug de Button.tsx/
+// ThemeSelector.tsx). accessibilityState continua marcando desabilitado pra leitor de tela.
 export function Toggle({ checked, onChange, label, disabled }: ToggleProps) {
   return (
     <Pressable
       accessibilityRole="switch"
       accessibilityState={{ checked, disabled }}
       accessibilityLabel={label}
-      disabled={disabled}
-      onPress={() => onChange(!checked)}
+      onPress={() => !disabled && onChange(!checked)}
       style={[styles.track, { backgroundColor: checked ? colors.primary : colors.outlineVariant }, disabled && styles.disabled]}
     >
       <View style={[styles.thumb, checked && styles.thumbChecked]} />

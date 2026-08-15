@@ -45,7 +45,14 @@ export function StreakFreezeCard() {
 
   return (
     <Card padding="md" radius="lg" style={styles.card}>
-      <Pressable style={styles.body} onPress={handleBodyPress} disabled={pending}>
+      {/* Sem `disabled` no Pressable de propósito — este card fica dentro de uma ScrollView
+          (perfil.tsx); um Pressable desabilitado ali é a mesma armadilha do Android já corrigida
+          em ThemeSelector.tsx/Button.tsx (trava o gesto de arrastar). */}
+      <Pressable
+        style={styles.body}
+        onPress={() => !pending && handleBodyPress()}
+        accessibilityState={{ disabled: pending }}
+      >
         <Icon name="freeze" size={28} color={colors.primary} />
         <View style={styles.textBlock}>
           <Text style={[type.bodyLg, styles.title]}>Bloqueio de Ofensiva</Text>

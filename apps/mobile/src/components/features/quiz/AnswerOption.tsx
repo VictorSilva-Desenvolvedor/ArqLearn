@@ -30,10 +30,13 @@ export function AnswerOption({
   // distingue verde/vermelho, e é o sinal equivalente ao aria-checked do web pra leitor de tela.
   const revealIcon = revealed && selected && !verifying ? (isCorrect ? "success" : "cancel") : null;
 
+  // Sem `disabled` no Pressable de propósito — as opções ficam numa lista dentro de uma
+  // ScrollView (sessao.tsx); um Pressable desabilitado ali é a mesma armadilha do Android já
+  // corrigida em ThemeSelector.tsx/Button.tsx (trava o gesto de arrastar assim que todas as
+  // opções desabilitam junto, ex.: resposta revelada ou em verificação).
   return (
     <Pressable
-      onPress={onPress}
-      disabled={disabled}
+      onPress={() => !disabled && onPress()}
       accessibilityRole="radio"
       accessibilityState={{ selected, disabled }}
       style={[styles.base, toneStyle]}
