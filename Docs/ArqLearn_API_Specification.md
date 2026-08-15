@@ -3,7 +3,7 @@
 
 Especificação de referência dos endpoints REST expostos pelo API Gateway.
 
-Versão 1.16 | Agosto de 2026
+Versão 1.17 | Agosto de 2026
 Documento complementar ao SAD e ao TDD do ArqLearn v1.0
 
 > **Sobre esta versão:** versão em Markdown, mantida como fonte da verdade a partir de agora (ver
@@ -31,6 +31,7 @@ Documento complementar ao SAD e ao TDD do ArqLearn v1.0
 | 1.14 | 09/08/2026 | Equipe de Engenharia | Adiciona §14 Ajuda e Bugs (a pedido do usuário) — 3 endpoints novos (`POST /v1/bug-reports`, `GET /v1/bug-reports`, `POST /v1/bug-reports/{id}/resolve`), nova coleção `bug_reports` (Database Design), print embutido como base64 (contorna o bloqueio de R2, `Docs/PENDENCIAS_IA.md` #1). Primeiro endpoint com checagem de papel (admin) no backend — não existia nenhuma antes |
 | 1.15 | 09/08/2026 | Equipe de Engenharia | §14: adiciona `type` (`bug \| suggestion`) e `device_model`/`device_type` a `bug_reports` (a pedido do usuário) — recompensa por resolução passa a depender do tipo: bug corrigido sobe de 5 pra **10 gemas**, sugestão implementada vale **50 gemas** (notificação nova `suggestion_implemented`, §9) |
 | 1.16 | 09/08/2026 | Equipe de Engenharia | §8: `achievements` em `GET /v1/gamification/me` passa a ser preenchido de verdade — desde a v1.0 a tabela existia mas nada nunca gravava nela. Catálogo de ~44 conquistas (a pedido do usuário) cobrindo lições, Modo Infinito, streak, Loja, Materiais e relatos de bug, a maioria em 5 níveis progressivos; cada desbloqueio credita XP/gemas uma única vez. Nenhum contrato mudou — resposta já era `{type, unlocked_at}[]` |
+| 1.17 | 15/08/2026 | Equipe de Engenharia | §3.2: adiciona `streak_freezes_available`/`streak_at_risk` ao `GamificationProfile` — streak agora expira sozinha após 24h sem prática (expiração preguiçosa, TDD §5.2/§5.3, mesmo padrão da regeneração de vidas §5.4, sem job/cron), consumindo automaticamente um Bloqueio de Ofensiva por dia faltante quando disponível. §8: `POST /v1/gamification/streak/freeze` passa a também avançar `streak_last_active_date` (uso manual, diferente do consumo automático — ver nota) |
 
 ---
 
@@ -124,8 +125,10 @@ reprocessar.
 | `xp_total` | integer | XP acumulado histórico. |
 | `xp_today` | integer | XP ganho no dia local do usuário, sujeito ao limite diário (ver TDD §3.2). Reseta à meia-noite local. *(v1.2)* |
 | `level` | integer | Nível calculado a partir do `xp_total`. |
-| `streak_current` | integer | Sequência atual de dias consecutivos. |
+| `streak_current` | integer | Sequência atual de dias consecutivos. Expira sozinha (TDD §5.2/§5.3) — ver nota em `GET /v1/gamification/me` abaixo. |
 | `streak_best` | integer | Recorde pessoal de streak. |
+| `streak_freezes_available` | integer | Quantos Bloqueios de Ofensiva o usuário tem em estoque — mesmo valor devolvido por `POST .../streak/freeze`. *(v1.17)* |
+| `streak_at_risk` | boolean | `true` quando a streak é positiva e o usuário ainda não praticou hoje (TDD §5.2) — sinal pro cliente oferecer usar um Bloqueio de Ofensiva proativamente ao abrir o app, em vez de só descobrir a perda no dia seguinte. *(v1.17)* |
 | `hearts_current` | integer | Vidas disponíveis (0–5). |
 | `hearts_next_at` | datetime \| null | Instante em que a próxima vida será regenerada (TDD §5.4) — `null` quando `hearts_current` já está no teto (5). Cliente calcula a contagem regressiva localmente a partir deste timestamp fixo. *(v1.12)* |
 | `gems` | integer | Moeda virtual acumulada. |
@@ -231,13 +234,21 @@ Response 200: { "data": [ {"...Track"} ], "next_cursor": "string|null" }
 ```
 
 **`GET /v1/tracks/{track_id}/lessons`** — Lista as lições de uma trilha, com o progresso do usuário
-autenticado embutido em cada item.
+autenticado e `has_questions` (se a lição tem pelo menos uma pergunta com `review_status:
+"approved"` — mesmo filtro de `POST .../session`) embutidos em cada item. `has_questions: false`
+é o sinal de "em construção" pro cliente — uma lição sem conteúdo aprovado ainda não deveria ficar
+bloqueada por sequência, e sim mostrar esse estado; `has_questions: true` deveria ficar acessível
+independente de `progress_status`.
 
 ```json
 // Response 200
 {
   "data": [
-    { "lesson": { "...Lesson" }, "progress_status": "not_started"|"in_progress"|"completed" }
+    {
+      "lesson": { "...Lesson" },
+      "progress_status": "not_started"|"in_progress"|"completed",
+      "has_questions": boolean
+    }
   ]
 }
 ```
@@ -540,6 +551,18 @@ Erros: `409 QUESTION_ALREADY_REVIEWED`
 { "...GamificationProfile", "achievements": [ {"type", "unlocked_at"} ] }
 ```
 
+> **Expiração preguiçosa de streak (TDD §5.2/§5.3, v1.17):** sem job/cron nesta fase bootstrap
+> (mesmo padrão já usado pra regeneração de vidas, TDD §5.4) — `streak_current` é recalculado sob
+> demanda a cada leitura (aqui e em `GET /v1/users/me`) e a cada resposta de exercício (`POST
+> /v1/lessons/{lesson_id}/answers`, antes de aplicar o incremento do dia), nunca por um worker em
+> segundo plano. Se a última prática (`streak_last_active_date`) foi hoje ou ontem, nada muda. Se
+> pulou 2+ dias: consome 1 `streak_freezes_available` por dia faltante enquanto houver estoque
+> (`streak_current` preservado, `streak_last_active_date` **não avança sozinho** — TDD §5.3
+> explícito nisso, é assim que um gap de N dias consome até N freezes em vez de só 1); esgotado o
+> estoque, `streak_current` zera. `streak_at_risk` é calculado ao vivo a partir do mesmo estado
+> (streak positiva + ainda sem prática hoje) — é o gatilho do cliente pra abrir o diálogo de
+> Bloqueio de Ofensiva sozinho ao carregar o app, sem esperar a pessoa procurar a tela Perfil.
+
 **`GET /v1/gamification/league`** — Hierarquia de 10 ligas (pior → melhor: Madeira, Pedra,
 Bronze, Prata, Ouro, Platina, Esmeralda, Safira, Rubi, Diamante), cada uma com 3 divisões internas
 (3 = entrada, 1 = mais avançada) — 30 posições lineares no total. Internamente é um único rank
@@ -594,6 +617,14 @@ dia atual.
 { "streak_freezes_available": integer }
 ```
 Erros: `409 NO_STREAK_FREEZE_AVAILABLE`
+
+> **Diferença deliberada do consumo automático (v1.17):** este endpoint (uso manual, proativo —
+> tipicamente disparado pelo `streak_at_risk` da nota acima) **avança `streak_last_active_date`
+> para hoje**, diferente do consumo automático de `AplicarExpiracaoStreak` (TDD §5.3), que
+> deliberadamente não avança essa data. Não é um bug/inconsistência: `AtualizarStreak` (TDD §5.1)
+> já trava em no máximo 1 incremento por dia local, então marcar "hoje" como coberto aqui não deixa
+> a pessoa dobrar o incremento se também praticar de verdade no mesmo dia — só evita que a mesma
+> ausência seja contada de novo caso o usuário volte a abrir o app antes da virada do dia.
 
 **`POST /v1/gamification/shop/purchase`** — Compra um item da loja com gemas. Requer cabeçalho
 `Idempotency-Key`.

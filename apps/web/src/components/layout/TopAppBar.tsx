@@ -81,10 +81,10 @@ export function TopAppBar() {
             href="/perfil"
             className="flex items-center gap-xs text-primary font-bold p-1 rounded-md hover:bg-surface-container transition-colors"
           >
-            <span className="flex flex-col items-end leading-tight">
+            <span className="flex items-baseline gap-1 whitespace-nowrap">
               <span className="font-label-caps text-label-caps text-primary uppercase">Nível {gamification.level}</span>
               <span className="font-label-caps text-[10px] text-on-surface-variant normal-case">
-                {xpFaltam} XP p/ próx.
+                · {xpFaltam} XP p/ próx.
               </span>
             </span>
             <Avatar name={user.name} size={32} />

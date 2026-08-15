@@ -541,3 +541,60 @@ zona de promoção real da conta de teste. Zero erro de console. `go build`/`vet
 `tsc --noEmit` (dois apps), `next build` e `expo export --platform web` todos limpos. Migration
 0008 aplicada no banco real; `cmd/close-league-week` rodado de novo manualmente, confirmou a nova
 trava de tamanho mínimo (6) corretamente.
+
+### 13. Sexta rodada — TopAppBar, desbloqueio de lição por conteúdo, expiração de streak (15/08/2026)
+
+Usuário reportou 4 correções a partir de um print da Home mobile:
+
+1. **`Nível`/`XP` do `TopAppBar` em duas linhas** — juntados numa linha só (`<Text>` aninhado no
+   mobile, `flex items-baseline` no web).
+2. **Fog escondendo lições distantes como "bloqueáveis"** — removido dos dois apps. `FogOverlay.tsx`
+   (web) deletado.
+3. **Lição sem pergunta aprovada devia ficar "em construção"; com pergunta, liberada fora de
+   ordem** — `GET /v1/tracks/{track_id}/lessons` ganha `has_questions` (calculado em lote via
+   `fetchLessonsWithApprovedQuestions`, mesmo filtro `review_status: "approved"` de
+   `POST .../session`). `LessonNodeVariant`/`UnitStatus` trocam `locked` por `available`/
+   `construction` nos dois apps; `unitStatusFor`/`variantFor` reescritos.
+4. **Streak não expirava e não havia oferta proativa de Bloqueio de Ofensiva** — expiração
+   preguiçosa (`AplicarExpiracaoStreak`/`StreakEmRisco`, TDD §5.2/§5.3), mesmo padrão sem cron da
+   regeneração de vidas (§5.4): `GET /v1/gamification/me`, `GET /v1/users/me` e
+   `POST .../answers` agora aplicam a expiração antes de ler/gravar streak. `GamificationProfile`
+   ganha `streak_freezes_available`/`streak_at_risk`; novo `StreakAtRiskPrompt` (mobile+web,
+   montado no layout raiz) abre o `StreakDialog` sozinho quando `streak_at_risk` é true.
+
+**3 bugs reais encontrados e corrigidos durante o teste ao vivo** (só apareceram com backend real
++ Postgres real — nenhum surgiu em `tsc`/`go test`/mock):
+- `AplicarExpiracaoStreak` original não avançava `streak_last_active_date` no consumo automático
+  (fiel à leitura literal do TDD, que descreve um job que roda 1x/dia) — mas chamado de forma
+  preguiçosa (sem job), a mesma streak "atrasada" era reavaliada em **toda** requisição do dia
+  (cada `GET /v1/gamification/me`, cada pergunta respondida), consumindo um freeze por request em
+  vez de um por dia. Reproduzido ao vivo: 5 requisições em ~2s zeraram uma streak de 5 dias com 2
+  freezes disponíveis. Corrigido fazendo a função avançar a data pra "ontem" (nunca "hoje" — a
+  pessoa ainda precisa praticar hoje) ao consumir um freeze, tornando a avaliação idempotente
+  dentro do mesmo dia sem violar a regra do TDD.
+- `GET /v1/users/me` (`handleGetMe`, `internal/users/users.go`) nunca populava
+  `streak_freezes_available`/`streak_at_risk` na resposta apesar de já chamar
+  `LoadStreakWithExpiration` — os dois campos simplesmente não existiam no struct de resposta.
+  Sem isso, o `StreakAtRiskPrompt` nunca tinha `streak_at_risk` de verdade pra reagir (ficava
+  sempre `false`, undefined→falsy no client).
+- `StreakAtRiskPrompt` e `AllDonePrompt` (web e mobile) são dois modais globais independentes que
+  podem ficar `open` ao mesmo tempo (ex.: trilha 100% concluída E streak em risco) — o que montou
+  por último ficava por cima e interceptava clique do outro (`AllDonePrompt` tampando o botão
+  "Usar Bloqueio Agora"). `AllDonePrompt` ganhou `suppressAutoOpen` (não abre sozinho quando
+  `gamification.streak_at_risk` é true — streak é mais urgente, morre à meia-noite; Modo Infinito
+  não tem prazo).
+
+Verificado ao vivo (mesmo setup de sempre, login real com a conta de teste): item 1 confirmado nas
+duas plataformas (linha única do Nível/XP). Itens 2+3 confirmados navegando a trilha real
+"Maquetes" (16 lições, todas com pergunta aprovada) — nós fora de ordem renderizando como
+`available` (navegáveis, sem fog) em vez do antigo bloqueio sequencial; um nó fora de ordem clicado
+abriu uma sessão de pergunta real. (Nenhuma lição sem pergunta aprovada existe hoje nos dados
+semeados — variant `construction` confirmado só por leitura de código/teste unitário, não visto ao
+vivo por falta de dado de teste nesse estado.) Item 4 confirmado ponta a ponta manipulando
+temporariamente `user_gamification` da conta de teste via um script Go descartável (nunca
+commitado): streak em risco abriu o diálogo sozinho ao carregar o app, "Usar Bloqueio Agora"
+consumiu o freeze e persistiu no Postgres, card do Perfil refletiu o novo estado — dado de teste
+restaurado ao original ao final. Zero erro de console (fora um aviso de hydration mismatch
+`aria-hidden` do Radix Dialog, esperado/benigno, não relacionado a esta mudança).
+`go build`/`vet`/`test`/`gofmt -l`, `tsc --noEmit` (dois apps), `next build` e
+`expo export --platform web` todos limpos.

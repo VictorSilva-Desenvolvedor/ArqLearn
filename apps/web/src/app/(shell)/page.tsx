@@ -13,7 +13,6 @@ import { LevelProgressCard } from "@/components/features/home/LevelProgressCard"
 import { LearningMap, type LearningMapUnit } from "@/components/features/home/LearningMap";
 import { AllDonePrompt } from "@/components/features/home/AllDonePrompt";
 import type { LessonNodeVariant } from "@/components/features/home/LessonNode";
-import type { UnitNodeData } from "@/components/features/home/UnitSection";
 import type { TrackLesson } from "@/types/api";
 import type { UnitStatus } from "@/components/features/home/UnitSection";
 
@@ -21,33 +20,22 @@ const DAILY_GOAL_XP = 50;
 // Só a trilha em destaque (tema selecionado) — mostrar outras trilhas junto no mapa não fazia
 // mais sentido com a tela de Explorar já madura (busca, seletor de tema); ver ExploreMoreCard.
 const MAX_UNITS_SHOWN = 1;
-// Quantas missões à frente da atual ficam visíveis ("locked" normal) antes da névoa começar —
-// a pedido do usuário: só revela o que está perto de ser alcançado, o resto vira "foggy".
-const FOG_WINDOW = 5;
 
-function variantFor(progressStatus: string, isCheckpoint: boolean | undefined): LessonNodeVariant {
+// hasQuestions decide entre "available" (navegável, fora de ordem) e "construction" (sem
+// conteúdo aprovado ainda) — substitui o antigo bloqueio por sequência (+ a "névoa" que escondia
+// lições distantes), que não refletia se a lição tinha pergunta de verdade por trás.
+function variantFor(progressStatus: string, isCheckpoint: boolean | undefined, hasQuestions: boolean): LessonNodeVariant {
   if (isCheckpoint) return "checkpoint";
   if (progressStatus === "completed") return "completed";
   if (progressStatus === "in_progress") return "current";
-  return "locked";
+  return hasQuestions ? "available" : "construction";
 }
 
-// Só some quando a pessoa se aproxima (índice dentro da janela de FOG_WINDOW a partir da lição
-// atual) — checkpoints ficam de fora de propósito, servem de marco visível mesmo à distância.
-function applyFog(nodes: UnitNodeData[]): UnitNodeData[] {
-  const currentIndex = nodes.findIndex((n) => n.variant === "current");
-  if (currentIndex === -1) return nodes;
-  return nodes.map((node, index) =>
-    node.variant === "locked" && index > currentIndex + FOG_WINDOW
-      ? { ...node, variant: "foggy" as const }
-      : node,
-  );
-}
-
-function unitStatusFor(lessons: { progress_status: string }[]): UnitStatus {
+function unitStatusFor(lessons: { progress_status: string; has_questions: boolean }[]): UnitStatus {
   if (lessons.every((l) => l.progress_status === "completed")) return "completed";
   if (lessons.some((l) => l.progress_status === "in_progress")) return "current";
-  return "locked";
+  if (lessons.some((l) => l.has_questions)) return "available";
+  return "construction";
 }
 
 // O tema selecionado (ThemeSelector no TopAppBar) vira o "conteúdo principal": a trilha
@@ -92,27 +80,24 @@ export default async function HomePage() {
         title: track.title,
         subtitle: track.description,
         status,
-        nodes: applyFog(
-          trackLessons.map(({ lesson, progress_status }) => {
-            const presentation = lessonNodePresentation[lesson.id];
-            const variant = variantFor(progress_status, presentation?.isCheckpoint);
-            return {
-              lessonId: lesson.id,
-              icon: presentation?.icon ?? "school",
-              variant,
-              href: `/trilhas/${track.id}/${lesson.id}/sessao`,
-              ctaLabel: variant === "current" ? "Continuar lição" : undefined,
-            };
-          }),
-        ),
+        nodes: trackLessons.map(({ lesson, progress_status, has_questions }) => {
+          const presentation = lessonNodePresentation[lesson.id];
+          const variant = variantFor(progress_status, presentation?.isCheckpoint, has_questions);
+          return {
+            lessonId: lesson.id,
+            icon: presentation?.icon ?? "school",
+            variant,
+            href: `/trilhas/${track.id}/${lesson.id}/sessao`,
+            ctaLabel: variant === "current" ? "Continuar lição" : undefined,
+          };
+        }),
       };
     }),
   );
 
-  // "Todas as tarefas da Home" = a trilha em destaque (primeiro item de units, ver orderedTracks
-  // acima) concluída — não as outras trilhas mostradas de raspão (essas ficam "locked" até serem
-  // escolhidas como tema, não é o que a pessoa veio fazer hoje). Só oferece Modo Infinito se o
-  // tema realmente tem conteúdo (hasContent) — sem isso, nem o Modo Infinito teria pergunta.
+  // "Todas as tarefas da Home" = a única unidade mostrada (a trilha em destaque, MAX_UNITS_SHOWN
+  // = 1) concluída. Só oferece Modo Infinito se o tema realmente tem conteúdo (hasContent) — sem
+  // isso, nem o Modo Infinito teria pergunta.
   const featuredUnit = units[0];
   const allDone = Boolean(featuredUnit && featuredUnit.status === "completed" && selectedTheme.hasContent);
 
@@ -131,7 +116,13 @@ export default async function HomePage() {
       )}
       <LearningMap units={units} />
       <ExploreMoreCard />
-      {allDone && <AllDonePrompt topic={featuredTopic} themeLabel={selectedTheme.label} />}
+      {allDone && (
+        <AllDonePrompt
+          topic={featuredTopic}
+          themeLabel={selectedTheme.label}
+          suppressAutoOpen={gamification.streak_at_risk}
+        />
+      )}
     </div>
   );
 }

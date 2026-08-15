@@ -7,7 +7,10 @@ import { CurrentLessonNode } from "./CurrentLessonNode";
 import { LessonNode, type LessonNodeVariant } from "./LessonNode";
 import { PathConnector } from "./PathConnector";
 
-export type UnitStatus = "completed" | "current" | "locked";
+// "available" = tem lição com pergunta de verdade, mas nada foi começado ainda (não é mais
+// "bloqueado" — a trilha inteira ficava esmaecida mesmo tendo conteúdo pronto pra praticar).
+// "construction" = nenhuma lição da trilha tem pergunta aprovada ainda.
+export type UnitStatus = "completed" | "current" | "available" | "construction";
 
 export interface UnitNodeData {
   lessonId: string;
@@ -27,14 +30,15 @@ interface UnitSectionProps {
 const statusBadge: Record<UnitStatus, { label: string; tone: BadgeTone }> = {
   completed: { label: "Concluído", tone: "primary" },
   current: { label: "Em andamento", tone: "secondary" },
-  locked: { label: "Bloqueado", tone: "neutral" },
+  available: { label: "Disponível", tone: "primary" },
+  construction: { label: "Em construção", tone: "neutral" },
 };
 
 export function UnitSection({ title, subtitle, status, nodes }: UnitSectionProps) {
   const badge = statusBadge[status];
 
   return (
-    <View style={[styles.wrap, status === "locked" && styles.dimmed]}>
+    <View style={[styles.wrap, status === "construction" && styles.dimmed]}>
       <View style={styles.header}>
         <Text style={[type.headlineMd, { color: colors.onSurface }]}>{title}</Text>
         <Badge tone={badge.tone}>{badge.label}</Badge>

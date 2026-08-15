@@ -236,3 +236,54 @@ func TestProximaVidaEm_AbaixoDoTeto(t *testing.T) {
 		t.Errorf("ProximaVidaEm = %v, esperado %v", got, esperado)
 	}
 }
+
+func TestAplicarExpiracaoStreak(t *testing.T) {
+	casos := []struct {
+		nome             string
+		streakCurrent    int
+		lastActiveDate   string
+		freezesAvailable int
+		hojeLocal        string
+		wantStreak       int
+		wantLastActive   string
+		wantFreezes      int
+		wantExpirou      bool
+	}{
+		{"sem streak, nada a fazer", 0, "", 0, "2026-08-15", 0, "", 0, false},
+		{"praticou hoje, intacta", 5, "2026-08-15", 0, "2026-08-15", 5, "2026-08-15", 0, false},
+		{"praticou ontem, intacta (ainda não praticou hoje)", 5, "2026-08-14", 0, "2026-08-15", 5, "2026-08-14", 0, false},
+		{"pulou 2 dias, com freeze, consome e preserva streak, avança pra ontem (não hoje)", 5, "2026-08-12", 2, "2026-08-15", 5, "2026-08-14", 1, false},
+		{"pulou 2 dias, sem freeze, zera", 5, "2026-08-12", 0, "2026-08-15", 0, "2026-08-12", 0, true},
+		{"pulou 1 dia inteiro (anteontem), sem freeze, zera", 5, "2026-08-13", 0, "2026-08-15", 0, "2026-08-13", 0, true},
+	}
+	for _, c := range casos {
+		t.Run(c.nome, func(t *testing.T) {
+			gotStreak, gotLastActive, gotFreezes, gotExpirou := AplicarExpiracaoStreak(c.streakCurrent, c.lastActiveDate, c.freezesAvailable, c.hojeLocal)
+			if gotStreak != c.wantStreak || gotLastActive != c.wantLastActive || gotFreezes != c.wantFreezes || gotExpirou != c.wantExpirou {
+				t.Errorf("AplicarExpiracaoStreak(%d, %q, %d, %q) = (%d, %q, %d, %v), esperado (%d, %q, %d, %v)",
+					c.streakCurrent, c.lastActiveDate, c.freezesAvailable, c.hojeLocal,
+					gotStreak, gotLastActive, gotFreezes, gotExpirou, c.wantStreak, c.wantLastActive, c.wantFreezes, c.wantExpirou)
+			}
+		})
+	}
+
+	t.Run("idempotente no mesmo dia: reaplicar após consumir um freeze não consome outro", func(t *testing.T) {
+		streak, lastActive, freezes, _ := AplicarExpiracaoStreak(5, "2026-08-12", 2, "2026-08-15")
+		streak2, lastActive2, freezes2, _ := AplicarExpiracaoStreak(streak, lastActive, freezes, "2026-08-15")
+		if streak2 != 5 || freezes2 != 1 || lastActive2 != "2026-08-14" {
+			t.Errorf("segunda avaliação no mesmo dia consumiu freeze de novo: streak=%d freezes=%d lastActive=%q", streak2, freezes2, lastActive2)
+		}
+	})
+}
+
+func TestStreakEmRisco(t *testing.T) {
+	if StreakEmRisco(0, "2026-08-14", "2026-08-15") {
+		t.Error("sem streak não deveria estar em risco")
+	}
+	if !StreakEmRisco(3, "2026-08-14", "2026-08-15") {
+		t.Error("streak positiva sem prática hoje deveria estar em risco")
+	}
+	if StreakEmRisco(3, "2026-08-15", "2026-08-15") {
+		t.Error("já praticou hoje, não deveria estar em risco")
+	}
+}

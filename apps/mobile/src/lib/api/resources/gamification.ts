@@ -62,8 +62,9 @@ export interface FreezeStreakResponse {
   streak_freezes_available: number;
 }
 
-// GamificationProfile não expõe "quantos freezes tenho" — só esta resposta e o item da loja. O
-// caller (client, já tem a contagem via useAuth()) passa o valor atual; o mock só valida/consome.
+// Resposta dedicada (em vez de reusar GamificationProfile.streak_freezes_available) porque este
+// endpoint só devolve a contagem atualizada, não o perfil inteiro. O caller (client, já tem a
+// contagem via useAuth()) passa o valor atual; o mock só valida/consome.
 export async function freezeStreak(currentFreezesAvailable: number): Promise<FreezeStreakResponse> {
   if (isResourceReal("gamification")) {
     return apiFetch<FreezeStreakResponse>("/v1/gamification/streak/freeze", { method: "POST" });

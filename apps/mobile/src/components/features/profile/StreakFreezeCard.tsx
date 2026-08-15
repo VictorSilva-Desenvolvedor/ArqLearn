@@ -15,7 +15,7 @@ import { colors, type } from "@/theme/tokens";
 // pontos do app) pra comprar um quando não houver.
 export function StreakFreezeCard() {
   const router = useRouter();
-  const { streakFreezesAvailable, adjustStreakFreezes } = useAuth();
+  const { streakFreezesAvailable, adjustStreakFreezes, updateGamification } = useAuth();
   const [pending, setPending] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
 
@@ -26,6 +26,7 @@ export function StreakFreezeCard() {
     try {
       await freezeStreak(streakFreezesAvailable);
       adjustStreakFreezes(-1);
+      updateGamification({ streak_at_risk: false });
       setMessage("Ofensiva protegida! Se você faltar hoje, sua sequência continua intacta.");
     } catch (err) {
       setMessage(err instanceof ApiError ? err.message : "Não foi possível usar o bloqueio agora.");

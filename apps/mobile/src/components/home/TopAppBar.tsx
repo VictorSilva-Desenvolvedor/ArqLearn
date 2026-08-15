@@ -39,10 +39,10 @@ export function TopAppBar() {
             onPress={() => router.push("/notificacoes" as never)}
           />
           <Pressable style={styles.profile} onPress={() => router.push("/perfil" as never)}>
-            <View style={styles.levelBlock}>
-              <Text style={[type.labelCaps, styles.levelText]}>Nível {gamification.level}</Text>
-              <Text style={[type.labelCaps, styles.levelCaption]}>{xpFaltam} XP p/ próx.</Text>
-            </View>
+            <Text style={[type.labelCaps, styles.levelLine]} numberOfLines={1}>
+              <Text style={styles.levelText}>Nível {gamification.level}</Text>
+              <Text style={styles.levelCaption}> · {xpFaltam} XP p/ próx.</Text>
+            </Text>
             <Avatar name={user.name} size={32} />
           </Pressable>
         </View>
@@ -117,8 +117,8 @@ const styles = StyleSheet.create({
     alignItems: "center",
     gap: 8,
   },
-  levelBlock: {
-    alignItems: "flex-end",
+  levelLine: {
+    maxWidth: 180,
   },
   levelText: {
     color: colors.primary,
@@ -126,7 +126,6 @@ const styles = StyleSheet.create({
   },
   levelCaption: {
     color: colors.onSurfaceVariant,
-    fontSize: 10,
-    lineHeight: 13,
+    fontSize: 11,
   },
 });

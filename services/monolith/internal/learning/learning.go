@@ -163,6 +163,10 @@ type lesson struct {
 type lessonListItem struct {
 	Lesson         lesson `json:"lesson"`
 	ProgressStatus string `json:"progress_status"`
+	// HasQuestions distingue "sem conteúdo aprovado ainda" (o cliente mostra "em construção", não
+	// navegável) de "pronta pra praticar" — sem isso, o cliente só tem `progress_status`, que não
+	// diz nada sobre a lição ter pergunta de verdade por trás (ver fetchLessonsWithApprovedQuestions).
+	HasQuestions bool `json:"has_questions"`
 }
 
 // userProgressStatus é a projeção mínima da coleção "user_progress" (Database Design §4.4)
@@ -226,6 +230,12 @@ func handleListTrackLessons(mongoDB *mongo.Database) http.HandlerFunc {
 			return
 		}
 
+		hasQuestionsByLesson, err := fetchLessonsWithApprovedQuestions(r.Context(), mongoDB, lessons)
+		if err != nil {
+			apierror.Write(w, http.StatusInternalServerError, "INTERNAL_ERROR", "Falha ao consultar perguntas.")
+			return
+		}
+
 		// Percorre na ordem pedagógica real (track.units), não na ordem de retorno do Mongo.
 		// Lições órfãs (existem no banco mas não estão em nenhuma unit) ficam de fora — a trilha
 		// é quem define quais lições contam, não a coleção lessons isoladamente.
@@ -241,7 +251,7 @@ func handleListTrackLessons(mongoDB *mongo.Database) http.HandlerFunc {
 			if !ok {
 				status = "not_started"
 			}
-			items = append(items, lessonListItem{Lesson: l, ProgressStatus: status})
+			items = append(items, lessonListItem{Lesson: l, ProgressStatus: status, HasQuestions: hasQuestionsByLesson[l.ID]})
 		}
 
 		writeJSON(w, http.StatusOK, map[string]any{"data": items})
@@ -274,6 +284,57 @@ func fetchProgressByLesson(ctx context.Context, mongoDB *mongo.Database, userID 
 	}
 	for _, p := range progresses {
 		result[p.LessonID] = p.Status
+	}
+	return result, nil
+}
+
+// fetchLessonsWithApprovedQuestions diz, pra cada lição, se ela tem pelo menos uma pergunta com
+// review_status "approved" — mesmo filtro que handleStartSession já aplica pra montar uma sessão
+// de prática de verdade (ver session.go), só que aqui é "tem alguma?" em vez de "quais são?", pra
+// todas as lições da trilha de uma vez. Sem isso, o cliente não tem como distinguir "lição sem
+// nenhum conteúdo aprovado ainda" (deveria aparecer como "em construção") de "lição pronta pra
+// praticar", e caía num bloqueio por sequência que não reflete o que existe de verdade.
+func fetchLessonsWithApprovedQuestions(ctx context.Context, mongoDB *mongo.Database, lessons []lesson) (map[string]bool, error) {
+	result := make(map[string]bool, len(lessons))
+
+	var allQuestionIDs []string
+	for _, l := range lessons {
+		allQuestionIDs = append(allQuestionIDs, l.QuestionIDs...)
+	}
+	if len(allQuestionIDs) == 0 {
+		return result, nil
+	}
+
+	cur, err := mongoDB.Collection("questions").Find(ctx, bson.M{
+		"_id":           bson.M{"$in": allQuestionIDs},
+		"review_status": "approved",
+	})
+	if err != nil {
+		return nil, err
+	}
+	defer cur.Close(ctx)
+
+	approved := make(map[string]bool)
+	for cur.Next(ctx) {
+		var doc struct {
+			ID string `bson:"_id"`
+		}
+		if err := cur.Decode(&doc); err != nil {
+			return nil, err
+		}
+		approved[doc.ID] = true
+	}
+	if err := cur.Err(); err != nil {
+		return nil, err
+	}
+
+	for _, l := range lessons {
+		for _, qid := range l.QuestionIDs {
+			if approved[qid] {
+				result[l.ID] = true
+				break
+			}
+		}
 	}
 	return result, nil
 }

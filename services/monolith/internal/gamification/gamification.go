@@ -34,11 +34,16 @@ type achievementJSON struct {
 }
 
 type gamificationMeResponse struct {
-	XPTotal       int               `json:"xp_total"`
-	XPToday       int               `json:"xp_today"`
-	Level         int               `json:"level"`
-	StreakCurrent int               `json:"streak_current"`
-	StreakBest    int               `json:"streak_best"`
+	XPTotal                int `json:"xp_total"`
+	XPToday                int `json:"xp_today"`
+	Level                  int `json:"level"`
+	StreakCurrent          int `json:"streak_current"`
+	StreakBest             int `json:"streak_best"`
+	StreakFreezesAvailable int `json:"streak_freezes_available"`
+	// StreakAtRisco = tem streak positiva e ainda não praticou hoje (TDD §5.2, calculado ao vivo
+	// — ver StreakEmRisco) — gatilho do cliente pra oferecer usar um Bloqueio de Ofensiva assim
+	// que o app abre, em vez de só descobrir a perda no dia seguinte.
+	StreakAtRisk  bool              `json:"streak_at_risk"`
 	HeartsCurrent int               `json:"hearts_current"`
 	HeartsNextAt  *time.Time        `json:"hearts_next_at"`
 	Gems          int               `json:"gems"`
@@ -72,6 +77,66 @@ func LoadHeartsWithRegen(ctx context.Context, pool *pgxpool.Pool, userID string)
 	return novo, ProximaVidaEm(novo, novoUpdatedAt), nil
 }
 
+// StreakSnapshot é o retorno de LoadStreakWithExpiration — já reflete a expiração aplicada (se
+// houve) e diz se a streak está em risco hoje.
+type StreakSnapshot struct {
+	Current          int
+	Best             int
+	FreezesAvailable int
+	AtRisk           bool
+}
+
+// LoadStreakWithExpiration lê streak_current/streak_last_active_date/streak_freezes_available
+// (fazendo join com users só pra pegar o timezone, necessário pra calcular "hoje" no fuso certo),
+// aplica a expiração preguiçosa (TDD §5.2/§5.3 — ver AplicarExpiracaoStreak) e persiste de volta
+// só quando algo de fato mudou, mesmo padrão de LoadHeartsWithRegen. Chamada por toda rota que lê
+// gamificação (GET /v1/gamification/me, GET /v1/users/me) e por POST .../answers antes de
+// AtualizarStreak, pra nenhuma delas incrementar um streak_current que já deveria ter expirado.
+func LoadStreakWithExpiration(ctx context.Context, pool *pgxpool.Pool, userID string) (StreakSnapshot, error) {
+	var current, best, freezesAvailable int
+	var lastActiveDate *time.Time
+	var timezone string
+	if err := pool.QueryRow(ctx, `
+		SELECT g.streak_current, g.streak_best, g.streak_last_active_date, g.streak_freezes_available, u.timezone
+		FROM user_gamification g JOIN users u ON u.id = g.user_id
+		WHERE g.user_id = $1
+	`, userID).Scan(&current, &best, &lastActiveDate, &freezesAvailable, &timezone); err != nil {
+		return StreakSnapshot{}, err
+	}
+
+	lastActiveStr := ""
+	if lastActiveDate != nil {
+		lastActiveStr = lastActiveDate.Format("2006-01-02")
+	}
+	hojeLocal := HojeLocal(timezone, time.Now())
+
+	novoCurrent, novaLastActiveStr, novosFreezes, _ := AplicarExpiracaoStreak(current, lastActiveStr, freezesAvailable, hojeLocal)
+	if novoCurrent != current || novosFreezes != freezesAvailable || novaLastActiveStr != lastActiveStr {
+		var novaLastActiveParam any
+		if novaLastActiveStr != "" {
+			d, _ := time.Parse("2006-01-02", novaLastActiveStr)
+			novaLastActiveParam = d
+		}
+		if _, err := pool.Exec(ctx,
+			`UPDATE user_gamification SET streak_current = $1, streak_freezes_available = $2, streak_last_active_date = $3 WHERE user_id = $4`,
+			novoCurrent, novosFreezes, novaLastActiveParam, userID,
+		); err != nil {
+			return StreakSnapshot{}, err
+		}
+		current, freezesAvailable, lastActiveStr = novoCurrent, novosFreezes, novaLastActiveStr
+	}
+	if best < current {
+		best = current
+	}
+
+	return StreakSnapshot{
+		Current:          current,
+		Best:             best,
+		FreezesAvailable: freezesAvailable,
+		AtRisk:           StreakEmRisco(current, lastActiveStr, hojeLocal),
+	}, nil
+}
+
 func handleGetGamificationMe(pool *pgxpool.Pool) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		userID, ok := authmiddleware.UserID(r.Context())
@@ -82,10 +147,9 @@ func handleGetGamificationMe(pool *pgxpool.Pool) http.HandlerFunc {
 
 		var resp gamificationMeResponse
 		err := pool.QueryRow(r.Context(), `
-			SELECT xp_total, xp_today, level, streak_current, streak_best, gems
+			SELECT xp_total, xp_today, level, gems
 			FROM user_gamification WHERE user_id = $1
-		`, userID).Scan(&resp.XPTotal, &resp.XPToday, &resp.Level, &resp.StreakCurrent,
-			&resp.StreakBest, &resp.Gems)
+		`, userID).Scan(&resp.XPTotal, &resp.XPToday, &resp.Level, &resp.Gems)
 		if err == pgx.ErrNoRows {
 			apierror.Write(w, http.StatusNotFound, "USER_PROFILE_NOT_FOUND", "Perfil de usuário não encontrado.")
 			return
@@ -94,6 +158,16 @@ func handleGetGamificationMe(pool *pgxpool.Pool) http.HandlerFunc {
 			apierror.Write(w, http.StatusInternalServerError, "INTERNAL_ERROR", "Falha ao consultar gamificação.")
 			return
 		}
+
+		streak, err := LoadStreakWithExpiration(r.Context(), pool, userID)
+		if err != nil {
+			apierror.Write(w, http.StatusInternalServerError, "INTERNAL_ERROR", "Falha ao consultar streak.")
+			return
+		}
+		resp.StreakCurrent = streak.Current
+		resp.StreakBest = streak.Best
+		resp.StreakFreezesAvailable = streak.FreezesAvailable
+		resp.StreakAtRisk = streak.AtRisk
 
 		resp.HeartsCurrent, resp.HeartsNextAt, err = LoadHeartsWithRegen(r.Context(), pool, userID)
 		if err != nil {
@@ -554,6 +628,13 @@ type freezeResponse struct {
 	StreakFreezesAvailable int `json:"streak_freezes_available"`
 }
 
+// handleStreakFreeze consome um bloqueio de ofensiva sob ação explícita do usuário (botão "Usar
+// Bloqueio Agora" do StreakDialog, inclusive o prompt automático de streak em risco — ver
+// StreakEmRisco). Diferente da expiração automática (AplicarExpiracaoStreak, que NÃO avança
+// streak_last_active_date de propósito, TDD §5.3), aqui é uma proteção proativa: marca o dia de
+// hoje como coberto (streak_last_active_date = hojeLocal) mesmo que o usuário não pratique — é
+// isso que faz "usar agora" realmente evitar a perda do dia, em vez de só descontar o contador
+// sem efeito nenhum.
 func handleStreakFreeze(pool *pgxpool.Pool) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		userID, ok := authmiddleware.UserID(r.Context())
@@ -562,13 +643,26 @@ func handleStreakFreeze(pool *pgxpool.Pool) http.HandlerFunc {
 			return
 		}
 
+		var timezone string
+		if err := pool.QueryRow(r.Context(),
+			`SELECT timezone FROM users WHERE id = $1`, userID,
+		).Scan(&timezone); err != nil {
+			apierror.Write(w, http.StatusInternalServerError, "INTERNAL_ERROR", "Falha ao consultar perfil.")
+			return
+		}
+		hojeLocalDate, err := time.Parse("2006-01-02", HojeLocal(timezone, time.Now()))
+		if err != nil {
+			apierror.Write(w, http.StatusInternalServerError, "INTERNAL_ERROR", "Falha ao calcular data local.")
+			return
+		}
+
 		var remaining int
-		err := pool.QueryRow(r.Context(), `
+		err = pool.QueryRow(r.Context(), `
 			UPDATE user_gamification
-			SET streak_freezes_available = streak_freezes_available - 1
+			SET streak_freezes_available = streak_freezes_available - 1, streak_last_active_date = $2
 			WHERE user_id = $1 AND streak_freezes_available > 0
 			RETURNING streak_freezes_available
-		`, userID).Scan(&remaining)
+		`, userID, hojeLocalDate).Scan(&remaining)
 		if err == pgx.ErrNoRows {
 			apierror.Write(w, http.StatusConflict, "NO_STREAK_FREEZE_AVAILABLE", "Você não tem nenhum bloqueio de ofensiva disponível.")
 			return

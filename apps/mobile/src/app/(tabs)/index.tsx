@@ -22,17 +22,21 @@ const DAILY_GOAL_XP = 50;
 // mais sentido com a tela de Explorar já madura (busca, seletor de tema); ver ExploreMoreCard.
 const MAX_UNITS_SHOWN = 1;
 
-function variantFor(progressStatus: string, isCheckpoint: boolean | undefined): LessonNodeVariant {
+// hasQuestions decide entre "available" (navegável, fora de ordem) e "construction" (sem
+// conteúdo aprovado ainda) — substitui o antigo bloqueio por sequência, que não refletia se a
+// lição tinha pergunta de verdade por trás.
+function variantFor(progressStatus: string, isCheckpoint: boolean | undefined, hasQuestions: boolean): LessonNodeVariant {
   if (isCheckpoint) return "checkpoint";
   if (progressStatus === "completed") return "completed";
   if (progressStatus === "in_progress") return "current";
-  return "locked";
+  return hasQuestions ? "available" : "construction";
 }
 
-function unitStatusFor(lessons: { progress_status: string }[]): UnitStatus {
+function unitStatusFor(lessons: { progress_status: string; has_questions: boolean }[]): UnitStatus {
   if (lessons.every((l) => l.progress_status === "completed")) return "completed";
   if (lessons.some((l) => l.progress_status === "in_progress")) return "current";
-  return "locked";
+  if (lessons.some((l) => l.has_questions)) return "available";
+  return "construction";
 }
 
 // O tema selecionado (ThemeSelector no TopAppBar) vira o "conteúdo principal": a primeira lição
@@ -53,9 +57,9 @@ function toUnit(track: Track, trackLessons: TrackLesson[]): LearningMapUnit {
     title: track.title,
     subtitle: track.description,
     status: unitStatusFor(trackLessons),
-    nodes: trackLessons.map(({ lesson, progress_status }) => {
+    nodes: trackLessons.map(({ lesson, progress_status, has_questions }) => {
       const presentation = lessonNodePresentation[lesson.id];
-      const variant = variantFor(progress_status, presentation?.isCheckpoint);
+      const variant = variantFor(progress_status, presentation?.isCheckpoint, has_questions);
       return {
         lessonId: lesson.id,
         icon: presentation?.icon ?? "school",
@@ -118,7 +122,13 @@ export default function HomeScreen() {
         {units && <LearningMap units={units} />}
         <ExploreMoreCard />
       </ScrollView>
-      {allDone && <AllDonePrompt topic={selectedTheme.topic} themeLabel={selectedTheme.label} />}
+      {allDone && (
+        <AllDonePrompt
+          topic={selectedTheme.topic}
+          themeLabel={selectedTheme.label}
+          suppressAutoOpen={gamification.streak_at_risk}
+        />
+      )}
     </View>
   );
 }
