@@ -3,12 +3,18 @@
 import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/hooks/useAuth";
-import { updateMe, deleteMe } from "@/lib/api/resources/profile";
+import { useToast } from "@/hooks/useToast";
+import { updateMe, deleteMe, exportMyData } from "@/lib/api/resources/profile";
+import { createClient } from "@/lib/supabase/client";
 import { Card } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
 import { IconButton } from "@/components/ui/IconButton";
 import { Icon } from "@/components/ui/Icon";
 import { Modal, ModalTitle, ModalDescription } from "@/components/ui/Modal";
+import { NotificationPreferencesPanel } from "@/components/features/notifications/NotificationPreferencesPanel";
+import { ThemeSelector } from "@/components/layout/ThemeSelector";
+
+const MIN_PASSWORD_LENGTH = 6;
 
 // Tempo que o usuário precisa segurar o botão pra confirmar a exclusão — de propósito longo o
 // suficiente pra não ser um clique acidental (pedido explícito: fricção alta numa ação
@@ -18,11 +24,21 @@ const HOLD_TO_CONFIRM_MS = 10_000;
 export default function SettingsPage() {
   const router = useRouter();
   const { user, updateUser, logout } = useAuth();
+  const { showToast } = useToast();
 
   const [name, setName] = useState(user.name);
   const [timezone, setTimezone] = useState(user.timezone);
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
+
+  const [newPassword, setNewPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const [changingPassword, setChangingPassword] = useState(false);
+  const [passwordError, setPasswordError] = useState<string | null>(null);
+  const [passwordChanged, setPasswordChanged] = useState(false);
+  const passwordValid = newPassword.length >= MIN_PASSWORD_LENGTH && newPassword === confirmPassword;
+
+  const [exporting, setExporting] = useState(false);
 
   const [deleteOpen, setDeleteOpen] = useState(false);
   const [deleting, setDeleting] = useState(false);
@@ -94,6 +110,47 @@ export default function SettingsPage() {
     }
   };
 
+  const handleChangePassword = async () => {
+    if (!passwordValid || changingPassword) return;
+    setChangingPassword(true);
+    setPasswordError(null);
+    setPasswordChanged(false);
+    try {
+      const { error } = await createClient().auth.updateUser({ password: newPassword });
+      if (error) throw error;
+      setPasswordChanged(true);
+      setNewPassword("");
+      setConfirmPassword("");
+    } catch (err) {
+      setPasswordError(err instanceof Error ? err.message : "Não foi possível alterar a senha agora.");
+    } finally {
+      setChangingPassword(false);
+    }
+  };
+
+  // Blob + link temporário com `download` — padrão de browser pra disparar um download sem
+  // precisar de backend servindo o arquivo como estático.
+  const handleExportData = async () => {
+    if (exporting) return;
+    setExporting(true);
+    try {
+      const data = await exportMyData(user);
+      const blob = new Blob([JSON.stringify(data, null, 2)], { type: "application/json" });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = "arqlearn-meus-dados.json";
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
+    } catch {
+      showToast("Não foi possível exportar seus dados agora.", "error");
+    } finally {
+      setExporting(false);
+    }
+  };
+
   if (deletionScheduledAt) {
     const formattedDate = new Date(deletionScheduledAt).toLocaleDateString("pt-BR");
     return (
@@ -159,6 +216,65 @@ export default function SettingsPage() {
               Salvo
             </span>
           )}
+        </div>
+      </Card>
+
+      <Card padding="lg" radius="lg" className="flex flex-col gap-md">
+        <h2 className="font-display text-headline-md text-on-surface">Trilha de estudo</h2>
+        <p className="font-body-sm text-body-sm text-on-surface-variant">Qual assunto você está estudando agora.</p>
+        <ThemeSelector />
+      </Card>
+
+      <NotificationPreferencesPanel />
+
+      <Card padding="lg" radius="lg" className="flex flex-col gap-md">
+        <h2 className="font-display text-headline-md text-on-surface">Segurança</h2>
+
+        <label className="flex flex-col gap-1">
+          <span className="font-label-caps text-label-caps uppercase text-on-surface-variant">Nova senha</span>
+          <input
+            type="password"
+            value={newPassword}
+            onChange={(e) => setNewPassword(e.target.value)}
+            autoComplete="new-password"
+            placeholder={`Pelo menos ${MIN_PASSWORD_LENGTH} caracteres`}
+            className="bg-surface-gray border-2 border-outline-variant rounded-lg px-sm py-2 font-body-lg text-body-lg text-on-surface outline-none focus:border-primary"
+          />
+        </label>
+
+        <label className="flex flex-col gap-1">
+          <span className="font-label-caps text-label-caps uppercase text-on-surface-variant">
+            Confirmar nova senha
+          </span>
+          <input
+            type="password"
+            value={confirmPassword}
+            onChange={(e) => setConfirmPassword(e.target.value)}
+            autoComplete="new-password"
+            className="bg-surface-gray border-2 border-outline-variant rounded-lg px-sm py-2 font-body-lg text-body-lg text-on-surface outline-none focus:border-primary"
+          />
+        </label>
+
+        {passwordError && <p className="font-body-sm text-body-sm text-error">{passwordError}</p>}
+        {passwordChanged && <p className="font-body-sm text-body-sm text-tertiary">Senha alterada com sucesso!</p>}
+
+        <div>
+          <Button variant="primary" disabled={!passwordValid || changingPassword} onClick={handleChangePassword}>
+            {changingPassword ? "Alterando…" : "Alterar senha"}
+          </Button>
+        </div>
+      </Card>
+
+      <Card padding="lg" radius="lg" className="flex flex-col gap-sm">
+        <h2 className="font-display text-headline-md text-on-surface">Seus dados</h2>
+        <p className="font-body-md text-body-md text-on-surface-variant">
+          Baixe uma cópia de tudo que guardamos sobre sua conta — perfil, XP, conquistas e progresso
+          (LGPD, direito de portabilidade de dados).
+        </p>
+        <div>
+          <Button variant="ghost" disabled={exporting} onClick={handleExportData}>
+            {exporting ? "Exportando…" : "Exportar meus dados"}
+          </Button>
         </div>
       </Card>
 

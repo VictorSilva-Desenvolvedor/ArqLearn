@@ -12,16 +12,19 @@ import (
 
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
+	"go.mongodb.org/mongo-driver/v2/mongo"
 
 	"arqlearn/monolith/internal/apierror"
 	"arqlearn/monolith/internal/authmiddleware"
 	"arqlearn/monolith/internal/gamification"
+	"arqlearn/monolith/internal/learning"
 )
 
-func RegisterRoutes(mux *http.ServeMux, pool *pgxpool.Pool, verifier *authmiddleware.Verifier) {
+func RegisterRoutes(mux *http.ServeMux, pool *pgxpool.Pool, mongoDB *mongo.Database, verifier *authmiddleware.Verifier) {
 	mux.Handle("GET /v1/users/me", verifier.Middleware(http.HandlerFunc(handleGetMe(pool))))
 	mux.Handle("PATCH /v1/users/me", verifier.Middleware(http.HandlerFunc(handleUpdateMe(pool))))
 	mux.Handle("DELETE /v1/users/me", verifier.Middleware(http.HandlerFunc(handleDeleteMe(pool))))
+	mux.Handle("GET /v1/users/me/export", verifier.Middleware(http.HandlerFunc(handleExportMe(pool, mongoDB))))
 }
 
 // userMeResponse espelha o contrato de GET /v1/users/me (API Spec §5).
@@ -208,6 +211,93 @@ func handleDeleteMe(pool *pgxpool.Pool) http.HandlerFunc {
 		writeJSON(w, http.StatusAccepted, deleteMeResponse{
 			DeletionScheduledAt: now.AddDate(0, 0, lgpdDeletionGraceDays),
 		})
+	}
+}
+
+// exportResponse é o payload de GET /v1/users/me/export — portabilidade de dados (LGPD, direito
+// de acesso/portabilidade): reúne num único JSON tudo que este serviço guarda sobre o usuário.
+// Não inclui e-mail/senha de autenticação (isso é do Supabase Auth, nunca passa por aqui, ver
+// Docs/CLAUDE.md "O que NÃO fazer") nem dados de outros usuários (ex.: nomes de concorrentes de
+// liga) — só o que pertence à própria conta.
+type exportResponse struct {
+	ExportedAt   time.Time                        `json:"exported_at"`
+	User         meUserResponse                   `json:"user"`
+	Gamification exportGamification               `json:"gamification"`
+	Achievements []exportAchievement              `json:"achievements"`
+	Progress     learning.ProgressSummaryResponse `json:"progress"`
+}
+
+type exportGamification struct {
+	XPTotal       int `json:"xp_total"`
+	Level         int `json:"level"`
+	StreakCurrent int `json:"streak_current"`
+	StreakBest    int `json:"streak_best"`
+	HeartsCurrent int `json:"hearts_current"`
+	Gems          int `json:"gems"`
+	CurrentTier   int `json:"current_tier"`
+}
+
+type exportAchievement struct {
+	Type       string    `json:"type"`
+	UnlockedAt time.Time `json:"unlocked_at"`
+}
+
+func handleExportMe(pool *pgxpool.Pool, mongoDB *mongo.Database) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		userID, ok := authmiddleware.UserID(r.Context())
+		if !ok {
+			apierror.Write(w, http.StatusUnauthorized, "UNAUTHENTICATED", "Token inválido.")
+			return
+		}
+
+		var resp exportResponse
+		resp.ExportedAt = time.Now().UTC()
+
+		err := pool.QueryRow(r.Context(), `
+			SELECT u.id, u.name, u.email, u.role, u.timezone, u.created_at,
+			       g.xp_total, g.level, g.streak_current, g.streak_best, g.hearts_current, g.gems, g.current_tier
+			FROM users u JOIN user_gamification g ON g.user_id = u.id
+			WHERE u.id = $1 AND u.deleted_at IS NULL
+		`, userID).Scan(
+			&resp.User.ID, &resp.User.Name, &resp.User.Email, &resp.User.Role, &resp.User.Timezone, &resp.User.CreatedAt,
+			&resp.Gamification.XPTotal, &resp.Gamification.Level, &resp.Gamification.StreakCurrent,
+			&resp.Gamification.StreakBest, &resp.Gamification.HeartsCurrent, &resp.Gamification.Gems,
+			&resp.Gamification.CurrentTier,
+		)
+		if err == pgx.ErrNoRows {
+			apierror.Write(w, http.StatusNotFound, "USER_PROFILE_NOT_FOUND", "Perfil de usuário não encontrado.")
+			return
+		}
+		if err != nil {
+			apierror.Write(w, http.StatusInternalServerError, "INTERNAL_ERROR", "Falha ao consultar perfil.")
+			return
+		}
+
+		rows, err := pool.Query(r.Context(), `SELECT type, unlocked_at FROM achievements WHERE user_id = $1 ORDER BY unlocked_at ASC`, userID)
+		if err != nil {
+			apierror.Write(w, http.StatusInternalServerError, "INTERNAL_ERROR", "Falha ao consultar conquistas.")
+			return
+		}
+		resp.Achievements = []exportAchievement{}
+		for rows.Next() {
+			var a exportAchievement
+			if err := rows.Scan(&a.Type, &a.UnlockedAt); err != nil {
+				rows.Close()
+				apierror.Write(w, http.StatusInternalServerError, "INTERNAL_ERROR", "Falha ao ler conquistas.")
+				return
+			}
+			resp.Achievements = append(resp.Achievements, a)
+		}
+		rows.Close()
+
+		// Progresso vem do MongoDB — best-effort: sem conexão, o resto do export ainda é útil, só
+		// fica sem essa seção (zerada) em vez de falhar a exportação inteira.
+		if mongoDB != nil {
+			resp.Progress, _ = learning.ComputeProgressSummary(r.Context(), mongoDB, userID)
+		}
+
+		w.Header().Set("Content-Disposition", `attachment; filename="arqlearn-meus-dados.json"`)
+		writeJSON(w, http.StatusOK, resp)
 	}
 }
 
