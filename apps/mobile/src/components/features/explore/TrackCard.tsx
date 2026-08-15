@@ -15,9 +15,13 @@ interface TrackCardProps extends RecommendedTrack {
 // hasContent:false (ver exploreTracks.ts/themes.ts) troca o selo de dificuldade/duração — que
 // seriam inventados, a trilha não existe de verdade ainda — por "Em construção" (mesma
 // convenção/tom de UnitSection.tsx) e esmaece o card.
+// Sem `disabled` no Pressable de propósito — este card fica numa grade dentro de uma ScrollView
+// (explorar.tsx); um Pressable desabilitado ali é a mesma armadilha do Android já corrigida em
+// ThemeSelector.tsx/Button.tsx (trava o gesto de arrastar). `onPress` sempre vem preenchido hoje,
+// mas isso evita a armadilha se algum dia deixar de vir.
 export function TrackCard({ track, difficulty, durationMinutes, icon, isSelectedTheme, hasContent, onPress }: TrackCardProps) {
   return (
-    <Pressable onPress={onPress} disabled={!onPress}>
+    <Pressable onPress={() => onPress?.()} accessibilityState={{ disabled: !onPress }}>
       <Card
         padding="md"
         radius="lg"

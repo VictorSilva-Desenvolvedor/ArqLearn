@@ -28,7 +28,14 @@ export function ShopCosmeticItem({ item, disabled, pending, onPurchase }: ShopCo
       {item.locked ? (
         <Text style={[type.labelCaps, styles.lockedLabel]}>Nível {item.requires_level}</Text>
       ) : (
-        <Pressable disabled={disabled || pending} onPress={onPurchase} style={styles.purchaseButton}>
+        // Sem `disabled` no Pressable de propósito — este card fica numa grade dentro de uma
+        // ScrollView (loja.tsx); um Pressable desabilitado ali é a mesma armadilha do Android já
+        // corrigida em ThemeSelector.tsx/Button.tsx (trava o gesto de arrastar pra rolar).
+        <Pressable
+          onPress={() => !(disabled || pending) && onPurchase()}
+          accessibilityState={{ disabled: disabled || pending }}
+          style={styles.purchaseButton}
+        >
           <Icon name="gems" size={16} color={disabled || pending ? colors.onSurfaceVariant : colors.primary} />
           <Text style={[type.bodySm, styles.priceText, (disabled || pending) && styles.priceTextDisabled]}>
             {item.price_gems} gemas
