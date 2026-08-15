@@ -54,6 +54,7 @@ export default async function ProfilePage() {
       <ProfileHeader name={user.name} level={gamification.level} xpTotal={gamification.xp_total} />
       <ProfileStatsGrid
         xpTotal={gamification.xp_total}
+        level={gamification.level}
         streakCurrent={gamification.streak_current}
         streakBest={gamification.streak_best}
         gems={gamification.gems}

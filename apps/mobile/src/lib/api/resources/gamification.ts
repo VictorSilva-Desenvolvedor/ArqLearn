@@ -1,8 +1,9 @@
 import { isResourceReal } from "../config";
 import { apiFetch, ApiError } from "../http";
 import { mockDelay } from "../mocks/delay";
-import { mockAchievementUnlocks, mockGamificationProfile, mockLeague } from "../mocks/fixtures/gamification";
+import { mockAchievementUnlocks, mockGamificationProfile, mockLeague, mockLeagueByTier } from "../mocks/fixtures/gamification";
 import { mockShopCatalog } from "../mocks/fixtures/shopCatalog";
+import type { LeagueTierName } from "@/lib/gamification/leagueTiers";
 import type { Achievement, GamificationProfile, League, PurchaseResult } from "@/types/api";
 
 export interface GamificationMeResponse extends GamificationProfile {
@@ -16,11 +17,14 @@ export async function getGamificationProfile(): Promise<GamificationMeResponse> 
   return mockDelay({ ...mockGamificationProfile, achievements: mockAchievementUnlocks });
 }
 
-export async function getLeague(): Promise<League> {
+// Sem `tier`: liga do próprio usuário (matricula automaticamente, inclui viewer_position/
+// xp_to_promotion). Com `tier`: navega o ranking de outra liga (pra tela "top 50 de cada liga"),
+// sem matricular o usuário nela.
+export async function getLeague(tier?: LeagueTierName): Promise<League> {
   if (isResourceReal("gamification")) {
-    return apiFetch<League>("/v1/gamification/league");
+    return apiFetch<League>(tier ? `/v1/gamification/league?tier=${tier}` : "/v1/gamification/league");
   }
-  return mockDelay(mockLeague);
+  return mockDelay(tier ? mockLeagueByTier[tier] : mockLeague);
 }
 
 export async function purchaseShopItem(itemId: string, idempotencyKey: string): Promise<PurchaseResult> {

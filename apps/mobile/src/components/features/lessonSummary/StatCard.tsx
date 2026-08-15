@@ -24,10 +24,20 @@ export function StatCard({ icon, label, value, onPress }: StatCardProps) {
 
   if (!onPress) return content;
 
-  return <Pressable onPress={onPress}>{content}</Pressable>;
+  return (
+    <Pressable style={styles.pressable} onPress={onPress}>
+      {content}
+    </Pressable>
+  );
 }
 
 const styles = StyleSheet.create({
+  // RN não estica flex por padrão (flexGrow: 0) como o CSS do web faz — sem isso o Pressable
+  // encolhe pro tamanho do conteúdo em vez de dividir a row igualmente, quebrando o grid quando
+  // os dois cards da linha têm larguras de texto diferentes (ex.: "570" vs "1 dias").
+  pressable: {
+    flex: 1,
+  },
   card: {
     flex: 1,
     alignItems: "center",
