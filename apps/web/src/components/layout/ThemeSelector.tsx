@@ -30,10 +30,24 @@ export function ThemeSelector() {
     >
       <DropdownMenuLabel>Trilhas em destaque</DropdownMenuLabel>
       {featured.map((entry) => (
-        <DropdownMenuItem key={entry.topic} onSelect={() => setTopic(entry.topic)} active={entry.topic === theme.topic}>
+        <DropdownMenuItem
+          key={entry.topic}
+          onSelect={() => setTopic(entry.topic)}
+          active={entry.topic === theme.topic}
+          disabled={!entry.hasContent}
+        >
           <span className="flex items-center gap-2">
-            <Icon name={entry.icon} filled={entry.topic === theme.topic} className="text-base" />
-            {entry.label}
+            <Icon
+              name={entry.hasContent ? entry.icon : "lock"}
+              filled={entry.topic === theme.topic}
+              className="text-base"
+            />
+            <span className="flex-1">{entry.label}</span>
+            {!entry.hasContent && (
+              <span className="font-label-caps text-label-caps uppercase text-error shrink-0">
+                Em construção
+              </span>
+            )}
           </span>
         </DropdownMenuItem>
       ))}

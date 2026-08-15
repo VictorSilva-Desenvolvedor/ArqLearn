@@ -1,5 +1,6 @@
 import { useRouter } from "expo-router";
 import { StyleSheet, Text, View } from "react-native";
+import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
 import { Icon } from "@/components/ui/Icon";
@@ -8,10 +9,14 @@ import { colors, spacing, type } from "@/theme/tokens";
 interface InfiniteModePromptCardProps {
   topic: string;
   themeLabel: string;
+  hasContent: boolean;
 }
 
-// Espelha apps/web/src/components/features/explore/InfiniteModePromptCard.tsx.
-export function InfiniteModePromptCard({ topic, themeLabel }: InfiniteModePromptCardProps) {
+// Espelha apps/web/src/components/features/explore/InfiniteModePromptCard.tsx. hasContent:false
+// desabilita "Desafiar-se" em vez de deixar cair no 404 TOPIC_HAS_NO_QUESTIONS do backend
+// (POST /v1/infinite-mode/sessions só sorteia entre perguntas aprovadas do tópico — sem nenhuma,
+// não tem o que sortear).
+export function InfiniteModePromptCard({ topic, themeLabel, hasContent }: InfiniteModePromptCardProps) {
   const router = useRouter();
 
   return (
@@ -25,9 +30,13 @@ export function InfiniteModePromptCard({ topic, themeLabel }: InfiniteModePrompt
           </Text>
         </View>
       </View>
-      <Button variant="gamification" onPress={() => router.push(`/infinito/${topic}/sessao` as never)}>
-        Desafiar-se
-      </Button>
+      {hasContent ? (
+        <Button variant="gamification" onPress={() => router.push(`/infinito/${topic}/sessao` as never)}>
+          Desafiar-se
+        </Button>
+      ) : (
+        <Badge tone="neutral">Em construção</Badge>
+      )}
     </Card>
   );
 }

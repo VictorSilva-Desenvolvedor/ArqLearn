@@ -116,7 +116,7 @@ export default function ExplorarScreen() {
           {uploadError && <Text style={[type.bodySm, styles.uploadError]}>{uploadError}</Text>}
         </View>
 
-        <InfiniteModePromptCard topic={theme.topic} themeLabel={theme.label} />
+        <InfiniteModePromptCard topic={theme.topic} themeLabel={theme.label} hasContent={theme.hasContent} />
 
         <View style={styles.section}>
           <Text style={[type.headlineMd, styles.sectionTitle]}>Trilhas Recomendadas</Text>

@@ -598,3 +598,53 @@ restaurado ao original ao final. Zero erro de console (fora um aviso de hydratio
 `aria-hidden` do Radix Dialog, esperado/benigno, não relacionado a esta mudança).
 `go build`/`vet`/`test`/`gofmt -l`, `tsc --noEmit` (dois apps), `next build` e
 `expo export --platform web` todos limpos.
+
+### 14. Auditoria das "trilhas em destaque" sem conteúdo real (15/08/2026)
+
+Usuário pediu pra conferir, uma por uma, se as trilhas "em destaque" sem itens estavam marcadas
+como "em construção". Consulta direta no Mongo (44 trilhas reais da grade curricular) revelou que
+os **7 temas "de vitrine" originais** (`fundamentos`, `historia`, `urbanismo`,
+`sistemas_construtivos`, `arquitetura_moderna`, `conforto_termico`, `estruturas` — os que aparecem
+em destaque no `ThemeSelector` e nos cards "Trilhas Recomendadas" do Explorar) estavam **todos**
+marcados `hasContent: true` em `themes.ts`, mas **nenhum** corresponde a uma trilha real hoje: 6
+não têm nem trilha com esse `topic` no banco, e o 7º (`conforto_termico`) até bate com uma trilha
+real (`track_s02_conforto_termico`), mas ela tem 0 lições. Resultado: o app prometia um mapa
+pronto que, na prática, ou caía silenciosamente numa trilha real não relacionada (fallback de
+`featuredTrack` em `page.tsx`/`index.tsx`, sem nenhum aviso) ou mostrava "CONCLUÍDO" numa trilha
+vazia.
+
+**Achado ao vivo, corrigido junto:** `unitStatusFor([])` — `Array.prototype.every` em array vazio
+é vacuosamente `true`, então uma trilha sem NENHUMA lição (`units: []` no Mongo, ex.: a trilha real
+"Arquitetura Brasileira") caía no primeiro `if` e virava "CONCLUÍDO" em vez de "EM CONSTRUÇÃO" —
+reproduzido ao vivo antes da correção, confirmado corrigido depois.
+
+Mudanças (mobile + web):
+- `themes.ts`: os 7 temas de vitrine passam a `hasContent: false`.
+- `unitStatusFor`: trilha com `lessons.length === 0` retorna `"construction"` direto, sem passar
+  pelo `every` vacuoso.
+- `exploreTracks.ts`: `RecommendedTrack` ganha `hasContent` (derivado de `themes.ts` pelo mesmo
+  `topic`, uma única fonte de verdade) — os cards de "Trilhas Recomendadas" sem conteúdo real
+  trocam o selo de dificuldade/duração (que seriam inventados) por "Em construção" e esmaecem.
+- `InfiniteModePromptCard`: ganha prop `hasContent` — sem isso, "Desafiar-se" num tema vazio caía
+  no `404 TOPIC_HAS_NO_QUESTIONS` do backend (`POST /v1/infinite-mode/sessions` só sorteia entre
+  perguntas aprovadas do tópico). Agora mostra "Em construção" no lugar do botão.
+- `ThemeSelector` (web): a seção "Trilhas em destaque" nunca tinha o tratamento de
+  cadeado/"Em construção" que a lista de disciplinas por semestre já tinha (`disabled`,
+  ícone de cadeado, rótulo em vermelho) — só ninguém tinha notado porque os 7 vitrine estavam
+  (erroneamente) sempre `hasContent: true`. Unificado: mesmo tratamento nas duas seções. No
+  mobile já não tinha essa lacuna — as duas seções sempre compartilharam o mesmo `ThemeRow`.
+- Web ganhou paridade que faltava: `TrackCard` (Explorar) não tinha `onClick` nenhum (mobile já
+  selecionava o tema ao tocar, via `setTopic`); agora os dois selecionam o tema ao clicar/tocar.
+
+As 5 trilhas reais com conteúdo aprovado (`construcoes_sustentaveis`, `desenho_arquitetura_urbanismo`,
+`maquetes`, `projeto_arquitetura_cultural`, `informatica_projecoes_ortogonais`) já estavam
+corretamente marcadas `hasContent: true` — confirmado, não precisaram de correção.
+
+Verificado ao vivo (mesmo setup de sempre, login real): Home mostra o aviso "Ainda estamos
+preparando as lições de Fundamentos de Arquitetura" (nunca aparecia antes) e a trilha de
+fallback "Arquitetura Brasileira" corretamente "EM CONSTRUÇÃO" em vez de "CONCLUÍDO"; Explorar
+mostra as 7 "Trilhas Recomendadas" com selo "Em construção" e o card de Modo Infinito com
+"Em construção" no lugar de "Desafiar-se"; dropdown do `ThemeSelector` mostra cadeado + "Em
+construção" nas 7 trilhas em destaque, mantendo as 5 reais desbloqueadas. Idêntico nos dois apps,
+zero erro de console. `tsc --noEmit` (dois apps) e `next build` limpos (sem mudança de backend
+nesta rodada, então sem novo `go build`/`test`).
