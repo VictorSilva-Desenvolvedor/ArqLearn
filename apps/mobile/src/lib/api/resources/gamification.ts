@@ -2,9 +2,17 @@ import { isResourceReal } from "../config";
 import { apiFetch, ApiError } from "../http";
 import { mockDelay } from "../mocks/delay";
 import { mockAchievementUnlocks, mockGamificationProfile, mockLeague, mockLeagueByTier } from "../mocks/fixtures/gamification";
+import { getMockDailyChestStatus, mockOpenDailyChest } from "../mocks/fixtures/dailyChest";
 import { mockShopCatalog } from "../mocks/fixtures/shopCatalog";
 import type { LeagueTierName } from "@/lib/gamification/leagueTiers";
-import type { Achievement, GamificationProfile, League, PurchaseResult } from "@/types/api";
+import type {
+  Achievement,
+  ChestOpenResult,
+  DailyChestStatus,
+  GamificationProfile,
+  League,
+  PurchaseResult,
+} from "@/types/api";
 
 export interface GamificationMeResponse extends GamificationProfile {
   achievements: Achievement[];
@@ -77,4 +85,28 @@ export async function freezeStreak(currentFreezesAvailable: number): Promise<Fre
     });
   }
   return mockDelay({ streak_freezes_available: currentFreezesAvailable - 1 }, 300);
+}
+
+// Baú Diário (v1.18, a pedido do usuário) — 1 abertura por dia local ao responder 10 perguntas no
+// dia (lição + Modo Infinito somados, ver AnswerResult/InfiniteModeAnswerResult). Status/abertura
+// são dois endpoints porque o corpo aceita re-consulta livre (GET) sem gastar a abertura em si.
+export async function getDailyChestStatus(): Promise<DailyChestStatus> {
+  if (isResourceReal("gamification")) {
+    return apiFetch<DailyChestStatus>("/v1/gamification/daily-chest");
+  }
+  return mockDelay(getMockDailyChestStatus());
+}
+
+export async function openDailyChest(): Promise<ChestOpenResult> {
+  if (isResourceReal("gamification")) {
+    return apiFetch<ChestOpenResult>("/v1/gamification/daily-chest/open", { method: "POST" });
+  }
+  if (!getMockDailyChestStatus().available) {
+    throw new ApiError(409, {
+      error_code: "CHEST_NOT_AVAILABLE",
+      message: "Nenhum Baú Diário disponível pra abrir agora.",
+      trace_id: "mock-trace",
+    });
+  }
+  return mockDelay(mockOpenDailyChest(), 400);
 }

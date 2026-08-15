@@ -250,3 +250,55 @@ func ProximaVidaEm(heartsCurrent int, heartsUpdatedAt time.Time) *time.Time {
 	next := heartsUpdatedAt.Add(HeartsRegenInterval)
 	return &next
 }
+
+// ChestQuestionsRequired é quantas perguntas respondidas no dia local (lição OU Modo Infinito,
+// contagem acumulada — a pedido do usuário) liberam o Baú Diário pra abrir.
+const ChestQuestionsRequired = 10
+
+// QuestoesHojeAposReset aplica o mesmo reset preguiçoso de XPHojeAposReset (TDD §3.2) pro contador
+// de perguntas do dia que libera o Baú Diário: muda de dia local, volta a zero antes de contar a
+// resposta atual.
+func QuestoesHojeAposReset(questoesHoje int, questoesHojeDate, hojeLocal string) int {
+	if questoesHojeDate != hojeLocal {
+		return 0
+	}
+	return questoesHoje
+}
+
+// ChestRewardType é o tipo de recompensa sorteada ao abrir o Baú Diário.
+type ChestRewardType string
+
+const (
+	ChestRewardGems         ChestRewardType = "gems"
+	ChestRewardStreakFreeze ChestRewardType = "streak_freeze"
+	ChestRewardHeartsRefill ChestRewardType = "hearts_refill"
+)
+
+// ChestReward é o resultado de RolarRecompensaBau.
+type ChestReward struct {
+	Type ChestRewardType
+	// GemsAmount só é preenchido quando Type == ChestRewardGems (1 a 5, ver RolarRecompensaBau).
+	GemsAmount int
+}
+
+// RolarRecompensaBau sorteia a recompensa do Baú Diário — a pedido do usuário: gemas (1 a 5) na
+// maioria das vezes, ou um item grátis do sistema como prêmio mais raro (metade Bloqueio de
+// Ofensiva, metade Recarga de Vidas — os dois itens consumíveis reais da Loja, ver
+// migrations/0004_shop_items_seed; cosméticos ficam de fora do pool, caro demais pra sair de
+// graça todo dia). rollType decide o tipo (gemas vs item), rollDetail decide o detalhe dentro do
+// tipo escolhido (quantidade de gemas, ou qual item) — os dois em [0,1), o chamador HTTP gera com
+// math/rand. Pura e determinística pros dois floats de entrada, pra dar pra testar sem mockar RNG.
+func RolarRecompensaBau(rollType, rollDetail float64) ChestReward {
+	const probabilidadeGemas = 0.75
+	if rollType < probabilidadeGemas {
+		gemsAmount := 1 + int(rollDetail*5)
+		if gemsAmount > 5 {
+			gemsAmount = 5
+		}
+		return ChestReward{Type: ChestRewardGems, GemsAmount: gemsAmount}
+	}
+	if rollDetail < 0.5 {
+		return ChestReward{Type: ChestRewardStreakFreeze}
+	}
+	return ChestReward{Type: ChestRewardHeartsRefill}
+}

@@ -1,0 +1,280 @@
+<!DOCTYPE html>
+
+<html lang="pt-BR"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Reward Unlocked</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@400;600;700&amp;family=Inter:wght@400;500;600&amp;family=JetBrains+Mono:wght@500;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .material-symbols-outlined.filled {
+            font-variation-settings: 'FILL' 1;
+        }
+        
+        /* Blueprint Grid Background */
+        .bg-blueprint {
+            background-color: #f8f9ff;
+            background-image: 
+                linear-gradient(rgba(46, 92, 138, 0.05) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(46, 92, 138, 0.05) 1px, transparent 1px),
+                linear-gradient(rgba(46, 92, 138, 0.02) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(46, 92, 138, 0.02) 1px, transparent 1px);
+            background-size: 100px 100px, 100px 100px, 20px 20px, 20px 20px;
+            background-position: -2px -2px, -2px -2px, -1px -1px, -1px -1px;
+        }
+        
+        /* Glow Animation for Chest */
+        @keyframes subtle-glow {
+            0% { filter: drop-shadow(0 0 15px rgba(253, 168, 100, 0.4)); transform: translateY(0); }
+            50% { filter: drop-shadow(0 0 25px rgba(253, 168, 100, 0.7)); transform: translateY(-4px); }
+            100% { filter: drop-shadow(0 0 15px rgba(253, 168, 100, 0.4)); transform: translateY(0); }
+        }
+        .animate-chest-glow {
+            animation: subtle-glow 3s ease-in-out infinite;
+        }
+
+        /* Floating elements animation */
+        @keyframes float {
+            0% { transform: translateY(0px) rotate(0deg); }
+            50% { transform: translateY(-10px) rotate(5deg); }
+            100% { transform: translateY(0px) rotate(0deg); }
+        }
+        .float-delay-1 { animation: float 4s ease-in-out infinite; }
+        .float-delay-2 { animation: float 4.5s ease-in-out infinite 0.5s; }
+        .float-delay-3 { animation: float 5s ease-in-out infinite 1s; }
+    </style>
+<script id="tailwind-config">
+        tailwind.config = {
+          darkMode: "class",
+          theme: {
+            extend: {
+              "colors": {
+                      "outline": "#727780",
+                      "on-tertiary-container": "#92e58c",
+                      "on-surface-variant": "#42474f",
+                      "primary-container": "#2e5c8a",
+                      "primary-fixed": "#d1e4ff",
+                      "secondary-container": "#fda864",
+                      "secondary-fixed": "#ffdcc4",
+                      "surface-container-low": "#eff4ff",
+                      "surface-tint": "#34618f",
+                      "tertiary-fixed-dim": "#88d982",
+                      "on-tertiary-fixed": "#002204",
+                      "tertiary-container": "#156820",
+                      "blueprint-grid": "#E5E7EB",
+                      "background": "#f8f9ff",
+                      "on-primary-container": "#b2d4ff",
+                      "surface-container-high": "#dee9fc",
+                      "on-primary-fixed-variant": "#164976",
+                      "surface-container-highest": "#d9e3f6",
+                      "error-container": "#ffdad6",
+                      "on-error-container": "#93000a",
+                      "secondary": "#8f4e0f",
+                      "on-secondary-fixed": "#2f1400",
+                      "inverse-surface": "#27313f",
+                      "on-background": "#121c2a",
+                      "surface-dim": "#d0dbed",
+                      "surface-container-lowest": "#ffffff",
+                      "surface-bright": "#f8f9ff",
+                      "on-surface": "#121c2a",
+                      "error-red": "#B00020",
+                      "surface-container": "#e6eeff",
+                      "inverse-primary": "#9fcafe",
+                      "on-secondary": "#ffffff",
+                      "secondary-fixed-dim": "#ffb780",
+                      "outline-variant": "#c2c7d0",
+                      "on-secondary-fixed-variant": "#6f3800",
+                      "surface-variant": "#d9e3f6",
+                      "muted-text": "#6B7280",
+                      "inverse-on-surface": "#eaf1ff",
+                      "surface": "#f8f9ff",
+                      "on-error": "#ffffff",
+                      "tertiary": "#004e10",
+                      "on-tertiary": "#ffffff",
+                      "on-primary-fixed": "#001d36",
+                      "on-primary": "#ffffff",
+                      "surface-gray": "#F3F4F6",
+                      "on-tertiary-fixed-variant": "#005312",
+                      "error": "#ba1a1a",
+                      "tertiary-fixed": "#a3f69c",
+                      "primary": "#0e4471",
+                      "primary-fixed-dim": "#9fcafe",
+                      "on-secondary-container": "#753c00"
+              },
+              "borderRadius": {
+                      "DEFAULT": "0.25rem",
+                      "lg": "0.5rem",
+                      "xl": "0.75rem",
+                      "full": "9999px"
+              },
+              "spacing": {
+                      "md": "16px",
+                      "xs": "8px",
+                      "lg": "24px",
+                      "container-max": "1120px",
+                      "section": "48px",
+                      "base": "4px",
+                      "xl": "32px",
+                      "sm": "12px"
+              },
+              "fontFamily": {
+                      "body-lg": [
+                              "Inter"
+                      ],
+                      "question-lg": [
+                              "Hanken Grotesk"
+                      ],
+                      "question-sm": [
+                              "Hanken Grotesk"
+                      ],
+                      "body-md": [
+                              "Inter"
+                      ],
+                      "body-sm": [
+                              "Inter"
+                      ],
+                      "stats-num": [
+                              "JetBrains Mono"
+                      ],
+                      "label-caps": [
+                              "JetBrains Mono"
+                      ],
+                      "headline-md": [
+                              "Hanken Grotesk"
+                      ],
+                      "display-lg": [
+                              "Hanken Grotesk"
+                      ]
+              },
+              "fontSize": {
+                      "body-lg": [
+                              "16px",
+                              {
+                                      "lineHeight": "24px",
+                                      "fontWeight": "400"
+                              }
+                      ],
+                      "question-lg": [
+                              "20px",
+                              {
+                                      "lineHeight": "28px",
+                                      "fontWeight": "600"
+                              }
+                      ],
+                      "question-sm": [
+                              "18px",
+                              {
+                                      "lineHeight": "24px",
+                                      "fontWeight": "600"
+                              }
+                      ],
+                      "body-md": [
+                              "15px",
+                              {
+                                      "lineHeight": "22px",
+                                      "fontWeight": "400"
+                              }
+                      ],
+                      "body-sm": [
+                              "14px",
+                              {
+                                      "lineHeight": "20px",
+                                      "fontWeight": "400"
+                              }
+                      ],
+                      "stats-num": [
+                              "22px",
+                              {
+                                      "lineHeight": "28px",
+                                      "fontWeight": "700"
+                              }
+                      ],
+                      "label-caps": [
+                              "12px",
+                              {
+                                      "lineHeight": "16px",
+                                      "letterSpacing": "0.05em",
+                                      "fontWeight": "500"
+                              }
+                      ],
+                      "headline-md": [
+                              "24px",
+                              {
+                                      "lineHeight": "32px",
+                                      "fontWeight": "700"
+                              }
+                      ],
+                      "display-lg": [
+                              "28px",
+                              {
+                                      "lineHeight": "36px",
+                                      "fontWeight": "700"
+                              }
+                      ]
+              }
+      },
+          },
+        }
+    </script>
+</head>
+<body class="bg-blueprint text-on-surface min-h-screen flex flex-col font-body-md overflow-x-hidden">
+<!-- TopAppBar -->
+<header class="fixed top-0 w-full bg-surface/80 dark:bg-surface/80 backdrop-blur-md border-b border-outline-variant dark:border-outline flex justify-between items-center px-md h-16 w-full z-50">
+<button aria-label="Close" class="w-10 h-10 flex items-center justify-center rounded-full text-on-surface-variant hover:bg-surface-container-high transition-colors active:scale-95 duration-150">
+<span class="material-symbols-outlined" data-icon="close">close</span>
+</button>
+<h1 class="font-headline-md text-headline-md text-primary font-bold">Reward Unlocked</h1>
+<div class="w-10"></div> <!-- Spacer for centering -->
+</header>
+<!-- Main Content Canvas -->
+<main class="flex-grow flex flex-col items-center justify-center pt-24 pb-12 px-lg relative max-w-container-max mx-auto w-full">
+<!-- Background Accents -->
+<div class="absolute inset-0 pointer-events-none flex justify-center items-center opacity-30">
+<div class="w-96 h-96 rounded-full bg-primary-fixed blur-[80px]"></div>
+<div class="w-64 h-64 rounded-full bg-secondary-fixed blur-[60px] ml-[-100px] mt-[-100px]"></div>
+</div>
+<!-- Headline Content -->
+<div class="text-center z-10 mb-xl w-full max-w-md">
+<h2 class="font-display-lg text-display-lg text-primary mb-xs">Você ganhou um Baú de Projeto!</h2>
+<p class="font-body-lg text-body-lg text-on-surface-variant">Seu esforço na prancheta digital gerou resultados estruturais.</p>
+</div>
+<!-- The Chest Presentation Area -->
+<div class="relative w-full max-w-md flex justify-center items-center py-xl z-10">
+<!-- Decorative Crosshairs behind chest -->
+<div class="absolute inset-0 flex justify-center items-center opacity-20 pointer-events-none">
+<div class="w-full h-px bg-primary"></div>
+<div class="absolute h-full w-px bg-primary"></div>
+<div class="absolute w-64 h-64 border border-primary rounded-full"></div>
+</div>
+<!-- Chest Image -->
+<img alt="Ilustração geométrica de um baú de projeto arquitetônico" class="w-64 h-64 md:w-80 md:h-80 object-contain z-20 animate-chest-glow drop-shadow-2xl mix-blend-multiply" src="https://lh3.googleusercontent.com/aida-public/AB6AXuB8AEuK3HHunl13peucCba_ye9BPzhPoRJahPjnnS0_TEItd1kpJlhQg-RVVLKzIOZcuHIU7un-ZD4CfmCKrRInQ46_FsY1uWNeqH58pCO04kKh8yqRTUvF6miky80DGsrOWM0xur5FpDxmrdv11GlsMlD8jodqzHI9lhHV2Q_DvjGNVIbyAbcjW_N_DIjU35rB_xdncxWDilnNfBxbf3CDQi8yNGU44RUwbwr4pt3fQSpm8FNNdFEOiQ"/>
+<!-- Floating Rewards Indicators (Subtle gamification) -->
+<div class="absolute -top-4 right-8 bg-surface-container-highest border border-outline-variant px-sm py-xs rounded-lg flex items-center gap-xs float-delay-1 shadow-sm">
+<span class="material-symbols-outlined text-secondary-container filled text-[20px]">diamond</span>
+<span class="font-stats-num text-[16px] text-primary">??</span>
+</div>
+<div class="absolute top-1/4 -left-4 bg-surface-container-highest border border-outline-variant px-sm py-xs rounded-lg flex items-center gap-xs float-delay-2 shadow-sm">
+<span class="material-symbols-outlined text-primary filled text-[20px]">star</span>
+<span class="font-stats-num text-[16px] text-primary">?? XP</span>
+</div>
+<div class="absolute bottom-8 right-0 bg-surface-container-highest border border-outline-variant px-sm py-xs rounded-lg flex items-center gap-xs float-delay-3 shadow-sm">
+<span class="material-symbols-outlined text-tertiary-container filled text-[20px]">architecture</span>
+<span class="font-label-caps text-label-caps text-primary uppercase">Blueprint</span>
+</div>
+</div>
+<!-- Call to Action -->
+<div class="z-10 mt-lg w-full max-w-sm">
+<button class="w-full bg-secondary-container text-on-secondary-container font-headline-md text-headline-md py-md rounded-xl border-b-4 border-[#e69450] hover:bg-[#ffb57a] active:border-b-0 active:translate-y-[4px] transition-all duration-150 flex items-center justify-center gap-sm shadow-md">
+<span>Abrir Baú</span>
+<span class="material-symbols-outlined">lock_open</span>
+</button>
+<p class="text-center font-body-sm text-body-sm text-muted-text mt-sm">Toque para revelar seus materiais de projeto.</p>
+</div>
+</main>
+<!-- Navigation Suppressed: Transactional/Celebratory Intent -->
+</body></html>

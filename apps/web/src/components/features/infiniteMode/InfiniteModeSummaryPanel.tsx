@@ -12,6 +12,7 @@ interface InfiniteModeSummaryPanelProps {
   accuracy: number;
   xpEarned: number;
   avgTimeMs: number;
+  chestAvailable?: boolean;
 }
 
 export function InfiniteModeSummaryPanel({
@@ -20,6 +21,7 @@ export function InfiniteModeSummaryPanel({
   accuracy,
   xpEarned,
   avgTimeMs,
+  chestAvailable = false,
 }: InfiniteModeSummaryPanelProps) {
   const router = useRouter();
   const title = accuracy >= 90 ? "Nota Máxima Alcançada!" : "Sessão Concluída!";
@@ -63,6 +65,16 @@ export function InfiniteModeSummaryPanel({
         </div>
 
         <div className="flex flex-col gap-sm">
+          {chestAvailable && (
+            <Button
+              variant="gamification"
+              fullWidth
+              onClick={() => router.push("/bau")}
+              icon={<Icon name="redeem" filled className="text-2xl" />}
+            >
+              Abrir Baú Diário
+            </Button>
+          )}
           <Button variant="primary" fullWidth onClick={() => router.push("/")}>
             Voltar ao Mapa
           </Button>

@@ -3,7 +3,7 @@
 
 Especificação de referência dos endpoints REST expostos pelo API Gateway.
 
-Versão 1.17 | Agosto de 2026
+Versão 1.18 | Agosto de 2026
 Documento complementar ao SAD e ao TDD do ArqLearn v1.0
 
 > **Sobre esta versão:** versão em Markdown, mantida como fonte da verdade a partir de agora (ver
@@ -32,6 +32,7 @@ Documento complementar ao SAD e ao TDD do ArqLearn v1.0
 | 1.15 | 09/08/2026 | Equipe de Engenharia | §14: adiciona `type` (`bug \| suggestion`) e `device_model`/`device_type` a `bug_reports` (a pedido do usuário) — recompensa por resolução passa a depender do tipo: bug corrigido sobe de 5 pra **10 gemas**, sugestão implementada vale **50 gemas** (notificação nova `suggestion_implemented`, §9) |
 | 1.16 | 09/08/2026 | Equipe de Engenharia | §8: `achievements` em `GET /v1/gamification/me` passa a ser preenchido de verdade — desde a v1.0 a tabela existia mas nada nunca gravava nela. Catálogo de ~44 conquistas (a pedido do usuário) cobrindo lições, Modo Infinito, streak, Loja, Materiais e relatos de bug, a maioria em 5 níveis progressivos; cada desbloqueio credita XP/gemas uma única vez. Nenhum contrato mudou — resposta já era `{type, unlocked_at}[]` |
 | 1.17 | 15/08/2026 | Equipe de Engenharia | §3.2: adiciona `streak_freezes_available`/`streak_at_risk` ao `GamificationProfile` — streak agora expira sozinha após 24h sem prática (expiração preguiçosa, TDD §5.2/§5.3, mesmo padrão da regeneração de vidas §5.4, sem job/cron), consumindo automaticamente um Bloqueio de Ofensiva por dia faltante quando disponível. §8: `POST /v1/gamification/streak/freeze` passa a também avançar `streak_last_active_date` (uso manual, diferente do consumo automático — ver nota) |
+| 1.18 | 15/08/2026 | Equipe de Engenharia | §8.1 (novo): Baú Diário — a pedido do usuário, 1 abertura por dia local ao responder 10 perguntas no dia (lição + Modo Infinito somados). `GET /v1/gamification/daily-chest` (status) e `POST .../daily-chest/open` (sorteia 75% gemas 1-5 / 25% item consumível grátis — Bloqueio de Ofensiva ou Recarga de Vidas) são endpoints novos. §6/§6.1: `POST .../answers` (lição e Modo Infinito) ganham `daily_chest_available`/`daily_chest_questions` na resposta |
 
 ---
 
@@ -290,11 +291,14 @@ ativa.
   "xp_daily_cap_reached": boolean,
   "vidas_restantes": integer,
   "streak_atual": integer,
-  "explicacao": "string"
+  "explicacao": "string",
+  "daily_chest_available": boolean,
+  "daily_chest_questions": integer
 }
 ```
 `xp_ganho` já vem líquido do limite diário de XP (TDD §3.2) — quando `xp_daily_cap_reached` é `true`,
 `xp_ganho` pode ser `0` mesmo com `correct: true`. *(campo `xp_daily_cap_reached` adicionado na v1.2)*
+`daily_chest_available`/`daily_chest_questions` *(v1.18)* — ver §8.1 Baú Diário.
 
 > **v1.5 — `answer` é id, não texto.** O corpo aceita o `id` da opção escolhida (ex.: `"b"`), não o
 > texto da resposta. Decisão tomada ao integrar com o app: comparar texto literal é frágil (acento,
@@ -377,14 +381,17 @@ próxima questão do modo infinito.
   "questions_answered": integer,
   "correct_count": integer,
   "level": integer,
-  "next_question": { "...Question" }
+  "next_question": { "...Question" },
+  "daily_chest_available": boolean,
+  "daily_chest_questions": integer
 }
 ```
 `next_question` ausente quando o banco de perguntas do tópico se esgota — cliente deve tratar como fim
 de sessão nesse caso. Campo `xp_daily_cap_reached` adicionado na v1.2, mesmo comportamento de §6.
 `level` adicionado na v1.3 = `floor(questions_answered / 20) + 1`, calculado pro cliente exibir "Nível
 N" sem duplicar a conta — todo tópico ganha esse número, mas só `"maquetes"` de fato gera lição nova a
-cada nível (ver decisão acima).
+cada nível (ver decisão acima). `daily_chest_available`/`daily_chest_questions` *(v1.18)* — ver §8.1
+Baú Diário; Modo Infinito soma pro mesmo contador acumulado do dia que lição usa.
 
 **`POST /v1/infinite-mode/sessions/{session_id}/end`** — Encerra a sessão manualmente (botão "Desistir"
 na UX) e retorna o resumo final.
@@ -636,6 +643,48 @@ Erros: `409 NO_STREAK_FREEZE_AVAILABLE`
 { "gems_restantes": integer, "item": { "id", "tipo" } }
 ```
 Erros: `402 INSUFFICIENT_GEMS` · `404 ITEM_NOT_FOUND`
+
+### 8.1 Baú Diário *(v1.18)*
+
+A pedido do usuário: 1 baú por dia local, liberado ao responder 10 perguntas no dia (lição OU Modo
+Infinito, contagem acumulada, qualquer combinação — não precisa ser na mesma sessão). Sem job/cron
+— expiração/contagem preguiçosa, mesmo padrão de vidas (TDD §5.4) e streak (§5.2/§5.3):
+`internal/gamification.LoadDailyChestStatus` reresolve o contador do dia (`chest_questions_today`/
+`chest_questions_date`, mesmo reset preguiçoso de `xp_today`) a cada leitura. O contador em si é
+incrementado dentro de `POST /v1/lessons/{lesson_id}/answers` e
+`POST /v1/infinite-mode/sessions/{session_id}/answers` (ver §6/§6.1) — as duas respostas ganham
+`daily_chest_available`/`daily_chest_questions` pra o cliente saber na hora, sem round-trip extra,
+quando a resposta que acabou de mandar foi a 10ª do dia.
+
+**`GET /v1/gamification/daily-chest`** — Status do Baú Diário do usuário autenticado.
+
+```json
+// Response 200
+{
+  "questions_today": integer,
+  "questions_required": 10,
+  "available": boolean,
+  "claimed_today": boolean
+}
+```
+
+**`POST /v1/gamification/daily-chest/open`** — Abre o Baú Diário disponível e sorteia a
+recompensa (`internal/gamification.RolarRecompensaBau`): **75%** gemas (1 a 5, uniforme), **25%**
+um item consumível grátis do sistema (metade Bloqueio de Ofensiva, metade Recarga de Vidas — os
+dois itens consumíveis reais da Loja, `migrations/0004_shop_items_seed`; cosméticos ficam de fora
+do pool). Sem `Idempotency-Key`: a trava de "1 por dia" já é o `chest_claimed_date` em si, gravado
+atomicamente com a aplicação do prêmio.
+
+```json
+// Response 200 — reward_type: "gems"
+{ "reward_type": "gems", "gems_earned": integer, "gems": integer }
+// Response 200 — reward_type: "streak_freeze" | "hearts_refill"
+{ "reward_type": "streak_freeze", "gems": integer }
+```
+`gems` é sempre o saldo total após a abertura (igual ao padrão de `gems_restantes` da compra na
+Loja), não o quanto foi ganho — `gems_earned` só existe quando `reward_type` é `"gems"`. Erros:
+`409 CHEST_NOT_AVAILABLE` (ainda não bateu as 10 perguntas do dia, ou já foi aberto hoje —
+reconsultado no servidor, nunca confiado no que o cliente mandou).
 
 ## 9. Notifications Service
 

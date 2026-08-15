@@ -3,12 +3,13 @@ import { InfiniteModeSummaryPanel } from "@/components/features/infiniteMode/Inf
 
 // Espelha apps/web/src/app/(lesson)/infinito/[topic]/resumo/page.tsx.
 export default function InfiniteModeSummaryScreen() {
-  const { questions, correct, accuracy, xp, avgTime } = useLocalSearchParams<{
+  const { questions, correct, accuracy, xp, avgTime, chest } = useLocalSearchParams<{
     questions: string;
     correct: string;
     accuracy: string;
     xp: string;
     avgTime: string;
+    chest: string;
   }>();
 
   return (
@@ -18,6 +19,7 @@ export default function InfiniteModeSummaryScreen() {
       accuracy={Number(accuracy ?? 0)}
       xpEarned={Number(xp ?? 0)}
       avgTimeMs={Number(avgTime ?? 0)}
+      chestAvailable={chest === "true"}
     />
   );
 }

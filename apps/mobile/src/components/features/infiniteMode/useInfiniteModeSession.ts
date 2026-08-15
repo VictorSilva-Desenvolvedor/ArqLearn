@@ -100,9 +100,10 @@ export function useInfiniteModeSession(topic: string) {
         accuracy: String(end.accuracy_rate),
         xp: String(end.xp_earned),
         avgTime: String(end.avg_time_ms),
+        chest: String(lastResult?.daily_chest_available ?? false),
       },
     });
-  }, [sessionId, router, topic]);
+  }, [sessionId, router, topic, lastResult]);
 
   const giveUp = useCallback(() => {
     finishAndGoToSummary();

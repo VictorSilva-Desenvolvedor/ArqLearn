@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+
+<html lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Baú Aberto</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;family=Hanken+Grotesk:wght@400;600;700&amp;family=JetBrains+Mono:wght@400;500;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                            "outline": "#727780",
+                            "on-tertiary-container": "#92e58c",
+                            "on-surface-variant": "#42474f",
+                            "primary-container": "#2e5c8a",
+                            "primary-fixed": "#d1e4ff",
+                            "secondary-container": "#fda864",
+                            "secondary-fixed": "#ffdcc4",
+                            "surface-container-low": "#eff4ff",
+                            "surface-tint": "#34618f",
+                            "tertiary-fixed-dim": "#88d982",
+                            "on-tertiary-fixed": "#002204",
+                            "tertiary-container": "#156820",
+                            "blueprint-grid": "#E5E7EB",
+                            "background": "#f8f9ff",
+                            "on-primary-container": "#b2d4ff",
+                            "surface-container-high": "#dee9fc",
+                            "on-primary-fixed-variant": "#164976",
+                            "surface-container-highest": "#d9e3f6",
+                            "error-container": "#ffdad6",
+                            "on-error-container": "#93000a",
+                            "secondary": "#8f4e0f",
+                            "on-secondary-fixed": "#2f1400",
+                            "inverse-surface": "#27313f",
+                            "on-background": "#121c2a",
+                            "surface-dim": "#d0dbed",
+                            "surface-container-lowest": "#ffffff",
+                            "surface-bright": "#f8f9ff",
+                            "on-surface": "#121c2a",
+                            "error-red": "#B00020",
+                            "surface-container": "#e6eeff",
+                            "inverse-primary": "#9fcafe",
+                            "on-secondary": "#ffffff",
+                            "secondary-fixed-dim": "#ffb780",
+                            "outline-variant": "#c2c7d0",
+                            "on-secondary-fixed-variant": "#6f3800",
+                            "surface-variant": "#d9e3f6",
+                            "muted-text": "#6B7280",
+                            "inverse-on-surface": "#eaf1ff",
+                            "surface": "#f8f9ff",
+                            "on-error": "#ffffff",
+                            "tertiary": "#004e10",
+                            "on-tertiary": "#ffffff",
+                            "on-primary-fixed": "#001d36",
+                            "on-primary": "#ffffff",
+                            "surface-gray": "#F3F4F6",
+                            "on-tertiary-fixed-variant": "#005312",
+                            "error": "#ba1a1a",
+                            "tertiary-fixed": "#a3f69c",
+                            "primary": "#0e4471",
+                            "primary-fixed-dim": "#9fcafe",
+                            "on-secondary-container": "#753c00",
+                            "brand-orange": "#C77B3B"
+                    },
+                    "borderRadius": {
+                            "DEFAULT": "0.25rem",
+                            "lg": "0.5rem",
+                            "xl": "0.75rem",
+                            "full": "9999px",
+                            "button": "12px",
+                            "card": "12px"
+                    },
+                    "spacing": {
+                            "md": "16px",
+                            "xs": "8px",
+                            "lg": "24px",
+                            "container-max": "1120px",
+                            "section": "48px",
+                            "base": "4px",
+                            "xl": "32px",
+                            "sm": "12px"
+                    },
+                    "fontFamily": {
+                            "body-lg": ["Inter", "sans-serif"],
+                            "question-lg": ["Hanken Grotesk", "sans-serif"],
+                            "question-sm": ["Hanken Grotesk", "sans-serif"],
+                            "body-md": ["Inter", "sans-serif"],
+                            "body-sm": ["Inter", "sans-serif"],
+                            "stats-num": ["JetBrains Mono", "monospace"],
+                            "label-caps": ["JetBrains Mono", "monospace"],
+                            "headline-md": ["Hanken Grotesk", "sans-serif"],
+                            "display-lg": ["Hanken Grotesk", "sans-serif"]
+                    },
+                    "fontSize": {
+                            "body-lg": ["16px", {"lineHeight": "24px", "fontWeight": "400"}],
+                            "question-lg": ["20px", {"lineHeight": "28px", "fontWeight": "600"}],
+                            "question-sm": ["18px", {"lineHeight": "24px", "fontWeight": "600"}],
+                            "body-md": ["15px", {"lineHeight": "22px", "fontWeight": "400"}],
+                            "body-sm": ["14px", {"lineHeight": "20px", "fontWeight": "400"}],
+                            "stats-num": ["22px", {"lineHeight": "28px", "fontWeight": "700"}],
+                            "label-caps": ["12px", {"lineHeight": "16px", "letterSpacing": "0.05em", "fontWeight": "500"}],
+                            "headline-md": ["24px", {"lineHeight": "32px", "fontWeight": "700"}],
+                            "display-lg": ["28px", {"lineHeight": "36px", "fontWeight": "700"}]
+                    },
+                    "backgroundImage": {
+                        "grid-pattern": "linear-gradient(to right, #E5E7EB 1px, transparent 1px), linear-gradient(to bottom, #E5E7EB 1px, transparent 1px)"
+                    }
+                }
+            }
+        }
+    </script>
+<style>
+        .bg-grid {
+            background-size: 20px 20px;
+        }
+        
+        .glow-effect {
+            box-shadow: 0 0 40px rgba(199, 123, 59, 0.4);
+        }
+        
+        .floating-element {
+            animation: float 3s ease-in-out infinite;
+        }
+        
+        @keyframes float {
+            0% { transform: translateY(0px); }
+            50% { transform: translateY(-10px); }
+            100% { transform: translateY(0px); }
+        }
+        
+        .confetti-piece {
+            position: absolute;
+            opacity: 0;
+            animation: fall 4s linear infinite;
+        }
+        
+        @keyframes fall {
+            0% { transform: translateY(-100px) rotate(0deg); opacity: 1; }
+            100% { transform: translateY(100vh) rotate(360deg); opacity: 0; }
+        }
+    </style>
+</head>
+<body class="bg-surface text-on-surface antialiased min-h-screen flex flex-col items-center justify-center relative overflow-hidden bg-grid bg-grid-pattern">
+<!-- Confetti / Sparkle Layer -->
+<div class="absolute inset-0 pointer-events-none z-0 overflow-hidden" id="confetti-container">
+<!-- Confetti pieces injected via JS -->
+</div>
+<!-- Main Content Canvas -->
+<main class="relative z-10 w-full max-w-md mx-auto px-lg flex flex-col items-center pt-12 pb-24 min-h-[100dvh]">
+<!-- Header / Headline -->
+<div class="text-center mb-xl w-full">
+<h1 class="font-display-lg text-display-lg text-primary mb-xs">Recompensas Coletadas!</h1>
+<p class="font-body-md text-body-md text-muted-text">O conhecimento arquitetônico se expande.</p>
+</div>
+<!-- Chest Container with Glow -->
+<div class="relative mb-xl w-full max-w-[280px] aspect-square flex items-center justify-center">
+<!-- Golden Glow Background -->
+<div class="absolute inset-0 bg-brand-orange/20 rounded-full blur-3xl glow-effect"></div>
+<!-- Open Chest Image -->
+<img alt="Opened architectural chest" class="w-64 h-64 object-contain mx-auto relative z-10 floating-element" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDHAE-QT_kg95lDMVFeHKkTA-qNmqldfi6DOMwK_l6fk1GW22qQqUOlDKrVODUJkxsNlC6SeplxUYLU9nuiIshEMQtYW5PhlZcLdxDnx0pJ6GkFSkQ96THkOu3Mt76EwTPQBIN69VQLjeWeNw5hdzT23UMsqlk_yz6zquGoshyF2J_9h2t2m4ePWNeZhjZq8CNYGg9-PsAHDpBCjtk6epItwBc3smWIy9Waq5EyL1Y4sEzzJ0xa3moJGQ"/>
+</div>
+<!-- Reward Cards (Bento Grid Style) -->
+<div class="grid grid-cols-2 gap-md w-full mb-section relative z-20">
+<!-- XP Reward Card -->
+<div class="bg-surface-gray border border-outline-variant rounded-card p-md flex flex-col items-center justify-center gap-xs relative overflow-hidden group hover:border-brand-orange transition-colors">
+<div class="absolute top-0 left-0 w-full h-1 bg-brand-orange"></div>
+<div class="w-12 h-12 rounded-full bg-brand-orange/10 flex items-center justify-center mb-xs border-2 border-brand-orange/20">
+<span class="material-symbols-outlined text-brand-orange text-3xl" style="font-variation-settings: 'FILL' 1;">
+                        military_tech
+                    </span>
+</div>
+<div class="font-stats-num text-stats-num text-brand-orange">100 XP</div>
+<div class="font-label-caps text-label-caps text-muted-text uppercase">Experiência</div>
+</div>
+<!-- Gems Reward Card -->
+<div class="bg-surface-gray border border-outline-variant rounded-card p-md flex flex-col items-center justify-center gap-xs relative overflow-hidden group hover:border-brand-orange transition-colors">
+<div class="absolute top-0 left-0 w-full h-1 bg-brand-orange"></div>
+<div class="w-12 h-12 rounded-full bg-brand-orange/10 flex items-center justify-center mb-xs border-2 border-brand-orange/20">
+<span class="material-symbols-outlined text-brand-orange text-3xl" style="font-variation-settings: 'FILL' 1;">
+                        diamond
+                    </span>
+</div>
+<div class="font-stats-num text-stats-num text-brand-orange">50</div>
+<div class="font-label-caps text-label-caps text-muted-text uppercase">Gemas</div>
+</div>
+</div>
+<!-- Spacer to push button to bottom -->
+<div class="flex-grow"></div>
+<!-- Primary Action Button -->
+<div class="w-full mt-auto sticky bottom-lg z-30">
+<button class="w-full bg-secondary-container text-on-secondary-container font-headline-md text-headline-md py-sm rounded-button border-b-4 border-secondary-fixed-dim hover:brightness-105 active:border-b-0 active:translate-y-[4px] transition-all flex items-center justify-center gap-xs shadow-lg shadow-secondary-container/20">
+                Continuar
+                <span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">
+                    arrow_forward
+                </span>
+</button>
+</div>
+</main>
+<script>
+        // Simple JS to generate architectural confetti (triangles, squares, rulers)
+        document.addEventListener('DOMContentLoaded', () => {
+            const container = document.getElementById('confetti-container');
+            const icons = ['change_history', 'square', 'architecture', 'straighten'];
+            const colors = ['text-brand-orange', 'text-primary-fixed-dim', 'text-outline-variant'];
+            
+            const createConfetti = () => {
+                const el = document.createElement('span');
+                el.classList.add('material-symbols-outlined', 'confetti-piece');
+                
+                // Randomize icon
+                const randomIcon = icons[Math.floor(Math.random() * icons.length)];
+                el.innerText = randomIcon;
+                
+                // Randomize color
+                const randomColor = colors[Math.floor(Math.random() * colors.length)];
+                el.classList.add(randomColor);
+                
+                // Randomize position, size, and animation delay
+                const left = Math.random() * 100;
+                const delay = Math.random() * 5;
+                const duration = 3 + Math.random() * 4;
+                const size = 16 + Math.random() * 24;
+                
+                el.style.left = `${left}%`;
+                el.style.animationDelay = `${delay}s`;
+                el.style.animationDuration = `${duration}s`;
+                el.style.fontSize = `${size}px`;
+                
+                // Fill some randomly
+                if(Math.random() > 0.5) {
+                    el.style.fontVariationSettings = "'FILL' 1";
+                }
+                
+                container.appendChild(el);
+            };
+
+            // Generate 30 pieces
+            for(let i=0; i<30; i++) {
+                createConfetti();
+            }
+        });
+    </script>
+</body></html>

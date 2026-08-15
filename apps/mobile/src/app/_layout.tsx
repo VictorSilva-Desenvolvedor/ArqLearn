@@ -47,6 +47,7 @@ function RootNavigator() {
         <Stack.Screen name="trilhas/[trackId]/[lessonId]/sessao" />
         <Stack.Screen name="trilhas/[trackId]/[lessonId]/resumo" />
         <Stack.Screen name="trilhas/[trackId]/[lessonId]/conquista" />
+        <Stack.Screen name="bau" />
         <Stack.Screen name="infinito/[topic]/sessao" />
         <Stack.Screen name="infinito/[topic]/resumo" />
         <Stack.Screen name="materiais/[uploadId]/resumo" />

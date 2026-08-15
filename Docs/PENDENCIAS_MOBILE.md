@@ -695,3 +695,59 @@ throttling as respostas do backend pra segurar o estado tempo suficiente pra cap
 de console relacionado à mudança (só o warning `collapsable` remanescente, conhecido do
 react-native-svg no alvo web, não afeta nativo). `tsc --noEmit` (dois apps), `next build` e
 `expo export --platform web` todos limpos. Nenhuma mudança de backend nesta rodada.
+
+### 16. Baú Diário — novo sistema de recompensa 1x/dia (15/08/2026)
+
+Usuário pediu um sistema novo: 1 vez por dia, ao completar 10 perguntas (lição + Modo Infinito
+somados), o usuário libera um Baú Diário que pode conter gemas (1–5) ou um item do sistema —
+anexou 4 mockups Stitch (baú fechado "Abrir Baú", duas variantes de baú aberto "Recompensas
+Coletadas!", e uma variante mostrando que o prêmio também pode ser um item — "Bloqueio de
+Ofensiva"). Via `AskUserQuestion`, usuário confirmou: pool de recompensa é "Gemas + itens do
+sistema" (não itens *custando* 1–5 gemas — os preços reais da Loja são 200–1200) e o contador
+soma perguntas **acumuladas no dia** (lição + Modo Infinito juntos), não só uma sessão.
+
+**Backend** (migration `0009_daily_chest`, aplicada no banco real):
+- `user_gamification` ganha `chest_questions_today`, `chest_questions_date`, `chest_claimed_date`
+  — mesmo padrão de reset preguiçoso (sem cron) já usado por `xp_today`/streak/vidas:
+  `QuestoesHojeAposReset` zera o contador quando `chest_questions_date` não é hoje no fuso do
+  usuário, do jeito que já existia pra XP.
+- `RolarRecompensaBau(rollType, rollDetail)` (função pura, testada): 75% gemas (1–5, uniforme),
+  25% item grátis — dividido 50/50 entre `streak_freeze` e `hearts_refill` (os dois itens não-
+  cosméticos reais da Loja, `migrations/0004_shop_items_seed`; cosméticos ficam de fora do pool
+  por serem caros demais pra dar de graça todo dia).
+- `handleSubmitAnswer` (lição) e `handleInfiniteModeAnswer` (Modo Infinito) agora incrementam
+  `chest_questions_today` a cada resposta e devolvem `daily_chest_available`/
+  `daily_chest_questions` no payload — cliente nunca decide sozinho se o baú está disponível.
+- `GET /v1/gamification/daily-chest` (status) e `POST /v1/gamification/daily-chest/open`
+  (abertura — revalida disponibilidade no servidor, sorteia a recompensa, credita
+  transacionalmente e grava `chest_claimed_date`, `409 CHEST_NOT_AVAILABLE` se já foi aberto ou
+  ainda não bateu 10 perguntas hoje). Documentado em `ArqLearn_API_Specification.md` §8.1 (v1.18).
+
+**Frontend** (mobile + web, paridade completa): tipos/recursos de API/mocks novos
+(`dailyChest.ts` em cada app — contador mock compartilhado entre `quizSessions.ts` e
+`infiniteModeSessions.ts` via `bumpMockChestQuestions()`, já que o contador real também soma os
+dois). Tela nova `/bau` (web: `app/(lesson)/bau/page.tsx`; mobile: `app/bau.tsx`, registrada em
+`_layout.tsx`) com o mesmo padrão visual da tela de conquista — mas creditando via chamada de API
+real (`openDailyChest()`), não crédito local, já que a recompensa é sorteada no servidor e não dá
+pra simular. Estado "baú indisponível" tratado (usuário navega direto pra `/bau` sem ter batido
+10 perguntas, ou atualiza a página depois de já ter aberto). CTA "Abrir Baú Diário" (botão
+`variant="gamification"`) aparece nos resumos de lição e de Modo Infinito quando
+`daily_chest_available` vem `true` na última resposta da sessão — parâmetro `chest` propagado
+pela URL/params de navegação (mesmo padrão de `xp`/`accuracy`/`streak`/`hearts` já existente).
+
+**Verificação:** `go build`/`vet`/`test`/`gofmt -l` limpos; `tsc --noEmit` (dois apps), `next
+build` e `expo export --platform web` todos limpos, incluindo a rota nova `/bau` aparecendo no
+build do Next. Teste de UI ponta a ponta com login real (Playwright) **não foi possível nesta
+rodada** — as credenciais da conta de teste não estavam disponíveis nesta sessão, e mintar uma
+sessão de login via API admin do Supabase (`generate_link`) foi bloqueado pelo classificador de
+permissão do Claude Code por ser uma ação sensível (impersonar login), decisão respeitada sem
+tentar contornar. Em vez disso, a lógica de backend foi validada **ao vivo contra o Postgres
+real** com um script Go descartável (nunca commitado, mesmo padrão já usado antes nesta pendência)
+chamando `gamification.LoadDailyChestStatus` de verdade e reproduzindo o UPDATE exato do handler
+de abertura, na conta de teste `maria.aluna@arqlearn.test`: confirmado que 4 perguntas → baú
+indisponível, 10 perguntas → disponível, contador de dia anterior reseta pra 0 via
+`QuestoesHojeAposReset`, abertura credita as gemas corretamente e persiste `chest_claimed_date`, e
+reabrir no mesmo dia fica bloqueado (`claimed_today=true`) — os 5 cenários bateram exatamente com
+o esperado. Estado da conta de teste restaurado ao original ao final. **Pendência real:** ainda
+falta um teste de UI ao vivo (clique em "Abrir Baú", transição fechado→aberto, CTA nos resumos)
+assim que uma sessão de login real estiver disponível numa sessão futura.

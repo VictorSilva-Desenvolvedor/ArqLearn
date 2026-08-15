@@ -92,16 +92,18 @@ func handleSubmitAnswer(pool *pgxpool.Pool, mongoDB *mongo.Database) http.Handle
 
 		// --- Postgres: perfil + gamificação atuais ---
 		var timezone string
-		var xpTotal, xpToday, heartsCurrent, streakCurrent, streakBest, streakFreezesAvailable int
-		var xpTodayDate, streakLastActiveDate *time.Time
+		var xpTotal, xpToday, heartsCurrent, streakCurrent, streakBest, streakFreezesAvailable, chestQuestionsToday int
+		var xpTodayDate, streakLastActiveDate, chestQuestionsDate, chestClaimedDate *time.Time
 		var heartsUpdatedAt time.Time
 		err = pool.QueryRow(r.Context(), `
 			SELECT u.timezone, g.xp_total, g.xp_today, g.xp_today_date, g.hearts_current, g.hearts_updated_at,
-			       g.streak_current, g.streak_best, g.streak_last_active_date, g.streak_freezes_available
+			       g.streak_current, g.streak_best, g.streak_last_active_date, g.streak_freezes_available,
+			       g.chest_questions_today, g.chest_questions_date, g.chest_claimed_date
 			FROM users u JOIN user_gamification g ON g.user_id = u.id
 			WHERE u.id = $1
 		`, userID).Scan(&timezone, &xpTotal, &xpToday, &xpTodayDate, &heartsCurrent, &heartsUpdatedAt,
-			&streakCurrent, &streakBest, &streakLastActiveDate, &streakFreezesAvailable)
+			&streakCurrent, &streakBest, &streakLastActiveDate, &streakFreezesAvailable,
+			&chestQuestionsToday, &chestQuestionsDate, &chestClaimedDate)
 		if err != nil {
 			apierror.Write(w, http.StatusInternalServerError, "INTERNAL_ERROR", "Falha ao consultar perfil.")
 			return
@@ -116,6 +118,12 @@ func handleSubmitAnswer(pool *pgxpool.Pool, mongoDB *mongo.Database) http.Handle
 
 		xpTodayDateStr := dateOrEmpty(xpTodayDate)
 		xpToday = gamification.XPHojeAposReset(xpToday, xpTodayDateStr, hojeLocal)
+
+		// Baú Diário (a pedido do usuário): conta toda resposta (certa ou errada — "terminar 10
+		// perguntas", não "acertar 10") pro contador acumulado do dia, mesmo reset preguiçoso de
+		// xp_today. Incrementado ANTES de decidir daily_chest_available na resposta, pra essa
+		// própria resposta (a que bate 10) já refletir o baú liberado, sem esperar a próxima leitura.
+		chestQuestionsToday = gamification.QuestoesHojeAposReset(chestQuestionsToday, dateOrEmpty(chestQuestionsDate), hojeLocal) + 1
 
 		// --- MongoDB: progresso existente da lição (para is_first_completion e estado do SRS) ---
 		var prevProgress userProgressDoc
@@ -168,10 +176,12 @@ func handleSubmitAnswer(pool *pgxpool.Pool, mongoDB *mongo.Database) http.Handle
 			UPDATE user_gamification
 			SET xp_total = $1, xp_today = $2, xp_today_date = $3, level = $4,
 			    hearts_current = $5, hearts_updated_at = $6, streak_current = $7, streak_best = $8,
-			    streak_last_active_date = $9, streak_freezes_available = $10
-			WHERE user_id = $11
+			    streak_last_active_date = $9, streak_freezes_available = $10,
+			    chest_questions_today = $11, chest_questions_date = $12
+			WHERE user_id = $13
 		`, newXPTotal, newXPToday, hojeLocalDate, newLevel, newHearts, newHeartsUpdatedAt,
-			streak.Current, streak.Best, streakLastActiveParam, streakFreezesAvailable, userID)
+			streak.Current, streak.Best, streakLastActiveParam, streakFreezesAvailable,
+			chestQuestionsToday, hojeLocalDate, userID)
 		if err != nil {
 			apierror.Write(w, http.StatusInternalServerError, "INTERNAL_ERROR", "Falha ao atualizar gamificação.")
 			return
@@ -271,13 +281,18 @@ func handleSubmitAnswer(pool *pgxpool.Pool, mongoDB *mongo.Database) http.Handle
 			log.Printf("aviso: falha ao avaliar conquistas (user_id=%s): %v", userID, err)
 		}
 
+		chestClaimedToday := dateOrEmpty(chestClaimedDate) == hojeLocal
+		dailyChestAvailable := chestQuestionsToday >= gamification.ChestQuestionsRequired && !chestClaimedToday
+
 		writeJSON(w, http.StatusOK, map[string]any{
-			"correct":              correct,
-			"xp_ganho":             xpResult.XPConcedido,
-			"xp_daily_cap_reached": xpResult.DailyCapReached,
-			"vidas_restantes":      newHearts,
-			"streak_atual":         streak.Current,
-			"explicacao":           q.Explanation,
+			"correct":               correct,
+			"xp_ganho":              xpResult.XPConcedido,
+			"xp_daily_cap_reached":  xpResult.DailyCapReached,
+			"vidas_restantes":       newHearts,
+			"streak_atual":          streak.Current,
+			"explicacao":            q.Explanation,
+			"daily_chest_available": dailyChestAvailable,
+			"daily_chest_questions": chestQuestionsToday,
 		})
 	}
 }

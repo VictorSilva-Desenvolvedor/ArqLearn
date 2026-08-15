@@ -287,3 +287,52 @@ func TestStreakEmRisco(t *testing.T) {
 		t.Error("já praticou hoje, não deveria estar em risco")
 	}
 }
+
+func TestQuestoesHojeAposReset(t *testing.T) {
+	if got := QuestoesHojeAposReset(7, "2026-08-14", "2026-08-15"); got != 0 {
+		t.Errorf("esperado reset para 0 em dia novo, veio %d", got)
+	}
+	if got := QuestoesHojeAposReset(7, "2026-08-15", "2026-08-15"); got != 7 {
+		t.Errorf("esperado manter 7 no mesmo dia, veio %d", got)
+	}
+	if got := QuestoesHojeAposReset(7, "", "2026-08-15"); got != 0 {
+		t.Errorf("data vazia (nunca respondeu) deveria resetar pra 0, veio %d", got)
+	}
+}
+
+func TestRolarRecompensaBau(t *testing.T) {
+	casos := []struct {
+		nome           string
+		rollType       float64
+		rollDetail     float64
+		wantType       ChestRewardType
+		wantGemsAmount int
+	}{
+		{"abaixo do corte de gemas, detalhe 0 -> 1 gema (mínimo)", 0.0, 0.0, ChestRewardGems, 1},
+		{"abaixo do corte de gemas, detalhe alto -> 5 gemas (teto)", 0.5, 0.999, ChestRewardGems, 5},
+		{"exatamente no corte de gemas (0.75) já cai pro pool de item", 0.75, 0.0, ChestRewardStreakFreeze, 0},
+		{"acima do corte, detalhe baixo -> bloqueio de ofensiva", 0.9, 0.0, ChestRewardStreakFreeze, 0},
+		{"acima do corte, detalhe alto -> recarga de vidas", 0.9, 0.999, ChestRewardHeartsRefill, 0},
+	}
+	for _, c := range casos {
+		t.Run(c.nome, func(t *testing.T) {
+			got := RolarRecompensaBau(c.rollType, c.rollDetail)
+			if got.Type != c.wantType {
+				t.Errorf("RolarRecompensaBau(%v, %v).Type = %q, esperado %q", c.rollType, c.rollDetail, got.Type, c.wantType)
+			}
+			if got.Type == ChestRewardGems && got.GemsAmount != c.wantGemsAmount {
+				t.Errorf("RolarRecompensaBau(%v, %v).GemsAmount = %d, esperado %d", c.rollType, c.rollDetail, got.GemsAmount, c.wantGemsAmount)
+			}
+		})
+	}
+
+	t.Run("gemas sempre entre 1 e 5 pra qualquer rollDetail no pool de gemas", func(t *testing.T) {
+		for i := 0; i < 100; i++ {
+			rollDetail := float64(i) / 100
+			got := RolarRecompensaBau(0.1, rollDetail)
+			if got.GemsAmount < 1 || got.GemsAmount > 5 {
+				t.Errorf("RolarRecompensaBau(0.1, %v).GemsAmount = %d, esperado entre 1 e 5", rollDetail, got.GemsAmount)
+			}
+		}
+	})
+}
