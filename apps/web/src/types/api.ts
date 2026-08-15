@@ -123,6 +123,13 @@ export interface League {
   tier: LeagueTier;
   week_reference: string;
   ranking: LeagueRankingEntry[];
+  promotion_slots: number;
+  demotion_slots: number;
+  // Só vêm preenchidos quando é a liga do próprio usuário (sem passar `tier` pra getLeague) —
+  // null ao navegar o ranking de outra liga, ou quando o grupo é pequeno demais pra uma promoção
+  // real acontecer essa semana, ou o usuário já está na tier mais alta.
+  viewer_position: number | null;
+  xp_to_promotion: number | null;
 }
 
 export type ShopItemType = "hearts_refill" | "streak_freeze" | "cosmetic";

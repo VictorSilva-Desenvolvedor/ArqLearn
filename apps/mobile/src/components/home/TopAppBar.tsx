@@ -9,6 +9,7 @@ import { StatPill } from "@/components/ui/StatPill";
 import { NoHeartsDialog } from "@/components/features/gamification/NoHeartsDialog";
 import { StreakDialog } from "@/components/features/gamification/StreakDialog";
 import { useAuth } from "@/hooks/useAuth";
+import { xpParaProximoNivel } from "@/lib/gamification/level";
 import { colors, type } from "@/theme/tokens";
 import { ThemeSelector } from "./ThemeSelector";
 
@@ -20,6 +21,7 @@ export function TopAppBar() {
   const { user, gamification } = useAuth();
   const [streakDialogOpen, setStreakDialogOpen] = useState(false);
   const [heartsDialogOpen, setHeartsDialogOpen] = useState(false);
+  const xpFaltam = xpParaProximoNivel(gamification.level, gamification.xp_total);
 
   // Web mostra a pílula de stats inline no header em telas largas e move para uma segunda
   // faixa abaixo em mobile (`md:hidden`) — aqui só existe a variante mobile.
@@ -37,7 +39,10 @@ export function TopAppBar() {
             onPress={() => router.push("/notificacoes" as never)}
           />
           <Pressable style={styles.profile} onPress={() => router.push("/perfil" as never)}>
-            <Text style={[type.labelCaps, { color: colors.primary }]}>{gamification.xp_total} XP</Text>
+            <View style={styles.levelBlock}>
+              <Text style={[type.labelCaps, styles.levelText]}>Nível {gamification.level}</Text>
+              <Text style={[type.labelCaps, styles.levelCaption]}>{xpFaltam} XP p/ próx.</Text>
+            </View>
             <Avatar name={user.name} size={32} />
           </Pressable>
         </View>
@@ -111,5 +116,17 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     gap: 8,
+  },
+  levelBlock: {
+    alignItems: "flex-end",
+  },
+  levelText: {
+    color: colors.primary,
+    fontWeight: "700",
+  },
+  levelCaption: {
+    color: colors.onSurfaceVariant,
+    fontSize: 10,
+    lineHeight: 13,
   },
 });

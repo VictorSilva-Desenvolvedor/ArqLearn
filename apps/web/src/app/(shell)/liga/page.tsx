@@ -10,7 +10,7 @@ export default async function LeaguePage() {
 
   return (
     <div className="max-w-2xl mx-auto px-lg py-section flex flex-col gap-md">
-      <LeagueHeader tier={league.tier} />
+      <LeagueHeader league={league} currentUserId={user.id} />
       <p className="font-label text-body-sm text-on-surface-variant">
         Encerra em: <span className="font-bold text-primary">2d 14h 32m</span>
       </p>
