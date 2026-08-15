@@ -138,6 +138,9 @@ export interface AnswerResult {
   vidas_restantes: number;
   streak_atual: number;
   explicacao: string;
+  // Baú Diário (v1.18) — 10 perguntas no dia (lição + Modo Infinito somados) liberam 1 abertura.
+  daily_chest_available: boolean;
+  daily_chest_questions: number;
 }
 
 export interface ProgressSummary {
@@ -277,6 +280,28 @@ export interface InfiniteModeAnswerResult {
   correct_count: number;
   level: number;
   next_question?: InfiniteModeQuestion;
+  // Baú Diário (v1.18) — mesmo contador acumulado do dia de AnswerResult, Modo Infinito soma junto.
+  daily_chest_available: boolean;
+  daily_chest_questions: number;
+}
+
+// --- Baú Diário (v1.18) ---
+
+export interface DailyChestStatus {
+  questions_today: number;
+  questions_required: number;
+  available: boolean;
+  claimed_today: boolean;
+}
+
+export type ChestRewardType = "gems" | "streak_freeze" | "hearts_refill";
+
+export interface ChestOpenResult {
+  reward_type: ChestRewardType;
+  // Só preenchido quando reward_type === "gems".
+  gems_earned?: number;
+  // Saldo total de gemas após a abertura (não é quanto foi ganho, ver gems_earned).
+  gems: number;
 }
 
 export interface InfiniteModeEndResult {

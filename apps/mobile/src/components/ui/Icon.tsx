@@ -134,6 +134,10 @@ const glyphs = {
   leagueSafira: "water",
   leagueRubi: "fire",
   leagueDiamante: "star",
+  // --- Baú Diário ---
+  chest: "treasure-chest",
+  lockOpen: "lock-open-variant",
+  arrowForward: "arrow-right",
 } as const;
 
 export type IconName = keyof typeof glyphs;

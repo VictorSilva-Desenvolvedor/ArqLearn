@@ -7,6 +7,7 @@ import (
 	"context"
 	"encoding/json"
 	"log"
+	"math/rand"
 	"net/http"
 	"strconv"
 	"time"
@@ -24,6 +25,8 @@ func RegisterRoutes(mux *http.ServeMux, pool *pgxpool.Pool, verifier *authmiddle
 	mux.Handle("GET /v1/gamification/league", verifier.Middleware(http.HandlerFunc(handleGetLeague(pool))))
 	mux.Handle("POST /v1/gamification/streak/freeze", verifier.Middleware(http.HandlerFunc(handleStreakFreeze(pool))))
 	mux.Handle("POST /v1/gamification/shop/purchase", verifier.Middleware(http.HandlerFunc(handleShopPurchase(pool))))
+	mux.Handle("GET /v1/gamification/daily-chest", verifier.Middleware(http.HandlerFunc(handleGetDailyChestStatus(pool))))
+	mux.Handle("POST /v1/gamification/daily-chest/open", verifier.Middleware(http.HandlerFunc(handleOpenDailyChest(pool))))
 }
 
 // --- GET /v1/gamification/me ---
@@ -842,6 +845,165 @@ func AwardGems(ctx context.Context, pool *pgxpool.Pool, userID string, amount in
 		amount, userID,
 	).Scan(&newTotal)
 	return newTotal, err
+}
+
+// --- Baú Diário (a pedido do usuário) ---
+
+// DailyChestSnapshot é o retorno de LoadDailyChestStatus.
+type DailyChestSnapshot struct {
+	QuestionsToday    int
+	QuestionsRequired int
+	Available         bool
+	ClaimedToday      bool
+}
+
+// LoadDailyChestStatus lê chest_questions_today/chest_questions_date e chest_claimed_date, aplica
+// o reset preguiçoso do contador (mesmo padrão de LoadHeartsWithRegen/LoadStreakWithExpiration —
+// sem job/cron nesta fase bootstrap) e devolve se o Baú Diário está disponível pra abrir agora.
+// Chamada por GET /v1/gamification/daily-chest e por POST .../answers e .../infinite-mode/.../
+// answers (internal/learning) antes de incrementar a resposta atual no contador.
+func LoadDailyChestStatus(ctx context.Context, pool *pgxpool.Pool, userID string) (DailyChestSnapshot, error) {
+	var questionsToday int
+	var questionsDate, claimedDate *time.Time
+	var timezone string
+	if err := pool.QueryRow(ctx, `
+		SELECT g.chest_questions_today, g.chest_questions_date, g.chest_claimed_date, u.timezone
+		FROM user_gamification g JOIN users u ON u.id = g.user_id
+		WHERE g.user_id = $1
+	`, userID).Scan(&questionsToday, &questionsDate, &claimedDate, &timezone); err != nil {
+		return DailyChestSnapshot{}, err
+	}
+
+	hojeLocal := HojeLocal(timezone, time.Now())
+	questionsDateStr := ""
+	if questionsDate != nil {
+		questionsDateStr = questionsDate.Format("2006-01-02")
+	}
+	novoQuestoes := QuestoesHojeAposReset(questionsToday, questionsDateStr, hojeLocal)
+	if novoQuestoes != questionsToday {
+		if _, err := pool.Exec(ctx,
+			`UPDATE user_gamification SET chest_questions_today = $1 WHERE user_id = $2`,
+			novoQuestoes, userID,
+		); err != nil {
+			return DailyChestSnapshot{}, err
+		}
+		questionsToday = novoQuestoes
+	}
+
+	claimedDateStr := ""
+	if claimedDate != nil {
+		claimedDateStr = claimedDate.Format("2006-01-02")
+	}
+	claimedToday := claimedDateStr == hojeLocal
+
+	return DailyChestSnapshot{
+		QuestionsToday:    questionsToday,
+		QuestionsRequired: ChestQuestionsRequired,
+		Available:         questionsToday >= ChestQuestionsRequired && !claimedToday,
+		ClaimedToday:      claimedToday,
+	}, nil
+}
+
+func handleGetDailyChestStatus(pool *pgxpool.Pool) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		userID, ok := authmiddleware.UserID(r.Context())
+		if !ok {
+			apierror.Write(w, http.StatusUnauthorized, "UNAUTHENTICATED", "Token inválido.")
+			return
+		}
+		status, err := LoadDailyChestStatus(r.Context(), pool, userID)
+		if err != nil {
+			apierror.Write(w, http.StatusInternalServerError, "INTERNAL_ERROR", "Falha ao consultar baú diário.")
+			return
+		}
+		writeJSON(w, http.StatusOK, map[string]any{
+			"questions_today":    status.QuestionsToday,
+			"questions_required": status.QuestionsRequired,
+			"available":          status.Available,
+			"claimed_today":      status.ClaimedToday,
+		})
+	}
+}
+
+// handleOpenDailyChest implementa POST /v1/gamification/daily-chest/open — sorteia a recompensa
+// (RolarRecompensaBau), aplica o efeito (gemas, ou credita o item consumível de graça, mesmos
+// efeitos de handleShopPurchase mas sem debitar nada) e marca chest_claimed_date = hoje, tudo
+// numa transação. 409 CHEST_NOT_AVAILABLE se ainda não bateu as 10 perguntas do dia ou já foi
+// aberto hoje — reconsulta o status fresco em vez de confiar em algo que o cliente mandou.
+func handleOpenDailyChest(pool *pgxpool.Pool) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		userID, ok := authmiddleware.UserID(r.Context())
+		if !ok {
+			apierror.Write(w, http.StatusUnauthorized, "UNAUTHENTICATED", "Token inválido.")
+			return
+		}
+
+		status, err := LoadDailyChestStatus(r.Context(), pool, userID)
+		if err != nil {
+			apierror.Write(w, http.StatusInternalServerError, "INTERNAL_ERROR", "Falha ao consultar baú diário.")
+			return
+		}
+		if !status.Available {
+			apierror.Write(w, http.StatusConflict, "CHEST_NOT_AVAILABLE", "Nenhum Baú Diário disponível pra abrir agora.")
+			return
+		}
+
+		var timezone string
+		if err := pool.QueryRow(r.Context(), `SELECT timezone FROM users WHERE id = $1`, userID).Scan(&timezone); err != nil {
+			apierror.Write(w, http.StatusInternalServerError, "INTERNAL_ERROR", "Falha ao consultar usuário.")
+			return
+		}
+		hojeLocal := HojeLocal(timezone, time.Now())
+		hojeLocalDate, _ := time.Parse("2006-01-02", hojeLocal)
+
+		reward := RolarRecompensaBau(rand.Float64(), rand.Float64())
+
+		tx, err := pool.Begin(r.Context())
+		if err != nil {
+			apierror.Write(w, http.StatusInternalServerError, "INTERNAL_ERROR", "Falha ao abrir baú.")
+			return
+		}
+		defer func() { _ = tx.Rollback(r.Context()) }()
+
+		var newGems int
+		switch reward.Type {
+		case ChestRewardGems:
+			err = tx.QueryRow(r.Context(),
+				`UPDATE user_gamification SET gems = gems + $1, chest_claimed_date = $2 WHERE user_id = $3 RETURNING gems`,
+				reward.GemsAmount, hojeLocalDate, userID,
+			).Scan(&newGems)
+		case ChestRewardStreakFreeze:
+			err = tx.QueryRow(r.Context(),
+				`UPDATE user_gamification SET streak_freezes_available = streak_freezes_available + 1, chest_claimed_date = $1 WHERE user_id = $2 RETURNING gems`,
+				hojeLocalDate, userID,
+			).Scan(&newGems)
+		case ChestRewardHeartsRefill:
+			// hearts_updated_at = agora, mesmo raciocínio de handleShopPurchase (equivalente a já
+			// estar cheio, sem deixar timestamp arbitrariamente antigo gravado).
+			err = tx.QueryRow(r.Context(),
+				`UPDATE user_gamification SET hearts_current = $1, hearts_updated_at = now(), chest_claimed_date = $2 WHERE user_id = $3 RETURNING gems`,
+				HeartsMax, hojeLocalDate, userID,
+			).Scan(&newGems)
+		}
+		if err != nil {
+			apierror.Write(w, http.StatusInternalServerError, "INTERNAL_ERROR", "Falha ao aplicar recompensa do baú.")
+			return
+		}
+
+		if err := tx.Commit(r.Context()); err != nil {
+			apierror.Write(w, http.StatusInternalServerError, "INTERNAL_ERROR", "Falha ao concluir abertura do baú.")
+			return
+		}
+
+		resp := map[string]any{
+			"reward_type": string(reward.Type),
+			"gems":        newGems,
+		}
+		if reward.Type == ChestRewardGems {
+			resp["gems_earned"] = reward.GemsAmount
+		}
+		writeJSON(w, http.StatusOK, resp)
+	}
 }
 
 func writeJSON(w http.ResponseWriter, status int, body any) {

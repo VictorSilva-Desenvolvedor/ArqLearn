@@ -11,6 +11,7 @@ export default function InfiniteModeSummaryPage() {
   const accuracy = Number(searchParams.get("accuracy") ?? 0);
   const xp = Number(searchParams.get("xp") ?? 0);
   const avgTime = Number(searchParams.get("avgTime") ?? 0);
+  const chestAvailable = searchParams.get("chest") === "true";
 
   return (
     <InfiniteModeSummaryPanel
@@ -19,6 +20,7 @@ export default function InfiniteModeSummaryPage() {
       accuracy={accuracy}
       xpEarned={xp}
       avgTimeMs={avgTime}
+      chestAvailable={chestAvailable}
     />
   );
 }

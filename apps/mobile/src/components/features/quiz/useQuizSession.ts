@@ -121,6 +121,7 @@ export function useQuizSession(trackId: string, lessonId: string) {
           accuracy: String(accuracy),
           streak: String(gamification.streak_current),
           hearts: String(hearts),
+          chest: String(lastResult?.daily_chest_available ?? false),
         },
       });
       return;
@@ -141,6 +142,7 @@ export function useQuizSession(trackId: string, lessonId: string) {
     sessionXpEarned,
     hearts,
     gamification.streak_current,
+    lastResult,
     router,
     trackId,
     lessonId,
