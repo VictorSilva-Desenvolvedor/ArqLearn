@@ -44,11 +44,13 @@ export function TopAppBar() {
         />
       </button>
       <div className="w-px h-4 bg-outline-variant" />
-      <StatPill
-        tone="secondary"
-        icon={<Icon name="diamond" filled className="text-secondary" />}
-        value={gamification.gems}
-      />
+      <Link href="/loja" aria-label="Ir para a Loja" className="rounded-full">
+        <StatPill
+          tone="secondary"
+          icon={<Icon name="diamond" filled className="text-secondary" />}
+          value={gamification.gems}
+        />
+      </Link>
     </>
   );
 

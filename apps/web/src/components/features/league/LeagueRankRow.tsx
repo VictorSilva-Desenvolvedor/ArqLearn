@@ -1,5 +1,8 @@
+"use client";
+
 import { cn } from "@/lib/utils/cn";
 import { Avatar } from "@/components/ui/Avatar";
+import { useToast } from "@/hooks/useToast";
 import type { LeagueRankingEntry } from "@/types/api";
 
 interface LeagueRankRowProps {
@@ -7,11 +10,24 @@ interface LeagueRankRowProps {
   isCurrentUser: boolean;
 }
 
+// Espelha apps/mobile/.../LeagueRankRow.tsx — linha agora reage ao clique com um toast mostrando
+// posição + XP da semana (não existe perfil público de outro usuário em nenhum dos dois apps).
 export function LeagueRankRow({ entry, isCurrentUser }: LeagueRankRowProps) {
+  const { showToast } = useToast();
+
   return (
-    <div
+    <button
+      type="button"
+      onClick={() =>
+        showToast(
+          isCurrentUser
+            ? `Você está em ${entry.position}º lugar com ${entry.xp_this_week} XP essa semana.`
+            : `${entry.name} está em ${entry.position}º lugar com ${entry.xp_this_week} XP essa semana.`,
+          "success",
+        )
+      }
       className={cn(
-        "flex items-center gap-md px-md py-sm border-b border-outline-variant",
+        "flex items-center gap-md px-md py-sm border-b border-outline-variant w-full text-left",
         isCurrentUser && "border-l-4 border-l-primary bg-primary-fixed",
       )}
     >
@@ -21,6 +37,6 @@ export function LeagueRankRow({ entry, isCurrentUser }: LeagueRankRowProps) {
         {isCurrentUser ? "Você" : entry.name}
       </span>
       <span className="font-label text-body-sm font-bold text-primary">{entry.xp_this_week} XP</span>
-    </div>
+    </button>
   );
 }

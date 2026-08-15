@@ -1,16 +1,8 @@
 import { getServerAccessToken } from "@/lib/supabase/server";
 import { getMe } from "@/lib/api/resources/users";
 import { getLeague } from "@/lib/api/resources/gamification";
-import { Icon } from "@/components/ui/Icon";
+import { LeagueHeader } from "@/components/features/league/LeagueHeader";
 import { LeagueRankingList } from "@/components/features/league/LeagueRankingList";
-
-const tierLabel: Record<string, string> = {
-  bronze: "Liga Bronze",
-  prata: "Liga Prata",
-  ouro: "Liga Ouro",
-  platina: "Liga Platina",
-  diamante: "Liga Diamante",
-};
 
 export default async function LeaguePage() {
   const accessToken = await getServerAccessToken();
@@ -18,17 +10,7 @@ export default async function LeaguePage() {
 
   return (
     <div className="max-w-2xl mx-auto px-lg py-section flex flex-col gap-md">
-      <div className="flex items-center gap-sm">
-        <Icon name="trophy" filled className="text-4xl text-secondary" />
-        <div>
-          <h1 className="font-display text-display-lg font-bold text-on-surface">
-            {tierLabel[league.tier ?? ""] ?? "Liga"}
-          </h1>
-          <p className="font-body-sm text-body-sm text-on-surface-variant">
-            Os {10} melhores avançam de liga. Os {5} piores caem para a liga anterior.
-          </p>
-        </div>
-      </div>
+      <LeagueHeader tier={league.tier} />
       <p className="font-label text-body-sm text-on-surface-variant">
         Encerra em: <span className="font-bold text-primary">2d 14h 32m</span>
       </p>

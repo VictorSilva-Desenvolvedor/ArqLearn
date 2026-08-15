@@ -416,6 +416,15 @@ reportados pelo usuário confirmados corrigidos, mais o modal de data de desbloq
 16 interações verificadas ao vivo no total, zero erro de console. `tsc --noEmit` e
 `expo export --platform web` também limpos.
 
+**Espelhado no `apps/web` em seguida** (usuário formalizou como regra permanente: toda melhoria
+implementada num app precisa ir pro outro também, não só onde a demanda apareceu primeiro) — os
+mesmos 6 pontos (gemas na `TopAppBar`, `AchievementBadge` desbloqueada, os 8 `StatCard`, header da
+Liga, `LeagueRankRow`, corpo do `StreakFreezeCard`) replicados em React/Next.js. Streak/vidas na
+`TopAppBar` do web já abriam diálogo desde antes (é o mobile que tinha ficado pra trás nesses
+dois). Detalhes técnicos da versão web em `Docs/PENDENCIAS_WEB_REAL.md` não se aplicam aqui — isso
+foi só paridade de UI, não mudança de contrato de API. `next build` e `tsc --noEmit` limpos; 14
+interações verificadas ao vivo (`next dev` + Playwright + login real), zero erro de console.
+
 ### 10. EAS Update (OTA) configurado — usuário pediu pra parar de reinstalar APK a cada mudança
 
 Até aqui, toda mudança (mesmo só JS/TS) exigia gerar um APK novo no EAS Build e reinstalar no
