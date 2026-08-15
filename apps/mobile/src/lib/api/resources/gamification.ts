@@ -3,6 +3,7 @@ import { apiFetch, ApiError } from "../http";
 import { mockDelay } from "../mocks/delay";
 import { mockAchievementUnlocks, mockGamificationProfile, mockLeague, mockLeagueByTier } from "../mocks/fixtures/gamification";
 import { getMockDailyChestStatus, mockOpenDailyChest } from "../mocks/fixtures/dailyChest";
+import { getMockWeeklyChestStatus, mockOpenWeeklyChest } from "../mocks/fixtures/weeklyChest";
 import { mockShopCatalog } from "../mocks/fixtures/shopCatalog";
 import type { LeagueTierName } from "@/lib/gamification/leagueTiers";
 import type {
@@ -12,6 +13,7 @@ import type {
   GamificationProfile,
   League,
   PurchaseResult,
+  WeeklyChestStatus,
 } from "@/types/api";
 
 export interface GamificationMeResponse extends GamificationProfile {
@@ -109,4 +111,27 @@ export async function openDailyChest(): Promise<ChestOpenResult> {
     });
   }
   return mockDelay(mockOpenDailyChest(), 400);
+}
+
+// Baú Semanal (v1.19, a pedido do usuário) — mesmo padrão do Baú Diário acima, mas 1 abertura por
+// ciclo rolante de 7 dias ao responder 50 perguntas dentro do ciclo (ver §8.2 da API Spec).
+export async function getWeeklyChestStatus(): Promise<WeeklyChestStatus> {
+  if (isResourceReal("gamification")) {
+    return apiFetch<WeeklyChestStatus>("/v1/gamification/weekly-chest");
+  }
+  return mockDelay(getMockWeeklyChestStatus());
+}
+
+export async function openWeeklyChest(): Promise<ChestOpenResult> {
+  if (isResourceReal("gamification")) {
+    return apiFetch<ChestOpenResult>("/v1/gamification/weekly-chest/open", { method: "POST" });
+  }
+  if (!getMockWeeklyChestStatus().available) {
+    throw new ApiError(409, {
+      error_code: "CHEST_NOT_AVAILABLE",
+      message: "Nenhum Baú Semanal disponível pra abrir agora.",
+      trace_id: "mock-trace",
+    });
+  }
+  return mockDelay(mockOpenWeeklyChest(), 400);
 }

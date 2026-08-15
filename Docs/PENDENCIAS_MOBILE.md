@@ -751,3 +751,63 @@ reabrir no mesmo dia fica bloqueado (`claimed_today=true`) — os 5 cenários ba
 o esperado. Estado da conta de teste restaurado ao original ao final. **Pendência real:** ainda
 falta um teste de UI ao vivo (clique em "Abrir Baú", transição fechado→aberto, CTA nos resumos)
 assim que uma sessão de login real estiver disponível numa sessão futura.
+
+### 17. Baú Semanal + cards de progresso na Home (15/08/2026)
+
+Usuário colou um novo mockup Stitch da Home mostrando dois cards lado a lado ("Baú Diário"
+12/20 questões, "Baú Semanal" 85/150 questões, cada um com barra de progresso) e explicou a regra
+real (os números do mockup são só placeholder): Baú Semanal libera ao responder **50 perguntas em
+menos de uma semana**; se passar uma semana sem conseguir, reseta; o Baú Diário (item #16) já
+resetava sozinho a cada dia sem prática, confirmado que está certo. Via `AskUserQuestion`, duas
+decisões de design fechadas: (1) abrir o baú semanal **antes** do ciclo de 7 dias terminar **não**
+adianta o reset — o próximo ciclo só começa quando os 7 dias originais realmente passarem, mesmo
+já tendo aberto; (2) recompensa do semanal é **maior** que a do diário, reflete o esforço extra de
+50 perguntas contra 10.
+
+**Backend** (migration `0010_weekly_chest`, aplicada no banco real):
+- `user_gamification` ganha `chest_weekly_questions`, `chest_weekly_cycle_start`,
+  `chest_weekly_claimed_cycle_start`. Diferente do diário (reset por igualdade de data), o ciclo
+  semanal é uma **janela rolante de 7 dias**: `QuestoesSemanaAposReset` só reseta quando 7 dias já
+  passaram desde `chest_weekly_cycle_start` — abrir cedo não adianta nada, por decisão do usuário.
+  A trava de "1 por ciclo" compara `chest_weekly_claimed_cycle_start` com o `cycle_start` vigente
+  em vez de usar um boolean solto — isso sozinho já "desclaima" o baú quando o ciclo vira, sem
+  precisar zerar essa coluna em lugar nenhum.
+- `RolarRecompensaBauSemanal(rollType, rollDetail)` (função pura, testada): recompensa maior que a
+  do diário — 60% gemas (5–15, contra 1–5 do diário) e 40% item grátis (contra 25%, mesmos dois
+  itens do Baú Diário).
+- `handleSubmitAnswer`/`handleInfiniteModeAnswer` também incrementam `chest_weekly_questions` a
+  cada resposta (mesma pergunta soma pros dois contadores, diário e semanal, independentemente) —
+  mas, ao contrário do diário, essas respostas **não** ganham campo de status do baú semanal no
+  payload (o card de progresso da Home não precisa de feedback instantâneo por resposta como o CTA
+  do resumo precisa; consulta `GET /v1/gamification/weekly-chest` à parte).
+- `GET /v1/gamification/weekly-chest` (status) e `POST /v1/gamification/weekly-chest/open`
+  (abertura). Documentado em `ArqLearn_API_Specification.md` §8.2 (v1.19).
+
+**Frontend** (mobile + web, paridade completa):
+- `weeklyChest.ts` novo em cada app (mesmo padrão de `dailyChest.ts`) — contador mock também
+  incrementado em `bumpMockWeeklyChestQuestions()`, chamado nos mesmos pontos de
+  `bumpMockChestQuestions()` em `quizSessions.ts`/`infiniteModeSessions.ts`.
+- Tela `/bau` (web e mobile) **parametrizada** com `?tipo=diario|semanal` (default diário) — mesmo
+  shell visual fechado→aberto do item #16, mas escolhendo o endpoint/textos certos por tipo em vez
+  de duplicar a tela inteira.
+- Cards `ChestProgressCard` novos (web: `components/features/home/`; mobile:
+  `components/home/`) — sempre visíveis na Home (não só quando disponível), com barra de progresso
+  e link/toque pra `/bau?tipo=...`; clicar mesmo indisponível não é beco sem saída, a tela `/bau`
+  já trata esse estado. Home (web, Server Component) busca os dois status via `Promise.all` junto
+  com `getMe`/`listTracks`; Home (mobile) busca em um `useEffect` separado por não bloquear o
+  carregamento do mapa de trilhas.
+
+**Verificação:** `go build`/`vet`/`test`/`gofmt -l` limpos; `tsc --noEmit` (dois apps), `next
+build` (rota `/bau` continua aparecendo, agora parametrizada) e `expo export --platform web`
+todos limpos. Mesma limitação do item #16 pro teste de UI ao vivo — sem credenciais de teste
+disponíveis nesta sessão, e mintar sessão de login via API admin do Supabase segue bloqueado pelo
+classificador de permissão do Claude Code. Lógica de backend validada **ao vivo contra o Postgres
+real** (script Go descartável, nunca commitado) na conta de teste: 7 cenários confirmados —
+30 perguntas → indisponível, 50 → disponível, ciclo com 6 dias → mantém contador e ainda
+disponível, ciclo com 8 dias (expirado) → reseta pra 0 e inicia novo ciclo hoje, abertura credita
+as gemas certas e persiste `chest_weekly_claimed_cycle_start`, reabrir no mesmo ciclo (mesmo
+respondendo mais perguntas) fica bloqueado, e — o cenário mais importante — abrir cedo (dia 3) e
+depois consultar de novo confirma que o ciclo **não** reseta antes do dia 8, exatamente a decisão
+que o usuário pediu. Estado da conta de teste restaurado ao original ao final. **Pendência real:**
+mesma do item #16 — falta o teste de UI ao vivo (clique nos cards da Home, abertura dos dois
+baús) assim que uma sessão de login real estiver disponível numa sessão futura.

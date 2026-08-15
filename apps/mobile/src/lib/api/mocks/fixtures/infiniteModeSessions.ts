@@ -2,6 +2,7 @@ import { ApiError } from "../../http";
 import { getInfiniteModeBank, type InfiniteModeQuestionEntry } from "./infiniteModeQuestions";
 import { awardXp } from "./dailyXpCap";
 import { bumpMockChestQuestions, mockChestAvailable, mockChestQuestionsToday } from "./dailyChest";
+import { bumpMockWeeklyChestQuestions } from "./weeklyChest";
 import type { InfiniteModeAnswerResult, InfiniteModeEndResult, InfiniteModeSession } from "@/types/api";
 
 // Sessão de Modo Infinito em memória do lado do cliente — mesmo padrão de quizSessions.ts.
@@ -110,6 +111,7 @@ export function answerInfiniteModeSessionMock(
 
   const next = nextEntry(state);
   bumpMockChestQuestions();
+  bumpMockWeeklyChestQuestions();
 
   return {
     correct,

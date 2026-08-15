@@ -302,3 +302,58 @@ func RolarRecompensaBau(rollType, rollDetail float64) ChestReward {
 	}
 	return ChestReward{Type: ChestRewardHeartsRefill}
 }
+
+// ChestWeeklyQuestionsRequired é quantas perguntas respondidas dentro do ciclo vigente (ver
+// QuestoesSemanaAposReset) liberam o Baú Semanal pra abrir.
+const ChestWeeklyQuestionsRequired = 50
+
+// ChestWeeklyCycleDays é o tamanho da janela rolante do ciclo semanal — não é "semana de
+// calendário" nenhuma, é sempre 7 dias a partir de chest_weekly_cycle_start (a data da primeira
+// pergunta do ciclo vigente).
+const ChestWeeklyCycleDays = 7
+
+// QuestoesSemanaAposReset decide o contador e o início de ciclo vigentes pro Baú Semanal: sem
+// ciclo ativo ainda (cicloInicio vazio) ou com 7 dias já passados desde cicloInicio, o ciclo
+// reseta — contador volta a zero e um novo ciclo começa hoje. Espelha QuestoesHojeAposReset, mas
+// com janela de N dias em vez de igualdade de data — decisão explícita do usuário: abrir o baú
+// antes do fim do ciclo NÃO adianta o reset, só a passagem dos 7 dias reseta (chest_weekly_
+// claimed_cycle_start cuida de travar a abertura repetida dentro do mesmo ciclo, ver
+// LoadWeeklyChestStatus).
+func QuestoesSemanaAposReset(questoesSemana int, cicloInicio, hojeLocal string) (int, string) {
+	if cicloInicio == "" {
+		return 0, hojeLocal
+	}
+	inicio, err := time.Parse("2006-01-02", cicloInicio)
+	if err != nil {
+		return 0, hojeLocal
+	}
+	hoje, err := time.Parse("2006-01-02", hojeLocal)
+	if err != nil {
+		return 0, hojeLocal
+	}
+	diasPassados := int(hoje.Sub(inicio).Hours() / 24)
+	if diasPassados >= ChestWeeklyCycleDays {
+		return 0, hojeLocal
+	}
+	return questoesSemana, cicloInicio
+}
+
+// RolarRecompensaBauSemanal sorteia a recompensa do Baú Semanal — recompensa maior que a do Baú
+// Diário (a pedido do usuário, já que exige 5x mais esforço: 50 perguntas dentro de 7 dias em vez
+// de 10 num dia): gemas (5 a 15, contra 1 a 5 do diário) com probabilidade menor de sair (60%
+// contra 75%), deixando o item grátis do sistema (mesmos dois itens do Baú Diário, ver
+// RolarRecompensaBau) mais provável (40% contra 25%). Mesma assinatura pura/determinística.
+func RolarRecompensaBauSemanal(rollType, rollDetail float64) ChestReward {
+	const probabilidadeGemas = 0.60
+	if rollType < probabilidadeGemas {
+		gemsAmount := 5 + int(rollDetail*11)
+		if gemsAmount > 15 {
+			gemsAmount = 15
+		}
+		return ChestReward{Type: ChestRewardGems, GemsAmount: gemsAmount}
+	}
+	if rollDetail < 0.5 {
+		return ChestReward{Type: ChestRewardStreakFreeze}
+	}
+	return ChestReward{Type: ChestRewardHeartsRefill}
+}
