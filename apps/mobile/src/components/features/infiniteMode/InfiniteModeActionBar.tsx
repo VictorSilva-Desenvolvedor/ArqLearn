@@ -1,6 +1,7 @@
-import { ActivityIndicator, StyleSheet, Text, View } from "react-native";
+import { StyleSheet, Text, View } from "react-native";
 import { Button } from "@/components/ui/Button";
 import { Icon } from "@/components/ui/Icon";
+import { LoadingBlueprint } from "@/components/ui/LoadingBlueprint";
 import { colors, spacing, type } from "@/theme/tokens";
 
 interface InfiniteModeActionBarProps {
@@ -47,7 +48,7 @@ export function InfiniteModeActionBar({
             <Button
               variant="primary"
               disabled={!canConfirm || verifying}
-              icon={verifying ? <ActivityIndicator size="small" color={colors.onPrimary} /> : undefined}
+              icon={verifying ? <LoadingBlueprint size={20} /> : undefined}
               onPress={onConfirm}
             >
               {verifying ? "Verificando…" : "Confirmar"}

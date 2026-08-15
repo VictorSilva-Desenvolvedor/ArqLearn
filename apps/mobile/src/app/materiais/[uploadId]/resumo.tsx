@@ -6,6 +6,7 @@ import { ArchitectTipCallout } from "@/components/features/materialSummary/Archi
 import { DiagramCard } from "@/components/features/materialSummary/DiagramCard";
 import { KeyPointsChecklist } from "@/components/features/materialSummary/KeyPointsChecklist";
 import { SummaryHeader } from "@/components/features/materialSummary/SummaryHeader";
+import { LoadingBlueprint } from "@/components/ui/LoadingBlueprint";
 import { getUploadSummary } from "@/lib/api/resources/materials";
 import { colors, spacing, type } from "@/theme/tokens";
 import type { UploadSummary } from "@/types/api";
@@ -29,11 +30,7 @@ export default function MaterialSummaryScreen() {
   }, [uploadId]);
 
   if (!summary) {
-    return (
-      <View style={styles.loading}>
-        <Text style={[type.bodyLg, styles.loadingText]}>Carregando resumo…</Text>
-      </View>
-    );
+    return <LoadingBlueprint variant="fullscreen" size={160} label="Carregando resumo…" />;
   }
 
   return (
@@ -63,15 +60,6 @@ const styles = StyleSheet.create({
     gap: spacing.lg,
   },
   synopsis: {
-    color: colors.onSurfaceVariant,
-  },
-  loading: {
-    flex: 1,
-    alignItems: "center",
-    justifyContent: "center",
-    backgroundColor: colors.background,
-  },
-  loadingText: {
     color: colors.onSurfaceVariant,
   },
 });

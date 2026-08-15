@@ -9,6 +9,7 @@ import { useInfiniteModeSession } from "@/components/features/infiniteMode/useIn
 import { getThemeByTopic } from "@/lib/api/mocks/fixtures/themes";
 import { Icon } from "@/components/ui/Icon";
 import { Button } from "@/components/ui/Button";
+import { LoadingBlueprint } from "@/components/ui/LoadingBlueprint";
 import { useToast } from "@/hooks/useToast";
 
 export default function InfiniteModeSessionPage() {
@@ -45,11 +46,7 @@ export default function InfiniteModeSessionPage() {
   }
 
   if (infinite.loading || !infinite.question) {
-    return (
-      <div className="flex-1 flex items-center justify-center">
-        <p className="font-body-lg text-body-lg text-on-surface-variant">Carregando desafio…</p>
-      </div>
-    );
+    return <LoadingBlueprint variant="fullscreen" size={160} label="Carregando desafio…" />;
   }
 
   return (

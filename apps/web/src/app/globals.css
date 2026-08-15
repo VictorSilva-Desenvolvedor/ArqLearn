@@ -173,6 +173,44 @@ body {
   to { opacity: 1; transform: translate(-50%, 0); }
 }
 
+/*
+ * Indicador de carregamento unificado ("Blueprint" — prédio se desenhando à mão, ver
+ * Docs/stitch_app_visual_identity/tela_de_carregamento_splash_screen/code.html), consumido por
+ * components/ui/LoadingBlueprint.tsx em toda ação assíncrona do app (gate de auth, fallbacks de
+ * rota, sessão de lição/Modo Infinito carregando, spinners de botão). Espelhado em
+ * apps/mobile/src/components/ui/LoadingBlueprint.tsx via react-native-svg + Animated (CSS
+ * keyframes não existem em React Native).
+ */
+@keyframes blueprint-draw {
+  0% { stroke-dashoffset: 200; opacity: 0; }
+  20% { opacity: 1; }
+  50% { stroke-dashoffset: 0; }
+  80% { opacity: 1; }
+  100% { stroke-dashoffset: 0; opacity: 0; }
+}
+@keyframes blueprint-pencil {
+  0% { transform: translate(10px, 80px); opacity: 0; }
+  10% { opacity: 1; }
+  50% { transform: translate(50px, 20px); }
+  80% { opacity: 1; }
+  100% { transform: translate(90px, 80px); opacity: 0; }
+}
+@keyframes pulse-soft {
+  0%, 100% { opacity: 0.7; }
+  50% { opacity: 1; }
+}
+.blueprint-draw-path {
+  stroke-dasharray: 200;
+  stroke-dashoffset: 200;
+  animation: blueprint-draw 3s ease-in-out infinite;
+}
+.blueprint-draw-pencil {
+  animation: blueprint-pencil 3s ease-in-out infinite;
+}
+.animate-pulse-soft {
+  animation: pulse-soft 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
 /* Respeita a preferência do sistema por menos movimento (spec §4 e §8) — reduz toda animação/
    transição/scroll suave a essencialmente instantâneo, em vez de simplesmente removê-las (o que
    quebraria estados que dependem de uma transição terminar, como o :focus-visible em alguns

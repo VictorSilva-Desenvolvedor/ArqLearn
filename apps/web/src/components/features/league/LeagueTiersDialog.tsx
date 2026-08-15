@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { Icon } from "@/components/ui/Icon";
+import { LoadingBlueprint } from "@/components/ui/LoadingBlueprint";
 import { Modal } from "@/components/ui/Modal";
 import { LeagueRankingList } from "./LeagueRankingList";
 import { getLeague } from "@/lib/api/resources/gamification";
@@ -149,7 +150,7 @@ export function LeagueTiersDialog({ open, onOpenChange, currentUserId, ownLeague
       <div className="max-h-72 overflow-y-auto">
         {loading && !currentRanking ? (
           <div className="flex justify-center my-lg">
-            <Icon name="progress_activity" className="animate-spin text-primary text-2xl" />
+            <LoadingBlueprint size={32} />
           </div>
         ) : currentRanking && currentRanking.length > 0 ? (
           <LeagueRankingList
