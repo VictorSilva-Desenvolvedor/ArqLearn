@@ -34,6 +34,7 @@ export function StreakDialog({ open, onOpenChange }: StreakDialogProps) {
     try {
       await freezeStreak(streakFreezesAvailable);
       adjustStreakFreezes(-1);
+      updateGamification({ streak_at_risk: false });
       showToast("Ofensiva protegida por hoje!", "success");
       onOpenChange(false);
     } catch (err) {

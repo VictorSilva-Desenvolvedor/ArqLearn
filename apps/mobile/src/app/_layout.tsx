@@ -13,6 +13,7 @@ import { ThemeProvider } from "@/contexts/ThemeContext";
 import { ToastProvider } from "@/contexts/ToastContext";
 import { Toast } from "@/components/ui/Toast";
 import { LevelUpCelebration } from "@/components/features/gamification/LevelUpCelebration";
+import { StreakAtRiskPrompt } from "@/components/features/gamification/StreakAtRiskPrompt";
 import { colors } from "@/theme/tokens";
 
 SplashScreen.preventAutoHideAsync();
@@ -95,6 +96,7 @@ export default function RootLayout() {
             <RootNavigator />
             <Toast />
             <LevelUpCelebration />
+            <StreakAtRiskPrompt />
           </ToastProvider>
         </ThemeProvider>
       </AuthProvider>

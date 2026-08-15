@@ -14,7 +14,7 @@ import { ApiError } from "@/lib/api/http";
 // houver algum disponível, ou navega pra Loja se não houver nenhum.
 export function StreakFreezeCard() {
   const router = useRouter();
-  const { streakFreezesAvailable, adjustStreakFreezes } = useAuth();
+  const { streakFreezesAvailable, adjustStreakFreezes, updateGamification } = useAuth();
   const [pending, setPending] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
 
@@ -25,6 +25,7 @@ export function StreakFreezeCard() {
     try {
       await freezeStreak(streakFreezesAvailable);
       adjustStreakFreezes(-1);
+      updateGamification({ streak_at_risk: false });
       setMessage("Ofensiva protegida! Se você faltar hoje, sua sequência continua intacta.");
     } catch (err) {
       setMessage(err instanceof ApiError ? err.message : "Não foi possível usar o bloqueio agora.");

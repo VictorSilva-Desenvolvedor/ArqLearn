@@ -2,7 +2,11 @@ import Link from "next/link";
 import { Icon } from "@/components/ui/Icon";
 import { cn } from "@/lib/utils/cn";
 
-export type LessonNodeVariant = "completed" | "current" | "locked" | "checkpoint" | "foggy";
+// "available" = tem pergunta aprovada de verdade, mas o usuário ainda não começou — navegável,
+// fora de ordem (sem bloqueio por sequência fake). "construction" = sem nenhuma pergunta
+// aprovada ainda, não navegável — mostra o ícone de "em construção" em vez do ícone normal da
+// lição. Espelha apps/mobile/.../LessonNode.tsx.
+export type LessonNodeVariant = "completed" | "current" | "available" | "construction" | "checkpoint";
 
 interface LessonNodeProps {
   variant: Exclude<LessonNodeVariant, "current">;
@@ -11,21 +15,6 @@ interface LessonNodeProps {
 }
 
 export function LessonNode({ variant, icon, href }: LessonNodeProps) {
-  // Missão longe demais da posição atual (mais de 5 lições à frente) — nem o ícone da matéria
-  // aparece, só névoa. Some conforme o jogador avança e a lição entra na janela das próximas 5
-  // (vira "locked" normal, com ícone visível).
-  if (variant === "foggy") {
-    return (
-      <div
-        className="w-16 h-16 rounded-full bg-surface-gray/70 border-2 border-outline-variant/50 flex items-center justify-center cursor-not-allowed backdrop-blur-[2px]"
-        aria-disabled
-        aria-label="Missão ainda encoberta pela névoa"
-      >
-        <Icon name="foggy" className="text-3xl text-outline/60" />
-      </div>
-    );
-  }
-
   if (variant === "checkpoint") {
     return (
       <Link
@@ -44,8 +33,20 @@ export function LessonNode({ variant, icon, href }: LessonNodeProps) {
         className="w-16 h-16 rounded-full bg-primary text-on-primary border-2 border-primary flex items-center justify-center hover:scale-105 transition-transform shadow-gamified"
       >
         {/* "completed" sempre mostra check — não depende de nenhum dado mockado atribuir esse
-            ícone à lição; o ícone da matéria (`icon`) só faz sentido pra checkpoint/locked. */}
+            ícone à lição; o ícone da matéria (`icon`) só faz sentido pra checkpoint/available. */}
         <Icon name="check" filled className="text-3xl" />
+      </Link>
+    );
+  }
+
+  if (variant === "available") {
+    return (
+      <Link
+        href={href ?? "#"}
+        className="w-16 h-16 rounded-full bg-surface-bright text-primary border-2 border-primary flex items-center justify-center hover:scale-105 transition-transform"
+        aria-label="Lição disponível — toque para começar"
+      >
+        <Icon name={icon} className="text-3xl" />
       </Link>
     );
   }
@@ -53,11 +54,12 @@ export function LessonNode({ variant, icon, href }: LessonNodeProps) {
   return (
     <div
       className={cn(
-        "w-16 h-16 rounded-full bg-surface-gray text-outline border-2 border-outline-variant flex items-center justify-center cursor-not-allowed",
+        "w-16 h-16 rounded-full bg-surface-gray text-outline border-2 border-dashed border-outline-variant flex items-center justify-center cursor-not-allowed",
       )}
       aria-disabled
+      aria-label="Lição em construção — ainda sem conteúdo"
     >
-      <Icon name={icon} className="text-3xl" />
+      <Icon name="construction" className="text-2xl" />
     </div>
   );
 }

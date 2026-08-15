@@ -9,6 +9,12 @@ import { colors, spacing, type } from "@/theme/tokens";
 interface AllDonePromptProps {
   topic: string;
   themeLabel: string;
+  // true quando StreakAtRiskPrompt (_layout.tsx raiz) também vai abrir sozinho — os dois são
+  // Modals independentes e um por cima do outro intercepta o toque do botão de baixo (mesmo
+  // problema confirmado ao vivo no espelho web via Playwright). Streak em risco é mais urgente
+  // (a sequência morre à meia-noite) que "continue no Modo Infinito" (sem prazo), então este não
+  // abre sozinho quando os dois concorreriam.
+  suppressAutoOpen?: boolean;
 }
 
 // Dispensados nesta execução do app — equivalente RN de sessionStorage (web): não há storage de
@@ -20,16 +26,17 @@ const dismissedThisSession = new Set<string>();
 // Espelha apps/web/src/components/features/home/AllDonePrompt.tsx — aparece só quando a trilha em
 // destaque da Home está 100% concluída (ver (tabs)/index.tsx), oferecendo continuar praticando no
 // Modo Infinito em vez de só mostrar o mapa todo verde sem próxima ação.
-export function AllDonePrompt({ topic, themeLabel }: AllDonePromptProps) {
+export function AllDonePrompt({ topic, themeLabel, suppressAutoOpen }: AllDonePromptProps) {
   const router = useRouter();
   const [open, setOpen] = useState(false);
 
   useEffect(() => {
+    if (suppressAutoOpen) return;
     const id = setTimeout(() => {
       if (!dismissedThisSession.has(topic)) setOpen(true);
     }, 0);
     return () => clearTimeout(id);
-  }, [topic]);
+  }, [topic, suppressAutoOpen]);
 
   const dismiss = () => {
     dismissedThisSession.add(topic);

@@ -49,6 +49,10 @@ export interface GamificationProfile {
   level: number;
   streak_current: number;
   streak_best: number;
+  streak_freezes_available: number;
+  // Streak positiva e ainda sem prática hoje (TDD §5.2) — gatilho pra oferecer usar um
+  // Bloqueio de Ofensiva assim que o app abre, em vez de só descobrir a perda no dia seguinte.
+  streak_at_risk: boolean;
   hearts_current: number; // 0-5
   // Instante da próxima regeneração de vida (TDD §5.4, 1 vida a cada 3h) — null quando
   // hearts_current já está no teto (5). *(v1.10)*
@@ -88,6 +92,9 @@ export interface Lesson {
 export interface TrackLesson {
   lesson: Lesson;
   progress_status: LessonProgressStatus;
+  // false = "em construção" (sem pergunta aprovada ainda) — deveria ficar acessível quando true,
+  // independente de progress_status (sem bloqueio por sequência fake).
+  has_questions: boolean;
 }
 
 export type QuestionType =

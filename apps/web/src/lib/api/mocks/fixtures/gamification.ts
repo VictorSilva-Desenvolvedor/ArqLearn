@@ -8,6 +8,8 @@ export const mockGamificationProfile: GamificationProfile = {
   level: 3, // nivel(520) = floor(sqrt(520/100))+1 = 3, curva real (algorithms.go Nivel)
   streak_current: 12,
   streak_best: 24,
+  streak_freezes_available: 2,
+  streak_at_risk: false,
   hearts_current: 5,
   hearts_next_at: null,
   gems: 340,

@@ -160,6 +160,57 @@ func HojeLocal(timezone string, now time.Time) string {
 	return now.In(loc).Format("2006-01-02")
 }
 
+// AplicarExpiracaoStreak implementa TDD §5.2/§5.3 de forma preguiçosa (mesmo padrão de
+// RegenerarVidas): calculada sob demanda a cada leitura/escrita de gamificação, sem job/cron —
+// esta fase bootstrap não tem scheduler automático (mesma decisão já tomada pra CloseLeagueWeek,
+// ver internal/gamification/gamification.go). streakLastActiveDate e hojeLocal são strings
+// "YYYY-MM-DD" no fuso do usuário (mesmo formato de HojeLocal/AtualizarStreak).
+//
+// Regra: se a última prática foi hoje ou ontem, a streak está intacta (TDD §5.1 já garante no
+// máximo 1 incremento por dia, então "ontem" é sempre o caso normal de quem ainda não praticou
+// hoje). Se pulou 2+ dias sem prática: consome 1 streak_freeze automaticamente se disponível
+// (streak_current preservado) — um gap de N dias consome até N freezes, um por dia faltante, até
+// acabarem, MAS um por avaliação, não N de uma vez (ver nota abaixo) —, ou zera streak_current se
+// não houver freeze (expirou=true).
+//
+// novaLastActiveDate avança pra "ontem" quando um freeze é consumido — NÃO pra hoje (o usuário
+// ainda precisa praticar hoje pra manter a sequência viva, TDD §5.3) — só o suficiente pra essa
+// mesma avaliação não se repetir a cada request do resto do dia (chamador persiste esse valor de
+// volta). Sem isso, o caller re-executaria esta função em toda leitura de gamificação do dia
+// (GET /v1/gamification/me, GET /v1/users/me, cada pergunta de POST .../answers) e consumiria um
+// freeze por request em vez de um por dia — bug real encontrado ao vivo (Playwright, ver
+// PENDENCIAS_MOBILE.md) antes desta correção. Se o usuário sumir por N dias e só abrir o app uma
+// vez depois, essa única avaliação processa 1 dia do gap (não os N de uma vez); reabrir o app nos
+// dias seguintes sem praticar processa mais um dia por vez, até os freezes acabarem ou a pessoa
+// praticar de novo — simulação lazy do job diário do TDD (que rodaria uma vez por virada de dia).
+func AplicarExpiracaoStreak(streakCurrent int, streakLastActiveDate string, freezesAvailable int, hojeLocal string) (novoStreakCurrent int, novaLastActiveDate string, novosFreezes int, expirou bool) {
+	if streakCurrent == 0 || streakLastActiveDate == "" || streakLastActiveDate == hojeLocal {
+		return streakCurrent, streakLastActiveDate, freezesAvailable, false
+	}
+
+	hoje, err := time.Parse("2006-01-02", hojeLocal)
+	if err != nil {
+		return streakCurrent, streakLastActiveDate, freezesAvailable, false
+	}
+	ontem := hoje.AddDate(0, 0, -1).Format("2006-01-02")
+	if streakLastActiveDate == ontem {
+		return streakCurrent, streakLastActiveDate, freezesAvailable, false
+	}
+
+	if freezesAvailable > 0 {
+		return streakCurrent, ontem, freezesAvailable - 1, false
+	}
+	return 0, streakLastActiveDate, freezesAvailable, true
+}
+
+// StreakEmRisco é TDD §5.2 (aviso preventivo) calculado ao vivo: streak positiva e a pessoa ainda
+// não praticou hoje. Fica true todo santo dia até a prática de hoje acontecer (sem "janela antes
+// da meia-noite" do job original — não tem como saber a hora aqui, só a data) — é exatamente o
+// gatilho do prompt de "usar bloqueio de ofensiva agora" ao abrir o app.
+func StreakEmRisco(streakCurrent int, streakLastActiveDate, hojeLocal string) bool {
+	return streakCurrent > 0 && streakLastActiveDate != hojeLocal
+}
+
 // HeartsMax e HeartsRegenInterval implementam TDD §5.4: uma vida regenera a cada 3h até o teto
 // de 5, calculado de forma preguiçosa (sem job) sempre que hearts_current/hearts_updated_at são
 // lidos — ver RegenerarVidas e LoadHeartsWithRegen.

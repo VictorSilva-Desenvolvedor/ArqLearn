@@ -5,30 +5,36 @@ export const mockLessonsByTrack: Record<string, TrackLesson[]> = {
     {
       lesson: { id: "t1-l1", track_id: "track-fundamentos", title: "Elementos Estruturais", order: 1 },
       progress_status: "completed",
+      has_questions: true,
     },
     {
       lesson: { id: "t1-l2", track_id: "track-fundamentos", title: "Materiais de Construção", order: 2 },
       progress_status: "completed",
+      has_questions: true,
     },
     {
       lesson: { id: "t1-l3", track_id: "track-fundamentos", title: "Avaliação de Unidade", order: 3 },
       progress_status: "completed",
+      has_questions: true,
     },
   ],
   "track-historia": [
     {
       lesson: { id: "t2-l1", track_id: "track-historia", title: "Grécia e Roma Antiga", order: 1 },
       progress_status: "in_progress",
+      has_questions: true,
     },
     {
       lesson: { id: "t2-l2", track_id: "track-historia", title: "Arquitetura Gótica", order: 2 },
       progress_status: "not_started",
+      has_questions: true,
     },
   ],
   "track-urbanismo": [
     {
       lesson: { id: "t3-l1", track_id: "track-urbanismo", title: "Introdução ao Urbanismo", order: 1 },
       progress_status: "not_started",
+      has_questions: true,
     },
   ],
   "track-sistemas-construtivos": [
@@ -40,10 +46,12 @@ export const mockLessonsByTrack: Record<string, TrackLesson[]> = {
         order: 1,
       },
       progress_status: "not_started",
+      has_questions: true,
     },
     {
       lesson: { id: "t4-l2", track_id: "track-sistemas-construtivos", title: "Modulação e Instalações", order: 2 },
       progress_status: "not_started",
+      has_questions: true,
     },
   ],
   "track-arquitetura-moderna-br": [
@@ -55,6 +63,7 @@ export const mockLessonsByTrack: Record<string, TrackLesson[]> = {
         order: 1,
       },
       progress_status: "not_started",
+      has_questions: true,
     },
     {
       lesson: {
@@ -64,26 +73,31 @@ export const mockLessonsByTrack: Record<string, TrackLesson[]> = {
         order: 2,
       },
       progress_status: "not_started",
+      has_questions: true,
     },
   ],
   "track-conforto-termico": [
     {
       lesson: { id: "t6-l1", track_id: "track-conforto-termico", title: "Ventilação Natural", order: 1 },
       progress_status: "not_started",
+      has_questions: true,
     },
     {
       lesson: { id: "t6-l2", track_id: "track-conforto-termico", title: "Inércia Térmica", order: 2 },
       progress_status: "not_started",
+      has_questions: true,
     },
   ],
   "track-estruturas": [
     {
       lesson: { id: "t7-l1", track_id: "track-estruturas", title: "Treliças Isostáticas", order: 1 },
       progress_status: "not_started",
+      has_questions: true,
     },
     {
       lesson: { id: "t7-l2", track_id: "track-estruturas", title: "Flambagem de Pilares", order: 2 },
       progress_status: "not_started",
+      has_questions: true,
     },
   ],
 };

@@ -92,16 +92,16 @@ func handleSubmitAnswer(pool *pgxpool.Pool, mongoDB *mongo.Database) http.Handle
 
 		// --- Postgres: perfil + gamificação atuais ---
 		var timezone string
-		var xpTotal, xpToday, heartsCurrent, streakCurrent, streakBest int
+		var xpTotal, xpToday, heartsCurrent, streakCurrent, streakBest, streakFreezesAvailable int
 		var xpTodayDate, streakLastActiveDate *time.Time
 		var heartsUpdatedAt time.Time
 		err = pool.QueryRow(r.Context(), `
 			SELECT u.timezone, g.xp_total, g.xp_today, g.xp_today_date, g.hearts_current, g.hearts_updated_at,
-			       g.streak_current, g.streak_best, g.streak_last_active_date
+			       g.streak_current, g.streak_best, g.streak_last_active_date, g.streak_freezes_available
 			FROM users u JOIN user_gamification g ON g.user_id = u.id
 			WHERE u.id = $1
 		`, userID).Scan(&timezone, &xpTotal, &xpToday, &xpTodayDate, &heartsCurrent, &heartsUpdatedAt,
-			&streakCurrent, &streakBest, &streakLastActiveDate)
+			&streakCurrent, &streakBest, &streakLastActiveDate, &streakFreezesAvailable)
 		if err != nil {
 			apierror.Write(w, http.StatusInternalServerError, "INTERNAL_ERROR", "Falha ao consultar perfil.")
 			return
@@ -142,7 +142,14 @@ func handleSubmitAnswer(pool *pgxpool.Pool, mongoDB *mongo.Database) http.Handle
 			newHeartsUpdatedAt = now
 		}
 
-		streak := gamification.StreakState{Current: streakCurrent, Best: streakBest, LastActiveDate: dateOrEmpty(streakLastActiveDate)}
+		// Expira a streak (TDD §5.2/§5.3) ANTES de aplicar o incremento de hoje — sem isso, uma
+		// streak_current desatualizada (ex.: 5 dias sem praticar) só seria incrementada em vez de
+		// zerada primeiro, mesmo padrão de RegenerarVidas acima pras vidas.
+		var novaLastActiveStr string
+		streakCurrent, novaLastActiveStr, streakFreezesAvailable, _ = gamification.AplicarExpiracaoStreak(
+			streakCurrent, dateOrEmpty(streakLastActiveDate), streakFreezesAvailable, hojeLocal)
+
+		streak := gamification.StreakState{Current: streakCurrent, Best: streakBest, LastActiveDate: novaLastActiveStr}
 		if isFirstCompletion {
 			streak = gamification.AtualizarStreak(streak, hojeLocal)
 		}
@@ -161,10 +168,10 @@ func handleSubmitAnswer(pool *pgxpool.Pool, mongoDB *mongo.Database) http.Handle
 			UPDATE user_gamification
 			SET xp_total = $1, xp_today = $2, xp_today_date = $3, level = $4,
 			    hearts_current = $5, hearts_updated_at = $6, streak_current = $7, streak_best = $8,
-			    streak_last_active_date = $9
-			WHERE user_id = $10
+			    streak_last_active_date = $9, streak_freezes_available = $10
+			WHERE user_id = $11
 		`, newXPTotal, newXPToday, hojeLocalDate, newLevel, newHearts, newHeartsUpdatedAt,
-			streak.Current, streak.Best, streakLastActiveParam, userID)
+			streak.Current, streak.Best, streakLastActiveParam, streakFreezesAvailable, userID)
 		if err != nil {
 			apierror.Write(w, http.StatusInternalServerError, "INTERNAL_ERROR", "Falha ao atualizar gamificação.")
 			return

@@ -5,6 +5,7 @@ import { AuthProvider } from "@/contexts/AuthContext";
 import { ThemeProvider } from "@/contexts/ThemeContext";
 import { ToastProvider } from "@/contexts/ToastContext";
 import { LevelUpCelebration } from "@/components/features/gamification/LevelUpCelebration";
+import { StreakAtRiskPrompt } from "@/components/features/gamification/StreakAtRiskPrompt";
 import { Toast } from "@/components/ui/Toast";
 import { ACCOUNT_COOKIE } from "@/lib/auth/constants";
 import { THEME_COOKIE } from "@/lib/theme/constants";
@@ -65,6 +66,7 @@ export default async function RootLayout({ children }: LayoutProps<"/">) {
           <AuthProvider initialAccountId={initialAccountId} initialMe={initialMe}>
             <ThemeProvider initialTopic={initialTopic}>{children}</ThemeProvider>
             <LevelUpCelebration />
+            <StreakAtRiskPrompt />
           </AuthProvider>
           <Toast />
         </ToastProvider>

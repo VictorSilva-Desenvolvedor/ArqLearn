@@ -9,6 +9,14 @@ import { Button } from "@/components/ui/Button";
 interface AllDonePromptProps {
   topic: string;
   themeLabel: string;
+  // true quando StreakAtRiskPrompt (root layout) também vai abrir sozinho nesta carga de página —
+  // os dois são Modals Radix independentes e um clique no botão deste aqui em cima do outro
+  // intercepta o clique (confirmado ao vivo via Playwright: "Usar Bloqueio Agora" ficava
+  // inacessível atrás de "Ir para o Modo Infinito"). Streak em risco é mais urgente/perecível (a
+  // sequência morre à meia-noite) que "continue no Modo Infinito", que não tem prazo — por isso
+  // este não abre sozinho quando os dois concorreriam; a pessoa ainda chega no Modo Infinito pelo
+  // botão normal da Home.
+  suppressAutoOpen?: boolean;
 }
 
 // Aparece só quando a trilha em destaque da Home está 100% concluída (ver app/(shell)/page.tsx,
@@ -16,12 +24,13 @@ interface AllDonePromptProps {
 // todo verde sem nenhuma próxima ação. sessionStorage evita reabrir sozinho a cada visita à Home
 // depois que a pessoa já viu/dispensou nesta sessão do navegador — sem isso, voltar pra "/" depois
 // de já ter ido pro Modo Infinito (ou só fechado o diálogo) mostraria o mesmo popup de novo.
-export function AllDonePrompt({ topic, themeLabel }: AllDonePromptProps) {
+export function AllDonePrompt({ topic, themeLabel, suppressAutoOpen }: AllDonePromptProps) {
   const router = useRouter();
   const dismissKey = `arqlearn_alldone_dismissed_${topic}`;
   const [open, setOpen] = useState(false);
 
   useEffect(() => {
+    if (suppressAutoOpen) return;
     // setState adiado (não direto no corpo do efeito) de propósito — mesmo motivo do ajuste em
     // useCountdownToTimestamp: setState síncrono dentro de um efeito é sinalizado pelo lint como
     // possível cascata de render. Um tick de atraso é imperceptível aqui.
@@ -29,7 +38,7 @@ export function AllDonePrompt({ topic, themeLabel }: AllDonePromptProps) {
       if (!sessionStorage.getItem(dismissKey)) setOpen(true);
     }, 0);
     return () => clearTimeout(id);
-  }, [dismissKey]);
+  }, [dismissKey, suppressAutoOpen]);
 
   const dismiss = () => {
     sessionStorage.setItem(dismissKey, "1");

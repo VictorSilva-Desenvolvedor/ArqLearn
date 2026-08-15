@@ -37,8 +37,6 @@ export interface AuthContextValue {
   gamification: GamificationProfile;
   updateGamification: (patch: Partial<GamificationProfile>) => void;
   updateUser: (patch: Partial<User>) => void;
-  // GamificationProfile (contrato real) não tem esse campo — só aparece na resposta de
-  // POST /v1/gamification/streak/freeze. Rastreado à parte, igual ao patch de User.
   streakFreezesAvailable: number;
   adjustStreakFreezes: (delta: number) => void;
   // Sessão real (Supabase Auth) — usar isto pro login de verdade (Maria/Marina/Admin, todas
@@ -94,7 +92,6 @@ export function AuthProvider({
   // Patch local sobre o User da sessão ativa (nome/fuso editados em Configurações) — não muta
   // fixture/perfil compartilhado, só a sessão atual; reseta ao trocar de conta/sessão.
   const [userPatch, setUserPatch] = useState<Partial<User>>({});
-  const [streakFreezesAvailable, setStreakFreezesAvailable] = useState(0);
   const [justLeveledUpTo, setJustLeveledUpTo] = useState<number | null>(null);
 
   // Evita aplicar a resposta de uma sessão antiga se o usuário trocar de sessão rápido demais
@@ -167,16 +164,20 @@ export function AuthProvider({
     setAccountId(id);
     setGamification(gamificationForAccount(id));
     setUserPatch({});
-    setStreakFreezesAvailable(0);
     setJustLeveledUpTo(null);
-  }, [setAccountId, setGamification, setUserPatch, setStreakFreezesAvailable, setJustLeveledUpTo]);
+  }, [setAccountId, setGamification, setUserPatch, setJustLeveledUpTo]);
 
   const updateUser = useCallback((patch: Partial<User>) => {
     setUserPatch((current) => ({ ...current, ...patch }));
   }, []);
 
+  // streak_freezes_available agora vem no próprio GamificationProfile (GET /v1/users/me e
+  // /v1/gamification/me) — ajusta ali em vez de manter um contador solto e desincronizado.
   const adjustStreakFreezes = useCallback((delta: number) => {
-    setStreakFreezesAvailable((current) => Math.max(0, current + delta));
+    setGamification((current) => ({
+      ...current,
+      streak_freezes_available: Math.max(0, current.streak_freezes_available + delta),
+    }));
   }, []);
 
   const logout = useCallback(() => {
@@ -277,7 +278,7 @@ export function AuthProvider({
       gamification,
       updateGamification,
       updateUser,
-      streakFreezesAvailable,
+      streakFreezesAvailable: gamification.streak_freezes_available,
       adjustStreakFreezes,
       loginWithPassword,
       isRealSession,
@@ -292,7 +293,6 @@ export function AuthProvider({
       gamification,
       updateGamification,
       updateUser,
-      streakFreezesAvailable,
       adjustStreakFreezes,
       loginWithPassword,
       isRealSession,
