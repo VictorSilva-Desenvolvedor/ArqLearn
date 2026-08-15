@@ -32,6 +32,11 @@ function variantFor(progressStatus: string, isCheckpoint: boolean | undefined, h
 }
 
 function unitStatusFor(lessons: { progress_status: string; has_questions: boolean }[]): UnitStatus {
+  // Trilha sem nenhuma lição (units: [] no Mongo, ex.: track ainda não populada) é "em
+  // construção", não "concluída" — `every` em array vazio é vacuosamente true e mentia "CONCLUÍDO"
+  // pra uma trilha que na real nunca teve conteúdo nenhum (achado ao vivo com a trilha real
+  // "Arquitetura Brasileira", 0 lições).
+  if (lessons.length === 0) return "construction";
   if (lessons.every((l) => l.progress_status === "completed")) return "completed";
   if (lessons.some((l) => l.progress_status === "in_progress")) return "current";
   if (lessons.some((l) => l.has_questions)) return "available";

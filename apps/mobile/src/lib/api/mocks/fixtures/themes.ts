@@ -1,10 +1,11 @@
 import type { IconName } from "@/components/ui/Icon";
 
 // Catálogo de temas/tópicos disponíveis para o aluno escolher como "conteúdo principal" do
-// app — reúne os 7 temas "de vitrine" já com conteúdo completo (mapa/trilhas recomendadas/Modo
-// Infinito hand-authored) com as disciplinas reais da grade curricular de Arquitetura e
-// Urbanismo. Espelha apps/web/src/lib/api/mocks/fixtures/themes.ts — `icon` aqui é IconName (RN),
-// não a string livre de Material Symbols do web (ver mapeamento themeXxx em components/ui/Icon.tsx).
+// app — reúne os 7 temas "de vitrine" originais (mapa/trilhas recomendadas/Modo Infinito
+// hand-authored, mas hoje sem trilha real correspondente no backend — ver hasContent abaixo) com
+// as disciplinas reais da grade curricular de Arquitetura e Urbanismo. Espelha
+// apps/web/src/lib/api/mocks/fixtures/themes.ts — `icon` aqui é IconName (RN), não a string livre
+// de Material Symbols do web (ver mapeamento themeXxx em components/ui/Icon.tsx).
 //
 // `ThemeTopic` não é mais uma union literal fechada — com quase 50 entradas isso vira ruído;
 // o catálogo abaixo é a fonte de verdade, não o tipo.
@@ -24,14 +25,17 @@ export interface ThemeDefinition {
   hasContent: boolean;
 }
 
+// hasContent:false nos 7 — nenhum desses 7 tópicos "de vitrine" corresponde a uma trilha real no
+// backend hoje (conferido direto no Mongo, mesma checagem de
+// apps/web/.../fixtures/themes.ts — ver comentário lá pro detalhe completo).
 const featuredThemes: ThemeDefinition[] = [
-  { topic: "fundamentos", label: "Fundamentos de Arquitetura", icon: "themeFoundation", hasContent: true },
-  { topic: "historia", label: "História da Arquitetura", icon: "accountBalance", hasContent: true },
-  { topic: "urbanismo", label: "Urbanismo", icon: "locationCity", hasContent: true },
-  { topic: "sistemas_construtivos", label: "Sistemas Construtivos", icon: "themeHandyman", hasContent: true },
-  { topic: "arquitetura_moderna", label: "Arquitetura Moderna Brasileira", icon: "themeVilla", hasContent: true },
-  { topic: "conforto_termico", label: "Conforto Térmico", icon: "themeThermostat", hasContent: true },
-  { topic: "estruturas", label: "Sistemas Estruturais", icon: "themeArchitecture", hasContent: true },
+  { topic: "fundamentos", label: "Fundamentos de Arquitetura", icon: "themeFoundation", hasContent: false },
+  { topic: "historia", label: "História da Arquitetura", icon: "accountBalance", hasContent: false },
+  { topic: "urbanismo", label: "Urbanismo", icon: "locationCity", hasContent: false },
+  { topic: "sistemas_construtivos", label: "Sistemas Construtivos", icon: "themeHandyman", hasContent: false },
+  { topic: "arquitetura_moderna", label: "Arquitetura Moderna Brasileira", icon: "themeVilla", hasContent: false },
+  { topic: "conforto_termico", label: "Conforto Térmico", icon: "themeThermostat", hasContent: false },
+  { topic: "estruturas", label: "Sistemas Estruturais", icon: "themeArchitecture", hasContent: false },
 ];
 
 // Disciplinas reais da grade curricular — grupadas por semestre, na ordem do documento fonte.

@@ -10,14 +10,19 @@ interface TrackCardProps extends RecommendedTrack {
   onPress?: () => void;
 }
 
-// Espelha apps/web/src/components/features/explore/TrackCard.tsx — lá o card também não tem
-// onClick (mesma lacuna, sem tela de "detalhe de trilha" em nenhum dos dois apps ainda); aqui o
-// toque reaproveita o ThemeSelector (mesmo setTopic do explorar.tsx) pra pelo menos ter um efeito
-// real e coerente com o resto da tela, em vez de ficar mudo.
-export function TrackCard({ track, difficulty, durationMinutes, icon, isSelectedTheme, onPress }: TrackCardProps) {
+// Espelha apps/web/src/components/features/explore/TrackCard.tsx. Toque reaproveita o
+// ThemeSelector (mesmo setTopic do explorar.tsx) pra ter um efeito real, em vez de ficar mudo.
+// hasContent:false (ver exploreTracks.ts/themes.ts) troca o selo de dificuldade/duração — que
+// seriam inventados, a trilha não existe de verdade ainda — por "Em construção" (mesma
+// convenção/tom de UnitSection.tsx) e esmaece o card.
+export function TrackCard({ track, difficulty, durationMinutes, icon, isSelectedTheme, hasContent, onPress }: TrackCardProps) {
   return (
     <Pressable onPress={onPress} disabled={!onPress}>
-      <Card padding="md" radius="lg" style={[styles.card, isSelectedTheme && styles.selected]}>
+      <Card
+        padding="md"
+        radius="lg"
+        style={[styles.card, isSelectedTheme && styles.selected, !hasContent && styles.underConstruction]}
+      >
         {isSelectedTheme && (
           <View style={styles.badgeWrap}>
             <Badge tone="primary">Selecionado</Badge>
@@ -25,13 +30,17 @@ export function TrackCard({ track, difficulty, durationMinutes, icon, isSelected
         )}
         <Icon name={icon} size={28} color={colors.primary} />
         <Text style={[type.questionSm, styles.title]}>{track.title}</Text>
-        <View style={styles.meta}>
-          <Badge tone="primary">{difficulty}</Badge>
-          <View style={styles.duration}>
-            <Icon name="schedule" size={16} color={colors.onSurfaceVariant} />
-            <Text style={[type.bodySm, styles.durationText]}>{durationMinutes}min</Text>
+        {hasContent ? (
+          <View style={styles.meta}>
+            <Badge tone="primary">{difficulty}</Badge>
+            <View style={styles.duration}>
+              <Icon name="schedule" size={16} color={colors.onSurfaceVariant} />
+              <Text style={[type.bodySm, styles.durationText]}>{durationMinutes}min</Text>
+            </View>
           </View>
-        </View>
+        ) : (
+          <Badge tone="neutral">Em construção</Badge>
+        )}
       </Card>
     </Pressable>
   );
@@ -46,6 +55,9 @@ const styles = StyleSheet.create({
   selected: {
     borderColor: colors.primary,
     backgroundColor: colors.primaryFixed,
+  },
+  underConstruction: {
+    opacity: 0.6,
   },
   badgeWrap: {
     position: "absolute",

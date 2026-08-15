@@ -1,11 +1,12 @@
 // Catálogo de temas/tópicos disponíveis para o aluno escolher como "conteúdo principal" do
-// app — reúne os 7 temas "de vitrine" já com conteúdo completo (mapa/trilhas recomendadas/Modo
-// Infinito hand-authored) com as disciplinas reais da grade curricular de Arquitetura e
-// Urbanismo (Docs/ignorar/<grade curricular>.pdf — Universidade Pitágoras Unopar/Anhanguera,
-// 10 semestres). Ficaram de fora da grade só os itens que não são "tema de estudo" no sentido
-// de trilha/quiz — Estágio Curricular I/II, Trabalho de Graduação I/II e Projeto de Extensão
-// I-IV (prática supervisionada/TCC, sem conteúdo teórico próprio) — e 2 disciplinas que já
-// eram, em essência, os temas "historia"/"conforto_termico" que já existiam.
+// app — reúne os 7 temas "de vitrine" originais (mapa/trilhas recomendadas/Modo Infinito
+// hand-authored, mas hoje sem trilha real correspondente no backend — ver hasContent abaixo) com
+// as disciplinas reais da grade curricular de Arquitetura e Urbanismo (Docs/ignorar/<grade
+// curricular>.pdf — Universidade Pitágoras Unopar/Anhanguera, 10 semestres). Ficaram de fora da
+// grade só os itens que não são "tema de estudo" no sentido de trilha/quiz — Estágio Curricular
+// I/II, Trabalho de Graduação I/II e Projeto de Extensão I-IV (prática supervisionada/TCC, sem
+// conteúdo teórico próprio) — e 2 disciplinas que já eram, em essência, os temas
+// "historia"/"conforto_termico" que já existiam.
 //
 // `ThemeTopic` não é mais uma union literal fechada — com quase 50 entradas isso vira ruído;
 // o catálogo abaixo é a fonte de verdade, não o tipo.
@@ -25,14 +26,23 @@ export interface ThemeDefinition {
   hasContent: boolean;
 }
 
+// hasContent:false nos 7 — nenhum desses 7 tópicos "de vitrine" corresponde a uma trilha real
+// no backend hoje (conferido direto no Mongo: nenhuma das 44 trilhas semeadas da grade curricular
+// tem topic exatamente "fundamentos"/"historia"/"urbanismo"/"sistemas_construtivos"/
+// "arquitetura_moderna"/"estruturas" — e "conforto_termico" até bate com uma trilha real
+// (track_s02_conforto_termico), mas ela tem 0 lições). Antes ficavam marcados true por serem "o
+// conteúdo vitrine hand-authored original", mas isso é anterior à migração pra trilhas reais da
+// grade curricular — sem essa correção, ThemeSelector/Explorar prometiam um mapa pronto que na
+// prática caía silenciosamente numa trilha real não relacionada (ver Home, fallback de
+// featuredTrack) ou ficava com o mapa vazio.
 const featuredThemes: ThemeDefinition[] = [
-  { topic: "fundamentos", label: "Fundamentos de Arquitetura", icon: "foundation", hasContent: true },
-  { topic: "historia", label: "História da Arquitetura", icon: "account_balance", hasContent: true },
-  { topic: "urbanismo", label: "Urbanismo", icon: "location_city", hasContent: true },
-  { topic: "sistemas_construtivos", label: "Sistemas Construtivos", icon: "handyman", hasContent: true },
-  { topic: "arquitetura_moderna", label: "Arquitetura Moderna Brasileira", icon: "villa", hasContent: true },
-  { topic: "conforto_termico", label: "Conforto Térmico", icon: "thermostat", hasContent: true },
-  { topic: "estruturas", label: "Sistemas Estruturais", icon: "architecture", hasContent: true },
+  { topic: "fundamentos", label: "Fundamentos de Arquitetura", icon: "foundation", hasContent: false },
+  { topic: "historia", label: "História da Arquitetura", icon: "account_balance", hasContent: false },
+  { topic: "urbanismo", label: "Urbanismo", icon: "location_city", hasContent: false },
+  { topic: "sistemas_construtivos", label: "Sistemas Construtivos", icon: "handyman", hasContent: false },
+  { topic: "arquitetura_moderna", label: "Arquitetura Moderna Brasileira", icon: "villa", hasContent: false },
+  { topic: "conforto_termico", label: "Conforto Térmico", icon: "thermostat", hasContent: false },
+  { topic: "estruturas", label: "Sistemas Estruturais", icon: "architecture", hasContent: false },
 ];
 
 // Disciplinas reais da grade curricular — grupadas por semestre, na ordem do documento fonte.

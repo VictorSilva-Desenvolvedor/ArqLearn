@@ -1,4 +1,5 @@
 import { mockTracks } from "./tracks";
+import { getThemeByTopic } from "./themes";
 import type { Track } from "@/types/api";
 
 // Metadados de exibição (dificuldade/duração) não fazem parte do contrato de Track — o spec
@@ -10,6 +11,10 @@ export interface RecommendedTrack {
   difficulty: "Básico" | "Intermediário" | "Avançado";
   durationMinutes: number;
   icon: string;
+  // Espelha themes.ts (hasContent) pro mesmo topic — dificuldade/duração acima são só decoração;
+  // isto aqui decide se o card mostra essa decoração normal ou o selo "Em construção" (nenhuma
+  // trilha real por trás ainda, ver themes.ts pro porquê).
+  hasContent: boolean;
 }
 
 function trackById(id: string): Track {
@@ -18,7 +23,7 @@ function trackById(id: string): Track {
   return track;
 }
 
-export const mockRecommendedTracks: RecommendedTrack[] = [
+const recommendedTracksBase: Omit<RecommendedTrack, "hasContent">[] = [
   {
     track: trackById("track-fundamentos"),
     difficulty: "Básico",
@@ -62,3 +67,8 @@ export const mockRecommendedTracks: RecommendedTrack[] = [
     icon: "architecture",
   },
 ];
+
+export const mockRecommendedTracks: RecommendedTrack[] = recommendedTracksBase.map((entry) => ({
+  ...entry,
+  hasContent: getThemeByTopic(entry.track.topic).hasContent,
+}));

@@ -1,4 +1,5 @@
 import { mockTracks } from "./tracks";
+import { getThemeByTopic } from "./themes";
 import type { IconName } from "@/components/ui/Icon";
 import type { Track } from "@/types/api";
 
@@ -12,6 +13,9 @@ export interface RecommendedTrack {
   difficulty: "Básico" | "Intermediário" | "Avançado";
   durationMinutes: number;
   icon: IconName;
+  // Espelha themes.ts (hasContent) pro mesmo topic — ver comentário lá pro porquê os 7 temas de
+  // vitrine hoje não têm trilha real por trás.
+  hasContent: boolean;
 }
 
 function trackById(id: string): Track {
@@ -20,7 +24,7 @@ function trackById(id: string): Track {
   return track;
 }
 
-export const mockRecommendedTracks: RecommendedTrack[] = [
+const recommendedTracksBase: Omit<RecommendedTrack, "hasContent">[] = [
   {
     track: trackById("track-fundamentos"),
     difficulty: "Básico",
@@ -64,3 +68,8 @@ export const mockRecommendedTracks: RecommendedTrack[] = [
     icon: "themeArchitecture",
   },
 ];
+
+export const mockRecommendedTracks: RecommendedTrack[] = recommendedTracksBase.map((entry) => ({
+  ...entry,
+  hasContent: getThemeByTopic(entry.track.topic).hasContent,
+}));
