@@ -48,7 +48,7 @@ type userMeResponse struct {
 		HeartsCurrent          int        `json:"hearts_current"`
 		HeartsNextAt           *time.Time `json:"hearts_next_at"`
 		Gems                   int        `json:"gems"`
-		LeagueTier             *int       `json:"league_tier"`
+		LeagueTier             *string    `json:"league_tier"`
 	} `json:"gamification"`
 }
 
@@ -74,9 +74,6 @@ func handleGetMe(pool *pgxpool.Pool) http.HandlerFunc {
 			&resp.User.Timezone, &resp.User.CreatedAt,
 			&resp.Gamification.XPTotal, &resp.Gamification.XPToday, &resp.Gamification.Level, &resp.Gamification.Gems,
 		)
-		// TODO: preencher league_tier quando o fechamento semanal de liga existir (TDD §6) —
-		// hoje todo usuário fica sem liga atribuída, então league_tier é sempre null.
-
 		if err == pgx.ErrNoRows {
 			// Não deveria acontecer — o trigger on_auth_user_created (Database Design §3.2)
 			// cria o perfil no mesmo instante em que o Supabase Auth cria auth.users.
@@ -107,6 +104,12 @@ func handleGetMe(pool *pgxpool.Pool) http.HandlerFunc {
 		resp.Gamification.StreakBest = streak.Best
 		resp.Gamification.StreakFreezesAvailable = streak.FreezesAvailable
 		resp.Gamification.StreakAtRisk = streak.AtRisk
+
+		resp.Gamification.LeagueTier, err = gamification.LoadLeagueTierName(r.Context(), pool, resp.User.ID)
+		if err != nil {
+			apierror.Write(w, http.StatusInternalServerError, "INTERNAL_ERROR", "Falha ao consultar liga.")
+			return
+		}
 
 		writeJSON(w, http.StatusOK, resp)
 	}

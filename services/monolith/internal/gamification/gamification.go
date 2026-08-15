@@ -180,17 +180,10 @@ func handleGetGamificationMe(pool *pgxpool.Pool) http.HandlerFunc {
 			return
 		}
 
-		// league_tier só existe se o usuário já tiver sido inserido numa liga (ver
-		// ensureLeagueMembership, chamado por GET /league) — ninguém entra numa liga sozinho
-		// batendo só neste endpoint, então fica null até a pessoa abrir a tela Liga uma vez.
-		var tierNum *int
-		_ = pool.QueryRow(r.Context(), `
-			SELECT l.tier FROM league_members lm JOIN leagues l ON l.id = lm.league_id
-			WHERE lm.user_id = $1 AND l.week_reference = $2
-		`, userID, mondayOf(time.Now().UTC())).Scan(&tierNum)
-		if tierNum != nil {
-			name := tierName(*tierNum)
-			resp.LeagueTier = &name
+		resp.LeagueTier, err = LoadLeagueTierName(r.Context(), pool, userID)
+		if err != nil {
+			apierror.Write(w, http.StatusInternalServerError, "INTERNAL_ERROR", "Falha ao consultar liga.")
+			return
 		}
 
 		rows, err := pool.Query(r.Context(), `SELECT type, unlocked_at FROM achievements WHERE user_id = $1 ORDER BY unlocked_at DESC`, userID)
@@ -293,6 +286,27 @@ func mondayOf(t time.Time) time.Time {
 		offset += 7
 	}
 	return t.AddDate(0, 0, -offset)
+}
+
+// LoadLeagueTierName lê o nome da liga (ex.: "bronze") vigente do usuário nesta semana, ou nil se
+// ele ainda não foi inserido em nenhuma (ver ensureLeagueMembership, chamado por GET /league —
+// ninguém entra numa liga sozinho batendo só em GET /v1/users/me ou /v1/gamification/me, então
+// fica nil até a pessoa abrir a tela Liga uma vez). Usado pelos dois endpoints que expõem
+// league_tier (GET /v1/gamification/me e GET /v1/users/me) — única fonte de verdade pra não
+// duplicar a query/lógica de tierName nos dois.
+func LoadLeagueTierName(ctx context.Context, pool *pgxpool.Pool, userID string) (*string, error) {
+	var tierNum *int
+	if err := pool.QueryRow(ctx, `
+		SELECT l.tier FROM league_members lm JOIN leagues l ON l.id = lm.league_id
+		WHERE lm.user_id = $1 AND l.week_reference = $2
+	`, userID, mondayOf(time.Now().UTC())).Scan(&tierNum); err != nil && err != pgx.ErrNoRows {
+		return nil, err
+	}
+	if tierNum == nil {
+		return nil, nil
+	}
+	name := tierName(*tierNum)
+	return &name, nil
 }
 
 // ensureLeagueMembership garante que o usuário está numa leagues/league_members desta semana,
