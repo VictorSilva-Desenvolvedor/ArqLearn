@@ -199,15 +199,17 @@ func handleInfiniteModeAnswer(pool *pgxpool.Pool, mongoDB *mongo.Database, gemin
 		correct := req.Answer == q.correctOptionID()
 
 		var timezone string
-		var xpTotal, xpToday, chestQuestionsToday int
-		var xpTodayDate, chestQuestionsDate, chestClaimedDate *time.Time
+		var xpTotal, xpToday, chestQuestionsToday, chestWeeklyQuestions int
+		var xpTodayDate, chestQuestionsDate, chestClaimedDate, chestWeeklyCycleStart *time.Time
 		if err := pool.QueryRow(r.Context(), `
 			SELECT u.timezone, g.xp_total, g.xp_today, g.xp_today_date,
-			       g.chest_questions_today, g.chest_questions_date, g.chest_claimed_date
+			       g.chest_questions_today, g.chest_questions_date, g.chest_claimed_date,
+			       g.chest_weekly_questions, g.chest_weekly_cycle_start
 			FROM users u JOIN user_gamification g ON g.user_id = u.id
 			WHERE u.id = $1
 		`, userID).Scan(&timezone, &xpTotal, &xpToday, &xpTodayDate,
-			&chestQuestionsToday, &chestQuestionsDate, &chestClaimedDate); err != nil {
+			&chestQuestionsToday, &chestQuestionsDate, &chestClaimedDate,
+			&chestWeeklyQuestions, &chestWeeklyCycleStart); err != nil {
 			apierror.Write(w, http.StatusInternalServerError, "INTERNAL_ERROR", "Falha ao consultar perfil.")
 			return
 		}
@@ -221,6 +223,12 @@ func handleInfiniteModeAnswer(pool *pgxpool.Pool, mongoDB *mongo.Database, gemin
 		// internal/learning/answers.go.
 		chestQuestionsToday = gamification.QuestoesHojeAposReset(chestQuestionsToday, dateOrEmpty(chestQuestionsDate), hojeLocal) + 1
 
+		// Baú Semanal: mesma resposta soma pro ciclo rolante de 7 dias, mesmo padrão de answers.go.
+		var chestWeeklyCycleStartStr string
+		chestWeeklyQuestions, chestWeeklyCycleStartStr = gamification.QuestoesSemanaAposReset(chestWeeklyQuestions, dateOrEmpty(chestWeeklyCycleStart), hojeLocal)
+		chestWeeklyQuestions++
+		chestWeeklyCycleStartDate, _ := time.Parse("2006-01-02", chestWeeklyCycleStartStr)
+
 		xpResult := gamification.CalcularXP(q.Difficulty, int(req.TimeMs), false, correct, xpToday)
 		newXPTotal := xpTotal + xpResult.XPConcedido
 		newXPToday := xpToday + xpResult.XPConcedido
@@ -230,9 +238,11 @@ func handleInfiniteModeAnswer(pool *pgxpool.Pool, mongoDB *mongo.Database, gemin
 		if _, err := pool.Exec(r.Context(), `
 			UPDATE user_gamification
 			SET xp_total = $1, xp_today = $2, xp_today_date = $3, level = $4,
-			    chest_questions_today = $5, chest_questions_date = $6
-			WHERE user_id = $7
-		`, newXPTotal, newXPToday, hojeLocalDate, newLevel, chestQuestionsToday, hojeLocalDate, userID); err != nil {
+			    chest_questions_today = $5, chest_questions_date = $6,
+			    chest_weekly_questions = $7, chest_weekly_cycle_start = $8
+			WHERE user_id = $9
+		`, newXPTotal, newXPToday, hojeLocalDate, newLevel, chestQuestionsToday, hojeLocalDate,
+			chestWeeklyQuestions, chestWeeklyCycleStartDate, userID); err != nil {
 			apierror.Write(w, http.StatusInternalServerError, "INTERNAL_ERROR", "Falha ao atualizar gamificação.")
 			return
 		}

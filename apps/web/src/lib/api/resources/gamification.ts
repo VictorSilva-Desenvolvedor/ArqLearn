@@ -8,6 +8,7 @@ import {
   mockLeagueByTier,
 } from "../mocks/fixtures/gamification";
 import { getMockDailyChestStatus, mockOpenDailyChest } from "../mocks/fixtures/dailyChest";
+import { getMockWeeklyChestStatus, mockOpenWeeklyChest } from "../mocks/fixtures/weeklyChest";
 import { mockShopCatalog } from "../mocks/fixtures/shopCatalog";
 import type { LeagueTierName } from "@/lib/gamification/leagueTiers";
 import type {
@@ -17,6 +18,7 @@ import type {
   GamificationProfile,
   League,
   PurchaseResult,
+  WeeklyChestStatus,
 } from "@/types/api";
 
 export interface GamificationMeResponse extends GamificationProfile {
@@ -99,9 +101,12 @@ export async function freezeStreak(currentFreezesAvailable: number): Promise<Fre
 // Baú Diário (v1.18, a pedido do usuário) — 1 abertura por dia local ao responder 10 perguntas no
 // dia (lição + Modo Infinito somados, ver AnswerResult/InfiniteModeAnswerResult). Status/abertura
 // são dois endpoints porque o corpo aceita re-consulta livre (GET) sem gastar a abertura em si.
-export async function getDailyChestStatus(): Promise<DailyChestStatus> {
+// accessToken opcional (mesmo motivo de getGamificationProfile acima) — a Home (Server Component)
+// precisa consultar os dois baús pra exibir os cards de progresso, e Server Components não têm o
+// provider global de token client-side.
+export async function getDailyChestStatus(accessToken?: string): Promise<DailyChestStatus> {
   if (isResourceReal("gamification")) {
-    return apiFetch<DailyChestStatus>("/v1/gamification/daily-chest");
+    return apiFetch<DailyChestStatus>("/v1/gamification/daily-chest", undefined, accessToken);
   }
   return mockDelay(getMockDailyChestStatus());
 }
@@ -118,4 +123,27 @@ export async function openDailyChest(): Promise<ChestOpenResult> {
     });
   }
   return mockDelay(mockOpenDailyChest(), 400);
+}
+
+// Baú Semanal (v1.19, a pedido do usuário) — mesmo padrão do Baú Diário acima, mas 1 abertura por
+// ciclo rolante de 7 dias ao responder 50 perguntas dentro do ciclo (ver §8.2 da API Spec).
+export async function getWeeklyChestStatus(accessToken?: string): Promise<WeeklyChestStatus> {
+  if (isResourceReal("gamification")) {
+    return apiFetch<WeeklyChestStatus>("/v1/gamification/weekly-chest", undefined, accessToken);
+  }
+  return mockDelay(getMockWeeklyChestStatus());
+}
+
+export async function openWeeklyChest(): Promise<ChestOpenResult> {
+  if (isResourceReal("gamification")) {
+    return apiFetch<ChestOpenResult>("/v1/gamification/weekly-chest/open", { method: "POST" });
+  }
+  if (!getMockWeeklyChestStatus().available) {
+    throw new ApiError(409, {
+      error_code: "CHEST_NOT_AVAILABLE",
+      message: "Nenhum Baú Semanal disponível pra abrir agora.",
+      trace_id: "mock-trace",
+    });
+  }
+  return mockDelay(mockOpenWeeklyChest(), 400);
 }

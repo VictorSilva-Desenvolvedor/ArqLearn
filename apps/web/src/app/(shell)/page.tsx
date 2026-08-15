@@ -3,10 +3,12 @@ import { getServerAccessToken } from "@/lib/supabase/server";
 import { listTracks } from "@/lib/api/resources/tracks";
 import { listTrackLessons } from "@/lib/api/resources/lessons";
 import { getMe } from "@/lib/api/resources/users";
+import { getDailyChestStatus, getWeeklyChestStatus } from "@/lib/api/resources/gamification";
 import { lessonNodePresentation } from "@/lib/api/mocks/fixtures/lessons";
 import { getThemeByTopic } from "@/lib/api/mocks/fixtures/themes";
 import { THEME_COOKIE } from "@/lib/theme/constants";
 import { Icon } from "@/components/ui/Icon";
+import { ChestProgressCard } from "@/components/features/home/ChestProgressCard";
 import { DailyGoalCard } from "@/components/features/home/DailyGoalCard";
 import { ExploreMoreCard } from "@/components/features/home/ExploreMoreCard";
 import { LevelProgressCard } from "@/components/features/home/LevelProgressCard";
@@ -62,9 +64,11 @@ export default async function HomePage() {
   const featuredTopic = selectedTheme.topic;
 
   const accessToken = await getServerAccessToken();
-  const [{ gamification }, tracksResponse] = await Promise.all([
+  const [{ gamification }, tracksResponse, dailyChest, weeklyChest] = await Promise.all([
     getMe(accessToken),
     listTracks({}, accessToken),
+    getDailyChestStatus(accessToken),
+    getWeeklyChestStatus(accessToken),
   ]);
 
   const featuredTrack = tracksResponse.data.find((track) => track.topic === featuredTopic);
@@ -110,6 +114,24 @@ export default async function HomePage() {
     <div className="max-w-container-max mx-auto px-lg py-section">
       <DailyGoalCard xpToday={gamification.xp_today} goal={DAILY_GOAL_XP} />
       <LevelProgressCard level={gamification.level} xpTotal={gamification.xp_total} />
+      <div className="grid grid-cols-2 gap-md mb-section">
+        <ChestProgressCard
+          title="Baú Diário"
+          questionsCurrent={dailyChest.questions_today}
+          questionsRequired={dailyChest.questions_required}
+          available={dailyChest.available}
+          claimed={dailyChest.claimed_today}
+          href="/bau?tipo=diario"
+        />
+        <ChestProgressCard
+          title="Baú Semanal"
+          questionsCurrent={weeklyChest.questions_this_cycle}
+          questionsRequired={weeklyChest.questions_required}
+          available={weeklyChest.available}
+          claimed={weeklyChest.claimed_this_cycle}
+          href="/bau?tipo=semanal"
+        />
+      </div>
       {!selectedTheme.hasContent && (
         <div className="mb-section bg-surface-gray border-2 border-outline-variant rounded-xl p-md flex items-center gap-sm">
           <Icon name="construction" className="text-primary" />

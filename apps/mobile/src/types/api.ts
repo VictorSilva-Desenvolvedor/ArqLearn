@@ -282,6 +282,16 @@ export interface ChestOpenResult {
   gems: number;
 }
 
+// --- Baú Semanal (v1.19) — mesmo formato de ChestOpenResult na abertura, ver
+// GET/POST /v1/gamification/weekly-chest[/open]. ---
+
+export interface WeeklyChestStatus {
+  questions_this_cycle: number;
+  questions_required: number;
+  available: boolean;
+  claimed_this_cycle: boolean;
+}
+
 export interface InfiniteModeEndResult {
   questions_answered: number;
   correct_count: number;

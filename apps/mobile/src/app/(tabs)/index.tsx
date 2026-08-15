@@ -1,6 +1,8 @@
 import { useEffect, useState } from "react";
+import { useRouter } from "expo-router";
 import { ScrollView, StyleSheet, Text, View } from "react-native";
 import { AllDonePrompt } from "@/components/home/AllDonePrompt";
+import { ChestProgressCard } from "@/components/home/ChestProgressCard";
 import { DailyGoalCard } from "@/components/home/DailyGoalCard";
 import { ExploreMoreCard } from "@/components/home/ExploreMoreCard";
 import { LevelProgressCard } from "@/components/home/LevelProgressCard";
@@ -13,9 +15,10 @@ import { useAuth } from "@/hooks/useAuth";
 import { useTheme } from "@/hooks/useTheme";
 import { listTrackLessons } from "@/lib/api/resources/lessons";
 import { listTracks } from "@/lib/api/resources/tracks";
+import { getDailyChestStatus, getWeeklyChestStatus } from "@/lib/api/resources/gamification";
 import { lessonNodePresentation } from "@/lib/api/mocks/fixtures/lessons";
 import { colors, spacing, type } from "@/theme/tokens";
-import type { Track, TrackLesson } from "@/types/api";
+import type { DailyChestStatus, Track, TrackLesson, WeeklyChestStatus } from "@/types/api";
 
 const DAILY_GOAL_XP = 50;
 // Só a trilha em destaque (tema selecionado) — mostrar outras trilhas junto no mapa não fazia
@@ -77,9 +80,12 @@ function toUnit(track: Track, trackLessons: TrackLesson[]): LearningMapUnit {
 }
 
 export default function HomeScreen() {
+  const router = useRouter();
   const { gamification } = useAuth();
   const { theme: selectedTheme } = useTheme();
   const [units, setUnits] = useState<LearningMapUnit[] | null>(null);
+  const [dailyChest, setDailyChest] = useState<DailyChestStatus | null>(null);
+  const [weeklyChest, setWeeklyChest] = useState<WeeklyChestStatus | null>(null);
 
   useEffect(() => {
     let cancelled = false;
@@ -104,6 +110,18 @@ export default function HomeScreen() {
     };
   }, [selectedTheme.topic]);
 
+  useEffect(() => {
+    let cancelled = false;
+    Promise.all([getDailyChestStatus(), getWeeklyChestStatus()]).then(([daily, weekly]) => {
+      if (cancelled) return;
+      setDailyChest(daily);
+      setWeeklyChest(weekly);
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
   // "Tudo em dia" = a trilha em destaque (primeiro item de units, ver orderedTracks acima)
   // concluída — só oferece Modo Infinito se o tema realmente tem conteúdo (hasContent).
   const featuredUnit = units?.[0];
@@ -115,6 +133,26 @@ export default function HomeScreen() {
       <ScrollView contentContainerStyle={styles.content}>
         <DailyGoalCard xpToday={gamification.xp_today} goal={DAILY_GOAL_XP} />
         <LevelProgressCard level={gamification.level} xpTotal={gamification.xp_total} />
+        {dailyChest && weeklyChest && (
+          <View style={styles.chestRow}>
+            <ChestProgressCard
+              title="Baú Diário"
+              questionsCurrent={dailyChest.questions_today}
+              questionsRequired={dailyChest.questions_required}
+              available={dailyChest.available}
+              claimed={dailyChest.claimed_today}
+              onPress={() => router.push("/bau?tipo=diario")}
+            />
+            <ChestProgressCard
+              title="Baú Semanal"
+              questionsCurrent={weeklyChest.questions_this_cycle}
+              questionsRequired={weeklyChest.questions_required}
+              available={weeklyChest.available}
+              claimed={weeklyChest.claimed_this_cycle}
+              onPress={() => router.push("/bau?tipo=semanal")}
+            />
+          </View>
+        )}
         {!selectedTheme.hasContent && (
           <View style={styles.notice}>
             <Icon name="construction" size={20} color={colors.primary} />
@@ -146,6 +184,11 @@ const styles = StyleSheet.create({
   content: {
     paddingHorizontal: 24,
     paddingVertical: 48,
+  },
+  chestRow: {
+    flexDirection: "row",
+    gap: spacing.md,
+    marginBottom: spacing.lg,
   },
   notice: {
     flexDirection: "row",

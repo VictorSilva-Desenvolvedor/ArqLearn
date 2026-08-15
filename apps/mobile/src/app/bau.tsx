@@ -1,11 +1,16 @@
 import { useEffect, useState } from "react";
-import { useRouter } from "expo-router";
+import { useLocalSearchParams, useRouter } from "expo-router";
 import { StyleSheet, Text, View } from "react-native";
 import { Button } from "@/components/ui/Button";
 import { Icon, type IconName } from "@/components/ui/Icon";
 import { LoadingBlueprint } from "@/components/ui/LoadingBlueprint";
 import { useAuth } from "@/hooks/useAuth";
-import { getDailyChestStatus, openDailyChest } from "@/lib/api/resources/gamification";
+import {
+  getDailyChestStatus,
+  getWeeklyChestStatus,
+  openDailyChest,
+  openWeeklyChest,
+} from "@/lib/api/resources/gamification";
 import { ApiError } from "@/lib/api/http";
 import { colors, radius, spacing, type as typeTokens } from "@/theme/tokens";
 import type { ChestOpenResult, ChestRewardType } from "@/types/api";
@@ -24,13 +29,33 @@ const REWARD_LABEL: Record<ChestRewardType, string> = {
   hearts_refill: "Vidas Restauradas",
 };
 
-// Tela de transição do Baú Diário (a pedido do usuário, v1.18) — fechado -> "Abrir Baú" (chama a
-// API de verdade) -> "Recompensas Coletadas!" com a recompensa real determinada pelo servidor.
-// Espelha apps/web/src/app/(lesson)/bau/page.tsx. Mesmo padrão visual da tela de conquista
+type ChestType = "diario" | "semanal";
+
+const CHEST_COPY: Record<ChestType, { eyebrow: string; titulo: string; unavailable: string }> = {
+  diario: {
+    eyebrow: "Baú Diário",
+    titulo: "Você ganhou um Baú de Projeto!",
+    unavailable: "Responda mais perguntas hoje pra liberar seu próximo Baú Diário.",
+  },
+  semanal: {
+    eyebrow: "Baú Semanal",
+    titulo: "Você ganhou um Baú Semanal!",
+    unavailable: "Responda mais perguntas nos próximos dias pra liberar seu próximo Baú Semanal — o ciclo só reinicia quando 7 dias se passarem.",
+  },
+};
+
+// Tela de transição do Baú Diário/Semanal (a pedido do usuário, v1.18/v1.19) — fechado -> "Abrir
+// Baú" (chama a API de verdade) -> "Recompensas Coletadas!" com a recompensa real determinada
+// pelo servidor. `?tipo=diario|semanal` (default diario) decide qual dos dois baús esta instância
+// da tela representa — mesmo shell visual, endpoints e textos diferentes. Espelha
+// apps/web/src/app/(lesson)/bau/page.tsx. Mesmo padrão visual da tela de conquista
 // (trilhas/[trackId]/[lessonId]/conquista.tsx), mas credita via chamada de API real em vez de
 // crédito local — não há como simular a recompensa (é sorteada no servidor).
 export default function DailyChestScreen() {
   const router = useRouter();
+  const { tipo: tipoParam } = useLocalSearchParams<{ tipo?: string }>();
+  const tipo: ChestType = tipoParam === "semanal" ? "semanal" : "diario";
+  const copy = CHEST_COPY[tipo];
   const { updateGamification, adjustStreakFreezes } = useAuth();
   const [checking, setChecking] = useState(true);
   const [available, setAvailable] = useState(false);
@@ -40,7 +65,9 @@ export default function DailyChestScreen() {
 
   useEffect(() => {
     let cancelled = false;
-    getDailyChestStatus().then((status) => {
+    setChecking(true);
+    const statusPromise = tipo === "semanal" ? getWeeklyChestStatus() : getDailyChestStatus();
+    statusPromise.then((status) => {
       if (cancelled) return;
       setAvailable(status.available);
       setChecking(false);
@@ -48,14 +75,14 @@ export default function DailyChestScreen() {
     return () => {
       cancelled = true;
     };
-  }, []);
+  }, [tipo]);
 
   const handleOpen = async () => {
     if (opening) return;
     setOpening(true);
     setError(null);
     try {
-      const result = await openDailyChest();
+      const result = await (tipo === "semanal" ? openWeeklyChest() : openDailyChest());
       setReward(result);
       updateGamification({
         gems: result.gems,
@@ -87,10 +114,9 @@ export default function DailyChestScreen() {
             <Icon name="lock" size={48} color={colors.onSurfaceVariant} />
           </View>
           <View style={styles.textBlock}>
+            <Text style={[typeTokens.labelCaps, styles.eyebrow]}>{copy.eyebrow}</Text>
             <Text style={[typeTokens.headlineMd, styles.title]}>Nenhum Baú disponível</Text>
-            <Text style={[typeTokens.bodyMd, styles.description]}>
-              Responda mais perguntas hoje pra liberar seu próximo Baú Diário.
-            </Text>
+            <Text style={[typeTokens.bodyMd, styles.description]}>{copy.unavailable}</Text>
           </View>
           <Button variant="primary" fullWidth onPress={() => router.push("/")}>
             Voltar ao Mapa
@@ -111,7 +137,7 @@ export default function DailyChestScreen() {
               </View>
             </View>
             <View style={styles.textBlock}>
-              <Text style={[typeTokens.labelCaps, styles.eyebrow]}>Baú Diário</Text>
+              <Text style={[typeTokens.labelCaps, styles.eyebrow]}>{copy.eyebrow}</Text>
               <Text style={[typeTokens.headlineMd, styles.title]}>Recompensas Coletadas!</Text>
               <Text style={[typeTokens.bodyMd, styles.description]}>
                 {reward.reward_type === "gems"
@@ -135,11 +161,9 @@ export default function DailyChestScreen() {
               <Icon name="chest" size={48} color={colors.secondary} />
             </View>
             <View style={styles.textBlock}>
-              <Text style={[typeTokens.labelCaps, styles.eyebrow]}>Baú Diário</Text>
-              <Text style={[typeTokens.headlineMd, styles.title]}>Você ganhou um Baú de Projeto!</Text>
-              <Text style={[typeTokens.bodyMd, styles.description]}>
-                Abra pra revelar sua recompensa de hoje.
-              </Text>
+              <Text style={[typeTokens.labelCaps, styles.eyebrow]}>{copy.eyebrow}</Text>
+              <Text style={[typeTokens.headlineMd, styles.title]}>{copy.titulo}</Text>
+              <Text style={[typeTokens.bodyMd, styles.description]}>Abra pra revelar sua recompensa.</Text>
             </View>
             {error && <Text style={[typeTokens.bodySm, styles.error]}>{error}</Text>}
             <Button

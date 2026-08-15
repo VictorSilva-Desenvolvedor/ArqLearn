@@ -27,6 +27,8 @@ func RegisterRoutes(mux *http.ServeMux, pool *pgxpool.Pool, verifier *authmiddle
 	mux.Handle("POST /v1/gamification/shop/purchase", verifier.Middleware(http.HandlerFunc(handleShopPurchase(pool))))
 	mux.Handle("GET /v1/gamification/daily-chest", verifier.Middleware(http.HandlerFunc(handleGetDailyChestStatus(pool))))
 	mux.Handle("POST /v1/gamification/daily-chest/open", verifier.Middleware(http.HandlerFunc(handleOpenDailyChest(pool))))
+	mux.Handle("GET /v1/gamification/weekly-chest", verifier.Middleware(http.HandlerFunc(handleGetWeeklyChestStatus(pool))))
+	mux.Handle("POST /v1/gamification/weekly-chest/open", verifier.Middleware(http.HandlerFunc(handleOpenWeeklyChest(pool))))
 }
 
 // --- GET /v1/gamification/me ---
@@ -983,6 +985,167 @@ func handleOpenDailyChest(pool *pgxpool.Pool) http.HandlerFunc {
 			err = tx.QueryRow(r.Context(),
 				`UPDATE user_gamification SET hearts_current = $1, hearts_updated_at = now(), chest_claimed_date = $2 WHERE user_id = $3 RETURNING gems`,
 				HeartsMax, hojeLocalDate, userID,
+			).Scan(&newGems)
+		}
+		if err != nil {
+			apierror.Write(w, http.StatusInternalServerError, "INTERNAL_ERROR", "Falha ao aplicar recompensa do baú.")
+			return
+		}
+
+		if err := tx.Commit(r.Context()); err != nil {
+			apierror.Write(w, http.StatusInternalServerError, "INTERNAL_ERROR", "Falha ao concluir abertura do baú.")
+			return
+		}
+
+		resp := map[string]any{
+			"reward_type": string(reward.Type),
+			"gems":        newGems,
+		}
+		if reward.Type == ChestRewardGems {
+			resp["gems_earned"] = reward.GemsAmount
+		}
+		writeJSON(w, http.StatusOK, resp)
+	}
+}
+
+// --- Baú Semanal (a pedido do usuário, mesma demanda do Baú Diário) ---
+
+// WeeklyChestSnapshot é o retorno de LoadWeeklyChestStatus.
+type WeeklyChestSnapshot struct {
+	QuestionsThisCycle int
+	QuestionsRequired  int
+	Available          bool
+	ClaimedThisCycle   bool
+}
+
+// LoadWeeklyChestStatus lê chest_weekly_questions/chest_weekly_cycle_start e
+// chest_weekly_claimed_cycle_start, aplica o reset preguiçoso do ciclo de 7 dias
+// (QuestoesSemanaAposReset) e devolve se o Baú Semanal está disponível pra abrir agora. Mesmo
+// padrão de LoadDailyChestStatus, mas comparando o cycle_start vigente com o cycle_start salvo no
+// momento da última abertura em vez de igualdade de data — isso sozinho já "desclaima" o baú
+// quando o ciclo vira, sem precisar zerar chest_weekly_claimed_cycle_start em lugar nenhum.
+func LoadWeeklyChestStatus(ctx context.Context, pool *pgxpool.Pool, userID string) (WeeklyChestSnapshot, error) {
+	var questionsThisCycle int
+	var cycleStart, claimedCycleStart *time.Time
+	var timezone string
+	if err := pool.QueryRow(ctx, `
+		SELECT g.chest_weekly_questions, g.chest_weekly_cycle_start, g.chest_weekly_claimed_cycle_start, u.timezone
+		FROM user_gamification g JOIN users u ON u.id = g.user_id
+		WHERE g.user_id = $1
+	`, userID).Scan(&questionsThisCycle, &cycleStart, &claimedCycleStart, &timezone); err != nil {
+		return WeeklyChestSnapshot{}, err
+	}
+
+	hojeLocal := HojeLocal(timezone, time.Now())
+	cycleStartStr := ""
+	if cycleStart != nil {
+		cycleStartStr = cycleStart.Format("2006-01-02")
+	}
+	novoQuestoes, novoCicloInicio := QuestoesSemanaAposReset(questionsThisCycle, cycleStartStr, hojeLocal)
+	if novoQuestoes != questionsThisCycle || novoCicloInicio != cycleStartStr {
+		novoCicloInicioDate, _ := time.Parse("2006-01-02", novoCicloInicio)
+		if _, err := pool.Exec(ctx,
+			`UPDATE user_gamification SET chest_weekly_questions = $1, chest_weekly_cycle_start = $2 WHERE user_id = $3`,
+			novoQuestoes, novoCicloInicioDate, userID,
+		); err != nil {
+			return WeeklyChestSnapshot{}, err
+		}
+		questionsThisCycle = novoQuestoes
+		cycleStartStr = novoCicloInicio
+	}
+
+	claimedCycleStartStr := ""
+	if claimedCycleStart != nil {
+		claimedCycleStartStr = claimedCycleStart.Format("2006-01-02")
+	}
+	claimedThisCycle := claimedCycleStartStr != "" && claimedCycleStartStr == cycleStartStr
+
+	return WeeklyChestSnapshot{
+		QuestionsThisCycle: questionsThisCycle,
+		QuestionsRequired:  ChestWeeklyQuestionsRequired,
+		Available:          questionsThisCycle >= ChestWeeklyQuestionsRequired && !claimedThisCycle,
+		ClaimedThisCycle:   claimedThisCycle,
+	}, nil
+}
+
+func handleGetWeeklyChestStatus(pool *pgxpool.Pool) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		userID, ok := authmiddleware.UserID(r.Context())
+		if !ok {
+			apierror.Write(w, http.StatusUnauthorized, "UNAUTHENTICATED", "Token inválido.")
+			return
+		}
+		status, err := LoadWeeklyChestStatus(r.Context(), pool, userID)
+		if err != nil {
+			apierror.Write(w, http.StatusInternalServerError, "INTERNAL_ERROR", "Falha ao consultar baú semanal.")
+			return
+		}
+		writeJSON(w, http.StatusOK, map[string]any{
+			"questions_this_cycle": status.QuestionsThisCycle,
+			"questions_required":   status.QuestionsRequired,
+			"available":            status.Available,
+			"claimed_this_cycle":   status.ClaimedThisCycle,
+		})
+	}
+}
+
+// handleOpenWeeklyChest implementa POST /v1/gamification/weekly-chest/open — mesmo padrão de
+// handleOpenDailyChest, mas sorteando com RolarRecompensaBauSemanal (recompensa maior) e gravando
+// chest_weekly_claimed_cycle_start = cycle_start vigente (não "hoje") — é essa comparação que trava
+// reabertura dentro do mesmo ciclo de 7 dias, mesmo que o usuário abra no primeiro dia do ciclo.
+func handleOpenWeeklyChest(pool *pgxpool.Pool) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		userID, ok := authmiddleware.UserID(r.Context())
+		if !ok {
+			apierror.Write(w, http.StatusUnauthorized, "UNAUTHENTICATED", "Token inválido.")
+			return
+		}
+
+		status, err := LoadWeeklyChestStatus(r.Context(), pool, userID)
+		if err != nil {
+			apierror.Write(w, http.StatusInternalServerError, "INTERNAL_ERROR", "Falha ao consultar baú semanal.")
+			return
+		}
+		if !status.Available {
+			apierror.Write(w, http.StatusConflict, "CHEST_NOT_AVAILABLE", "Nenhum Baú Semanal disponível pra abrir agora.")
+			return
+		}
+
+		var cycleStart *time.Time
+		if err := pool.QueryRow(r.Context(), `SELECT chest_weekly_cycle_start FROM user_gamification WHERE user_id = $1`, userID).Scan(&cycleStart); err != nil {
+			apierror.Write(w, http.StatusInternalServerError, "INTERNAL_ERROR", "Falha ao consultar ciclo semanal.")
+			return
+		}
+		if cycleStart == nil {
+			apierror.Write(w, http.StatusInternalServerError, "INTERNAL_ERROR", "Ciclo semanal inconsistente.")
+			return
+		}
+
+		reward := RolarRecompensaBauSemanal(rand.Float64(), rand.Float64())
+
+		tx, err := pool.Begin(r.Context())
+		if err != nil {
+			apierror.Write(w, http.StatusInternalServerError, "INTERNAL_ERROR", "Falha ao abrir baú.")
+			return
+		}
+		defer func() { _ = tx.Rollback(r.Context()) }()
+
+		var newGems int
+		switch reward.Type {
+		case ChestRewardGems:
+			err = tx.QueryRow(r.Context(),
+				`UPDATE user_gamification SET gems = gems + $1, chest_weekly_claimed_cycle_start = $2 WHERE user_id = $3 RETURNING gems`,
+				reward.GemsAmount, cycleStart, userID,
+			).Scan(&newGems)
+		case ChestRewardStreakFreeze:
+			err = tx.QueryRow(r.Context(),
+				`UPDATE user_gamification SET streak_freezes_available = streak_freezes_available + 1, chest_weekly_claimed_cycle_start = $1 WHERE user_id = $2 RETURNING gems`,
+				cycleStart, userID,
+			).Scan(&newGems)
+		case ChestRewardHeartsRefill:
+			err = tx.QueryRow(r.Context(),
+				`UPDATE user_gamification SET hearts_current = $1, hearts_updated_at = now(), chest_weekly_claimed_cycle_start = $2 WHERE user_id = $3 RETURNING gems`,
+				HeartsMax, cycleStart, userID,
 			).Scan(&newGems)
 		}
 		if err != nil {

@@ -336,3 +336,58 @@ func TestRolarRecompensaBau(t *testing.T) {
 		}
 	})
 }
+
+func TestQuestoesSemanaAposReset(t *testing.T) {
+	if got, ciclo := QuestoesSemanaAposReset(30, "", "2026-08-15"); got != 0 || ciclo != "2026-08-15" {
+		t.Errorf("sem ciclo ativo deveria iniciar ciclo hoje com contador 0, veio (%d, %q)", got, ciclo)
+	}
+	if got, ciclo := QuestoesSemanaAposReset(30, "2026-08-15", "2026-08-15"); got != 30 || ciclo != "2026-08-15" {
+		t.Errorf("mesmo dia do início do ciclo deveria manter contador e ciclo, veio (%d, %q)", got, ciclo)
+	}
+	if got, ciclo := QuestoesSemanaAposReset(30, "2026-08-15", "2026-08-21"); got != 30 || ciclo != "2026-08-15" {
+		t.Errorf("6 dias depois (dentro da janela de 7) deveria manter, veio (%d, %q)", got, ciclo)
+	}
+	if got, ciclo := QuestoesSemanaAposReset(30, "2026-08-15", "2026-08-22"); got != 0 || ciclo != "2026-08-22" {
+		t.Errorf("exatamente 7 dias depois deveria resetar e iniciar novo ciclo hoje, veio (%d, %q)", got, ciclo)
+	}
+	if got, ciclo := QuestoesSemanaAposReset(30, "2026-08-15", "2026-09-01"); got != 0 || ciclo != "2026-09-01" {
+		t.Errorf("muito depois do fim do ciclo deveria resetar, veio (%d, %q)", got, ciclo)
+	}
+}
+
+func TestRolarRecompensaBauSemanal(t *testing.T) {
+	casos := []struct {
+		nome           string
+		rollType       float64
+		rollDetail     float64
+		wantType       ChestRewardType
+		wantGemsAmount int
+	}{
+		{"abaixo do corte de gemas, detalhe 0 -> 5 gemas (mínimo)", 0.0, 0.0, ChestRewardGems, 5},
+		{"abaixo do corte de gemas, detalhe alto -> 15 gemas (teto)", 0.5, 0.999, ChestRewardGems, 15},
+		{"exatamente no corte de gemas (0.60) já cai pro pool de item", 0.60, 0.0, ChestRewardStreakFreeze, 0},
+		{"acima do corte, detalhe baixo -> bloqueio de ofensiva", 0.9, 0.0, ChestRewardStreakFreeze, 0},
+		{"acima do corte, detalhe alto -> recarga de vidas", 0.9, 0.999, ChestRewardHeartsRefill, 0},
+	}
+	for _, c := range casos {
+		t.Run(c.nome, func(t *testing.T) {
+			got := RolarRecompensaBauSemanal(c.rollType, c.rollDetail)
+			if got.Type != c.wantType {
+				t.Errorf("RolarRecompensaBauSemanal(%v, %v).Type = %q, esperado %q", c.rollType, c.rollDetail, got.Type, c.wantType)
+			}
+			if got.Type == ChestRewardGems && got.GemsAmount != c.wantGemsAmount {
+				t.Errorf("RolarRecompensaBauSemanal(%v, %v).GemsAmount = %d, esperado %d", c.rollType, c.rollDetail, got.GemsAmount, c.wantGemsAmount)
+			}
+		})
+	}
+
+	t.Run("gemas sempre entre 5 e 15 pra qualquer rollDetail no pool de gemas", func(t *testing.T) {
+		for i := 0; i < 100; i++ {
+			rollDetail := float64(i) / 100
+			got := RolarRecompensaBauSemanal(0.1, rollDetail)
+			if got.GemsAmount < 5 || got.GemsAmount > 15 {
+				t.Errorf("RolarRecompensaBauSemanal(0.1, %v).GemsAmount = %d, esperado entre 5 e 15", rollDetail, got.GemsAmount)
+			}
+		}
+	})
+}

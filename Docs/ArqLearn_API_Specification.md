@@ -3,7 +3,7 @@
 
 Especificação de referência dos endpoints REST expostos pelo API Gateway.
 
-Versão 1.18 | Agosto de 2026
+Versão 1.19 | Agosto de 2026
 Documento complementar ao SAD e ao TDD do ArqLearn v1.0
 
 > **Sobre esta versão:** versão em Markdown, mantida como fonte da verdade a partir de agora (ver
@@ -33,6 +33,7 @@ Documento complementar ao SAD e ao TDD do ArqLearn v1.0
 | 1.16 | 09/08/2026 | Equipe de Engenharia | §8: `achievements` em `GET /v1/gamification/me` passa a ser preenchido de verdade — desde a v1.0 a tabela existia mas nada nunca gravava nela. Catálogo de ~44 conquistas (a pedido do usuário) cobrindo lições, Modo Infinito, streak, Loja, Materiais e relatos de bug, a maioria em 5 níveis progressivos; cada desbloqueio credita XP/gemas uma única vez. Nenhum contrato mudou — resposta já era `{type, unlocked_at}[]` |
 | 1.17 | 15/08/2026 | Equipe de Engenharia | §3.2: adiciona `streak_freezes_available`/`streak_at_risk` ao `GamificationProfile` — streak agora expira sozinha após 24h sem prática (expiração preguiçosa, TDD §5.2/§5.3, mesmo padrão da regeneração de vidas §5.4, sem job/cron), consumindo automaticamente um Bloqueio de Ofensiva por dia faltante quando disponível. §8: `POST /v1/gamification/streak/freeze` passa a também avançar `streak_last_active_date` (uso manual, diferente do consumo automático — ver nota) |
 | 1.18 | 15/08/2026 | Equipe de Engenharia | §8.1 (novo): Baú Diário — a pedido do usuário, 1 abertura por dia local ao responder 10 perguntas no dia (lição + Modo Infinito somados). `GET /v1/gamification/daily-chest` (status) e `POST .../daily-chest/open` (sorteia 75% gemas 1-5 / 25% item consumível grátis — Bloqueio de Ofensiva ou Recarga de Vidas) são endpoints novos. §6/§6.1: `POST .../answers` (lição e Modo Infinito) ganham `daily_chest_available`/`daily_chest_questions` na resposta |
+| 1.19 | 15/08/2026 | Equipe de Engenharia | §8.2 (novo): Baú Semanal — a pedido do usuário, 1 abertura por ciclo rolante de 7 dias ao responder 50 perguntas dentro do ciclo (mesma contagem lição + Modo Infinito do Baú Diário). Ciclo só reseta quando 7 dias se passam desde o início do ciclo vigente — abrir antes disso não adianta o reset (decisão explícita do usuário). `GET /v1/gamification/weekly-chest` (status) e `POST .../weekly-chest/open` (sorteia 60% gemas 5-15 / 40% item — recompensa maior que o Baú Diário, reflete o esforço extra) são endpoints novos |
 
 ---
 
@@ -685,6 +686,56 @@ atomicamente com a aplicação do prêmio.
 Loja), não o quanto foi ganho — `gems_earned` só existe quando `reward_type` é `"gems"`. Erros:
 `409 CHEST_NOT_AVAILABLE` (ainda não bateu as 10 perguntas do dia, ou já foi aberto hoje —
 reconsultado no servidor, nunca confiado no que o cliente mandou).
+
+### 8.2 Baú Semanal *(v1.19)*
+
+A pedido do usuário: 1 baú por ciclo de 7 dias, liberado ao responder 50 perguntas dentro do ciclo
+vigente (lição OU Modo Infinito, mesma contagem acumulada do Baú Diário §8.1 — a mesma resposta
+soma pros dois contadores independentemente). Diferente do diário (reset por igualdade de data de
+calendário), o ciclo semanal é uma janela **rolante** de 7 dias: começa na primeira pergunta
+respondida depois que não havia ciclo ativo ou o ciclo anterior já tinha expirado
+(`chest_weekly_cycle_start`), e só reseta quando 7 dias já se passaram desde esse início — abrir o
+baú antes do fim do ciclo **não** adianta o reset (decisão explícita do usuário: o próximo ciclo só
+começa no dia 8, mesmo que o usuário já tenha aberto o baú do ciclo atual no dia 3, por exemplo).
+`internal/gamification.LoadWeeklyChestStatus` reresolve o ciclo a cada leitura
+(`internal/gamification.QuestoesSemanaAposReset`), mesmo espírito preguiçoso do §8.1, sem job/cron.
+O contador é incrementado dentro de `POST /v1/lessons/{lesson_id}/answers` e
+`POST /v1/infinite-mode/sessions/{session_id}/answers` (mesmos dois endpoints do §8.1), mas — ao
+contrário do Baú Diário — essas respostas **não** ganham campo de status do Baú Semanal (o cliente
+consulta `GET /v1/gamification/weekly-chest` à parte, ex.: ao carregar a Home, em vez de a cada
+resposta — o card de progresso não precisa de feedback instantâneo por resposta como o CTA do Baú
+Diário precisa).
+
+**`GET /v1/gamification/weekly-chest`** — Status do Baú Semanal do usuário autenticado.
+
+```json
+// Response 200
+{
+  "questions_this_cycle": integer,
+  "questions_required": 50,
+  "available": boolean,
+  "claimed_this_cycle": boolean
+}
+```
+
+**`POST /v1/gamification/weekly-chest/open`** — Abre o Baú Semanal disponível e sorteia a
+recompensa (`internal/gamification.RolarRecompensaBauSemanal`) — **maior** que a do Baú Diário,
+reflete o esforço extra de 50 perguntas em até 7 dias: **60%** gemas (5 a 15, uniforme, contra 1 a
+5 do diário), **40%** um item consumível grátis do sistema (mesmos dois itens do §8.1, metade
+Bloqueio de Ofensiva, metade Recarga de Vidas). Trava de "1 por ciclo": grava
+`chest_weekly_claimed_cycle_start` = `chest_weekly_cycle_start` vigente no momento da abertura —
+comparar os dois valores (em vez de um boolean solto) já resolve sozinho o "desclaim" automático
+quando o ciclo vira, sem precisar zerar essa coluna em lugar nenhum.
+
+```json
+// Response 200 — reward_type: "gems"
+{ "reward_type": "gems", "gems_earned": integer, "gems": integer }
+// Response 200 — reward_type: "streak_freeze" | "hearts_refill"
+{ "reward_type": "streak_freeze", "gems": integer }
+```
+Mesmo formato de resposta do §8.1 (`gems` é sempre o saldo total, não o ganho). Erros:
+`409 CHEST_NOT_AVAILABLE` (ainda não bateu as 50 perguntas do ciclo, ou já foi aberto neste ciclo —
+reconsultado no servidor).
 
 ## 9. Notifications Service
 
