@@ -13,6 +13,7 @@ import { createClient } from "@/lib/supabase/client";
 import { apiFetch, setAccessTokenProvider } from "@/lib/api/http";
 import { isResourceReal } from "@/lib/api/config";
 import { getGamificationProfile } from "@/lib/api/resources/gamification";
+import { LoadingBlueprint } from "@/components/ui/LoadingBlueprint";
 import type { GamificationProfile, User } from "@/types/api";
 
 // TDD §5.4 — mesmo intervalo/teto do backend, usado aqui só como stand-in de mock (nunca no
@@ -310,7 +311,7 @@ export function AuthProvider({
     <AuthContext.Provider value={value}>
       {shouldWait ? (
         <div className="min-h-screen flex items-center justify-center bg-background">
-          <div className="animate-pulse rounded-full h-10 w-10 bg-surface-container" />
+          <LoadingBlueprint variant="fullscreen" size={160} />
         </div>
       ) : (
         children

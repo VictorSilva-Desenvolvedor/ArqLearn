@@ -648,3 +648,50 @@ mostra as 7 "Trilhas Recomendadas" com selo "Em construção" e o card de Modo I
 construção" nas 7 trilhas em destaque, mantendo as 5 reais desbloqueadas. Idêntico nos dois apps,
 zero erro de console. `tsc --noEmit` (dois apps) e `next build` limpos (sem mudança de backend
 nesta rodada, então sem novo `go build`/`test`).
+
+### 15. Indicador de carregamento unificado — "Blueprint" (15/08/2026)
+
+Usuário adicionou um novo design ao Stitch (`tela_de_carregamento_splash_screen/`, fora das 17
+telas originais): um prédio se desenhando à mão (traço com `stroke-dashoffset`, lapiseira
+percorrendo o contorno, anel de pulso, grade + cantos técnicos de prancheta) e pediu pra aplicar
+como carregamento padrão em "todas as ações do app".
+
+Levantamento prévio (agente `Explore`) catalogou ~41 pontos de carregamento espalhados nos dois
+apps — `ActivityIndicator` (mobile), `animate-spin` (web), textos "Salvando…"/"Carregando…" sem
+nenhum ícone, os 2 gates de resolução de sessão (`AuthContext.tsx` web / `_layout.tsx` mobile) e 5
+telas cheias de "Carregando…" em texto puro sem spinner nenhum. **Decisão de escopo:** os 5
+`loading.tsx` do App Router do web (skeleton, não spinner) ficaram de fora de propósito — é um
+padrão de UX diferente e deliberado (evita layout shift combinando com o formato da tela de
+destino, documentado em `Skeleton.tsx`), não uma "ação" no sentido que o usuário pediu.
+
+Criado `components/ui/LoadingBlueprint.tsx` nos dois apps (`variant="fullscreen"` — grade + cantos
++ ícone + wordmark "ArqLearn" + legenda; `variant="inline"` — só o ícone, pro spinner de botão) e
+aplicado em: os 2 gates de auth, as 5 telas de "Carregando…" (sessão de lição/Modo
+Infinito/resumo de material), e os 10 spinners de botão (`animate-spin`/`ActivityIndicator`,
+inclusive dois achados sem nenhum indicador visual antes — "Explique melhor"/"Aprofundando..." e
+o `ShopFeatureCard` do web, que tinha o `pending` na prop mas nunca usava).
+
+**Web**: `@keyframes blueprint-draw`/`blueprint-pencil`/`pulse-soft` novos em `globals.css`, mesma
+convenção das keyframes de Modal/Dropdown já existentes ali.
+
+**Mobile**: CSS keyframes não existem em React Native — a mesma linha do tempo de 3s é reproduzida
+com `Animated.Value` + interpolações. Isso exigiu adicionar `react-native-svg` (dependência nativa
+nova, aprovada explicitamente pelo usuário depois de eu explicar o trade-off: fidelidade total ao
+Stitch exige SVG animado, e isso significa **um build novo do APK** — instalações atuais não vão
+receber esse recurso só por OTA; toda mudança JS/TS futura continua indo por OTA normalmente).
+
+**Bug encontrado e corrigido durante o teste ao vivo**: a primeira versão da lapiseira usava
+`translateX`/`translateY` diretamente num `<G>` animado do react-native-svg — props depreciadas
+(a favor de `transform`) que no alvo web (`react-native-svg-web`, usado só pro teste local deste
+ambiente) vazavam como atributos DOM inválidos (`translatex`/`translatey`), gerando warning de
+console a cada render. Corrigido trocando o `<G>` animado por um `Animated.View` simples
+(círculo) posicionado por cima do `Svg` com `left`/`top` interpolados — mesmo trajeto, sem a
+linha decorativa da ponta (simplificação deliberada, puramente cosmética). Não afeta iOS/Android
+reais (não existe DOM lá); só aparecia no `expo start --web` usado para testar neste ambiente.
+
+Verificado ao vivo (mesmo setup de sempre): tela cheia de "Carregando lição…" confirmada nos dois
+apps com a animação completa (grade, cantos, prédio se desenhando frame a frame, pulso, wordmark),
+throttling as respostas do backend pra segurar o estado tempo suficiente pra capturar. Zero erro
+de console relacionado à mudança (só o warning `collapsable` remanescente, conhecido do
+react-native-svg no alvo web, não afeta nativo). `tsc --noEmit` (dois apps), `next build` e
+`expo export --platform web` todos limpos. Nenhuma mudança de backend nesta rodada.

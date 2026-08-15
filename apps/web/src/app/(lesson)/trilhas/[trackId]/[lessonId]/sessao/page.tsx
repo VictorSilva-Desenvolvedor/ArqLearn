@@ -6,6 +6,7 @@ import { QuestionCard } from "@/components/features/quiz/QuestionCard";
 import { QuizActionBar } from "@/components/features/quiz/QuizActionBar";
 import { useQuizSession } from "@/components/features/quiz/useQuizSession";
 import { NoHeartsDialog } from "@/components/features/gamification/NoHeartsDialog";
+import { LoadingBlueprint } from "@/components/ui/LoadingBlueprint";
 
 export default function LessonSessionPage() {
   const router = useRouter();
@@ -15,11 +16,7 @@ export default function LessonSessionPage() {
   const noHeartsOpen = quiz.revealed && quiz.noHearts;
 
   if (quiz.loading || !quiz.currentQuestion) {
-    return (
-      <div className="flex-1 flex items-center justify-center">
-        <p className="font-body-lg text-body-lg text-on-surface-variant">Carregando lição…</p>
-      </div>
-    );
+    return <LoadingBlueprint variant="fullscreen" size={160} label="Carregando lição…" />;
   }
 
   return (

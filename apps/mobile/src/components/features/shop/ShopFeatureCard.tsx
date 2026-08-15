@@ -1,7 +1,8 @@
-import { ActivityIndicator, StyleSheet, Text, View } from "react-native";
+import { StyleSheet, Text, View } from "react-native";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
 import { Icon, type IconName } from "@/components/ui/Icon";
+import { LoadingBlueprint } from "@/components/ui/LoadingBlueprint";
 import { colors, type } from "@/theme/tokens";
 import type { ShopItem } from "@/types/api";
 
@@ -32,13 +33,7 @@ export function ShopFeatureCard({ item, disabled, pending, onPurchase }: ShopFea
         variant="gamification"
         disabled={disabled || pending}
         onPress={onPurchase}
-        icon={
-          pending ? (
-            <ActivityIndicator size="small" color={colors.onSecondaryContainer} />
-          ) : (
-            <Icon name="gems" size={18} color={colors.onSecondaryContainer} />
-          )
-        }
+        icon={pending ? <LoadingBlueprint size={18} /> : <Icon name="gems" size={18} color={colors.onSecondaryContainer} />}
       >
         {pending ? "" : `${item.price_gems}`}
       </Button>

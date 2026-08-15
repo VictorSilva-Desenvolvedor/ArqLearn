@@ -1,5 +1,6 @@
-import { ActivityIndicator, Pressable, StyleSheet, Text } from "react-native";
+import { Pressable, StyleSheet, Text } from "react-native";
 import { Icon } from "@/components/ui/Icon";
+import { LoadingBlueprint } from "@/components/ui/LoadingBlueprint";
 import { colors, radius, type } from "@/theme/tokens";
 
 interface AnswerOptionProps {
@@ -38,7 +39,7 @@ export function AnswerOption({
       style={[styles.base, toneStyle]}
     >
       <Text style={[type.bodyLg, styles.label, toneStyle.text && { color: toneStyle.text }]}>{label}</Text>
-      {selected && verifying && <ActivityIndicator size="small" color={colors.primary} />}
+      {selected && verifying && <LoadingBlueprint size={20} />}
       {revealIcon && (
         <Icon name={revealIcon} size={20} color={isCorrect ? colors.tertiary : colors.error} />
       )}

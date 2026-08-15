@@ -1,6 +1,7 @@
 import { Card } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
 import { Icon } from "@/components/ui/Icon";
+import { LoadingBlueprint } from "@/components/ui/LoadingBlueprint";
 import type { ShopItem } from "@/types/api";
 
 const featureIcon: Record<string, string> = {
@@ -26,7 +27,13 @@ export function ShopFeatureCard({ item, disabled, pending, onPurchase }: ShopFea
         </div>
       </div>
       <Button variant="gamification" disabled={disabled || pending} onClick={onPurchase}>
-        <Icon name="diamond" filled className="text-base" /> {item.price_gems}
+        {pending ? (
+          <LoadingBlueprint size={18} />
+        ) : (
+          <>
+            <Icon name="diamond" filled className="text-base" /> {item.price_gems}
+          </>
+        )}
       </Button>
     </Card>
   );

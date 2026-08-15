@@ -6,12 +6,12 @@ import { useFonts } from "expo-font";
 import { Stack } from "expo-router";
 import * as SplashScreen from "expo-splash-screen";
 import { StatusBar } from "expo-status-bar";
-import { ActivityIndicator, View } from "react-native";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 import { AuthContext, AuthProvider } from "@/contexts/AuthContext";
 import { ThemeProvider } from "@/contexts/ThemeContext";
 import { ToastProvider } from "@/contexts/ToastContext";
 import { Toast } from "@/components/ui/Toast";
+import { LoadingBlueprint } from "@/components/ui/LoadingBlueprint";
 import { LevelUpCelebration } from "@/components/features/gamification/LevelUpCelebration";
 import { StreakAtRiskPrompt } from "@/components/features/gamification/StreakAtRiskPrompt";
 import { colors } from "@/theme/tokens";
@@ -32,11 +32,7 @@ function RootNavigator() {
   const auth = useContext(AuthContext);
 
   if (!auth?.isResolved) {
-    return (
-      <View style={{ flex: 1, alignItems: "center", justifyContent: "center", backgroundColor: colors.background }}>
-        <ActivityIndicator color={colors.primary} />
-      </View>
-    );
+    return <LoadingBlueprint variant="fullscreen" size={160} />;
   }
 
   const isLoggedIn = Boolean(auth.user);

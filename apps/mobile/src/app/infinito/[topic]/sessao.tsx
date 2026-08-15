@@ -7,6 +7,7 @@ import { InfiniteModeActionBar } from "@/components/features/infiniteMode/Infini
 import { InfiniteModeHeader } from "@/components/features/infiniteMode/InfiniteModeHeader";
 import { useInfiniteModeSession } from "@/components/features/infiniteMode/useInfiniteModeSession";
 import { QuestionCard } from "@/components/features/quiz/QuestionCard";
+import { LoadingBlueprint } from "@/components/ui/LoadingBlueprint";
 import { useToast } from "@/hooks/useToast";
 import { getThemeByTopic } from "@/lib/api/mocks/fixtures/themes";
 import { colors, spacing, type } from "@/theme/tokens";
@@ -44,11 +45,7 @@ export default function InfiniteModeSessionScreen() {
   }
 
   if (infinite.loading || !infinite.question) {
-    return (
-      <View style={styles.centerScreen}>
-        <Text style={[type.bodyLg, styles.loadingText]}>Carregando desafio…</Text>
-      </View>
-    );
+    return <LoadingBlueprint variant="fullscreen" size={160} label="Carregando desafio…" />;
   }
 
   return (
@@ -115,8 +112,5 @@ const styles = StyleSheet.create({
     color: colors.onSurfaceVariant,
     textAlign: "center",
     marginBottom: spacing.xs,
-  },
-  loadingText: {
-    color: colors.onSurfaceVariant,
   },
 });

@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
-import { ActivityIndicator, Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
+import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 import { Icon } from "@/components/ui/Icon";
+import { LoadingBlueprint } from "@/components/ui/LoadingBlueprint";
 import { Modal } from "@/components/ui/Modal";
 import { LeagueRankingList } from "./LeagueRankingList";
 import { getLeague } from "@/lib/api/resources/gamification";
@@ -139,7 +140,9 @@ export function LeagueTiersDialog({ open, onOpenChange, currentUserId, ownLeague
 
       <ScrollView style={styles.rankingScroll} showsVerticalScrollIndicator={false}>
         {loading && !currentRanking ? (
-          <ActivityIndicator style={styles.loading} color={colors.primary} />
+          <View style={styles.loading}>
+            <LoadingBlueprint size={32} />
+          </View>
         ) : currentRanking && currentRanking.length > 0 ? (
           <LeagueRankingList
             ranking={currentRanking}
@@ -231,6 +234,7 @@ const styles = StyleSheet.create({
   },
   loading: {
     marginVertical: spacing.lg,
+    alignItems: "center",
   },
   empty: {
     color: colors.onSurfaceVariant,
