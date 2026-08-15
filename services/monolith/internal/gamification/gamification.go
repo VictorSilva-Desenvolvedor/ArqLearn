@@ -8,6 +8,7 @@ import (
 	"encoding/json"
 	"log"
 	"net/http"
+	"strconv"
 	"time"
 
 	"github.com/google/uuid"
@@ -136,28 +137,72 @@ func handleGetGamificationMe(pool *pgxpool.Pool) http.HandlerFunc {
 // --- GET /v1/gamification/league ---
 
 // defaultLeagueTier: usuário novo (sem user_gamification.current_tier ainda, caso defensivo —
-// a coluna tem DEFAULT 1 desde a migration 0007) entra na liga bronze (1), a mais baixa.
+// a coluna tem DEFAULT 1 desde a migration 0007) entra no rank 1 (Madeira, divisão 3 — a base da
+// hierarquia).
 const defaultLeagueTier = 1
 
-// minTier/maxTier: 1=bronze (pior) .. 5=diamante (melhor) — CloseLeagueWeek usa esses limites pra
-// não promover ninguém além de diamante nem rebaixar ninguém abaixo de bronze.
+// leagueTierNames: hierarquia de 10 ligas (pior -> melhor), cada uma com 3 divisões internas
+// (3, 2, 1 — 3 é a entrada, 1 é a mais avançada dentro da liga). `current_tier`/`leagues.tier`
+// no banco continuam guardando um único rank linear 1..30 (não duas colunas separadas) —
+// rankTierName/rankDivision abaixo derivam liga+divisão a partir dele. rank 1 = Madeira 3 (base
+// de tudo), rank 30 = Diamante 1 (topo).
+var leagueTierNames = []string{
+	"madeira", "pedra", "bronze", "prata", "ouro",
+	"platina", "esmeralda", "safira", "rubi", "diamante",
+}
+
+const divisionsPerTier = 3
 const minTier = 1
-const maxTier = 5
 
-// PromotionSlots/DemotionSlots: TDD §6 "top 5 promovidos / bottom 5 rebaixados" — exportados (via
-// leagueResponse) pro frontend não precisar mais hardcodar esses números num mock separado.
-const PromotionSlots = 5
-const DemotionSlots = 5
+// maxTier não é const porque depende de len(leagueTierNames) — Go não permite const derivada de
+// len() de uma var em tempo de compilação aqui (leagueTierNames podia em tese mudar de tamanho).
+var maxTier = len(leagueTierNames) * divisionsPerTier // 30
 
-var tierNamesByNumber = map[int]string{1: "bronze", 2: "prata", 3: "ouro", 4: "platina", 5: "diamante"}
+// PromotionSlots/DemotionSlots: os 3 melhores de cada divisão avançam pra divisão seguinte
+// (ou pra divisão 3 da próxima liga, se já estiver na divisão 1); os 3 piores caem pra divisão
+// anterior. Exportados (via leagueResponse) pro frontend não precisar hardcodar esses números.
+const PromotionSlots = 3
+const DemotionSlots = 3
 
-var tierNumbersByName = map[string]int{"bronze": 1, "prata": 2, "ouro": 3, "platina": 4, "diamante": 5}
-
-func tierName(n int) string {
-	if name, ok := tierNamesByNumber[n]; ok {
-		return name
+// tierName/rankDivision derivam o nome da liga e a divisão (3, 2 ou 1) a partir do rank linear
+// 1..30 guardado no banco. rank 1 -> madeira/3, rank 2 -> madeira/2, rank 3 -> madeira/1, rank 4
+// -> pedra/3, ..., rank 30 -> diamante/1.
+func tierName(rank int) string {
+	index := (rank - 1) / divisionsPerTier
+	if index < 0 {
+		index = 0
 	}
-	return "bronze"
+	if index >= len(leagueTierNames) {
+		index = len(leagueTierNames) - 1
+	}
+	return leagueTierNames[index]
+}
+
+func rankDivision(rank int) int {
+	division := divisionsPerTier - ((rank - 1) % divisionsPerTier)
+	if division < 1 {
+		division = 1
+	}
+	if division > divisionsPerTier {
+		division = divisionsPerTier
+	}
+	return division
+}
+
+// rankFromTierDivision é o inverso de tierName/rankDivision — usado por GET
+// .../league?tier=X&division=N pra navegar o ranking de uma liga/divisão específica.
+func rankFromTierDivision(tierNameArg string, division int) (int, bool) {
+	index := -1
+	for i, name := range leagueTierNames {
+		if name == tierNameArg {
+			index = i
+			break
+		}
+	}
+	if index == -1 || division < 1 || division > divisionsPerTier {
+		return 0, false
+	}
+	return index*divisionsPerTier + (divisionsPerTier - division) + 1, true
 }
 
 // mondayOf normaliza pra meia-noite UTC da segunda-feira da semana de `t` — usado como
@@ -239,6 +284,7 @@ const rankingTopN = 50
 type leagueResponse struct {
 	LeagueID       string               `json:"league_id"`
 	Tier           string               `json:"tier"`
+	Division       int                  `json:"division"`
 	WeekReference  string               `json:"week_reference"`
 	Ranking        []leagueRankingEntry `json:"ranking"`
 	PromotionSlots int                  `json:"promotion_slots"`
@@ -288,13 +334,23 @@ func handleGetLeague(pool *pgxpool.Pool) http.HandlerFunc {
 			return
 		}
 
-		// ?tier=ouro: navegar o ranking de outra liga (pra tela "top 50 de cada liga") em vez da
-		// liga do próprio usuário — não chama ensureLeagueMembership (o usuário não está
-		// necessariamente matriculado nessa tier), só lê o que já existir pra semana corrente.
+		// ?tier=ouro&division=2: navegar o ranking de outra liga/divisão (pra tela "top 50 de cada
+		// liga") em vez da liga do próprio usuário — não chama ensureLeagueMembership (o usuário
+		// não está necessariamente matriculado nela), só lê o que já existir pra semana corrente.
+		// division é opcional, default 1 (a divisão mais avançada daquela liga).
 		if tierParam := r.URL.Query().Get("tier"); tierParam != "" {
-			tierNum, ok := tierNumbersByName[tierParam]
+			division := 1
+			if divisionParam := r.URL.Query().Get("division"); divisionParam != "" {
+				parsed, err := strconv.Atoi(divisionParam)
+				if err != nil {
+					apierror.Write(w, http.StatusBadRequest, "INVALID_DIVISION", "Divisão inválida — use 1, 2 ou 3.")
+					return
+				}
+				division = parsed
+			}
+			rank, ok := rankFromTierDivision(tierParam, division)
 			if !ok {
-				apierror.Write(w, http.StatusBadRequest, "INVALID_TIER", "Tier inválida — use bronze, prata, ouro, platina ou diamante.")
+				apierror.Write(w, http.StatusBadRequest, "INVALID_TIER", "Liga/divisão inválida — use madeira, pedra, bronze, prata, ouro, platina, esmeralda, safira, rubi ou diamante, com divisão 1, 2 ou 3.")
 				return
 			}
 			week := mondayOf(time.Now().UTC())
@@ -303,11 +359,11 @@ func handleGetLeague(pool *pgxpool.Pool) http.HandlerFunc {
 			var weekRef time.Time
 			err := pool.QueryRow(r.Context(), `
 				SELECT id, week_reference FROM leagues WHERE week_reference = $1 AND tier = $2 AND group_number = 1
-			`, week, tierNum).Scan(&leagueID, &weekRef)
+			`, week, rank).Scan(&leagueID, &weekRef)
 			if err == pgx.ErrNoRows {
-				// Ninguém está nessa tier ainda esta semana — resposta válida e vazia, não é erro.
+				// Ninguém está nessa liga/divisão ainda esta semana — resposta válida e vazia, não é erro.
 				writeJSON(w, http.StatusOK, leagueResponse{
-					Tier: tierName(tierNum), WeekReference: week.Format("2006-01-02"),
+					Tier: tierName(rank), Division: rankDivision(rank), WeekReference: week.Format("2006-01-02"),
 					Ranking: []leagueRankingEntry{}, PromotionSlots: PromotionSlots, DemotionSlots: DemotionSlots,
 				})
 				return
@@ -323,8 +379,9 @@ func handleGetLeague(pool *pgxpool.Pool) http.HandlerFunc {
 				return
 			}
 			resp := leagueResponse{
-				LeagueID: leagueID.String(), Tier: tierName(tierNum), WeekReference: weekRef.Format("2006-01-02"),
-				Ranking: capRanking(ranking, rankingTopN), PromotionSlots: PromotionSlots, DemotionSlots: DemotionSlots,
+				LeagueID: leagueID.String(), Tier: tierName(rank), Division: rankDivision(rank),
+				WeekReference: weekRef.Format("2006-01-02"),
+				Ranking:       capRanking(ranking, rankingTopN), PromotionSlots: PromotionSlots, DemotionSlots: DemotionSlots,
 			}
 			writeJSON(w, http.StatusOK, resp)
 			return
@@ -347,6 +404,7 @@ func handleGetLeague(pool *pgxpool.Pool) http.HandlerFunc {
 		}
 		resp.LeagueID = leagueID.String()
 		resp.Tier = tierName(tierNum)
+		resp.Division = rankDivision(tierNum)
 		resp.WeekReference = weekRef.Format("2006-01-02")
 		resp.PromotionSlots = PromotionSlots
 		resp.DemotionSlots = DemotionSlots
@@ -401,29 +459,31 @@ func capRanking(ranking []leagueRankingEntry, n int) []leagueRankingEntry {
 
 // --- Fechamento semanal de ligas (TDD §6) ---
 
-// minGroupSizeForPromotion: TDD §6 desenha as zonas de promoção/rebaixamento em cima de um grupo
-// de referência de ~30 membros — com menos gente que isso (a realidade da fase bootstrap, 5-20
-// usuários no total, ver Estrategia_Bootstrap), "top 5 / bottom 5" se sobrepõem ou cobrem o grupo
-// inteiro, o que não faz sentido como competição real. Abaixo desse tamanho, ninguém promove nem
-// rebaixa naquela tier nesta semana — fica pra quando houver gente suficiente competindo.
-const minGroupSizeForPromotion = PromotionSlots + DemotionSlots + 5
+// minGroupSizeForPromotion: com PromotionSlots=3 e DemotionSlots=3, uma divisão com pelo menos 6
+// membros já não tem sobreposição entre "top 3" e "bottom 3" — esse é o mínimo matemático, sem
+// buffer extra. O TDD §6 original desenhava zonas em cima de grupos de ~30 membros (5 tiers
+// largos); aqui são 30 divisões estreitas (10 ligas x 3 divisões), então grupos naturalmente bem
+// menores são esperados e aceitáveis — não faz sentido reaplicar aquele buffer de "~30 membros"
+// a um formato desenhado pra ter grupos pequenos por design. Abaixo desse mínimo, ninguém promove
+// nem rebaixa naquela divisão nesta semana.
+const minGroupSizeForPromotion = PromotionSlots + DemotionSlots
 
-// CloseLeagueWeek executa o fechamento semanal (TDD §6) da `week` informada: pra cada liga
-// daquela semana, ordena o ranking por xp_this_week, promove os PromotionSlots melhores, rebaixa
-// os DemotionSlots piores, e persiste o novo tier em user_gamification.current_tier — é esse
-// valor que ensureLeagueMembership lê pra decidir em qual liga colocar o usuário na semana
-// seguinte. Idempotente: rodar duas vezes pra mesma semana repete o mesmo cálculo em cima do
-// ranking (que não muda depois que a semana vira passado) e grava o mesmo resultado.
+// CloseLeagueWeek executa o fechamento semanal (TDD §6, adaptado pra hierarquia de 10 ligas x 3
+// divisões — ver leagueTierNames) da `week` informada: pra cada liga/divisão daquela semana,
+// ordena o ranking por xp_this_week, promove os PromotionSlots melhores, rebaixa os
+// DemotionSlots piores, e persiste o novo rank (1..30) em user_gamification.current_tier — é
+// esse valor que ensureLeagueMembership lê pra decidir em qual liga/divisão colocar o usuário na
+// semana seguinte. Idempotente: rodar duas vezes pra mesma semana repete o mesmo cálculo em cima
+// do ranking (que não muda depois que a semana vira passado) e grava o mesmo resultado.
 //
-// Direção do tier: 1=bronze (pior) .. 5=diamante (melhor) — mesma numeração de tierNamesByNumber,
-// já exposta pro frontend. O TDD §6 descreve a direção como "promovido -> tier-1" / "rebaixado ->
-// tier+1", que é o inverso desse mapeamento concreto (nele, tier 1 seria a MELHOR liga). Aqui a
-// promoção move pra tier+1 (rumo a diamante) e o rebaixamento pra tier-1 (rumo a bronze),
-// coerente com bronze=1..diamante=5 já em produção — não com a redação literal do documento.
+// Direção do rank: 1 = Madeira 3 (base) .. 30 = Diamante 1 (topo) — promoção move rank+1, rumo ao
+// topo; rebaixamento move rank-1, rumo à base. Isso empurra o usuário pela divisão seguinte da
+// mesma liga (ex.: Madeira 3 -> Madeira 2) e só troca de liga ao cruzar a fronteira da divisão 1
+// (ex.: Madeira 1 -> Pedra 3), exatamente como tierName/rankDivision derivam liga+divisão do rank.
 //
 // Passo 1 do TDD (mesclar grupos com <15 membros ativos no group_number adjacente) não está
 // implementado: ensureLeagueMembership sempre usa group_number=1, então nunca existe mais de um
-// grupo por tier/semana com o código atual — não há nada real pra mesclar ainda.
+// grupo por liga/divisão/semana com o código atual — não há nada real pra mesclar ainda.
 //
 // Passo 5 do TDD (emitir league.week_closed no barramento de eventos) também não está implementado
 // — nenhum consumidor existe ainda (mesmo estágio dos outros eventos deste pacote, ver
