@@ -540,41 +540,50 @@ Erros: `409 QUESTION_ALREADY_REVIEWED`
 { "...GamificationProfile", "achievements": [ {"type", "unlocked_at"} ] }
 ```
 
-**`GET /v1/gamification/league`** — Sem query string: retorna o ranking da liga semanal do usuário
-autenticado (matricula automaticamente se ainda não estiver, `current_tier` de
-`user_gamification`). Com `?tier=bronze|prata|ouro|platina|diamante`: retorna o ranking daquela
-liga na semana corrente sem matricular o chamador — pra navegar o ranking de outras ligas ("top 50
-de cada liga"); se ninguém estiver naquela tier ainda esta semana, devolve `ranking: []` (200, não
-é erro). `tier` na resposta é sempre string (nome), nunca o número interno da tier.
+**`GET /v1/gamification/league`** — Hierarquia de 10 ligas (pior → melhor: Madeira, Pedra,
+Bronze, Prata, Ouro, Platina, Esmeralda, Safira, Rubi, Diamante), cada uma com 3 divisões internas
+(3 = entrada, 1 = mais avançada) — 30 posições lineares no total. Internamente é um único rank
+1..30 (`user_gamification.current_tier`/`leagues.tier`); `tierName`/`rankDivision`
+(`internal/gamification/gamification.go`) derivam liga+divisão a partir dele.
+
+Sem query string: retorna o ranking da liga/divisão semanal do usuário autenticado (matricula
+automaticamente se ainda não estiver). Com `?tier=madeira|pedra|bronze|prata|ouro|platina|
+esmeralda|safira|rubi|diamante` (e opcionalmente `&division=1|2|3`, default `1`): retorna o
+ranking daquela liga/divisão na semana corrente sem matricular o chamador — pra navegar outras
+ligas; se ninguém estiver lá ainda esta semana, devolve `ranking: []` (200, não é erro).
 `viewer_position`/`xp_to_promotion` só vêm preenchidos na consulta sem `?tier=` (a liga do próprio
 usuário) — projeção em cima do ranking em curso de quanto XP falta pra entrar na zona de promoção
 se a semana fechasse agora (não depende do fechamento semanal já ter rodado); omitidos quando o
 grupo ainda não tem gente suficiente pra uma promoção real (ver `CloseLeagueWeek` abaixo) ou o
-usuário já está na tier mais alta (diamante).
+usuário já está na posição mais alta (Diamante 1).
 
 ```json
 // Response 200
 {
   "league_id": "uuid",
-  "tier": "bronze",
+  "tier": "madeira",
+  "division": 3,
   "week_reference": "date",
   "ranking": [ { "user_id", "name", "xp_this_week", "position" } ],
-  "promotion_slots": 5,
-  "demotion_slots": 5,
+  "promotion_slots": 3,
+  "demotion_slots": 3,
   "viewer_position": integer | null,
   "xp_to_promotion": integer | null
 }
 ```
-Erros: `400 INVALID_TIER` (valor de `?tier=` fora de bronze/prata/ouro/platina/diamante).
+Erros: `400 INVALID_TIER` (valor de `?tier=` fora das 10 ligas) · `400 INVALID_DIVISION` (`?division=`
+fora de 1/2/3).
 
 > **Fechamento semanal (TDD §6):** `internal/gamification.CloseLeagueWeek` implementa o algoritmo
-> de promoção/rebaixamento (top `promotion_slots` sobe, bottom `demotion_slots` desce, grava em
-> `user_gamification.current_tier`) — real, mas só roda via `cmd/close-league-week`, operacional
-> (sem scheduler automático nesta fase, ver `Docs/ArqLearn_Estrategia_Bootstrap.md`). Grupos com
-> menos de `promotion_slots + demotion_slots + 5` membros não promovem nem rebaixam naquela semana
-> (grupo pequeno demais pra uma "competição" real fazer sentido — realidade da fase bootstrap,
-> 5-20 usuários). Mesclagem de grupos pequenos entre si (TDD §6 passo 1) não está implementada —
-> não há como existir mais de um grupo por tier/semana com o código atual (todo mundo cai em
+> de promoção/rebaixamento (top `promotion_slots` sobe uma divisão — ou pra divisão 3 da próxima
+> liga, se já estiver na divisão 1 —, bottom `demotion_slots` desce uma divisão, grava o novo rank
+> em `user_gamification.current_tier`) — real, mas só roda via `cmd/close-league-week`,
+> operacional (sem scheduler automático nesta fase, ver `Docs/ArqLearn_Estrategia_Bootstrap.md`).
+> Divisões com menos de `promotion_slots + demotion_slots` membros (o mínimo pra "top 3"/"bottom
+> 3" não se sobreporem) não promovem nem rebaixam naquela semana — realidade da fase bootstrap,
+> 5-20 usuários, divisões naturalmente pequenas por design (30 delas, não 5 tiers largos).
+> Mesclagem de grupos pequenos entre si (TDD §6 passo 1) não está implementada — não há como
+> existir mais de um grupo por liga/divisão/semana com o código atual (todo mundo cai em
 > `group_number=1`).
 
 **`POST /v1/gamification/streak/freeze`** — Consome um congelador de streak disponível para perdoar o
