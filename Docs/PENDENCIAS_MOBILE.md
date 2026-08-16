@@ -811,3 +811,47 @@ depois consultar de novo confirma que o ciclo **não** reseta antes do dia 8, ex
 que o usuário pediu. Estado da conta de teste restaurado ao original ao final. **Pendência real:**
 mesma do item #16 — falta o teste de UI ao vivo (clique nos cards da Home, abertura dos dois
 baús) assim que uma sessão de login real estiver disponível numa sessão futura.
+
+### 18. Teste de UI ao vivo do Baú Diário + Semanal — pendência dos itens #16/#17 fechada (15/08/2026)
+
+Usuário forneceu a senha da conta de teste `maria.aluna@arqlearn.test` a pedido explícito
+(perguntado via `AskUserQuestion` depois de listar as pendências abertas do projeto), destravando
+o teste de UI ao vivo que ficou em aberto nos itens #16 e #17.
+
+**Setup:** `services/monolith` (backend real) + `next dev` (web) + `expo start --web` (mobile) +
+script Go descartável (nunca commitado) pra preparar a conta de teste com os dois baús
+disponíveis, rodando `chromium` via Playwright direto (sem MCP de browser disponível nesta
+sessão) — login real preenchendo o formulário, sem atalho.
+
+**Dois problemas de ambiente de teste encontrados e contornados — nenhum é bug do app:**
+- **Mobile (`expo start --web`)**: `ExpoSecureStore.web.js` (stub vazio do pacote, já documentado
+  na memória "project_expo_secure_store_web_shim") quebrava o login com
+  `setValueWithKeyAsync is not a function`. Aplicado o shim local já documentado (nomes
+  `*WithKeyAsync`, nunca commitado), restaurado ao original ao final.
+- **Mobile (`expo start --web`) contra o backend local**: `CORS_ALLOWED_ORIGINS` só liberava
+  `localhost:3000` (origem do web) — o dev server do Expo web roda em `localhost:8081`, outra
+  origem, bloqueada pelo preflight do navegador. Adicionado temporariamente ao `.env` local
+  (nunca commitado), restaurado ao original ao final. Acidente à parte que vale registrar: matar
+  o processo do backend por porta (`lsof -ti:8080 | xargs kill`) falhou silenciosamente neste
+  ambiente (lsof não enxerga o processo de verdade no Windows/Git Bash) — o `go run` novo
+  simplesmente falhava o bind e o processo antigo (com o CORS desatualizado) continuava
+  respondendo, mascarado porque o health check batia nele igual. `taskkill //F //PID <pid>` (pid
+  via `netstat -ano`) é o jeito confiável de matar processo por porta neste ambiente, não
+  `lsof`/`kill`.
+
+**Resultado — os dois apps, ponta a ponta, contra o backend e Postgres reais:**
+- Login real com email/senha funcionou nos dois.
+- Home mostrou os dois cards (`Baú Diário`/`Baú Semanal`) com "Disponível!" e barra cheia.
+- Tocar em cada card abriu `/bau?tipo=diario` / `/bau?tipo=semanal` corretamente, tela fechada com
+  o texto certo por tipo ("Você ganhou um Baú de Projeto!" / "Você ganhou um Baú Semanal!").
+  "Abrir Baú" chamou a API de verdade e sorteou recompensas reais em cada tentativa (gemas
+  variando 1–5 no diário e o card semanal chegando a **+10 gemas**, confirmando ao vivo a faixa
+  maior 5–15 do semanal vs. 1–5 do diário; também saiu "Vidas Restauradas" real no web, cobrindo
+  o caminho de item também, não só gemas).
+  Voltando pra Home, os dois cards passaram a mostrar "Já resgatado", confirmando a trava de "1
+  por período" refletida na UI de verdade, não só no banco.
+- Zero erro de console novo em qualquer navegador — só o warning `collapsable` já conhecido do
+  react-native-svg no alvo web (não relacionado a esta feature, não afeta nativo).
+
+Conta de teste restaurada ao estado neutro ao final (baú diário/semanal zerados, gems=5).
+**Itens #16 e #17 estão fechados** — não há mais pendência de teste de UI pra Baú Diário/Semanal.
