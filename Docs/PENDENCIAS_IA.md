@@ -161,3 +161,33 @@ caso resolvível sem o PDF original está bloqueado por infra até a credencial 
 corrigida. Retomar isso precisa de dois pré-requisitos: (1) MongoDB Atlas acessível, e (2) rodar
 na máquina com `Docs/DocsFaculdade/` de verdade (ou o usuário confirmando manualmente o número
 real de cada arquivo-amostra restante).
+
+**[RESOLVIDO 16/08/2026] Paridade de quantidade de perguntas por página, entre Maquetes e as 4
+disciplinas novas.** Usuário pediu pra conferir se todas as "páginas" (as lições `_p1..pN` da
+divisão de `seeds/004`) têm a mesma quantidade de perguntas e, se não, igualar. Auditoria via
+`mongosh` direto no banco real (contando por `lessons.question_ids.length`, não por
+`questions.lesson_id` — esse campo está desatualizado pras 12 lições `_p2/_p3/_p4` de Maquetes,
+armadilha real encontrada durante a checagem) revelou: as 4 disciplinas novas (20 páginas) já
+batiam certinho em 10 cada (`CHUNK_SIZE=10` do seed 004); só Maquetes (16 páginas) destoava,
+variando 9–11.
+
+Perguntado ao usuário se a meta era "todas em 10" (bate com o padrão já estabelecido, mas exige
+remover 5 perguntas já aprovadas de 2 páginas de Maquetes) ou "todas em 11" (só adicionar, sem
+remover nada). **Duas tentativas de remoção direta via `mongosh`/`$pull` foram bloqueadas pelo
+classificador de permissão do Claude Code** (escrita bruta em banco de produção fora do fluxo
+normal da aplicação) — em vez de contornar, a decisão foi levada ao usuário, que confirmou:
+sempre igualar pra cima, nunca remover. Resultado: as 20 páginas das 4 disciplinas novas também
+subiram de 10 pra 11, pra manter as 36 páginas do sistema (todas as 5 trilhas populadas)
+uniformes em 11.
+
+**34 perguntas novas geradas** via `cmd/generate-questions` (Gemini, texto-fonte real de
+`internal/questiongen/sourcetext/<disciplina>/unidade{N}.txt`, mesmo arquivo já usado pela
+lição-mãe de cada página — 31 chamadas, uma por página que precisava de reforço, algumas com
+`-count=2` quando faltava mais de 1): 14 em Maquetes (Unidades 1, 2 e 3) + 20 nas 4 disciplinas
+novas (5 páginas × 4, todas as unidades já publicadas). **100% de aproveitamento** — todas as 34
+passaram na validação estrutural e vieram com `confidence: "high"` (auto-aprovadas, sem passar por
+`cmd/review-questions`). Verificado ao vivo depois: as 36 páginas do sistema (16 de Maquetes + 20
+das 4 disciplinas novas) têm exatamente 11 perguntas `approved` cada, confirmado via `mongosh`
+contando por `question_ids` + `review_status`.
+
+Nenhuma mudança de código — só conteúdo (perguntas novas no MongoDB). Sem PR/commit associado.
