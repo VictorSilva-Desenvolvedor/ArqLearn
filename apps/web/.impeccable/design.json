@@ -1,0 +1,99 @@
+{
+  "schemaVersion": 2,
+  "generatedAt": "2026-08-17T00:00:00.000Z",
+  "title": "Design System: ArqLearn Web",
+  "extensions": {
+    "colorMeta": {
+      "primary": { "role": "primary", "displayName": "Primary Blue", "canonical": "#0e4471" },
+      "primary-fixed": { "role": "primary", "displayName": "Primary Fixed Tint", "canonical": "#d1e4ff" },
+      "secondary": { "role": "secondary", "displayName": "Secondary Orange (text-on)", "canonical": "#8f4e0f" },
+      "secondary-container": { "role": "secondary", "displayName": "Secondary Orange Container", "canonical": "#fda864" },
+      "tertiary": { "role": "tertiary", "displayName": "Tertiary Green (text-on)", "canonical": "#004e10" },
+      "surface": { "role": "neutral", "displayName": "Near-White Surface", "canonical": "#f8f9ff" },
+      "surface-gray": { "role": "neutral", "displayName": "Surface Gray", "canonical": "#f3f4f6" },
+      "blueprint-grid": { "role": "neutral", "displayName": "Blueprint Grid Line (body bg)", "canonical": "#b4bcc7" },
+      "on-surface": { "role": "neutral", "displayName": "On Surface Text", "canonical": "#121c2a" },
+      "outline-variant": { "role": "neutral", "displayName": "Default Border", "canonical": "#c2c7d0" },
+      "error": { "role": "error", "displayName": "Error Red", "canonical": "#ba1a1a" }
+    },
+    "typographyMeta": {
+      "display": { "displayName": "Display", "purpose": "Rare screen-level headline." },
+      "headline": { "displayName": "Headline", "purpose": "Section titles, large buttons." },
+      "question": { "displayName": "Question", "purpose": "Quiz question text, distinct from Headline." },
+      "body": { "displayName": "Body", "purpose": "All instructional and UI copy." },
+      "label": { "displayName": "Label Caps", "purpose": "Metadata and category tags, tracked uppercase." },
+      "statsNum": { "displayName": "Stats Number", "purpose": "Any gamified counter — XP, streak, accuracy." }
+    },
+    "shadows": [
+      { "name": "shadow-gamified", "value": "0 4px 6px -1px rgba(14,68,113,.1), 0 2px 4px -1px rgba(14,68,113,.06)", "purpose": "The only sanctioned shadow — soft, blue-tinted, ambient. Completed/checkpoint map nodes, in-progress unit card only." }
+    ],
+    "motion": [],
+    "breakpoints": []
+  },
+  "components": [
+    {
+      "name": "Primary Button",
+      "kind": "button",
+      "refersTo": "button-primary",
+      "description": "Main call-to-action; solid primary fill. Carries an unsanctioned shadow-sm — flagged in DESIGN.md for removal.",
+      "html": "<button class=\"ds-btn-primary\">Continuar</button>",
+      "css": ".ds-btn-primary { display: inline-flex; align-items: center; justify-content: center; gap: 8px; background: #0e4471; color: #ffffff; border: 2px solid #0e4471; border-radius: 24px; padding: 12px 24px; font-family: 'Hanken Grotesk', sans-serif; font-weight: 700; font-size: 16px; box-shadow: 0 1px 2px 0 rgba(0,0,0,0.05); transition: background-color 0.15s; } .ds-btn-primary:hover { background: #2e5c8a; } .ds-btn-primary:disabled { opacity: 0.5; }"
+    },
+    {
+      "name": "Gamification CTA Button",
+      "kind": "button",
+      "refersTo": "button-gamification",
+      "description": "Reward-flavored CTA; border collapses on press for a physical 'pushed' feel.",
+      "html": "<button class=\"ds-btn-gamification\">Abrir Baú</button>",
+      "css": ".ds-btn-gamification { display: inline-flex; align-items: center; justify-content: center; gap: 8px; background: #fda864; color: #753c00; border: none; border-bottom: 4px solid #8f4e0f; border-radius: 24px; padding: 12px 24px; font-family: 'Hanken Grotesk', sans-serif; font-weight: 700; font-size: 16px; transition: transform 0.1s, border-bottom-width 0.1s; } .ds-btn-gamification:active { transform: translateY(4px); border-bottom-width: 0; }"
+    },
+    {
+      "name": "Answer Card — Selected",
+      "kind": "card",
+      "refersTo": "answer-option",
+      "description": "Quiz answer option, selected/unverified state, with themed focus ring.",
+      "html": "<button class=\"ds-answer-card ds-answer-selected\" role=\"radio\" aria-checked=\"true\">Resposta selecionada</button>",
+      "css": ".ds-answer-card { display: flex; align-items: center; gap: 12px; width: 100%; border-radius: 16px; padding: 12px 16px; font-family: Inter, sans-serif; font-size: 16px; color: #121c2a; text-align: left; } .ds-answer-selected { border: 2px solid #0e4471; background: #d1e4ff; } .ds-answer-card:focus-visible { outline: 2px solid #0e4471; outline-offset: 2px; }"
+    },
+    {
+      "name": "Answer Card — Correct",
+      "kind": "card",
+      "refersTo": "answer-option",
+      "description": "Quiz answer option revealed as correct.",
+      "html": "<div class=\"ds-answer-card ds-answer-correct\">Resposta correta</div>",
+      "css": ".ds-answer-card { display: flex; align-items: center; gap: 12px; width: 100%; border-radius: 16px; padding: 12px 16px; font-family: Inter, sans-serif; font-size: 16px; } .ds-answer-correct { border: 2px solid #004e10; background: #a3f69c; color: #005312; }"
+    },
+    {
+      "name": "Card",
+      "kind": "card",
+      "refersTo": "card-default",
+      "description": "Default content container.",
+      "html": "<div class=\"ds-card\">Conteúdo</div>",
+      "css": ".ds-card { background: #f8f9ff; border: 2px solid #c2c7d0; border-radius: 16px; padding: 16px; }"
+    }
+  ],
+  "narrative": {
+    "northStar": "The Digital Drafting Table",
+    "overview": "Same system as apps/mobile — this is the browser expression of the shared Blueprint Narrative tokens, ported to Tailwind v4 via @theme rather than reimplemented. The hybrid of Modern Minimalism and Technical Brutalism shows up literally on <body> here: a real 24x24px blueprint-grid background image, always on, everywhere — the single most on-theme decision in either codebase. Web carries a Teacher Panel and admin surface mobile explicitly doesn't; the Teacher Dashboard deliberately shifts to a Density-First mode with tighter padding.",
+    "keyCharacteristics": [
+      "Sharp, structured geometry — never bubbly or soft-gamified",
+      "The literal blueprint grid lives on <body> here — mobile only approximates it in LoadingBlueprint's fullscreen variant",
+      "One color per job: blue = learning/navigation, orange = gamification, green = success — never mixed",
+      "prefers-reduced-motion is handled globally, genuinely accessibility-aware, ahead of apps/mobile on this axis"
+    ],
+    "rules": [
+      { "name": "The One Job Per Color Rule", "body": "Blue is structural/navigational, orange is exclusively gamification reward, green is exclusively success/validation.", "section": "colors" },
+      { "name": "The Mono-Counts Rule", "body": "Anything the user watches go up (XP, streak, accuracy) renders in text-stats-num + font-label (JetBrains Mono), never the body or display font.", "section": "typography" },
+      { "name": "The Flat-By-Default Rule", "body": "Surfaces are flat at rest; the only earned depth is shadow-gamified on completed/checkpoint map nodes and the in-progress unit card — never a generic Tailwind shadow utility.", "section": "elevation" }
+    ],
+    "dos": [
+      "Do use shadow-gamified only for the small named set of critical gamified elements it was built for.",
+      "Do keep the Teacher Dashboard's denser sm padding as a deliberate mode switch.",
+      "Do pair every color-coded correct/incorrect state with a dedicated icon."
+    ],
+    "donts": [
+      "Don't reach for Tailwind's bare shadow-sm/md/lg anywhere — Button.tsx's primary variant currently does; flagged for removal.",
+      "Don't silently reconcile the 12px-vs-16px answer-card radius gap between mobile and web by copying one value over the other without a deliberate decision."
+    ]
+  }
+}

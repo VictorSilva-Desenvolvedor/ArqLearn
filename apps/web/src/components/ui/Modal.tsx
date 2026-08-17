@@ -40,7 +40,8 @@ export function Modal({ open, onOpenChange, children, dismissible = true, radius
           onPointerDownOutside={(e) => !dismissible && e.preventDefault()}
           className={cn(
             "fixed left-1/2 top-1/2 z-50 w-[min(92vw,28rem)] -translate-x-1/2 -translate-y-1/2",
-            "bg-surface-bright border-2 border-outline-variant p-lg shadow-lg",
+            // Sem shadow-lg: a borda 2px já separa do overlay por trás; sistema é flat-by-default.
+            "bg-surface-bright border-2 border-outline-variant p-lg",
             radiusClasses[radius],
             "data-[state=open]:animate-[modal-content-in_200ms_ease-out]",
             "data-[state=closed]:animate-[modal-content-out_150ms_ease-in]",

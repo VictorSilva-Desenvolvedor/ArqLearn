@@ -19,6 +19,8 @@ export function Toast() {
       aria-live="polite"
       className={cn(
         "fixed bottom-24 md:bottom-8 left-1/2 -translate-x-1/2 z-[60]",
+        // shadow-lg é intencional aqui (exceção documentada, não drift): sem borda própria,
+        // flutuando sobre conteúdo real sem overlay atrás — precisa da sombra pra se separar.
         "flex items-center gap-xs px-lg py-sm rounded-full shadow-lg font-body-md text-body-md font-bold",
         "animate-[toast-in_200ms_ease-out]",
         toast.tone === "success"
