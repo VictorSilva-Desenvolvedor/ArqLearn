@@ -1,6 +1,7 @@
 import { useRouter } from "expo-router";
 import { Pressable, StyleSheet, View } from "react-native";
 import { Icon, type IconName } from "@/components/ui/Icon";
+import { useToast } from "@/hooks/useToast";
 import { colors } from "@/theme/tokens";
 
 // "available" = tem pergunta aprovada de verdade, mas o usuário ainda não começou — navegável,
@@ -17,6 +18,7 @@ interface LessonNodeProps {
 
 export function LessonNode({ variant, icon, href }: LessonNodeProps) {
   const router = useRouter();
+  const { showToast } = useToast();
 
   if (variant === "checkpoint") {
     return (
@@ -60,9 +62,16 @@ export function LessonNode({ variant, icon, href }: LessonNodeProps) {
   }
 
   return (
-    <View style={styles.construction} accessibilityLabel="Lição em construção — ainda sem conteúdo">
+    // Pressable em vez de View: tocar não fazia nada — sem feedback, achado ao vivo. Continua
+    // "não navegável" de propósito (sem router.push), só explica por que a lição não abre.
+    <Pressable
+      onPress={() => showToast("Esta lição ainda está em preparação — volte em breve!")}
+      style={styles.construction}
+      accessibilityRole="button"
+      accessibilityLabel="Lição em construção — ainda sem conteúdo"
+    >
       <Icon name="construction" size={26} color={colors.outline} />
-    </View>
+    </Pressable>
   );
 }
 

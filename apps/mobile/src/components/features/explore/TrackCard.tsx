@@ -33,7 +33,13 @@ export function TrackCard({ track, difficulty, durationMinutes, icon, isSelected
           </View>
         )}
         <Icon name={icon} size={28} color={colors.primary} />
-        <Text style={[type.questionSm, styles.title]}>{track.title}</Text>
+        {/* numberOfLines: sem isso, títulos de tamanhos diferentes faziam os cards da mesma linha
+            da grade (explorar.tsx, 2 colunas) ficarem com alturas visivelmente diferentes — RN
+            não estica os itens de uma linha pra bater a mesma altura como o CSS Grid faria
+            (achado ao vivo). */}
+        <Text style={[type.questionSm, styles.title]} numberOfLines={2}>
+          {track.title}
+        </Text>
         {hasContent ? (
           <View style={styles.meta}>
             <Badge tone="primary">{difficulty}</Badge>
