@@ -890,8 +890,12 @@ false` sem nenhuma justificativa documentada em lugar nenhum do repositório —
 é o default do próprio scaffold do Expo (`0b7ef1b`, commit inicial de config), nunca uma decisão
 deliberada do produto. Reativado para `true` (o default do Android) a pedido do usuário.
 
-**Falta validar em device/emulador real** (nenhum disponível nesta sessão) que nenhuma transição de
-tela quebra sob o preview do gesto preditivo de voltar do Android — em particular telas com
-navegação customizada ou modais que possam entrar em conflito visual com o preview ao vivo do
-Android. Se algo quebrar, a correção é ajustar a transição afetada, não voltar a desligar a
-gesture globalmente.
+**Validado parcialmente em device real** (17/08/2026, build de dev client via EAS após o Expo Go da
+loja ficar incompatível com o SDK 57 — ver item de `expo-dev-client` no histórico): o botão "voltar"
+físico/na tela (modo de navegação por 3 botões, não por gestos) navega corretamente entre lição e
+Home, sem travar ou piscar. **Ainda não testado**: o teste real do gesto preditivo em si (arrastar da
+borda) — o aparelho de teste usa o modo de 3 botões, onde esse gesto nem existe no Android (é
+exclusivo do modo de navegação por gestos). Falta testar num aparelho em modo de gestos, ou trocar
+temporariamente o mesmo aparelho pra esse modo, pra confirmar que nenhuma transição de tela quebra
+sob o preview ao vivo. Se algo quebrar, a correção é ajustar a transição afetada, não voltar a
+desligar a gesture globalmente.
