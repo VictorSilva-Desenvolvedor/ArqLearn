@@ -58,7 +58,8 @@ export function TopAppBar() {
           <StatPill tone="error" icon="hearts" value={gamification.hearts_current} />
         </Pressable>
         <Pressable onPress={() => router.push("/loja" as never)}>
-          <StatPill tone="primary" icon="gems" value={gamification.gems} />
+          {/* Moeda de recompensa — camada de gamificação, mesmo job de streak (não navegação). */}
+          <StatPill tone="secondary" icon="gems" value={gamification.gems} />
         </Pressable>
       </View>
       <StreakDialog open={streakDialogOpen} onOpenChange={setStreakDialogOpen} />

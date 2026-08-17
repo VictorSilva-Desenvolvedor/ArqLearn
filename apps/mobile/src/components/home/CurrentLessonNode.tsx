@@ -35,7 +35,7 @@ export function CurrentLessonNode({ icon, href, ctaLabel }: CurrentLessonNodePro
       <Pressable onPress={handlePress} style={styles.ring}>
         <View style={styles.border}>
           <View style={styles.face}>
-            <Icon name={icon} size={32} color={colors.onSecondary} />
+            <Icon name={icon} size={32} color={colors.onPrimary} />
           </View>
         </View>
       </Pressable>
@@ -57,7 +57,7 @@ const styles = StyleSheet.create({
     top: -52,
     backgroundColor: colors.surfaceBright,
     borderWidth: 2,
-    borderColor: colors.secondary,
+    borderColor: colors.primary,
     borderRadius: 12,
     paddingHorizontal: 12,
     paddingVertical: 6,
@@ -65,7 +65,7 @@ const styles = StyleSheet.create({
     zIndex: 20,
   },
   calloutText: {
-    color: colors.secondary,
+    color: colors.primary,
   },
   calloutArrow: {
     position: "absolute",
@@ -77,13 +77,15 @@ const styles = StyleSheet.create({
     borderTopWidth: 8,
     borderLeftColor: "transparent",
     borderRightColor: "transparent",
-    borderTopColor: colors.secondary,
+    borderTopColor: colors.primary,
   },
   ring: {
     width: 84,
     height: 84,
     borderRadius: 42,
-    backgroundColor: colors.secondary,
+    // Navegação/estado "em andamento" — azul primário, não laranja (reservado à camada de
+    // gamificação/recompensa; ver DESIGN.md "The One Job Per Color Rule").
+    backgroundColor: colors.primary,
     alignItems: "center",
     justifyContent: "center",
   },
@@ -99,7 +101,7 @@ const styles = StyleSheet.create({
     width: 72,
     height: 72,
     borderRadius: 36,
-    backgroundColor: colors.secondary,
+    backgroundColor: colors.primary,
     alignItems: "center",
     justifyContent: "center",
   },

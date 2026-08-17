@@ -29,7 +29,9 @@ interface UnitSectionProps {
 
 const statusBadge: Record<UnitStatus, { label: string; tone: BadgeTone }> = {
   completed: { label: "Concluído", tone: "primary" },
-  current: { label: "Em andamento", tone: "secondary" },
+  // Estado de navegação/progresso — azul primário, não laranja (reservado à camada de
+  // gamificação/recompensa; ver DESIGN.md "The One Job Per Color Rule").
+  current: { label: "Em andamento", tone: "primary" },
   available: { label: "Disponível", tone: "primary" },
   construction: { label: "Em construção", tone: "neutral" },
 };
@@ -52,7 +54,7 @@ export function UnitSection({ title, subtitle, status, nodes }: UnitSectionProps
           status === "completed" && styles.summaryCardCompleted,
         ]}
       >
-        <Text style={[type.bodyMdBold, { color: status === "current" ? colors.secondary : colors.onSurfaceVariant }]}>
+        <Text style={[type.bodyMdBold, { color: status === "current" ? colors.primary : colors.onSurfaceVariant }]}>
           {title}
         </Text>
         {subtitle && (
@@ -97,7 +99,7 @@ const styles = StyleSheet.create({
     marginBottom: 8,
   },
   summaryCardCurrent: {
-    borderColor: colors.secondary,
+    borderColor: colors.primary,
   },
   summaryCardCompleted: {
     borderColor: colors.primary,

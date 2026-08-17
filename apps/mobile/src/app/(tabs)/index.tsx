@@ -8,7 +8,9 @@ import { ExploreMoreCard } from "@/components/home/ExploreMoreCard";
 import { LevelProgressCard } from "@/components/home/LevelProgressCard";
 import { LearningMap, type LearningMapUnit } from "@/components/home/LearningMap";
 import { TopAppBar } from "@/components/home/TopAppBar";
+import { ErrorBanner } from "@/components/ui/ErrorBanner";
 import { Icon } from "@/components/ui/Icon";
+import { LoadingBlueprint } from "@/components/ui/LoadingBlueprint";
 import type { LessonNodeVariant } from "@/components/home/LessonNode";
 import type { UnitStatus } from "@/components/home/UnitSection";
 import { useAuth } from "@/hooks/useAuth";
@@ -84,31 +86,38 @@ export default function HomeScreen() {
   const { gamification } = useAuth();
   const { theme: selectedTheme } = useTheme();
   const [units, setUnits] = useState<LearningMapUnit[] | null>(null);
+  const [mapLoadError, setMapLoadError] = useState(false);
+  const [retryToken, setRetryToken] = useState(0);
   const [dailyChest, setDailyChest] = useState<DailyChestStatus | null>(null);
   const [weeklyChest, setWeeklyChest] = useState<WeeklyChestStatus | null>(null);
 
   useEffect(() => {
     let cancelled = false;
     async function load() {
-      const { data: tracks } = await listTracks();
-      const featuredTrack = tracks.find((track) => track.topic === selectedTheme.topic);
-      const otherTracks = tracks.filter((track) => track.topic !== selectedTheme.topic);
-      const orderedTracks = [...(featuredTrack ? [featuredTrack] : []), ...otherTracks].slice(0, MAX_UNITS_SHOWN);
+      setMapLoadError(false);
+      try {
+        const { data: tracks } = await listTracks();
+        const featuredTrack = tracks.find((track) => track.topic === selectedTheme.topic);
+        const otherTracks = tracks.filter((track) => track.topic !== selectedTheme.topic);
+        const orderedTracks = [...(featuredTrack ? [featuredTrack] : []), ...otherTracks].slice(0, MAX_UNITS_SHOWN);
 
-      const withLessons = await Promise.all(
-        orderedTracks.map(async (track) => {
-          const { data: rawLessons } = await listTrackLessons(track.id);
-          const trackLessons = track.topic === selectedTheme.topic ? featureSelectedTheme(rawLessons) : rawLessons;
-          return toUnit(track, trackLessons);
-        }),
-      );
-      if (!cancelled) setUnits(withLessons);
+        const withLessons = await Promise.all(
+          orderedTracks.map(async (track) => {
+            const { data: rawLessons } = await listTrackLessons(track.id);
+            const trackLessons = track.topic === selectedTheme.topic ? featureSelectedTheme(rawLessons) : rawLessons;
+            return toUnit(track, trackLessons);
+          }),
+        );
+        if (!cancelled) setUnits(withLessons);
+      } catch {
+        if (!cancelled) setMapLoadError(true);
+      }
     }
     void load();
     return () => {
       cancelled = true;
     };
-  }, [selectedTheme.topic]);
+  }, [selectedTheme.topic, retryToken]);
 
   useEffect(() => {
     let cancelled = false;
@@ -162,7 +171,13 @@ export default function HomeScreen() {
             </Text>
           </View>
         )}
-        {units && <LearningMap units={units} />}
+        {mapLoadError && <ErrorBanner onRetry={() => setRetryToken((t) => t + 1)} />}
+        {!mapLoadError && !units && (
+          <View style={styles.mapLoading}>
+            <LoadingBlueprint />
+          </View>
+        )}
+        {!mapLoadError && units && <LearningMap units={units} />}
         <ExploreMoreCard />
       </ScrollView>
       {allDone && (
@@ -189,6 +204,10 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     gap: spacing.md,
     marginBottom: spacing.lg,
+  },
+  mapLoading: {
+    alignItems: "center",
+    paddingVertical: spacing.section,
   },
   notice: {
     flexDirection: "row",
