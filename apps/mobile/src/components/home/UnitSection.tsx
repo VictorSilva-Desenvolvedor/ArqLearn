@@ -40,46 +40,52 @@ export function UnitSection({ title, subtitle, status, nodes }: UnitSectionProps
   const badge = statusBadge[status];
 
   return (
-    <View style={[styles.wrap, status === "construction" && styles.dimmed]}>
+    <View style={styles.wrap}>
       <View style={styles.header}>
         <Text style={[type.headlineMd, { color: colors.onSurface }]}>{title}</Text>
+        {/* Badge NUNCA fica dentro do wrapper `dimmed` abaixo — opacity:0.6 sobre o par de cores
+            já escurecido do tone "neutral" derrubava o contraste efetivo pra ~2.3:1, bem abaixo
+            do mínimo AA de 4.5:1 mesmo com o token correto (achado de /impeccable audit,
+            2026-08-17 — o fix anterior corrigiu o token mas não esse contexto). */}
         <Badge tone={badge.tone}>{badge.label}</Badge>
       </View>
-      <Card
-        padding="md"
-        radius="xl"
-        style={[
-          styles.summaryCard,
-          status === "current" && styles.summaryCardCurrent,
-          status === "completed" && styles.summaryCardCompleted,
-        ]}
-      >
-        <Text style={[type.bodyMdBold, { color: status === "current" ? colors.primary : colors.onSurfaceVariant }]}>
-          {title}
-        </Text>
-        {subtitle && (
-          <Text style={[type.bodySm, { color: colors.onSurfaceVariant, marginTop: 4 }]}>{subtitle}</Text>
-        )}
-      </Card>
-      <View style={styles.path}>
-        {nodes.length > 1 && <PathConnector dashed={status === "current"} />}
-        {nodes.map((node, index) => (
-          <View
-            key={node.lessonId}
-            // spacing.xl (32px) via token em vez de número mágico — mesmo padrão corrigido em
-            // apps/web/UnitSection.tsx.
-            style={[
-              styles.nodeSlot,
-              { transform: [{ translateX: index % 2 === 0 ? -spacing.xl : spacing.xl }] },
-            ]}
-          >
-            {node.variant === "current" ? (
-              <CurrentLessonNode icon={node.icon} href={node.href} ctaLabel={node.ctaLabel} />
-            ) : (
-              <LessonNode variant={node.variant} icon={node.icon} href={node.href} />
-            )}
-          </View>
-        ))}
+      <View style={status === "construction" && styles.dimmed}>
+        <Card
+          padding="md"
+          radius="xl"
+          style={[
+            styles.summaryCard,
+            status === "current" && styles.summaryCardCurrent,
+            status === "completed" && styles.summaryCardCompleted,
+          ]}
+        >
+          <Text style={[type.bodyMdBold, { color: status === "current" ? colors.primary : colors.onSurfaceVariant }]}>
+            {title}
+          </Text>
+          {subtitle && (
+            <Text style={[type.bodySm, { color: colors.onSurfaceVariant, marginTop: 4 }]}>{subtitle}</Text>
+          )}
+        </Card>
+        <View style={styles.path}>
+          {nodes.length > 1 && <PathConnector dashed={status === "current"} />}
+          {nodes.map((node, index) => (
+            <View
+              key={node.lessonId}
+              // spacing.xl (32px) via token em vez de número mágico — mesmo padrão corrigido em
+              // apps/web/UnitSection.tsx.
+              style={[
+                styles.nodeSlot,
+                { transform: [{ translateX: index % 2 === 0 ? -spacing.xl : spacing.xl }] },
+              ]}
+            >
+              {node.variant === "current" ? (
+                <CurrentLessonNode icon={node.icon} href={node.href} ctaLabel={node.ctaLabel} />
+              ) : (
+                <LessonNode variant={node.variant} icon={node.icon} href={node.href} />
+              )}
+            </View>
+          ))}
+        </View>
       </View>
     </View>
   );

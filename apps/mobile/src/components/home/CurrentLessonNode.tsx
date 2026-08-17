@@ -34,7 +34,14 @@ export function CurrentLessonNode({ icon, href, ctaLabel }: CurrentLessonNodePro
   return (
     <View style={styles.wrap}>
       {ctaLabel && (
-        <View style={styles.callout}>
+        // Escondido de leitor de tela: o Pressable logo abaixo já carrega o mesmo texto via
+        // accessibilityLabel — sem isso, VoiceOver/TalkBack anunciava "Continuar lição" duas
+        // vezes seguidas (achado de /impeccable audit, 2026-08-17).
+        <View
+          style={styles.callout}
+          importantForAccessibility="no-hide-descendants"
+          accessibilityElementsHidden
+        >
           <Text style={[type.labelCaps, styles.calloutText]}>{ctaLabel}</Text>
           <View style={styles.calloutArrow} />
         </View>

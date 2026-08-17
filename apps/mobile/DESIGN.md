@@ -160,7 +160,12 @@ progress" state — it reads as trust and focus, not decoration.
 - **Outline** (`#626b76`, darkened from `#727780` on 2026-08-17 — `/impeccable audit` measured the
   original failing WCAG AA's 4.5:1 text-contrast minimum as the `Badge` "neutral" tone's foreground,
   e.g. the "Em construção" label; `apps/web`'s identical token got the same fix): the one place this
-  token is used as *text*, not border.
+  token is used as *text*, not border. **The token fix alone wasn't enough**: a re-audit found the
+  only real usage in Home (`UnitSection`'s "Em construção" badge) sits inside a 0.6-opacity dimmed
+  wrapper, dropping effective contrast to ~2.3:1 even with the darker token. Fixed by scoping the
+  dim to the card/path only (`UnitSection.tsx`) — the badge itself is never dimmed now. **Rule**: a
+  color-token fix isn't verified until you check every real call site's *rendered* state, not just
+  the component's default state.
 - **Outline Variant** (`#c2c7d0`, unchanged): default 1px border on unselected cards and inputs —
   not yet audited for contrast on mobile (`apps/web`'s equivalent border token *was* darkened after
   failing 3:1 non-text contrast; don't assume mobile passes just because it wasn't flagged yet).
@@ -200,9 +205,10 @@ digits are what make the number read as "data" and keep it from reflowing during
 
 ## Layout
 
-4px baseline grid. Mobile screens use a 16px side margin with an 8px gutter; the Home learning map
-constrains to `maxWidth: 448` and centers itself, keeping the path readable on tablets instead of
-stretching edge to edge. Spacing groups by relationship, not by uniform rhythm: a question and its
+4px baseline grid. Mobile screens use a 16px side margin with an 8px gutter; the whole Home screen
+(header included, as of 2026-08-17 — `TopAppBar` was a stretched-on-iPad gap the first tablet fix
+missed) constrains to `maxWidth: 448` and centers itself, keeping the path readable on tablets
+instead of stretching edge to edge. Spacing groups by relationship, not by uniform rhythm: a question and its
 diagram sit at `xs` (8px), while answer cards below are separated by `md` (16px) — tighter spacing
 signals "these belong together."
 
