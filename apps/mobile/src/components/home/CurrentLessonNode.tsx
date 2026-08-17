@@ -1,6 +1,6 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "expo-router";
-import { Pressable, StyleSheet, Text, View } from "react-native";
+import { AccessibilityInfo, Pressable, StyleSheet, Text, View } from "react-native";
 import { Icon, type IconName } from "@/components/ui/Icon";
 import { useAuth } from "@/hooks/useAuth";
 import { colors, type } from "@/theme/tokens";
@@ -24,6 +24,13 @@ export function CurrentLessonNode({ icon, href, ctaLabel }: CurrentLessonNodePro
     router.push(href as never);
   };
 
+  // "Sem vidas" é um Text flutuante, não anunciado sozinho por leitor de tela — mesmo padrão
+  // imperativo já usado em QuestionCard.tsx (RN não tem aria-live/role="status" de DOM).
+  useEffect(() => {
+    if (!noHearts) return;
+    AccessibilityInfo.announceForAccessibility("Sem vidas — volte mais tarde.");
+  }, [noHearts]);
+
   return (
     <View style={styles.wrap}>
       {ctaLabel && (
@@ -32,7 +39,12 @@ export function CurrentLessonNode({ icon, href, ctaLabel }: CurrentLessonNodePro
           <View style={styles.calloutArrow} />
         </View>
       )}
-      <Pressable onPress={handlePress} style={styles.ring}>
+      <Pressable
+        onPress={handlePress}
+        accessibilityRole="button"
+        accessibilityLabel={ctaLabel ?? "Lição atual"}
+        style={styles.ring}
+      >
         <View style={styles.border}>
           <View style={styles.face}>
             <Icon name={icon} size={32} color={colors.onPrimary} />

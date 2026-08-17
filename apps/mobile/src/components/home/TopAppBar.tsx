@@ -38,7 +38,12 @@ export function TopAppBar() {
             label="Notificações"
             onPress={() => router.push("/notificacoes" as never)}
           />
-          <Pressable style={styles.profile} onPress={() => router.push("/perfil" as never)}>
+          <Pressable
+            style={styles.profile}
+            onPress={() => router.push("/perfil" as never)}
+            accessibilityRole="button"
+            accessibilityLabel={`Perfil. Nível ${gamification.level}, ${xpFaltam} XP para o próximo.`}
+          >
             <Text style={[type.labelCaps, styles.levelLine]} numberOfLines={1}>
               <Text style={styles.levelText}>Nível {gamification.level}</Text>
               <Text style={styles.levelCaption}> · {xpFaltam} XP p/ próx.</Text>
@@ -51,13 +56,31 @@ export function TopAppBar() {
         <ThemeSelector />
       </View>
       <View style={styles.statsRow}>
-        <Pressable onPress={() => setStreakDialogOpen(true)}>
+        {/* hitSlop: a pílula em si (ícone 18px + statsNum) mede ~28px de altura, abaixo do
+            mínimo de toque 44pt(iOS)/48dp(Android) — hitSlop estende a área de toque sem mudar
+            o visual. */}
+        <Pressable
+          hitSlop={{ top: 10, bottom: 10, left: 8, right: 8 }}
+          onPress={() => setStreakDialogOpen(true)}
+          accessibilityRole="button"
+          accessibilityLabel={`Sequência: ${gamification.streak_current} dias`}
+        >
           <StatPill tone="secondary" icon="streak" value={gamification.streak_current} />
         </Pressable>
-        <Pressable onPress={() => setHeartsDialogOpen(true)}>
+        <Pressable
+          hitSlop={{ top: 10, bottom: 10, left: 8, right: 8 }}
+          onPress={() => setHeartsDialogOpen(true)}
+          accessibilityRole="button"
+          accessibilityLabel={`Vidas: ${gamification.hearts_current}`}
+        >
           <StatPill tone="error" icon="hearts" value={gamification.hearts_current} />
         </Pressable>
-        <Pressable onPress={() => router.push("/loja" as never)}>
+        <Pressable
+          hitSlop={{ top: 10, bottom: 10, left: 8, right: 8 }}
+          onPress={() => router.push("/loja" as never)}
+          accessibilityRole="button"
+          accessibilityLabel={`Gemas: ${gamification.gems}`}
+        >
           {/* Moeda de recompensa — camada de gamificação, mesmo job de streak (não navegação). */}
           <StatPill tone="secondary" icon="gems" value={gamification.gems} />
         </Pressable>

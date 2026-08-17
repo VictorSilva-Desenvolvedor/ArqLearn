@@ -19,6 +19,9 @@ export function IconButton({ icon, label, disabled, onPress }: IconButtonProps) 
       accessibilityLabel={label}
       accessibilityState={{ disabled }}
       onPress={() => !disabled && onPress?.()}
+      // 44x44 cobre o mínimo do iOS (44pt) mas fica 4dp abaixo do mínimo do Android (48dp) —
+      // hitSlop estende a área de toque sem mudar o círculo visual de 44px.
+      hitSlop={{ top: 2, bottom: 2, left: 2, right: 2 }}
       style={({ pressed }) => [styles.base, pressed && !disabled && styles.pressed, disabled && styles.disabled]}
     >
       {icon}

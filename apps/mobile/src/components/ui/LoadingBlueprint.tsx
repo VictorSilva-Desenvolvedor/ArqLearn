@@ -1,6 +1,7 @@
 import { useEffect, useRef } from "react";
 import { Animated, Easing, StyleSheet, Text, View } from "react-native";
 import Svg, { Defs, Path, Pattern, Rect } from "react-native-svg";
+import { useReduceMotion } from "@/hooks/useReduceMotion";
 import { colors, spacing, type } from "@/theme/tokens";
 
 const AnimatedPath = Animated.createAnimatedComponent(Path);
@@ -33,8 +34,18 @@ interface LoadingBlueprintProps {
 function BlueprintIcon({ size }: { size: number }) {
   const progress = useRef(new Animated.Value(0)).current;
   const pulse = useRef(new Animated.Value(0)).current;
+  const reduceMotion = useReduceMotion();
 
   useEffect(() => {
+    // Reduce Motion: mantém o ícone visível e parado (progress=0.5 é o ponto em que o traço já
+    // está 100% desenhado — dashoffset chega a 0 — e a opacidade está no pico, ver as
+    // interpolações abaixo) em vez de rodar uma animação indefinida que ignora a preferência do
+    // usuário — RN não tem um kill switch global pra isso (web tem via CSS).
+    if (reduceMotion) {
+      progress.setValue(0.5);
+      pulse.setValue(0);
+      return;
+    }
     const drawLoop = Animated.loop(
       Animated.timing(progress, {
         toValue: 1,
@@ -52,7 +63,7 @@ function BlueprintIcon({ size }: { size: number }) {
       drawLoop.stop();
       pulseLoop.stop();
     };
-  }, [progress, pulse]);
+  }, [progress, pulse, reduceMotion]);
 
   const dashoffset = progress.interpolate({ inputRange: [0, 0.5, 1], outputRange: [200, 0, 0] });
   const pathOpacity = progress.interpolate({ inputRange: [0, 0.2, 0.8, 1], outputRange: [0, 1, 1, 0] });

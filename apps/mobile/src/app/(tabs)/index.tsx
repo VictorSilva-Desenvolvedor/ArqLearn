@@ -199,6 +199,13 @@ const styles = StyleSheet.create({
   content: {
     paddingHorizontal: 24,
     paddingVertical: 48,
+    // maxWidth/alignSelf: mesmo limite que LearningMap.tsx já aplicava só a si mesmo — sem isso,
+    // em iPad (ios.supportsTablet: true no app.json) todo o resto da Home (goal/nível/baús/aviso)
+    // esticava full-width enquanto só o mapa ficava contido, um "phone UI esticado" inconsistente
+    // (achado do /impeccable audit).
+    maxWidth: 448,
+    width: "100%",
+    alignSelf: "center",
   },
   chestRow: {
     flexDirection: "row",
