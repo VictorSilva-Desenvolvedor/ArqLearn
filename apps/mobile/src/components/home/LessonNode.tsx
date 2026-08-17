@@ -20,7 +20,12 @@ export function LessonNode({ variant, icon, href }: LessonNodeProps) {
 
   if (variant === "checkpoint") {
     return (
-      <Pressable onPress={() => router.push(href as never)} style={styles.checkpointOuter}>
+      <Pressable
+        onPress={() => router.push(href as never)}
+        accessibilityRole="button"
+        accessibilityLabel="Checkpoint — toque para abrir"
+        style={styles.checkpointOuter}
+      >
         <View style={styles.checkpointIcon}>
           <Icon name={icon} size={32} color={colors.onPrimary} />
         </View>
@@ -30,7 +35,12 @@ export function LessonNode({ variant, icon, href }: LessonNodeProps) {
 
   if (variant === "completed") {
     return (
-      <Pressable onPress={() => router.push(href as never)} style={styles.completed}>
+      <Pressable
+        onPress={() => router.push(href as never)}
+        accessibilityRole="button"
+        accessibilityLabel="Lição concluída — toque para revisar"
+        style={styles.completed}
+      >
         <Icon name={icon} size={28} color={colors.onPrimary} />
       </Pressable>
     );

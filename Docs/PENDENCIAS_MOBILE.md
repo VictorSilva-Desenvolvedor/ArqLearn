@@ -882,3 +882,16 @@ acesso à conta de teste, junto de: (1) confirmar ao vivo que o Baú Semanal de 
 sempre com Bloqueio de Ofensiva; (2) confirmar que o reset de baú realmente reabre a tela sem exigir
 novas perguntas; (3) testar o fluxo de resgate de cupom ponta a ponta contra o Postgres real
 (gerar cupom via `POST /v1/vip/coupons` com uma conta admin, resgatar com a conta de teste).
+
+### 20. `predictiveBackGestureEnabled` reativado — precisa validar em device/emulador (17/08/2026)
+
+`/impeccable audit` (Home) encontrou `apps/mobile/app.json`'s `android.predictiveBackGestureEnabled:
+false` sem nenhuma justificativa documentada em lugar nenhum do repositório — `git log` confirma que
+é o default do próprio scaffold do Expo (`0b7ef1b`, commit inicial de config), nunca uma decisão
+deliberada do produto. Reativado para `true` (o default do Android) a pedido do usuário.
+
+**Falta validar em device/emulador real** (nenhum disponível nesta sessão) que nenhuma transição de
+tela quebra sob o preview do gesto preditivo de voltar do Android — em particular telas com
+navegação customizada ou modais que possam entrar em conflito visual com o preview ao vivo do
+Android. Se algo quebrar, a correção é ajustar a transição afetada, não voltar a desligar a
+gesture globalmente.

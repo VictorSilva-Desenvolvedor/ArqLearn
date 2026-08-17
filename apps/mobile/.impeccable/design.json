@@ -16,6 +16,7 @@
       "on-surface": { "role": "neutral", "displayName": "On Surface Text", "canonical": "#121c2a" },
       "muted-text": { "role": "neutral", "displayName": "Muted Text", "canonical": "#6b7280" },
       "outline-variant": { "role": "neutral", "displayName": "Default Border", "canonical": "#c2c7d0" },
+      "outline": { "role": "neutral", "displayName": "Muted Text / Neutral Badge", "canonical": "#626b76" },
       "error": { "role": "error", "displayName": "Error Red", "canonical": "#ba1a1a" }
     },
     "typographyMeta": {

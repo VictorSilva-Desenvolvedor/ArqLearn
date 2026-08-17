@@ -1,5 +1,6 @@
 import type { ReactNode } from "react";
 import { Modal as RNModal, Pressable, StyleSheet, View } from "react-native";
+import { useReduceMotion } from "@/hooks/useReduceMotion";
 import { colors, radius } from "@/theme/tokens";
 
 type ModalRadius = "xl" | "full";
@@ -22,11 +23,12 @@ const radiusValues: Record<ModalRadius, number> = {
 // Usa o Modal nativo do react-native (não Radix — exclusivo do web); "fade" já dá a mesma
 // sensação de entrada suave que a animação CSS do web sem precisar de reanimated.
 export function Modal({ open, onOpenChange, children, dismissible = true, radius: radiusVariant = "xl" }: ModalProps) {
+  const reduceMotion = useReduceMotion();
   return (
     <RNModal
       visible={open}
       transparent
-      animationType="fade"
+      animationType={reduceMotion ? "none" : "fade"}
       onRequestClose={() => dismissible && onOpenChange(false)}
     >
       <Pressable
@@ -44,7 +46,7 @@ export function Modal({ open, onOpenChange, children, dismissible = true, radius
 const styles = StyleSheet.create({
   overlay: {
     flex: 1,
-    backgroundColor: "rgba(18, 28, 42, 0.4)",
+    backgroundColor: colors.scrim,
     alignItems: "center",
     justifyContent: "center",
     padding: 24,

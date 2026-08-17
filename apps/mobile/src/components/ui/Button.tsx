@@ -41,6 +41,7 @@ export function Button({
     // accessibilityState mantém o "desabilitado" pra leitor de tela sem tocar no touch handling.
     <Pressable
       onPress={() => !disabled && onPress?.()}
+      accessibilityRole="button"
       accessibilityState={{ disabled }}
       style={fullWidth ? styles.fullWidth : undefined}
     >

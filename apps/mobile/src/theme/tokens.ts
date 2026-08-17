@@ -17,7 +17,11 @@ export const colors = {
   onSurfaceVariant: "#42474f",
   inverseSurface: "#27313f",
   inverseOnSurface: "#eaf1ff",
-  outline: "#727780",
+  // Escurecido em 2026-08-17 (/impeccable audit): #727780 media 4.09:1 como texto (ex.: Badge
+  // "neutral"), abaixo do mínimo AA de 4.5:1 — novo valor ~4.9-5.1:1, mesmo tom, mais escuro.
+  // Aplicado nas duas plataformas (apps/web/globals.css tem a mesma mudança). outlineVariant
+  // (borda) NÃO foi tocado aqui — só o web teve esse achado auditado até agora.
+  outline: "#626b76",
   outlineVariant: "#c2c7d0",
   surfaceTint: "#34618f",
   surfaceVariant: "#d9e3f6",
@@ -66,6 +70,10 @@ export const colors = {
   background: "#f8f9ff",
   onBackground: "#121c2a",
   mutedText: "#6b7280",
+
+  // Overlay de Modal — onSurface (#121c2a = rgb(18,28,42)) a 40% de opacidade. Token em vez de
+  // literal hand-typed, pra não driftar do onSurface se ele mudar (achado do /impeccable audit).
+  scrim: "rgba(18, 28, 42, 0.4)",
 } as const;
 
 // Famílias carregadas via useFonts em app/_layout.tsx (@expo-google-fonts/*).

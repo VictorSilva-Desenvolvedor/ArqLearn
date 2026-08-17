@@ -34,7 +34,12 @@ export function ChestProgressCard({
       : `${Math.min(questionsCurrent, questionsRequired)}/${questionsRequired} questões`;
 
   return (
-    <Pressable style={styles.flex} onPress={onPress}>
+    <Pressable
+      style={styles.flex}
+      onPress={onPress}
+      accessibilityRole="button"
+      accessibilityLabel={`${title}, ${statusLabel}`}
+    >
       <Card
         radius="xl"
         style={[styles.card, { borderColor: available ? colors.secondary : colors.primary }]}

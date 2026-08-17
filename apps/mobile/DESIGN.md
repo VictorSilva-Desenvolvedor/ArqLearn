@@ -16,7 +16,7 @@ colors:
   on-surface-variant: "#42474f"
   inverse-surface: "#27313f"
   inverse-on-surface: "#eaf1ff"
-  outline: "#727780"
+  outline: "#626b76"
   outline-variant: "#c2c7d0"
   surface-tint: "#34618f"
   primary: "#0e4471"
@@ -157,7 +157,13 @@ progress" state — it reads as trust and focus, not decoration.
 - **Surface Gray** (`#f3f4f6`) / **Blueprint Grid** (`#e5e7eb`): card backgrounds and hairline
   borders — the "drafting paper" texture, always subtle, never competing with content.
 - **On Surface** (`#121c2a`): primary text. **Muted Text** (`#6b7280`): secondary/meta text.
-- **Outline Variant** (`#c2c7d0`): default 1px border on unselected cards and inputs.
+- **Outline** (`#626b76`, darkened from `#727780` on 2026-08-17 — `/impeccable audit` measured the
+  original failing WCAG AA's 4.5:1 text-contrast minimum as the `Badge` "neutral" tone's foreground,
+  e.g. the "Em construção" label; `apps/web`'s identical token got the same fix): the one place this
+  token is used as *text*, not border.
+- **Outline Variant** (`#c2c7d0`, unchanged): default 1px border on unselected cards and inputs —
+  not yet audited for contrast on mobile (`apps/web`'s equivalent border token *was* darkened after
+  failing 3:1 non-text contrast; don't assume mobile passes just because it wasn't flagged yet).
 
 ### Named Rules
 **The One Job Per Color Rule.** Blue is structural/navigational, orange is exclusively gamification

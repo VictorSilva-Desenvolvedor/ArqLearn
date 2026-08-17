@@ -2,7 +2,7 @@ import { StyleSheet, Text, View } from "react-native";
 import { Badge, type BadgeTone } from "@/components/ui/Badge";
 import { Card } from "@/components/ui/Card";
 import type { IconName } from "@/components/ui/Icon";
-import { colors, type } from "@/theme/tokens";
+import { colors, spacing, type } from "@/theme/tokens";
 import { CurrentLessonNode } from "./CurrentLessonNode";
 import { LessonNode, type LessonNodeVariant } from "./LessonNode";
 import { PathConnector } from "./PathConnector";
@@ -66,7 +66,12 @@ export function UnitSection({ title, subtitle, status, nodes }: UnitSectionProps
         {nodes.map((node, index) => (
           <View
             key={node.lessonId}
-            style={[styles.nodeSlot, { transform: [{ translateX: index % 2 === 0 ? -32 : 32 }] }]}
+            // spacing.xl (32px) via token em vez de número mágico — mesmo padrão corrigido em
+            // apps/web/UnitSection.tsx.
+            style={[
+              styles.nodeSlot,
+              { transform: [{ translateX: index % 2 === 0 ? -spacing.xl : spacing.xl }] },
+            ]}
           >
             {node.variant === "current" ? (
               <CurrentLessonNode icon={node.icon} href={node.href} ctaLabel={node.ctaLabel} />
