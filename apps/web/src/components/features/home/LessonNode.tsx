@@ -19,6 +19,7 @@ export function LessonNode({ variant, icon, href }: LessonNodeProps) {
     return (
       <Link
         href={href ?? "#"}
+        aria-label="Checkpoint — toque para abrir"
         className="w-20 h-20 rounded-xl bg-primary text-on-primary border-2 border-primary flex items-center justify-center hover:scale-105 transition-transform shadow-gamified rotate-45"
       >
         <Icon name={icon} filled className="text-4xl -rotate-45" />
@@ -30,6 +31,7 @@ export function LessonNode({ variant, icon, href }: LessonNodeProps) {
     return (
       <Link
         href={href ?? "#"}
+        aria-label="Lição concluída — toque para revisar"
         className="w-16 h-16 rounded-full bg-primary text-on-primary border-2 border-primary flex items-center justify-center hover:scale-105 transition-transform shadow-gamified"
       >
         {/* "completed" sempre mostra check — não depende de nenhum dado mockado atribuir esse

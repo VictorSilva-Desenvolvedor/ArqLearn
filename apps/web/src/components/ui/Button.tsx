@@ -12,8 +12,9 @@ interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
 }
 
 const variantClasses: Record<ButtonVariant, string> = {
-  primary:
-    "bg-primary text-on-primary hover:bg-primary-container border-2 border-primary shadow-sm",
+  // Sem shadow-sm: o sistema é flat-by-default, borda 2px já define a superfície (ver
+  // DESIGN.md "The Flat-By-Default Rule" — shadow genérico do Tailwind não é vocabulário daqui).
+  primary: "bg-primary text-on-primary hover:bg-primary-container border-2 border-primary",
   gamification:
     "bg-secondary-container text-on-secondary-container border-b-4 border-secondary active:translate-y-1 active:border-b-0",
   ghost: "bg-transparent text-primary border-2 border-primary hover:bg-surface-container",

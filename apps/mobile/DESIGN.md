@@ -224,9 +224,14 @@ physically pressable — never a generic shadow reached for out of habit.
   functional elements (inputs, chips) per the shared Blueprint Narrative system.
 - **Level 2 — standard (`radius.md`, 12px):** answer cards, content modules.
 - **Level 3 — hero (`radius.lg`–`xl`, 16–24px):** primary/gamification/ghost buttons all round to
-  24px (pill-leaning, not the 12px the shared web spec suggests — mobile's implemented radius is the
-  authority for this platform; if the two need to converge, that's a `/impeccable audit` or
-  `/impeccable document apps/web` conversation, not a silent copy from either side).
+  24px — **confirmed via `/impeccable document apps/web`: this actually agrees with `apps/web`**
+  (`rounded-xl`, same 24px token), so buttons are not a real cross-platform gap. Corrected
+  2026-08-17 — an earlier version of this file guessed the shared narrative doc's "12px" prose was
+  the live web value without checking web's code; it wasn't.
+- **Real platform gap, answer cards specifically:** mobile's `AnswerOption` uses `radius.md` (12px);
+  web's equivalent uses `rounded-lg` (16px). This one is real — see `apps/web/DESIGN.md`'s Shapes
+  section for the same note from the other side. Not resolved here; flag for a deliberate decision
+  before either side copies the other.
 - **Circular lesson nodes:** completed/available/construction nodes are perfect circles (`radius:
   32` on a 64×64 box); the **checkpoint node** is a square rotated 45° (a diamond) with its icon
   counter-rotated to stay upright — the one deliberate break from the circle language, marking

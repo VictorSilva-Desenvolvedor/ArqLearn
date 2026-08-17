@@ -18,7 +18,8 @@ export function DropdownMenu({ trigger, children }: DropdownMenuProps) {
           align="start"
           sideOffset={4}
           className={cn(
-            "z-50 min-w-[12rem] max-h-[70vh] overflow-y-auto bg-surface-bright border-2 border-outline-variant rounded-lg p-1 shadow-lg",
+            // Sem shadow-lg: a borda 2px já separa do conteúdo por trás; sistema é flat-by-default.
+            "z-50 min-w-[12rem] max-h-[70vh] overflow-y-auto bg-surface-bright border-2 border-outline-variant rounded-lg p-1",
             "data-[state=open]:animate-[dropdown-in_150ms_ease-out]",
             "data-[state=closed]:animate-[dropdown-out_100ms_ease-in]",
           )}

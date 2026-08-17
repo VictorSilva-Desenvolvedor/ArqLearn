@@ -1,13 +1,18 @@
 import { Card } from "@/components/ui/Card";
 import { ProgressBar } from "@/components/ui/ProgressBar";
 import { Button } from "@/components/ui/Button";
+import { useToast } from "@/hooks/useToast";
 
 interface DailyGoalCardProps {
   xpToday: number;
   goal: number;
 }
 
+// "Revisar Erros" não tem tela/endpoint próprio ainda (espelha apps/mobile/.../DailyGoalCard.tsx) —
+// ghost + toast informativo em vez de um primary sólido que não fazia nada nem dava feedback.
 export function DailyGoalCard({ xpToday, goal }: DailyGoalCardProps) {
+  const { showToast } = useToast();
+
   return (
     <Card
       radius="xl"
@@ -23,7 +28,13 @@ export function DailyGoalCard({ xpToday, goal }: DailyGoalCardProps) {
         </div>
       </div>
       <div className="w-full md:w-auto">
-        <Button variant="primary" size="md" fullWidth className="md:w-auto">
+        <Button
+          variant="ghost"
+          size="md"
+          fullWidth
+          className="md:w-auto"
+          onClick={() => showToast("Revisão de erros ainda não está disponível — em breve!")}
+        >
           Revisar Erros
         </Button>
       </div>
