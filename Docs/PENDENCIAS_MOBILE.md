@@ -899,3 +899,18 @@ exclusivo do modo de navegação por gestos). Falta testar num aparelho em modo 
 temporariamente o mesmo aparelho pra esse modo, pra confirmar que nenhuma transição de tela quebra
 sob o preview ao vivo. Se algo quebrar, a correção é ajustar a transição afetada, não voltar a
 desligar a gesture globalmente.
+
+### 21. Home sem pull-to-refresh — achado durante teste manual em device (17/08/2026)
+
+Testando ao vivo o comportamento de `useReduceMotion`/`LoadingBlueprint` com "Remover animações"
+ligado nas configurações de acessibilidade do Android, percebemos que a Home (`(tabs)/index.tsx`)
+não tem `RefreshControl` nenhum no `ScrollView` — não existe gesto de puxar-pra-atualizar,
+confirmado no código (`grep RefreshControl` não acha nada no arquivo). Forçar reload hoje só dá
+puxando fechar e reabrir o app, ou trocando o tema no seletor (que já retrigger a busca de
+tracks/lessons via `useEffect`).
+
+**Pendências**:
+1. Adicionar `RefreshControl` na Home (padrão esperado em apps desse tipo).
+2. Depois de existir, re-verificar ao vivo se `LoadingBlueprint` de fato respeita "Remover
+   animações" nesse fluxo — o teste desta sessão não fechou com confirmação clara (usuário não
+   conseguiu isolar se a preferência do sistema estava realmente sendo lida a tempo do reload).
