@@ -47,8 +47,11 @@ export function DropdownMenuItem({
       onSelect={disabled ? (e) => e.preventDefault() : onSelect}
       disabled={disabled}
       className={cn(
+        // Radix move o foco real de DOM pro item destacado por teclado (roving focus) — por
+        // isso outline-none aqui não é "sem indicador de foco", é substituir o outline padrão
+        // do navegador pelo indicador próprio via data-highlighted (que cobre teclado E mouse).
         "px-sm py-2 rounded-md font-body-md text-body-md text-on-surface cursor-pointer outline-none",
-        "data-[highlighted]:bg-surface-container",
+        "data-[highlighted]:bg-surface-container data-[highlighted]:outline data-[highlighted]:outline-2 data-[highlighted]:-outline-offset-2 data-[highlighted]:outline-primary",
         active && "text-primary font-bold",
         "data-[disabled]:text-error data-[disabled]:cursor-not-allowed data-[disabled]:opacity-80 data-[disabled]:data-[highlighted]:bg-transparent",
       )}

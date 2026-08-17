@@ -40,6 +40,7 @@ export function Button({
     <button
       className={cn(
         "inline-flex items-center justify-center gap-xs rounded-xl font-bold transition-colors disabled:opacity-50 disabled:cursor-not-allowed",
+        "focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary",
         variantClasses[variant],
         sizeClasses[size],
         fullWidth && "w-full",

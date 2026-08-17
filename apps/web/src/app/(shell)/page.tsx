@@ -112,6 +112,11 @@ export default async function HomePage() {
 
   return (
     <div className="max-w-container-max mx-auto px-lg py-section">
+      {/* sr-only: cada rota irmã em (shell) tem seu próprio h1 visível (ajuda, notificações, vip,
+          loja, perfil/configurações) — sem este, um usuário de leitor de tela navegando por
+          cabeçalhos via a marca "ArqLearn" (repetida em toda rota) e não tem como confirmar que
+          está na Home. */}
+      <h1 className="sr-only">Início</h1>
       <DailyGoalCard xpToday={gamification.xp_today} goal={DAILY_GOAL_XP} />
       <LevelProgressCard level={gamification.level} xpTotal={gamification.xp_total} />
       <div className="grid grid-cols-2 gap-md mb-section">

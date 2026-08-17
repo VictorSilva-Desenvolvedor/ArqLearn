@@ -16,8 +16,8 @@ colors:
   on-surface-variant: "#42474f"
   inverse-surface: "#27313f"
   inverse-on-surface: "#eaf1ff"
-  outline: "#727780"
-  outline-variant: "#c2c7d0"
+  outline: "#626b76"
+  outline-variant: "#7f8894"
   surface-tint: "#34618f"
   primary: "#0e4471"
   on-primary: "#ffffff"
@@ -129,7 +129,14 @@ deliberate departure from the spacious student-facing world, not an oversight if
 
 Identical palette and role split to `apps/mobile/DESIGN.md` — see that file for the full per-color
 breakdown; not duplicated here since the two are one system by construction (`@theme` and
-`theme/tokens.ts` are manually kept in sync from the same source).
+`theme/tokens.ts` are manually kept in sync from the same source). **One deliberate divergence as
+of 2026-08-17**: `--color-outline-variant` is darker on web (`#7f8894`) than mobile (`#c2c7d0`) — a
+web-only `/impeccable audit` finding measured the border failing WCAG 1.4.11 (3:1 non-text contrast)
+against `surface-bright`/`surface-gray`; mobile's border wasn't audited yet, so its value wasn't
+touched. `--color-outline` (badge/muted text) *was* fixed on both platforms identically (`#626b76`)
+since that specific failure (4.5:1 text contrast) was confirmed as the same token, same value, on
+both. Don't silently reconcile the outline-variant gap by copying one value over the other — audit
+mobile's border contrast first.
 
 ### Named Rules
 **The One Job Per Color Rule.** Blue is structural/navigational, orange is exclusively gamification

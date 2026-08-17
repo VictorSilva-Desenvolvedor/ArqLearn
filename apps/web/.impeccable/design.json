@@ -13,7 +13,8 @@
       "surface-gray": { "role": "neutral", "displayName": "Surface Gray", "canonical": "#f3f4f6" },
       "blueprint-grid": { "role": "neutral", "displayName": "Blueprint Grid Line (body bg)", "canonical": "#b4bcc7" },
       "on-surface": { "role": "neutral", "displayName": "On Surface Text", "canonical": "#121c2a" },
-      "outline-variant": { "role": "neutral", "displayName": "Default Border", "canonical": "#c2c7d0" },
+      "outline-variant": { "role": "neutral", "displayName": "Default Border", "canonical": "#7f8894" },
+      "outline": { "role": "neutral", "displayName": "Muted Text / Neutral Badge", "canonical": "#626b76" },
       "error": { "role": "error", "displayName": "Error Red", "canonical": "#ba1a1a" }
     },
     "typographyMeta": {

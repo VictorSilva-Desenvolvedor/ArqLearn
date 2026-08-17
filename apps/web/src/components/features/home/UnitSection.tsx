@@ -67,7 +67,11 @@ export function UnitSection({ title, subtitle, status, nodes }: UnitSectionProps
           <div
             key={node.lessonId}
             className="relative z-10"
-            style={{ transform: `translateX(${index % 2 === 0 ? -32 : 32}px)` }}
+            // 32px == --spacing-xl — via var() em vez de repetir o número mágico, pra continuar
+            // preso à escala se ela mudar (mesmo padrão a corrigir em apps/mobile/UnitSection.tsx).
+            style={{
+              transform: `translateX(${index % 2 === 0 ? "calc(-1 * var(--spacing-xl))" : "var(--spacing-xl)"})`,
+            }}
           >
             {node.variant === "current" ? (
               <CurrentLessonNode icon={node.icon} href={node.href} ctaLabel={node.ctaLabel} />

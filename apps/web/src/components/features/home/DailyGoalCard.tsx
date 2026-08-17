@@ -21,8 +21,12 @@ export function DailyGoalCard({ xpToday, goal }: DailyGoalCardProps) {
       <div className="flex-1 w-full">
         <h2 className="font-display text-question-sm text-on-surface mb-xs">Meta Diária</h2>
         <div className="flex items-center gap-sm w-full">
-          <ProgressBar value={xpToday} max={goal} variant="tube" tone="secondary" className="flex-1" />
-          <span className="font-label text-body-sm text-on-surface-variant whitespace-nowrap">
+          {/* min-w-0: flex-1 sozinho não basta — o min-width:auto padrão do item flex trava a
+              barra na largura do próprio conteúdo em vez de deixar encolher, e ela "empurra" o
+              texto de XP (whitespace-nowrap, não pode quebrar) pra fora da viewport em telas
+              estreitas ou zoom alto (WCAG 1.4.10 Reflow). */}
+          <ProgressBar value={xpToday} max={goal} variant="tube" tone="secondary" className="flex-1 min-w-0" />
+          <span className="font-label text-body-sm text-on-surface-variant whitespace-nowrap shrink-0">
             {xpToday} / {goal} XP
           </span>
         </div>

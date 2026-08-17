@@ -21,8 +21,13 @@
   --color-on-surface-variant: #42474f;
   --color-inverse-surface: #27313f;
   --color-inverse-on-surface: #eaf1ff;
-  --color-outline: #727780;
-  --color-outline-variant: #c2c7d0;
+  /* Escurecidos em 2026-08-17 (/impeccable audit): #727780/#c2c7d0 originais mediam 4.09:1 como
+     texto (abaixo do mínimo AA de 4.5:1, ex.: texto do Badge "neutral") e ~1.6:1 como borda
+     (abaixo do mínimo AA não-textual de 3:1, ex.: Card/Modal/DropdownMenu) contra as superfícies
+     off-white do app. Valores novos preservam o mesmo tom cinza-azulado, só mais escuros:
+     --color-outline agora ~4.9-5.1:1, --color-outline-variant agora ~3.3-3.4:1. */
+  --color-outline: #626b76;
+  --color-outline-variant: #7f8894;
   --color-surface-tint: #34618f;
   --color-surface-variant: #d9e3f6;
   --color-surface-gray: #f3f4f6;
