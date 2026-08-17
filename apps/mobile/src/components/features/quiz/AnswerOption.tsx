@@ -1,5 +1,6 @@
-import { ActivityIndicator, Pressable, StyleSheet, Text } from "react-native";
+import { Pressable, StyleSheet, Text } from "react-native";
 import { Icon } from "@/components/ui/Icon";
+import { LoadingBlueprint } from "@/components/ui/LoadingBlueprint";
 import { colors, radius, type } from "@/theme/tokens";
 
 interface AnswerOptionProps {
@@ -29,16 +30,19 @@ export function AnswerOption({
   // distingue verde/vermelho, e é o sinal equivalente ao aria-checked do web pra leitor de tela.
   const revealIcon = revealed && selected && !verifying ? (isCorrect ? "success" : "cancel") : null;
 
+  // Sem `disabled` no Pressable de propósito — as opções ficam numa lista dentro de uma
+  // ScrollView (sessao.tsx); um Pressable desabilitado ali é a mesma armadilha do Android já
+  // corrigida em ThemeSelector.tsx/Button.tsx (trava o gesto de arrastar assim que todas as
+  // opções desabilitam junto, ex.: resposta revelada ou em verificação).
   return (
     <Pressable
-      onPress={onPress}
-      disabled={disabled}
+      onPress={() => !disabled && onPress()}
       accessibilityRole="radio"
       accessibilityState={{ selected, disabled }}
       style={[styles.base, toneStyle]}
     >
       <Text style={[type.bodyLg, styles.label, toneStyle.text && { color: toneStyle.text }]}>{label}</Text>
-      {selected && verifying && <ActivityIndicator size="small" color={colors.primary} />}
+      {selected && verifying && <LoadingBlueprint size={20} />}
       {revealIcon && (
         <Icon name={revealIcon} size={20} color={isCorrect ? colors.tertiary : colors.error} />
       )}

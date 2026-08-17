@@ -2,7 +2,7 @@ import type { ReactNode } from "react";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 import { colors, type } from "@/theme/tokens";
 
-type ButtonVariant = "primary" | "gamification" | "ghost";
+type ButtonVariant = "primary" | "gamification" | "ghost" | "danger";
 type ButtonSize = "sm" | "md" | "lg";
 
 interface ButtonProps {
@@ -34,9 +34,14 @@ export function Button({
 }: ButtonProps) {
   const sizeStyle = sizeStyles[size];
   return (
+    // Sem `disabled` no Pressable de propósito: um Pressable desabilitado dentro de uma
+    // ScrollView é uma armadilha conhecida do Android — o toque de arrastar pra rolar a lista
+    // fica "preso" no botão desabilitado em vez de ser repassado pro ScrollView (reproduzido ao
+    // vivo num device real). O bloqueio funcional continua — só vira no-op dentro do onPress —
+    // accessibilityState mantém o "desabilitado" pra leitor de tela sem tocar no touch handling.
     <Pressable
-      onPress={onPress}
-      disabled={disabled}
+      onPress={() => !disabled && onPress?.()}
+      accessibilityState={{ disabled }}
       style={fullWidth ? styles.fullWidth : undefined}
     >
       {({ pressed }) => (
@@ -70,6 +75,8 @@ function variantStyle(variant: ButtonVariant) {
       };
     case "ghost":
       return { backgroundColor: "transparent", borderWidth: 2, borderColor: colors.primary };
+    case "danger":
+      return { backgroundColor: colors.error, borderWidth: 2, borderColor: colors.error };
   }
 }
 
@@ -81,6 +88,8 @@ function variantTextColor(variant: ButtonVariant) {
       return colors.onSecondaryContainer;
     case "ghost":
       return colors.primary;
+    case "danger":
+      return colors.onError;
   }
 }
 

@@ -3,7 +3,7 @@
 
 Especificação de referência dos endpoints REST expostos pelo API Gateway.
 
-Versão 1.16 | Agosto de 2026
+Versão 1.19 | Agosto de 2026
 Documento complementar ao SAD e ao TDD do ArqLearn v1.0
 
 > **Sobre esta versão:** versão em Markdown, mantida como fonte da verdade a partir de agora (ver
@@ -31,6 +31,9 @@ Documento complementar ao SAD e ao TDD do ArqLearn v1.0
 | 1.14 | 09/08/2026 | Equipe de Engenharia | Adiciona §14 Ajuda e Bugs (a pedido do usuário) — 3 endpoints novos (`POST /v1/bug-reports`, `GET /v1/bug-reports`, `POST /v1/bug-reports/{id}/resolve`), nova coleção `bug_reports` (Database Design), print embutido como base64 (contorna o bloqueio de R2, `Docs/PENDENCIAS_IA.md` #1). Primeiro endpoint com checagem de papel (admin) no backend — não existia nenhuma antes |
 | 1.15 | 09/08/2026 | Equipe de Engenharia | §14: adiciona `type` (`bug \| suggestion`) e `device_model`/`device_type` a `bug_reports` (a pedido do usuário) — recompensa por resolução passa a depender do tipo: bug corrigido sobe de 5 pra **10 gemas**, sugestão implementada vale **50 gemas** (notificação nova `suggestion_implemented`, §9) |
 | 1.16 | 09/08/2026 | Equipe de Engenharia | §8: `achievements` em `GET /v1/gamification/me` passa a ser preenchido de verdade — desde a v1.0 a tabela existia mas nada nunca gravava nela. Catálogo de ~44 conquistas (a pedido do usuário) cobrindo lições, Modo Infinito, streak, Loja, Materiais e relatos de bug, a maioria em 5 níveis progressivos; cada desbloqueio credita XP/gemas uma única vez. Nenhum contrato mudou — resposta já era `{type, unlocked_at}[]` |
+| 1.17 | 15/08/2026 | Equipe de Engenharia | §3.2: adiciona `streak_freezes_available`/`streak_at_risk` ao `GamificationProfile` — streak agora expira sozinha após 24h sem prática (expiração preguiçosa, TDD §5.2/§5.3, mesmo padrão da regeneração de vidas §5.4, sem job/cron), consumindo automaticamente um Bloqueio de Ofensiva por dia faltante quando disponível. §8: `POST /v1/gamification/streak/freeze` passa a também avançar `streak_last_active_date` (uso manual, diferente do consumo automático — ver nota) |
+| 1.18 | 15/08/2026 | Equipe de Engenharia | §8.1 (novo): Baú Diário — a pedido do usuário, 1 abertura por dia local ao responder 10 perguntas no dia (lição + Modo Infinito somados). `GET /v1/gamification/daily-chest` (status) e `POST .../daily-chest/open` (sorteia 75% gemas 1-5 / 25% item consumível grátis — Bloqueio de Ofensiva ou Recarga de Vidas) são endpoints novos. §6/§6.1: `POST .../answers` (lição e Modo Infinito) ganham `daily_chest_available`/`daily_chest_questions` na resposta |
+| 1.19 | 15/08/2026 | Equipe de Engenharia | §8.2 (novo): Baú Semanal — a pedido do usuário, 1 abertura por ciclo rolante de 7 dias ao responder 50 perguntas dentro do ciclo (mesma contagem lição + Modo Infinito do Baú Diário). Ciclo só reseta quando 7 dias se passam desde o início do ciclo vigente — abrir antes disso não adianta o reset (decisão explícita do usuário). `GET /v1/gamification/weekly-chest` (status) e `POST .../weekly-chest/open` (sorteia 60% gemas 5-15 / 40% item — recompensa maior que o Baú Diário, reflete o esforço extra) são endpoints novos |
 
 ---
 
@@ -124,12 +127,16 @@ reprocessar.
 | `xp_total` | integer | XP acumulado histórico. |
 | `xp_today` | integer | XP ganho no dia local do usuário, sujeito ao limite diário (ver TDD §3.2). Reseta à meia-noite local. *(v1.2)* |
 | `level` | integer | Nível calculado a partir do `xp_total`. |
-| `streak_current` | integer | Sequência atual de dias consecutivos. |
+| `streak_current` | integer | Sequência atual de dias consecutivos. Expira sozinha (TDD §5.2/§5.3) — ver nota em `GET /v1/gamification/me` abaixo. |
 | `streak_best` | integer | Recorde pessoal de streak. |
+| `streak_freezes_available` | integer | Quantos Bloqueios de Ofensiva o usuário tem em estoque — mesmo valor devolvido por `POST .../streak/freeze`. *(v1.17)* |
+| `streak_at_risk` | boolean | `true` quando a streak é positiva e o usuário ainda não praticou hoje (TDD §5.2) — sinal pro cliente oferecer usar um Bloqueio de Ofensiva proativamente ao abrir o app, em vez de só descobrir a perda no dia seguinte. *(v1.17)* |
 | `hearts_current` | integer | Vidas disponíveis (0–5). |
 | `hearts_next_at` | datetime \| null | Instante em que a próxima vida será regenerada (TDD §5.4) — `null` quando `hearts_current` já está no teto (5). Cliente calcula a contagem regressiva localmente a partir deste timestamp fixo. *(v1.12)* |
 | `gems` | integer | Moeda virtual acumulada. |
 | `league_tier` | integer | Tier da liga semanal atual. |
+| `is_vip` | boolean | VIP "Mestre Arquiteto" ativo agora — já reflete a expiração preguiçosa (`EhVIPAtivo`, ver §8.3); nunca `true` com `vip_expires_at` no passado. *(v1.20)* |
+| `vip_expires_at` | datetime \| null | Instante em que o VIP expira. `null` quando não há VIP ativo, **ou** quando é vitalício (concedido sem prazo) — distinguir os dois casos exige olhar `is_vip` junto. *(v1.20)* |
 
 ### 3.3 Track / Lesson / Question
 
@@ -202,6 +209,25 @@ anonimização/expurgo, retornando 202.
 { "deletion_scheduled_at": "datetime" }
 ```
 
+**`GET /v1/users/me/export`** — Portabilidade de dados (LGPD, direito de acesso). Reúne num único
+JSON tudo que este serviço guarda sobre a conta autenticada: perfil, gamificação, conquistas e
+resumo de progresso. Não inclui credenciais (e-mail/senha são do Supabase Auth, nunca passam por
+este serviço) nem dados de outros usuários. `Content-Disposition: attachment` já vem setado —
+pensado pra download direto.
+
+```json
+// Response 200
+{
+  "exported_at": "datetime",
+  "user": { "id", "name", "email", "role", "timezone", "created_at" },
+  "gamification": {
+    "xp_total", "level", "streak_current", "streak_best", "hearts_current", "gems", "current_tier"
+  },
+  "achievements": [ { "type", "unlocked_at" } ],
+  "progress": { "tracks_in_progress", "tracks_completed", "lessons_completed_last_7d", "accuracy_rate" }
+}
+```
+
 ## 6. Learning Service
 
 **`GET /v1/tracks`** — Lista trilhas disponíveis. Suporta filtro por `topic` e `origin`.
@@ -212,13 +238,21 @@ Response 200: { "data": [ {"...Track"} ], "next_cursor": "string|null" }
 ```
 
 **`GET /v1/tracks/{track_id}/lessons`** — Lista as lições de uma trilha, com o progresso do usuário
-autenticado embutido em cada item.
+autenticado e `has_questions` (se a lição tem pelo menos uma pergunta com `review_status:
+"approved"` — mesmo filtro de `POST .../session`) embutidos em cada item. `has_questions: false`
+é o sinal de "em construção" pro cliente — uma lição sem conteúdo aprovado ainda não deveria ficar
+bloqueada por sequência, e sim mostrar esse estado; `has_questions: true` deveria ficar acessível
+independente de `progress_status`.
 
 ```json
 // Response 200
 {
   "data": [
-    { "lesson": { "...Lesson" }, "progress_status": "not_started"|"in_progress"|"completed" }
+    {
+      "lesson": { "...Lesson" },
+      "progress_status": "not_started"|"in_progress"|"completed",
+      "has_questions": boolean
+    }
   ]
 }
 ```
@@ -260,11 +294,14 @@ ativa.
   "xp_daily_cap_reached": boolean,
   "vidas_restantes": integer,
   "streak_atual": integer,
-  "explicacao": "string"
+  "explicacao": "string",
+  "daily_chest_available": boolean,
+  "daily_chest_questions": integer
 }
 ```
 `xp_ganho` já vem líquido do limite diário de XP (TDD §3.2) — quando `xp_daily_cap_reached` é `true`,
 `xp_ganho` pode ser `0` mesmo com `correct: true`. *(campo `xp_daily_cap_reached` adicionado na v1.2)*
+`daily_chest_available`/`daily_chest_questions` *(v1.18)* — ver §8.1 Baú Diário.
 
 > **v1.5 — `answer` é id, não texto.** O corpo aceita o `id` da opção escolhida (ex.: `"b"`), não o
 > texto da resposta. Decisão tomada ao integrar com o app: comparar texto literal é frágil (acento,
@@ -347,14 +384,17 @@ próxima questão do modo infinito.
   "questions_answered": integer,
   "correct_count": integer,
   "level": integer,
-  "next_question": { "...Question" }
+  "next_question": { "...Question" },
+  "daily_chest_available": boolean,
+  "daily_chest_questions": integer
 }
 ```
 `next_question` ausente quando o banco de perguntas do tópico se esgota — cliente deve tratar como fim
 de sessão nesse caso. Campo `xp_daily_cap_reached` adicionado na v1.2, mesmo comportamento de §6.
 `level` adicionado na v1.3 = `floor(questions_answered / 20) + 1`, calculado pro cliente exibir "Nível
 N" sem duplicar a conta — todo tópico ganha esse número, mas só `"maquetes"` de fato gera lição nova a
-cada nível (ver decisão acima).
+cada nível (ver decisão acima). `daily_chest_available`/`daily_chest_questions` *(v1.18)* — ver §8.1
+Baú Diário; Modo Infinito soma pro mesmo contador acumulado do dia que lição usa.
 
 **`POST /v1/infinite-mode/sessions/{session_id}/end`** — Encerra a sessão manualmente (botão "Desistir"
 na UX) e retorna o resumo final.
@@ -521,17 +561,63 @@ Erros: `409 QUESTION_ALREADY_REVIEWED`
 { "...GamificationProfile", "achievements": [ {"type", "unlocked_at"} ] }
 ```
 
-**`GET /v1/gamification/league`** — Retorna o ranking da liga semanal do usuário autenticado.
+> **Expiração preguiçosa de streak (TDD §5.2/§5.3, v1.17):** sem job/cron nesta fase bootstrap
+> (mesmo padrão já usado pra regeneração de vidas, TDD §5.4) — `streak_current` é recalculado sob
+> demanda a cada leitura (aqui e em `GET /v1/users/me`) e a cada resposta de exercício (`POST
+> /v1/lessons/{lesson_id}/answers`, antes de aplicar o incremento do dia), nunca por um worker em
+> segundo plano. Se a última prática (`streak_last_active_date`) foi hoje ou ontem, nada muda. Se
+> pulou 2+ dias: consome 1 `streak_freezes_available` por dia faltante enquanto houver estoque
+> (`streak_current` preservado, `streak_last_active_date` **não avança sozinho** — TDD §5.3
+> explícito nisso, é assim que um gap de N dias consome até N freezes em vez de só 1); esgotado o
+> estoque, `streak_current` zera. `streak_at_risk` é calculado ao vivo a partir do mesmo estado
+> (streak positiva + ainda sem prática hoje) — é o gatilho do cliente pra abrir o diálogo de
+> Bloqueio de Ofensiva sozinho ao carregar o app, sem esperar a pessoa procurar a tela Perfil.
+
+**`GET /v1/gamification/league`** — Hierarquia de 10 ligas (pior → melhor: Madeira, Pedra,
+Bronze, Prata, Ouro, Platina, Esmeralda, Safira, Rubi, Diamante), cada uma com 3 divisões internas
+(3 = entrada, 1 = mais avançada) — 30 posições lineares no total. Internamente é um único rank
+1..30 (`user_gamification.current_tier`/`leagues.tier`); `tierName`/`rankDivision`
+(`internal/gamification/gamification.go`) derivam liga+divisão a partir dele.
+
+Sem query string: retorna o ranking da liga/divisão semanal do usuário autenticado (matricula
+automaticamente se ainda não estiver). Com `?tier=madeira|pedra|bronze|prata|ouro|platina|
+esmeralda|safira|rubi|diamante` (e opcionalmente `&division=1|2|3`, default `1`): retorna o
+ranking daquela liga/divisão na semana corrente sem matricular o chamador — pra navegar outras
+ligas; se ninguém estiver lá ainda esta semana, devolve `ranking: []` (200, não é erro).
+`viewer_position`/`xp_to_promotion` só vêm preenchidos na consulta sem `?tier=` (a liga do próprio
+usuário) — projeção em cima do ranking em curso de quanto XP falta pra entrar na zona de promoção
+se a semana fechasse agora (não depende do fechamento semanal já ter rodado); omitidos quando o
+grupo ainda não tem gente suficiente pra uma promoção real (ver `CloseLeagueWeek` abaixo) ou o
+usuário já está na posição mais alta (Diamante 1).
 
 ```json
 // Response 200
 {
   "league_id": "uuid",
-  "tier": integer,
+  "tier": "madeira",
+  "division": 3,
   "week_reference": "date",
-  "ranking": [ { "user_id", "name", "xp_this_week", "position" } ]
+  "ranking": [ { "user_id", "name", "xp_this_week", "position" } ],
+  "promotion_slots": 3,
+  "demotion_slots": 3,
+  "viewer_position": integer | null,
+  "xp_to_promotion": integer | null
 }
 ```
+Erros: `400 INVALID_TIER` (valor de `?tier=` fora das 10 ligas) · `400 INVALID_DIVISION` (`?division=`
+fora de 1/2/3).
+
+> **Fechamento semanal (TDD §6):** `internal/gamification.CloseLeagueWeek` implementa o algoritmo
+> de promoção/rebaixamento (top `promotion_slots` sobe uma divisão — ou pra divisão 3 da próxima
+> liga, se já estiver na divisão 1 —, bottom `demotion_slots` desce uma divisão, grava o novo rank
+> em `user_gamification.current_tier`) — real, mas só roda via `cmd/close-league-week`,
+> operacional (sem scheduler automático nesta fase, ver `Docs/ArqLearn_Estrategia_Bootstrap.md`).
+> Divisões com menos de `promotion_slots + demotion_slots` membros (o mínimo pra "top 3"/"bottom
+> 3" não se sobreporem) não promovem nem rebaixam naquela semana — realidade da fase bootstrap,
+> 5-20 usuários, divisões naturalmente pequenas por design (30 delas, não 5 tiers largos).
+> Mesclagem de grupos pequenos entre si (TDD §6 passo 1) não está implementada — não há como
+> existir mais de um grupo por liga/divisão/semana com o código atual (todo mundo cai em
+> `group_number=1`).
 
 **`POST /v1/gamification/streak/freeze`** — Consome um congelador de streak disponível para perdoar o
 dia atual.
@@ -541,6 +627,14 @@ dia atual.
 { "streak_freezes_available": integer }
 ```
 Erros: `409 NO_STREAK_FREEZE_AVAILABLE`
+
+> **Diferença deliberada do consumo automático (v1.17):** este endpoint (uso manual, proativo —
+> tipicamente disparado pelo `streak_at_risk` da nota acima) **avança `streak_last_active_date`
+> para hoje**, diferente do consumo automático de `AplicarExpiracaoStreak` (TDD §5.3), que
+> deliberadamente não avança essa data. Não é um bug/inconsistência: `AtualizarStreak` (TDD §5.1)
+> já trava em no máximo 1 incremento por dia local, então marcar "hoje" como coberto aqui não deixa
+> a pessoa dobrar o incremento se também praticar de verdade no mesmo dia — só evita que a mesma
+> ausência seja contada de novo caso o usuário volte a abrir o app antes da virada do dia.
 
 **`POST /v1/gamification/shop/purchase`** — Compra um item da loja com gemas. Requer cabeçalho
 `Idempotency-Key`.
@@ -552,6 +646,198 @@ Erros: `409 NO_STREAK_FREEZE_AVAILABLE`
 { "gems_restantes": integer, "item": { "id", "tipo" } }
 ```
 Erros: `402 INSUFFICIENT_GEMS` · `404 ITEM_NOT_FOUND`
+
+### 8.1 Baú Diário *(v1.18)*
+
+A pedido do usuário: 1 baú por dia local, liberado ao responder 10 perguntas no dia (lição OU Modo
+Infinito, contagem acumulada, qualquer combinação — não precisa ser na mesma sessão). Sem job/cron
+— expiração/contagem preguiçosa, mesmo padrão de vidas (TDD §5.4) e streak (§5.2/§5.3):
+`internal/gamification.LoadDailyChestStatus` reresolve o contador do dia (`chest_questions_today`/
+`chest_questions_date`, mesmo reset preguiçoso de `xp_today`) a cada leitura. O contador em si é
+incrementado dentro de `POST /v1/lessons/{lesson_id}/answers` e
+`POST /v1/infinite-mode/sessions/{session_id}/answers` (ver §6/§6.1) — as duas respostas ganham
+`daily_chest_available`/`daily_chest_questions` pra o cliente saber na hora, sem round-trip extra,
+quando a resposta que acabou de mandar foi a 10ª do dia.
+
+**`GET /v1/gamification/daily-chest`** — Status do Baú Diário do usuário autenticado.
+
+```json
+// Response 200
+{
+  "questions_today": integer,
+  "questions_required": 10,
+  "available": boolean,
+  "claimed_today": boolean
+}
+```
+
+**`POST /v1/gamification/daily-chest/open`** — Abre o Baú Diário disponível e sorteia a
+recompensa (`internal/gamification.RolarRecompensaBau`): **75%** gemas (1 a 5, uniforme), **25%**
+um item consumível grátis do sistema (metade Bloqueio de Ofensiva, metade Recarga de Vidas — os
+dois itens consumíveis reais da Loja, `migrations/0004_shop_items_seed`; cosméticos ficam de fora
+do pool). Sem `Idempotency-Key`: a trava de "1 por dia" já é o `chest_claimed_date` em si, gravado
+atomicamente com a aplicação do prêmio.
+
+```json
+// Response 200 — reward_type: "gems"
+{ "reward_type": "gems", "gems_earned": integer, "gems": integer }
+// Response 200 — reward_type: "streak_freeze" | "hearts_refill"
+{ "reward_type": "streak_freeze", "gems": integer }
+```
+`gems` é sempre o saldo total após a abertura (igual ao padrão de `gems_restantes` da compra na
+Loja), não o quanto foi ganho — `gems_earned` só existe quando `reward_type` é `"gems"`. Erros:
+`409 CHEST_NOT_AVAILABLE` (ainda não bateu as 10 perguntas do dia, ou já foi aberto hoje —
+reconsultado no servidor, nunca confiado no que o cliente mandou).
+
+### 8.2 Baú Semanal *(v1.19)*
+
+A pedido do usuário: 1 baú por ciclo de 7 dias, liberado ao responder 50 perguntas dentro do ciclo
+vigente (lição OU Modo Infinito, mesma contagem acumulada do Baú Diário §8.1 — a mesma resposta
+soma pros dois contadores independentemente). Diferente do diário (reset por igualdade de data de
+calendário), o ciclo semanal é uma janela **rolante** de 7 dias: começa na primeira pergunta
+respondida depois que não havia ciclo ativo ou o ciclo anterior já tinha expirado
+(`chest_weekly_cycle_start`), e só reseta quando 7 dias já se passaram desde esse início — abrir o
+baú antes do fim do ciclo **não** adianta o reset (decisão explícita do usuário: o próximo ciclo só
+começa no dia 8, mesmo que o usuário já tenha aberto o baú do ciclo atual no dia 3, por exemplo).
+`internal/gamification.LoadWeeklyChestStatus` reresolve o ciclo a cada leitura
+(`internal/gamification.QuestoesSemanaAposReset`), mesmo espírito preguiçoso do §8.1, sem job/cron.
+O contador é incrementado dentro de `POST /v1/lessons/{lesson_id}/answers` e
+`POST /v1/infinite-mode/sessions/{session_id}/answers` (mesmos dois endpoints do §8.1), mas — ao
+contrário do Baú Diário — essas respostas **não** ganham campo de status do Baú Semanal (o cliente
+consulta `GET /v1/gamification/weekly-chest` à parte, ex.: ao carregar a Home, em vez de a cada
+resposta — o card de progresso não precisa de feedback instantâneo por resposta como o CTA do Baú
+Diário precisa).
+
+**`GET /v1/gamification/weekly-chest`** — Status do Baú Semanal do usuário autenticado.
+
+```json
+// Response 200
+{
+  "questions_this_cycle": integer,
+  "questions_required": 50,
+  "available": boolean,
+  "claimed_this_cycle": boolean
+}
+```
+
+**`POST /v1/gamification/weekly-chest/open`** — Abre o Baú Semanal disponível e sorteia a
+recompensa (`internal/gamification.RolarRecompensaBauSemanal`) — **maior** que a do Baú Diário,
+reflete o esforço extra de 50 perguntas em até 7 dias: **60%** gemas (5 a 15, uniforme, contra 1 a
+5 do diário), **40%** um item consumível grátis do sistema (mesmos dois itens do §8.1, metade
+Bloqueio de Ofensiva, metade Recarga de Vidas). Trava de "1 por ciclo": grava
+`chest_weekly_claimed_cycle_start` = `chest_weekly_cycle_start` vigente no momento da abertura —
+comparar os dois valores (em vez de um boolean solto) já resolve sozinho o "desclaim" automático
+quando o ciclo vira, sem precisar zerar essa coluna em lugar nenhum.
+
+```json
+// Response 200 — reward_type: "gems"
+{ "reward_type": "gems", "gems_earned": integer, "gems": integer }
+// Response 200 — reward_type: "streak_freeze" | "hearts_refill"
+{ "reward_type": "streak_freeze", "gems": integer }
+```
+Mesmo formato de resposta do §8.1 (`gems` é sempre o saldo total, não o ganho). Erros:
+`409 CHEST_NOT_AVAILABLE` (ainda não bateu as 50 perguntas do ciclo, ou já foi aberto neste ciclo —
+reconsultado no servidor).
+
+### 8.3 VIP "Mestre Arquiteto" *(v1.20)*
+
+A pedido do usuário: tier de entitlement que multiplica XP, garante recompensa no Baú Semanal e dá
+resets extras nos dois baús (§8.1/§8.2), além de identidade visual própria no perfil (cliente only —
+coroa, nome em destaque, selo "Mestre Arquiteto", sem campo de API dedicado). Dois caminhos de
+ativação:
+
+- **Cupom** (`vip_coupons`, Postgres) — 10 dígitos numéricos, gerado por um administrador
+  (`POST /v1/vip/coupons`) e entregue manualmente ao usuário fora do sistema (não há painel admin
+  ainda — endpoint chamado direto via curl/Postman). Resgatável uma única vez
+  (`POST /v1/vip/coupons/redeem`).
+- **Assinatura recorrente** (`POST /v1/vip/subscribe`) — endpoint existe mas está **desabilitado**
+  (`internal/gamification.VIPSubscriptionsEnabled = false`, retorna `501
+  VIP_SUBSCRIPTION_UNAVAILABLE`) até um gateway de pagamento real (Stripe/RevenueCat/IAP) ser
+  integrado — nenhuma cobrança real acontece no projeto hoje.
+
+> **Expiração preguiçosa (mesmo padrão de vidas/streak/baú — TDD §5.4, §5.2/§5.3):**
+> `internal/gamification.EhVIPAtivo(is_vip, vip_expires_at, now)` decide se o VIP vale agora, sem
+> job/cron: `is_vip=false` nunca é VIP; `is_vip=true` com `vip_expires_at=null` é vitalício;
+> `vip_expires_at` no passado desliga o benefício sozinho na próxima leitura, sem UPDATE nenhum
+> zerando `is_vip`.
+
+> **+25% de XP** (`internal/gamification.CalcularXP`, parâmetro `vipAtivo`): aplicado ao XP
+> calculado da resposta **antes** do teto diário de 500 XP (`DailyXPCap`, TDD §3.2) — VIP não ganha
+> um teto maior, só alcança o teto de 500/dia mais rápido. Aplicado nos dois pontos que concedem XP:
+> `POST /v1/lessons/{lesson_id}/answers` (§6) e `POST
+> /v1/infinite-mode/sessions/{session_id}/answers` (§6.1).
+
+> **Baú Semanal garantido:** para VIP ativo, `POST /v1/gamification/weekly-chest/open` (§8.2)
+> **não sorteia** a recompensa — vem sempre `reward_type: "streak_freeze"` (Bloqueio de Ofensiva
+> garantido). O Baú Diário (§8.1) continua sorteado normalmente mesmo para VIP.
+
+**`GET /v1/vip/status`** — Status VIP do usuário autenticado, incluindo os resets de baú
+disponíveis no período vigente (reset preguiçoso, mesmo padrão do próprio contador de perguntas dos
+baús).
+
+```json
+// Response 200
+{
+  "is_vip": boolean,
+  "vip_expires_at": "datetime | null",
+  "daily_chest_resets_used": integer,
+  "daily_chest_resets_max": 1,
+  "weekly_chest_resets_used": integer,
+  "weekly_chest_resets_max": 2
+}
+```
+
+**`POST /v1/gamification/daily-chest/reset`** — Benefício VIP: reseta o Baú Diário já reivindicado
+hoje, liberando uma nova abertura na hora (não zera `chest_questions_today` — o contador de
+perguntas do dia já está acima do teto, só `chest_claimed_date` é limpo). Até **1x por dia local**.
+
+```json
+// Response 200
+{ "available": true, "resets_used": integer, "resets_max": 1, "questions_required": 10 }
+```
+Erros: `403 VIP_REQUIRED` · `409 CHEST_NOT_CLAIMED_YET` (baú de hoje ainda não foi aberto — nada
+para resetar) · `409 CHEST_RESET_LIMIT_REACHED` (já usou o reset do dia).
+
+**`POST /v1/gamification/weekly-chest/reset`** — Mesmo benefício aplicado ao Baú Semanal, até
+**2x por ciclo** de 7 dias vigente (§8.2).
+
+```json
+// Response 200
+{ "available": true, "resets_used": integer, "resets_max": 2, "questions_required": 50 }
+```
+Erros: `403 VIP_REQUIRED` · `409 CHEST_NOT_CLAIMED_YET` · `409 CHEST_RESET_LIMIT_REACHED`.
+
+**`POST /v1/vip/coupons`** — Gera um cupom VIP de 10 dígitos numéricos. Requer `role = admin`
+(checado direto contra `users.role` — sem middleware de papel dedicado ainda).
+
+```json
+// Request body
+{ "duration_days": integer }
+// Response 201
+{ "code": "string (10 dígitos)", "duration_days": integer }
+```
+Erros: `400 INVALID_BODY` (`duration_days` ausente ou ≤ 0) · `403 ADMIN_REQUIRED`.
+
+**`POST /v1/vip/coupons/redeem`** — Resgata um cupom e ativa/estende o VIP do usuário autenticado
+(`internal/gamification.EstenderVIP`: sem VIP ativo conta `duration_days` a partir de agora; com VIP
+ainda ativo, empilha a partir da expiração atual em vez de desperdiçar o que sobrava; VIP vitalício
+permanece vitalício).
+
+```json
+// Request body
+{ "code": "string" }
+// Response 200
+{ "is_vip": true, "vip_expires_at": "datetime | null" }
+```
+Erros: `400 INVALID_BODY` · `409 COUPON_INVALID` (não existe ou já foi resgatado — mesma mensagem
+pros dois casos, pra não confirmar a existência de um código a quem não tem o código de verdade).
+
+**`POST /v1/vip/subscribe`** — Desabilitado nesta fase (ver nota acima). Sempre responde:
+
+```json
+// Response 501
+{ "error_code": "VIP_SUBSCRIPTION_UNAVAILABLE", "message": "..." }
+```
 
 ## 9. Notifications Service
 
@@ -630,6 +916,12 @@ completos a detalhar no TDD quando a implementação desses três recursos come�
 | `BUG_REPORT_NOT_FOUND` | 404 | Relato de bug inexistente. *(v1.14)* |
 | `BUG_REPORT_ALREADY_RESOLVED` | 409 | Relato já estava `fixed` — resolver de novo não concede gemas outra vez. *(v1.14)* |
 | `PAYLOAD_TOO_LARGE` | 413 | Corpo da requisição excede o limite (ex.: print de bug grande demais). *(v1.14)* |
+| `VIP_REQUIRED` | 403 | Endpoint exclusivo de usuário VIP ativo (ex.: reset de baú). *(v1.20)* |
+| `CHEST_NOT_CLAIMED_YET` | 409 | Tentou resetar um baú (VIP) que ainda não foi aberto neste período. *(v1.20)* |
+| `CHEST_RESET_LIMIT_REACHED` | 409 | VIP já usou todos os resets de baú disponíveis no período vigente. *(v1.20)* |
+| `ADMIN_REQUIRED` | 403 | Endpoint restrito a `role=admin` (ex.: gerar cupom VIP). *(v1.20)* |
+| `COUPON_INVALID` | 409 | Cupom VIP inexistente ou já resgatado. *(v1.20)* |
+| `VIP_SUBSCRIPTION_UNAVAILABLE` | 501 | Assinatura VIP por cartão ainda não integrada a um gateway de pagamento. *(v1.20)* |
 
 *Tabela — Catálogo consolidado de códigos de erro da API.*
 

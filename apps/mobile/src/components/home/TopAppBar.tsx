@@ -1,15 +1,27 @@
+import { useState } from "react";
 import { useRouter } from "expo-router";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Avatar } from "@/components/ui/Avatar";
 import { Icon } from "@/components/ui/Icon";
+import { IconButton } from "@/components/ui/IconButton";
 import { StatPill } from "@/components/ui/StatPill";
+import { NoHeartsDialog } from "@/components/features/gamification/NoHeartsDialog";
+import { StreakDialog } from "@/components/features/gamification/StreakDialog";
 import { useAuth } from "@/hooks/useAuth";
+import { xpParaProximoNivel } from "@/lib/gamification/level";
 import { colors, type } from "@/theme/tokens";
+import { ThemeSelector } from "./ThemeSelector";
 
+// Espelha apps/web/src/components/layout/TopAppBar.tsx — lá o streak/hearts do header abrem
+// StreakDialog/NoHeartsDialog ao toque (gemas não, nem no web); aqui o mobile só tinha o
+// NoHeartsDialog acoplado à tela de quiz (zerar vidas durante a sessão), nunca à barra do topo.
 export function TopAppBar() {
   const router = useRouter();
   const { user, gamification } = useAuth();
+  const [streakDialogOpen, setStreakDialogOpen] = useState(false);
+  const [heartsDialogOpen, setHeartsDialogOpen] = useState(false);
+  const xpFaltam = xpParaProximoNivel(gamification.level, gamification.xp_total);
 
   // Web mostra a pílula de stats inline no header em telas largas e move para uma segunda
   // faixa abaixo em mobile (`md:hidden`) — aqui só existe a variante mobile.
@@ -20,16 +32,37 @@ export function TopAppBar() {
           <Icon name="logo" size={28} color={colors.primary} />
           <Text style={[type.displayLg, styles.brandText]}>ArqLearn</Text>
         </View>
-        <Pressable style={styles.profile} onPress={() => router.push("/perfil" as never)}>
-          <Text style={[type.labelCaps, { color: colors.primary }]}>{gamification.xp_total} XP</Text>
-          <Avatar name={user.name} size={32} />
-        </Pressable>
+        <View style={styles.actions}>
+          <IconButton
+            icon={<Icon name="notifications" size={22} color={colors.onSurfaceVariant} />}
+            label="Notificações"
+            onPress={() => router.push("/notificacoes" as never)}
+          />
+          <Pressable style={styles.profile} onPress={() => router.push("/perfil" as never)}>
+            <Text style={[type.labelCaps, styles.levelLine]} numberOfLines={1}>
+              <Text style={styles.levelText}>Nível {gamification.level}</Text>
+              <Text style={styles.levelCaption}> · {xpFaltam} XP p/ próx.</Text>
+            </Text>
+            <Avatar name={user.name} size={32} />
+          </Pressable>
+        </View>
+      </View>
+      <View style={styles.themeRow}>
+        <ThemeSelector />
       </View>
       <View style={styles.statsRow}>
-        <StatPill tone="secondary" icon="streak" value={gamification.streak_current} />
-        <StatPill tone="error" icon="hearts" value={gamification.hearts_current} />
-        <StatPill tone="primary" icon="gems" value={gamification.gems} />
+        <Pressable onPress={() => setStreakDialogOpen(true)}>
+          <StatPill tone="secondary" icon="streak" value={gamification.streak_current} />
+        </Pressable>
+        <Pressable onPress={() => setHeartsDialogOpen(true)}>
+          <StatPill tone="error" icon="hearts" value={gamification.hearts_current} />
+        </Pressable>
+        <Pressable onPress={() => router.push("/loja" as never)}>
+          <StatPill tone="primary" icon="gems" value={gamification.gems} />
+        </Pressable>
       </View>
+      <StreakDialog open={streakDialogOpen} onOpenChange={setStreakDialogOpen} />
+      <NoHeartsDialog open={heartsDialogOpen} onOpenChange={setHeartsDialogOpen} />
     </SafeAreaView>
   );
 }
@@ -57,6 +90,14 @@ const styles = StyleSheet.create({
     color: colors.primary,
     fontWeight: "700",
   },
+  themeRow: {
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: colors.surfaceGray,
+    borderTopWidth: 1,
+    borderTopColor: colors.outlineVariant,
+    paddingVertical: 6,
+  },
   statsRow: {
     flexDirection: "row",
     alignItems: "center",
@@ -66,9 +107,25 @@ const styles = StyleSheet.create({
     borderTopColor: colors.outlineVariant,
     paddingVertical: 8,
   },
+  actions: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 4,
+  },
   profile: {
     flexDirection: "row",
     alignItems: "center",
     gap: 8,
+  },
+  levelLine: {
+    maxWidth: 180,
+  },
+  levelText: {
+    color: colors.primary,
+    fontWeight: "700",
+  },
+  levelCaption: {
+    color: colors.onSurfaceVariant,
+    fontSize: 11,
   },
 });

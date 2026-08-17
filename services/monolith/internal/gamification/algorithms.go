@@ -32,9 +32,15 @@ type XPResult struct {
 	DailyCapReached bool
 }
 
+// VIPXPMultiplier é o bônus de XP do VIP (a pedido do usuário: "+25% de XP") — aplicado por
+// resposta, ANTES do teto diário (DailyXPCap continua valendo 500/dia igual pra todo mundo; VIP só
+// alcança o teto mais rápido, não ganha um teto maior).
+const VIPXPMultiplier = 1.25
+
 // CalcularXP implementa TDD §3. xpToday é o valor já lido de user_gamification.xp_today
 // (depois do reset preguiçoso — ver XPHojeAposReset) ANTES desta resposta ser contabilizada.
-func CalcularXP(difficulty string, answerTimeMs int, isFirstCompletion, correct bool, xpToday int) XPResult {
+// vipAtivo aplica VIPXPMultiplier (ver EhVIPAtivo) antes do teto diário.
+func CalcularXP(difficulty string, answerTimeMs int, isFirstCompletion, correct bool, xpToday int, vipAtivo bool) XPResult {
 	if !correct {
 		return XPResult{}
 	}
@@ -49,6 +55,9 @@ func CalcularXP(difficulty string, answerTimeMs int, isFirstCompletion, correct 
 		bonusPrimeiraConclusao = 10
 	}
 	xpCalculado := base + bonusVelocidade + bonusPrimeiraConclusao
+	if vipAtivo {
+		xpCalculado = int(math.Round(float64(xpCalculado) * VIPXPMultiplier))
+	}
 
 	xpDisponivelHoje := DailyXPCap - xpToday
 	if xpDisponivelHoje < 0 {
@@ -160,6 +169,57 @@ func HojeLocal(timezone string, now time.Time) string {
 	return now.In(loc).Format("2006-01-02")
 }
 
+// AplicarExpiracaoStreak implementa TDD §5.2/§5.3 de forma preguiçosa (mesmo padrão de
+// RegenerarVidas): calculada sob demanda a cada leitura/escrita de gamificação, sem job/cron —
+// esta fase bootstrap não tem scheduler automático (mesma decisão já tomada pra CloseLeagueWeek,
+// ver internal/gamification/gamification.go). streakLastActiveDate e hojeLocal são strings
+// "YYYY-MM-DD" no fuso do usuário (mesmo formato de HojeLocal/AtualizarStreak).
+//
+// Regra: se a última prática foi hoje ou ontem, a streak está intacta (TDD §5.1 já garante no
+// máximo 1 incremento por dia, então "ontem" é sempre o caso normal de quem ainda não praticou
+// hoje). Se pulou 2+ dias sem prática: consome 1 streak_freeze automaticamente se disponível
+// (streak_current preservado) — um gap de N dias consome até N freezes, um por dia faltante, até
+// acabarem, MAS um por avaliação, não N de uma vez (ver nota abaixo) —, ou zera streak_current se
+// não houver freeze (expirou=true).
+//
+// novaLastActiveDate avança pra "ontem" quando um freeze é consumido — NÃO pra hoje (o usuário
+// ainda precisa praticar hoje pra manter a sequência viva, TDD §5.3) — só o suficiente pra essa
+// mesma avaliação não se repetir a cada request do resto do dia (chamador persiste esse valor de
+// volta). Sem isso, o caller re-executaria esta função em toda leitura de gamificação do dia
+// (GET /v1/gamification/me, GET /v1/users/me, cada pergunta de POST .../answers) e consumiria um
+// freeze por request em vez de um por dia — bug real encontrado ao vivo (Playwright, ver
+// PENDENCIAS_MOBILE.md) antes desta correção. Se o usuário sumir por N dias e só abrir o app uma
+// vez depois, essa única avaliação processa 1 dia do gap (não os N de uma vez); reabrir o app nos
+// dias seguintes sem praticar processa mais um dia por vez, até os freezes acabarem ou a pessoa
+// praticar de novo — simulação lazy do job diário do TDD (que rodaria uma vez por virada de dia).
+func AplicarExpiracaoStreak(streakCurrent int, streakLastActiveDate string, freezesAvailable int, hojeLocal string) (novoStreakCurrent int, novaLastActiveDate string, novosFreezes int, expirou bool) {
+	if streakCurrent == 0 || streakLastActiveDate == "" || streakLastActiveDate == hojeLocal {
+		return streakCurrent, streakLastActiveDate, freezesAvailable, false
+	}
+
+	hoje, err := time.Parse("2006-01-02", hojeLocal)
+	if err != nil {
+		return streakCurrent, streakLastActiveDate, freezesAvailable, false
+	}
+	ontem := hoje.AddDate(0, 0, -1).Format("2006-01-02")
+	if streakLastActiveDate == ontem {
+		return streakCurrent, streakLastActiveDate, freezesAvailable, false
+	}
+
+	if freezesAvailable > 0 {
+		return streakCurrent, ontem, freezesAvailable - 1, false
+	}
+	return 0, streakLastActiveDate, freezesAvailable, true
+}
+
+// StreakEmRisco é TDD §5.2 (aviso preventivo) calculado ao vivo: streak positiva e a pessoa ainda
+// não praticou hoje. Fica true todo santo dia até a prática de hoje acontecer (sem "janela antes
+// da meia-noite" do job original — não tem como saber a hora aqui, só a data) — é exatamente o
+// gatilho do prompt de "usar bloqueio de ofensiva agora" ao abrir o app.
+func StreakEmRisco(streakCurrent int, streakLastActiveDate, hojeLocal string) bool {
+	return streakCurrent > 0 && streakLastActiveDate != hojeLocal
+}
+
 // HeartsMax e HeartsRegenInterval implementam TDD §5.4: uma vida regenera a cada 3h até o teto
 // de 5, calculado de forma preguiçosa (sem job) sempre que hearts_current/hearts_updated_at são
 // lidos — ver RegenerarVidas e LoadHeartsWithRegen.
@@ -198,4 +258,166 @@ func ProximaVidaEm(heartsCurrent int, heartsUpdatedAt time.Time) *time.Time {
 	}
 	next := heartsUpdatedAt.Add(HeartsRegenInterval)
 	return &next
+}
+
+// ChestQuestionsRequired é quantas perguntas respondidas no dia local (lição OU Modo Infinito,
+// contagem acumulada — a pedido do usuário) liberam o Baú Diário pra abrir.
+const ChestQuestionsRequired = 10
+
+// QuestoesHojeAposReset aplica o mesmo reset preguiçoso de XPHojeAposReset (TDD §3.2) pro contador
+// de perguntas do dia que libera o Baú Diário: muda de dia local, volta a zero antes de contar a
+// resposta atual.
+func QuestoesHojeAposReset(questoesHoje int, questoesHojeDate, hojeLocal string) int {
+	if questoesHojeDate != hojeLocal {
+		return 0
+	}
+	return questoesHoje
+}
+
+// ChestRewardType é o tipo de recompensa sorteada ao abrir o Baú Diário.
+type ChestRewardType string
+
+const (
+	ChestRewardGems         ChestRewardType = "gems"
+	ChestRewardStreakFreeze ChestRewardType = "streak_freeze"
+	ChestRewardHeartsRefill ChestRewardType = "hearts_refill"
+)
+
+// ChestReward é o resultado de RolarRecompensaBau.
+type ChestReward struct {
+	Type ChestRewardType
+	// GemsAmount só é preenchido quando Type == ChestRewardGems (1 a 5, ver RolarRecompensaBau).
+	GemsAmount int
+}
+
+// RolarRecompensaBau sorteia a recompensa do Baú Diário — a pedido do usuário: gemas (1 a 5) na
+// maioria das vezes, ou um item grátis do sistema como prêmio mais raro (metade Bloqueio de
+// Ofensiva, metade Recarga de Vidas — os dois itens consumíveis reais da Loja, ver
+// migrations/0004_shop_items_seed; cosméticos ficam de fora do pool, caro demais pra sair de
+// graça todo dia). rollType decide o tipo (gemas vs item), rollDetail decide o detalhe dentro do
+// tipo escolhido (quantidade de gemas, ou qual item) — os dois em [0,1), o chamador HTTP gera com
+// math/rand. Pura e determinística pros dois floats de entrada, pra dar pra testar sem mockar RNG.
+func RolarRecompensaBau(rollType, rollDetail float64) ChestReward {
+	const probabilidadeGemas = 0.75
+	if rollType < probabilidadeGemas {
+		gemsAmount := 1 + int(rollDetail*5)
+		if gemsAmount > 5 {
+			gemsAmount = 5
+		}
+		return ChestReward{Type: ChestRewardGems, GemsAmount: gemsAmount}
+	}
+	if rollDetail < 0.5 {
+		return ChestReward{Type: ChestRewardStreakFreeze}
+	}
+	return ChestReward{Type: ChestRewardHeartsRefill}
+}
+
+// EhVIPAtivo decide se o VIP está em vigor agora — expiração preguiçosa (mesmo padrão de
+// RegenerarVidas/AplicarExpiracaoStreak, sem job/cron): isVip=false nunca é VIP, vipExpiresAt=nil
+// com isVip=true é VIP vitalício (nunca expira), e qualquer vipExpiresAt no passado desliga o VIP
+// sem precisar zerar is_vip em lugar nenhum — a próxima leitura já reflete a expiração sozinha.
+func EhVIPAtivo(isVip bool, vipExpiresAt *time.Time, now time.Time) bool {
+	if !isVip {
+		return false
+	}
+	if vipExpiresAt == nil {
+		return true
+	}
+	return now.Before(*vipExpiresAt)
+}
+
+// VIPDailyChestResetsMax é quantas vezes o VIP pode resetar o Baú Diário no mesmo dia local (a
+// pedido do usuário: "resetar o baú diário mais uma vez por dia") — usuário comum não tem essa
+// opção (LoadDailyChestStatus nem expõe a rota de reset pra quem não é VIP).
+const VIPDailyChestResetsMax = 1
+
+// VIPWeeklyChestResetsMax é quantas vezes o VIP pode resetar o Baú Semanal no mesmo ciclo de 7
+// dias (a pedido do usuário: "2x reset do baú semanal por semana").
+const VIPWeeklyChestResetsMax = 2
+
+// EstenderVIP calcula a nova vip_expires_at ao resgatar um cupom (ou, futuramente, confirmar uma
+// assinatura) — pura e testável, mesmo estilo dos outros helpers de gamificação. Regras:
+//   - VIP vitalício (is_vip=true, vip_expires_at=nil) permanece vitalício — um cupom nunca
+//     "encolhe" um benefício já concedido sem prazo, então devolve nil de novo.
+//   - VIP ainda ativo (não vitalício): soma durationDays a partir da expiração atual, não de
+//     "agora" — resgatar um cupom antes do anterior acabar empilha os dias em vez de desperdiçar o
+//     que sobrava.
+//   - Sem VIP ativo (nunca teve ou já expirou): conta durationDays a partir de agora.
+func EstenderVIP(isVip bool, vipExpiresAt *time.Time, now time.Time, durationDays int) *time.Time {
+	if EhVIPAtivo(isVip, vipExpiresAt, now) && vipExpiresAt == nil {
+		return nil
+	}
+	base := now
+	if EhVIPAtivo(isVip, vipExpiresAt, now) {
+		base = *vipExpiresAt
+	}
+	novaExpiracao := base.AddDate(0, 0, durationDays)
+	return &novaExpiracao
+}
+
+// VIPResetsAposReset aplica o mesmo reset preguiçoso de QuestoesHojeAposReset/
+// QuestoesSemanaAposReset ao contador de resets VIP já usados: comparado contra o período vigente
+// (data local pro diário, cycle_start vigente do Baú Semanal pro semanal — não um ciclo próprio),
+// volta a zero quando o período mudou. Serve pros dois casos (diário e semanal) porque a
+// comparação é a mesma forma, só o "período" de entrada muda (data vs. cycle_start).
+func VIPResetsAposReset(resetsUsados int, periodoSalvo, periodoVigente string) int {
+	if periodoSalvo != periodoVigente {
+		return 0
+	}
+	return resetsUsados
+}
+
+// ChestWeeklyQuestionsRequired é quantas perguntas respondidas dentro do ciclo vigente (ver
+// QuestoesSemanaAposReset) liberam o Baú Semanal pra abrir.
+const ChestWeeklyQuestionsRequired = 50
+
+// ChestWeeklyCycleDays é o tamanho da janela rolante do ciclo semanal — não é "semana de
+// calendário" nenhuma, é sempre 7 dias a partir de chest_weekly_cycle_start (a data da primeira
+// pergunta do ciclo vigente).
+const ChestWeeklyCycleDays = 7
+
+// QuestoesSemanaAposReset decide o contador e o início de ciclo vigentes pro Baú Semanal: sem
+// ciclo ativo ainda (cicloInicio vazio) ou com 7 dias já passados desde cicloInicio, o ciclo
+// reseta — contador volta a zero e um novo ciclo começa hoje. Espelha QuestoesHojeAposReset, mas
+// com janela de N dias em vez de igualdade de data — decisão explícita do usuário: abrir o baú
+// antes do fim do ciclo NÃO adianta o reset, só a passagem dos 7 dias reseta (chest_weekly_
+// claimed_cycle_start cuida de travar a abertura repetida dentro do mesmo ciclo, ver
+// LoadWeeklyChestStatus).
+func QuestoesSemanaAposReset(questoesSemana int, cicloInicio, hojeLocal string) (int, string) {
+	if cicloInicio == "" {
+		return 0, hojeLocal
+	}
+	inicio, err := time.Parse("2006-01-02", cicloInicio)
+	if err != nil {
+		return 0, hojeLocal
+	}
+	hoje, err := time.Parse("2006-01-02", hojeLocal)
+	if err != nil {
+		return 0, hojeLocal
+	}
+	diasPassados := int(hoje.Sub(inicio).Hours() / 24)
+	if diasPassados >= ChestWeeklyCycleDays {
+		return 0, hojeLocal
+	}
+	return questoesSemana, cicloInicio
+}
+
+// RolarRecompensaBauSemanal sorteia a recompensa do Baú Semanal — recompensa maior que a do Baú
+// Diário (a pedido do usuário, já que exige 5x mais esforço: 50 perguntas dentro de 7 dias em vez
+// de 10 num dia): gemas (5 a 15, contra 1 a 5 do diário) com probabilidade menor de sair (60%
+// contra 75%), deixando o item grátis do sistema (mesmos dois itens do Baú Diário, ver
+// RolarRecompensaBau) mais provável (40% contra 25%). Mesma assinatura pura/determinística.
+func RolarRecompensaBauSemanal(rollType, rollDetail float64) ChestReward {
+	const probabilidadeGemas = 0.60
+	if rollType < probabilidadeGemas {
+		gemsAmount := 5 + int(rollDetail*11)
+		if gemsAmount > 15 {
+			gemsAmount = 15
+		}
+		return ChestReward{Type: ChestRewardGems, GemsAmount: gemsAmount}
+	}
+	if rollDetail < 0.5 {
+		return ChestReward{Type: ChestRewardStreakFreeze}
+	}
+	return ChestReward{Type: ChestRewardHeartsRefill}
 }

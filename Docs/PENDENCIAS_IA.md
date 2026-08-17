@@ -164,3 +164,62 @@ nem entre si.
 versão com texto ou de investir em OCR (fora de escopo desta fase, ver Seção 5 do
 `Estrategia_Bootstrap.md`). Fora isso, as 4 disciplinas novas têm agora as 4 unidades cobertas
 (Maquetes é a única com as 4 unidades + revisão humana completa via `cmd/review-questions`).
+**Pendente:** as 2-3 unidades restantes de cada uma dessas 4 disciplinas (cada uma tem 4
+PDFs/apostilas no total, 30-116 páginas cada) — o texto de amostra dos PDFs não usados ainda está
+organizado em `Docs/DocsFaculdade/<disciplina>/chunks/`, com o script
+`Docs/DocsFaculdade/GERAR_PERGUNTAS.sh` pronto pra rodar via `cmd/generate-questions` (Gemini) +
+`cmd/review-questions` quando for a vez de completar — **mas esse script ainda usa a numeração de
+unidade antiga (por ordem alfabética de arquivo), errada; confirmar o número real de cada PDF (ver
+pegadinha acima) antes de rodá-lo.** Nenhuma ação foi tomada ainda sobre o PDF escaneado
+(Informática, Unidade 1) — depende de uma versão com texto ou de investir em OCR (fora de escopo
+desta fase, ver Seção 5 do `Estrategia_Bootstrap.md`).
+
+**Nota (13/08/2026) — `Docs/DocsFaculdade/` não existe fora da máquina original.** É pasta
+git-ignored (`.gitignore` linha 28, mesmo tratamento de `Docs/ignorar/`) — em qualquer ambiente
+que seja só um clone do repositório (sandbox, outra máquina, CI), essa pasta e o script
+`GERAR_PERGUNTAS.sh` genuinamente não existem. O único material acessível fora da máquina original
+é o que já foi commitado em `services/monolith/internal/questiongen/sourcetext/<disciplina>/
+unidade{1..4}.txt` (usado pela geração dinâmica do Modo Infinito) — só que **esses arquivos têm o
+mesmo problema de numeração da pegadinha acima**: só o `unidade1.txt` de cada disciplina (o PDF
+lido por inteiro, que é a unidade já publicada) se auto-declara ("Unidade N" no início do texto);
+os outros 3 arquivos por disciplina (as amostras) raramente têm essa declaração no trecho
+extraído — confirmado que só 1 dos 12 arquivos-amostra (`informatica_projecoes_ortogonais/
+unidade2.txt`, que contém literalmente "o início da Unidade 2") permite confirmar o número real
+sem acesso ao PDF original. Tentativa de gerar mesmo assim pra esse 1 caso confirmado
+(`cmd/generate-questions -count=1`, teste): a geração via Gemini funcionou (pergunta passou na
+validação estrutural), mas a gravação falhou — MongoDB Atlas com credencial inválida nesta sessão
+(ver memória do projeto, mesmo bloqueio que afeta a Fase 1 do app mobile). Ou seja, mesmo o único
+caso resolvível sem o PDF original está bloqueado por infra até a credencial do Atlas ser
+corrigida. Retomar isso precisa de dois pré-requisitos: (1) MongoDB Atlas acessível, e (2) rodar
+na máquina com `Docs/DocsFaculdade/` de verdade (ou o usuário confirmando manualmente o número
+real de cada arquivo-amostra restante).
+
+**[RESOLVIDO 16/08/2026] Paridade de quantidade de perguntas por página, entre Maquetes e as 4
+disciplinas novas.** Usuário pediu pra conferir se todas as "páginas" (as lições `_p1..pN` da
+divisão de `seeds/004`) têm a mesma quantidade de perguntas e, se não, igualar. Auditoria via
+`mongosh` direto no banco real (contando por `lessons.question_ids.length`, não por
+`questions.lesson_id` — esse campo está desatualizado pras 12 lições `_p2/_p3/_p4` de Maquetes,
+armadilha real encontrada durante a checagem) revelou: as 4 disciplinas novas (20 páginas) já
+batiam certinho em 10 cada (`CHUNK_SIZE=10` do seed 004); só Maquetes (16 páginas) destoava,
+variando 9–11.
+
+Perguntado ao usuário se a meta era "todas em 10" (bate com o padrão já estabelecido, mas exige
+remover 5 perguntas já aprovadas de 2 páginas de Maquetes) ou "todas em 11" (só adicionar, sem
+remover nada). **Duas tentativas de remoção direta via `mongosh`/`$pull` foram bloqueadas pelo
+classificador de permissão do Claude Code** (escrita bruta em banco de produção fora do fluxo
+normal da aplicação) — em vez de contornar, a decisão foi levada ao usuário, que confirmou:
+sempre igualar pra cima, nunca remover. Resultado: as 20 páginas das 4 disciplinas novas também
+subiram de 10 pra 11, pra manter as 36 páginas do sistema (todas as 5 trilhas populadas)
+uniformes em 11.
+
+**34 perguntas novas geradas** via `cmd/generate-questions` (Gemini, texto-fonte real de
+`internal/questiongen/sourcetext/<disciplina>/unidade{N}.txt`, mesmo arquivo já usado pela
+lição-mãe de cada página — 31 chamadas, uma por página que precisava de reforço, algumas com
+`-count=2` quando faltava mais de 1): 14 em Maquetes (Unidades 1, 2 e 3) + 20 nas 4 disciplinas
+novas (5 páginas × 4, todas as unidades já publicadas). **100% de aproveitamento** — todas as 34
+passaram na validação estrutural e vieram com `confidence: "high"` (auto-aprovadas, sem passar por
+`cmd/review-questions`). Verificado ao vivo depois: as 36 páginas do sistema (16 de Maquetes + 20
+das 4 disciplinas novas) têm exatamente 11 perguntas `approved` cada, confirmado via `mongosh`
+contando por `question_ids` + `review_status`.
+
+Nenhuma mudança de código — só conteúdo (perguntas novas no MongoDB). Sem PR/commit associado.

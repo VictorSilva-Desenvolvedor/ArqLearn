@@ -14,6 +14,7 @@ interface SummaryPanelProps {
   moduleProgressPercent: number;
   gemsEarned?: number;
   nextHref: string;
+  chestAvailable?: boolean;
 }
 
 export function SummaryPanel({
@@ -24,6 +25,7 @@ export function SummaryPanel({
   moduleProgressPercent,
   gemsEarned = 0,
   nextHref,
+  chestAvailable = false,
 }: SummaryPanelProps) {
   const router = useRouter();
 
@@ -80,6 +82,19 @@ export function SummaryPanel({
           </div>
           <ProgressBar value={moduleProgressPercent} max={100} variant="thin" tone="primary" />
         </div>
+
+        {/* CTA do Baú Diário (v1.18) — só aparece quando as 10 perguntas do dia já foram somadas
+            (lição + Modo Infinito) e o baú de hoje ainda não foi aberto. */}
+        {chestAvailable && (
+          <Button
+            variant="gamification"
+            fullWidth
+            onClick={() => router.push("/bau")}
+            icon={<Icon name="redeem" filled className="text-2xl" />}
+          >
+            Abrir Baú Diário
+          </Button>
+        )}
 
         <Button variant="primary" fullWidth onClick={() => router.push(nextHref)}>
           Continuar para o Mapa

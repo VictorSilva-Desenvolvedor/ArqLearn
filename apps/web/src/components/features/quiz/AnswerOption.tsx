@@ -1,4 +1,5 @@
 import { Icon } from "@/components/ui/Icon";
+import { LoadingBlueprint } from "@/components/ui/LoadingBlueprint";
 import { cn } from "@/lib/utils/cn";
 
 interface AnswerOptionProps {
@@ -59,9 +60,7 @@ export function AnswerOption({
       )}
     >
       <span className="flex-1">{label}</span>
-      {selected && verifying && (
-        <Icon name="progress_activity" className="text-xl shrink-0 animate-spin text-primary" />
-      )}
+      {selected && verifying && <LoadingBlueprint size={20} className="shrink-0" />}
       {revealIcon && (
         <Icon
           name={revealIcon}

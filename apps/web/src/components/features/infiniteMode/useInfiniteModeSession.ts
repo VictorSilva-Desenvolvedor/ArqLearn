@@ -98,9 +98,10 @@ export function useInfiniteModeSession(topic: string) {
       xp: String(end.xp_earned),
       avgTime: String(end.avg_time_ms),
       topic,
+      chest: String(lastResult?.daily_chest_available ?? false),
     });
     router.push(`/infinito/${topic}/resumo?${params.toString()}`);
-  }, [sessionId, router, topic]);
+  }, [sessionId, router, topic, lastResult]);
 
   const giveUp = useCallback(() => {
     finishAndGoToSummary();

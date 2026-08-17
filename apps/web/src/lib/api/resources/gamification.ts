@@ -5,9 +5,21 @@ import {
   mockAchievementUnlocks,
   mockGamificationProfile,
   mockLeague,
+  mockLeagueByTier,
 } from "../mocks/fixtures/gamification";
+import { getMockDailyChestStatus, mockOpenDailyChest } from "../mocks/fixtures/dailyChest";
+import { getMockWeeklyChestStatus, mockOpenWeeklyChest } from "../mocks/fixtures/weeklyChest";
 import { mockShopCatalog } from "../mocks/fixtures/shopCatalog";
-import type { Achievement, GamificationProfile, League, PurchaseResult } from "@/types/api";
+import type { LeagueTierName } from "@/lib/gamification/leagueTiers";
+import type {
+  Achievement,
+  ChestOpenResult,
+  DailyChestStatus,
+  GamificationProfile,
+  League,
+  PurchaseResult,
+  WeeklyChestStatus,
+} from "@/types/api";
 
 export interface GamificationMeResponse extends GamificationProfile {
   achievements: Achievement[];
@@ -23,11 +35,17 @@ export async function getGamificationProfile(accessToken?: string): Promise<Gami
   return mockDelay({ ...mockGamificationProfile, achievements: mockAchievementUnlocks });
 }
 
-export async function getLeague(accessToken?: string): Promise<League> {
+// Sem `tier`: liga/divisão do próprio usuário (matricula automaticamente, inclui viewer_position/
+// xp_to_promotion). Com `tier` (e opcionalmente `division`, default 1): navega o ranking de outra
+// liga, sem matricular o usuário nela — usado do client (LeagueTiersDialog), por isso accessToken
+// vem do provider global nesse caso (ver comentário de getGamificationProfile acima).
+export async function getLeague(accessToken?: string, tier?: LeagueTierName, division?: number): Promise<League> {
   if (isResourceReal("gamification")) {
-    return apiFetch<League>("/v1/gamification/league", undefined, accessToken);
+    if (!tier) return apiFetch<League>("/v1/gamification/league", undefined, accessToken);
+    const query = `tier=${tier}${division ? `&division=${division}` : ""}`;
+    return apiFetch<League>(`/v1/gamification/league?${query}`, undefined, accessToken);
   }
-  return mockDelay(mockLeague);
+  return mockDelay(tier ? mockLeagueByTier(tier, division ?? 1) : mockLeague);
 }
 
 export async function purchaseShopItem(itemId: string, idempotencyKey: string): Promise<PurchaseResult> {
@@ -63,8 +81,9 @@ export interface FreezeStreakResponse {
   streak_freezes_available: number;
 }
 
-// GamificationProfile não expõe "quantos freezes tenho" — só esta resposta e o item da loja. O
-// caller (client, já tem a contagem via useAuth()) passa o valor atual; o mock só valida/consome.
+// Resposta dedicada (em vez de reusar GamificationProfile.streak_freezes_available) porque este
+// endpoint só devolve a contagem atualizada, não o perfil inteiro. O caller (client, já tem a
+// contagem via useAuth()) passa o valor atual; o mock só valida/consome.
 export async function freezeStreak(currentFreezesAvailable: number): Promise<FreezeStreakResponse> {
   if (isResourceReal("gamification")) {
     return apiFetch<FreezeStreakResponse>("/v1/gamification/streak/freeze", { method: "POST" });
@@ -77,4 +96,54 @@ export async function freezeStreak(currentFreezesAvailable: number): Promise<Fre
     });
   }
   return mockDelay({ streak_freezes_available: currentFreezesAvailable - 1 }, 300);
+}
+
+// Baú Diário (v1.18, a pedido do usuário) — 1 abertura por dia local ao responder 10 perguntas no
+// dia (lição + Modo Infinito somados, ver AnswerResult/InfiniteModeAnswerResult). Status/abertura
+// são dois endpoints porque o corpo aceita re-consulta livre (GET) sem gastar a abertura em si.
+// accessToken opcional (mesmo motivo de getGamificationProfile acima) — a Home (Server Component)
+// precisa consultar os dois baús pra exibir os cards de progresso, e Server Components não têm o
+// provider global de token client-side.
+export async function getDailyChestStatus(accessToken?: string): Promise<DailyChestStatus> {
+  if (isResourceReal("gamification")) {
+    return apiFetch<DailyChestStatus>("/v1/gamification/daily-chest", undefined, accessToken);
+  }
+  return mockDelay(getMockDailyChestStatus());
+}
+
+export async function openDailyChest(): Promise<ChestOpenResult> {
+  if (isResourceReal("gamification")) {
+    return apiFetch<ChestOpenResult>("/v1/gamification/daily-chest/open", { method: "POST" });
+  }
+  if (!getMockDailyChestStatus().available) {
+    throw new ApiError(409, {
+      error_code: "CHEST_NOT_AVAILABLE",
+      message: "Nenhum Baú Diário disponível pra abrir agora.",
+      trace_id: "mock-trace",
+    });
+  }
+  return mockDelay(mockOpenDailyChest(), 400);
+}
+
+// Baú Semanal (v1.19, a pedido do usuário) — mesmo padrão do Baú Diário acima, mas 1 abertura por
+// ciclo rolante de 7 dias ao responder 50 perguntas dentro do ciclo (ver §8.2 da API Spec).
+export async function getWeeklyChestStatus(accessToken?: string): Promise<WeeklyChestStatus> {
+  if (isResourceReal("gamification")) {
+    return apiFetch<WeeklyChestStatus>("/v1/gamification/weekly-chest", undefined, accessToken);
+  }
+  return mockDelay(getMockWeeklyChestStatus());
+}
+
+export async function openWeeklyChest(): Promise<ChestOpenResult> {
+  if (isResourceReal("gamification")) {
+    return apiFetch<ChestOpenResult>("/v1/gamification/weekly-chest/open", { method: "POST" });
+  }
+  if (!getMockWeeklyChestStatus().available) {
+    throw new ApiError(409, {
+      error_code: "CHEST_NOT_AVAILABLE",
+      message: "Nenhum Baú Semanal disponível pra abrir agora.",
+      trace_id: "mock-trace",
+    });
+  }
+  return mockDelay(mockOpenWeeklyChest(), 400);
 }

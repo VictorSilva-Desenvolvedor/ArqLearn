@@ -12,7 +12,36 @@ export interface User {
   created_at: string;
 }
 
-export type LeagueTier = "bronze" | "prata" | "ouro" | "platina" | "diamante" | null;
+// Payload de GET /v1/users/me/export (LGPD, portabilidade de dados).
+export interface ExportedUserData {
+  exported_at: string;
+  user: User;
+  gamification: {
+    xp_total: number;
+    level: number;
+    streak_current: number;
+    streak_best: number;
+    hearts_current: number;
+    gems: number;
+    current_tier: number;
+  };
+  achievements: Achievement[];
+  progress: ProgressSummary;
+}
+
+// Espelha LEAGUE_TIERS de lib/gamification/leagueTiers.ts (hierarquia de 10 ligas).
+export type LeagueTier =
+  | "madeira"
+  | "pedra"
+  | "bronze"
+  | "prata"
+  | "ouro"
+  | "platina"
+  | "esmeralda"
+  | "safira"
+  | "rubi"
+  | "diamante"
+  | null;
 
 export interface GamificationProfile {
   xp_total: number;
@@ -20,12 +49,19 @@ export interface GamificationProfile {
   level: number;
   streak_current: number;
   streak_best: number;
+  streak_freezes_available: number;
+  // Streak positiva e ainda sem prática hoje (TDD §5.2) — gatilho pra oferecer usar um
+  // Bloqueio de Ofensiva assim que o app abre, em vez de só descobrir a perda no dia seguinte.
+  streak_at_risk: boolean;
   hearts_current: number; // 0-5
   // Instante da próxima regeneração de vida (TDD §5.4, 1 vida a cada 3h) — null quando
   // hearts_current já está no teto (5). *(v1.10)*
   hearts_next_at: string | null;
   gems: number;
   league_tier: LeagueTier;
+  // VIP "Mestre Arquiteto" — já reflete a expiração (nunca true com vip_expires_at no passado).
+  is_vip: boolean;
+  vip_expires_at: string | null;
 }
 
 export type AchievementType = string;
@@ -59,6 +95,9 @@ export interface Lesson {
 export interface TrackLesson {
   lesson: Lesson;
   progress_status: LessonProgressStatus;
+  // false = "em construção" (sem pergunta aprovada ainda) — deveria ficar acessível quando true,
+  // independente de progress_status (sem bloqueio por sequência fake).
+  has_questions: boolean;
 }
 
 export type QuestionType =
@@ -102,6 +141,9 @@ export interface AnswerResult {
   vidas_restantes: number;
   streak_atual: number;
   explicacao: string;
+  // Baú Diário (v1.18) — 10 perguntas no dia (lição + Modo Infinito somados) liberam 1 abertura.
+  daily_chest_available: boolean;
+  daily_chest_questions: number;
 }
 
 export interface ProgressSummary {
@@ -121,8 +163,16 @@ export interface LeagueRankingEntry {
 export interface League {
   league_id: string;
   tier: LeagueTier;
+  division: number;
   week_reference: string;
   ranking: LeagueRankingEntry[];
+  promotion_slots: number;
+  demotion_slots: number;
+  // Só vêm preenchidos quando é a liga do próprio usuário (sem passar `tier` pra getLeague) —
+  // null ao navegar o ranking de outra liga, ou quando o grupo é pequeno demais pra uma promoção
+  // real acontecer essa semana, ou o usuário já está na tier mais alta.
+  viewer_position: number | null;
+  xp_to_promotion: number | null;
 }
 
 export type ShopItemType = "hearts_refill" | "streak_freeze" | "cosmetic";
@@ -233,6 +283,61 @@ export interface InfiniteModeAnswerResult {
   correct_count: number;
   level: number;
   next_question?: InfiniteModeQuestion;
+  // Baú Diário (v1.18) — mesmo contador acumulado do dia de AnswerResult, Modo Infinito soma junto.
+  daily_chest_available: boolean;
+  daily_chest_questions: number;
+}
+
+// --- Baú Diário (v1.18) ---
+
+export interface DailyChestStatus {
+  questions_today: number;
+  questions_required: number;
+  available: boolean;
+  claimed_today: boolean;
+}
+
+export type ChestRewardType = "gems" | "streak_freeze" | "hearts_refill";
+
+export interface ChestOpenResult {
+  reward_type: ChestRewardType;
+  // Só preenchido quando reward_type === "gems".
+  gems_earned?: number;
+  // Saldo total de gemas após a abertura (não é quanto foi ganho, ver gems_earned).
+  gems: number;
+}
+
+// --- Baú Semanal (v1.19) — mesmo formato de ChestOpenResult na abertura, ver
+// GET/POST /v1/gamification/weekly-chest[/open]. ---
+
+export interface WeeklyChestStatus {
+  questions_this_cycle: number;
+  questions_required: number;
+  available: boolean;
+  claimed_this_cycle: boolean;
+}
+
+// --- VIP "Mestre Arquiteto" ---
+
+export interface VipStatus {
+  is_vip: boolean;
+  vip_expires_at: string | null;
+  daily_chest_resets_used: number;
+  daily_chest_resets_max: number;
+  weekly_chest_resets_used: number;
+  weekly_chest_resets_max: number;
+}
+
+export interface VipChestResetResult {
+  available: boolean;
+  resets_used: number;
+  resets_max: number;
+  questions_required: number;
+}
+
+export interface VipRedeemCouponResult {
+  is_vip: boolean;
+  vip_expires_at: string | null;
 }
 
 export interface InfiniteModeEndResult {

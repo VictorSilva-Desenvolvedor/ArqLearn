@@ -31,10 +31,14 @@ export const EMPTY_GAMIFICATION: GamificationProfile = {
   level: 0,
   streak_current: 0,
   streak_best: 0,
+  streak_freezes_available: 0,
+  streak_at_risk: false,
   hearts_current: 0,
   hearts_next_at: null,
   gems: 0,
   league_tier: null,
+  is_vip: false,
+  vip_expires_at: null,
 };
 
 export function gamificationForAccount(id: MockAccountId | null | undefined): GamificationProfile {

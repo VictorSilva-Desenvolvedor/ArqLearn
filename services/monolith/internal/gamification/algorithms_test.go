@@ -35,7 +35,7 @@ func TestNivel_TabelaDoTDD(t *testing.T) {
 }
 
 func TestCalcularXP_CorretoDentroDoLimiar(t *testing.T) {
-	r := CalcularXP("medium", 3000, false, true, 0)
+	r := CalcularXP("medium", 3000, false, true, 0, false)
 	if r.XPConcedido != 25 { // base 20 + bônus velocidade 5
 		t.Errorf("XPConcedido = %d, esperado 25", r.XPConcedido)
 	}
@@ -45,14 +45,14 @@ func TestCalcularXP_CorretoDentroDoLimiar(t *testing.T) {
 }
 
 func TestCalcularXP_PrimeiraConclusao(t *testing.T) {
-	r := CalcularXP("easy", 10000, true, true, 0) // fora do limiar de velocidade (5000ms)
-	if r.XPConcedido != 20 {                      // base 10 + bônus primeira conclusão 10
+	r := CalcularXP("easy", 10000, true, true, 0, false) // fora do limiar de velocidade (5000ms)
+	if r.XPConcedido != 20 {                             // base 10 + bônus primeira conclusão 10
 		t.Errorf("XPConcedido = %d, esperado 20", r.XPConcedido)
 	}
 }
 
 func TestCalcularXP_Errado(t *testing.T) {
-	r := CalcularXP("hard", 1000, true, false, 0)
+	r := CalcularXP("hard", 1000, true, false, 0, false)
 	if r.XPConcedido != 0 {
 		t.Errorf("XPConcedido = %d, esperado 0 (resposta errada nunca dá XP)", r.XPConcedido)
 	}
@@ -60,7 +60,7 @@ func TestCalcularXP_Errado(t *testing.T) {
 
 func TestCalcularXP_TetoDiario(t *testing.T) {
 	// 490 já ganhos hoje, resposta valeria 30 (hard, sem bônus) — só cabem 10.
-	r := CalcularXP("hard", 99999, false, true, 490)
+	r := CalcularXP("hard", 99999, false, true, 490, false)
 	if r.XPConcedido != 10 {
 		t.Errorf("XPConcedido = %d, esperado 10 (teto de 500)", r.XPConcedido)
 	}
@@ -70,9 +70,29 @@ func TestCalcularXP_TetoDiario(t *testing.T) {
 }
 
 func TestCalcularXP_TetoJaEstourado(t *testing.T) {
-	r := CalcularXP("easy", 100, false, true, 500)
+	r := CalcularXP("easy", 100, false, true, 500, false)
 	if r.XPConcedido != 0 {
 		t.Errorf("XPConcedido = %d, esperado 0 (teto já no limite)", r.XPConcedido)
+	}
+	if !r.DailyCapReached {
+		t.Error("DailyCapReached deveria ser true")
+	}
+}
+
+func TestCalcularXP_VIPAplicaMultiplicadorAntesDoTeto(t *testing.T) {
+	// medium sem bônus = 20 base; VIP: round(20 * 1.25) = 25.
+	r := CalcularXP("medium", 99999, false, true, 0, true)
+	if r.XPConcedido != 25 {
+		t.Errorf("XPConcedido = %d, esperado 25 (base 20 * 1.25)", r.XPConcedido)
+	}
+}
+
+func TestCalcularXP_VIPNaoUltrapassaTetoDiario(t *testing.T) {
+	// 490 já ganhos hoje; hard com bônus de velocidade = 35 base, VIP eleva pra round(35*1.25)=44,
+	// mas só cabem 10 no teto de 500 — VIP não ganha um teto maior, só chega nele mais rápido.
+	r := CalcularXP("hard", 100, false, true, 490, true)
+	if r.XPConcedido != 10 {
+		t.Errorf("XPConcedido = %d, esperado 10 (capado pelo teto diário mesmo com VIP)", r.XPConcedido)
 	}
 	if !r.DailyCapReached {
 		t.Error("DailyCapReached deveria ser true")
@@ -234,5 +254,231 @@ func TestProximaVidaEm_AbaixoDoTeto(t *testing.T) {
 	esperado := base.Add(HeartsRegenInterval)
 	if !got.Equal(esperado) {
 		t.Errorf("ProximaVidaEm = %v, esperado %v", got, esperado)
+	}
+}
+
+func TestAplicarExpiracaoStreak(t *testing.T) {
+	casos := []struct {
+		nome             string
+		streakCurrent    int
+		lastActiveDate   string
+		freezesAvailable int
+		hojeLocal        string
+		wantStreak       int
+		wantLastActive   string
+		wantFreezes      int
+		wantExpirou      bool
+	}{
+		{"sem streak, nada a fazer", 0, "", 0, "2026-08-15", 0, "", 0, false},
+		{"praticou hoje, intacta", 5, "2026-08-15", 0, "2026-08-15", 5, "2026-08-15", 0, false},
+		{"praticou ontem, intacta (ainda não praticou hoje)", 5, "2026-08-14", 0, "2026-08-15", 5, "2026-08-14", 0, false},
+		{"pulou 2 dias, com freeze, consome e preserva streak, avança pra ontem (não hoje)", 5, "2026-08-12", 2, "2026-08-15", 5, "2026-08-14", 1, false},
+		{"pulou 2 dias, sem freeze, zera", 5, "2026-08-12", 0, "2026-08-15", 0, "2026-08-12", 0, true},
+		{"pulou 1 dia inteiro (anteontem), sem freeze, zera", 5, "2026-08-13", 0, "2026-08-15", 0, "2026-08-13", 0, true},
+	}
+	for _, c := range casos {
+		t.Run(c.nome, func(t *testing.T) {
+			gotStreak, gotLastActive, gotFreezes, gotExpirou := AplicarExpiracaoStreak(c.streakCurrent, c.lastActiveDate, c.freezesAvailable, c.hojeLocal)
+			if gotStreak != c.wantStreak || gotLastActive != c.wantLastActive || gotFreezes != c.wantFreezes || gotExpirou != c.wantExpirou {
+				t.Errorf("AplicarExpiracaoStreak(%d, %q, %d, %q) = (%d, %q, %d, %v), esperado (%d, %q, %d, %v)",
+					c.streakCurrent, c.lastActiveDate, c.freezesAvailable, c.hojeLocal,
+					gotStreak, gotLastActive, gotFreezes, gotExpirou, c.wantStreak, c.wantLastActive, c.wantFreezes, c.wantExpirou)
+			}
+		})
+	}
+
+	t.Run("idempotente no mesmo dia: reaplicar após consumir um freeze não consome outro", func(t *testing.T) {
+		streak, lastActive, freezes, _ := AplicarExpiracaoStreak(5, "2026-08-12", 2, "2026-08-15")
+		streak2, lastActive2, freezes2, _ := AplicarExpiracaoStreak(streak, lastActive, freezes, "2026-08-15")
+		if streak2 != 5 || freezes2 != 1 || lastActive2 != "2026-08-14" {
+			t.Errorf("segunda avaliação no mesmo dia consumiu freeze de novo: streak=%d freezes=%d lastActive=%q", streak2, freezes2, lastActive2)
+		}
+	})
+}
+
+func TestStreakEmRisco(t *testing.T) {
+	if StreakEmRisco(0, "2026-08-14", "2026-08-15") {
+		t.Error("sem streak não deveria estar em risco")
+	}
+	if !StreakEmRisco(3, "2026-08-14", "2026-08-15") {
+		t.Error("streak positiva sem prática hoje deveria estar em risco")
+	}
+	if StreakEmRisco(3, "2026-08-15", "2026-08-15") {
+		t.Error("já praticou hoje, não deveria estar em risco")
+	}
+}
+
+func TestQuestoesHojeAposReset(t *testing.T) {
+	if got := QuestoesHojeAposReset(7, "2026-08-14", "2026-08-15"); got != 0 {
+		t.Errorf("esperado reset para 0 em dia novo, veio %d", got)
+	}
+	if got := QuestoesHojeAposReset(7, "2026-08-15", "2026-08-15"); got != 7 {
+		t.Errorf("esperado manter 7 no mesmo dia, veio %d", got)
+	}
+	if got := QuestoesHojeAposReset(7, "", "2026-08-15"); got != 0 {
+		t.Errorf("data vazia (nunca respondeu) deveria resetar pra 0, veio %d", got)
+	}
+}
+
+func TestRolarRecompensaBau(t *testing.T) {
+	casos := []struct {
+		nome           string
+		rollType       float64
+		rollDetail     float64
+		wantType       ChestRewardType
+		wantGemsAmount int
+	}{
+		{"abaixo do corte de gemas, detalhe 0 -> 1 gema (mínimo)", 0.0, 0.0, ChestRewardGems, 1},
+		{"abaixo do corte de gemas, detalhe alto -> 5 gemas (teto)", 0.5, 0.999, ChestRewardGems, 5},
+		{"exatamente no corte de gemas (0.75) já cai pro pool de item", 0.75, 0.0, ChestRewardStreakFreeze, 0},
+		{"acima do corte, detalhe baixo -> bloqueio de ofensiva", 0.9, 0.0, ChestRewardStreakFreeze, 0},
+		{"acima do corte, detalhe alto -> recarga de vidas", 0.9, 0.999, ChestRewardHeartsRefill, 0},
+	}
+	for _, c := range casos {
+		t.Run(c.nome, func(t *testing.T) {
+			got := RolarRecompensaBau(c.rollType, c.rollDetail)
+			if got.Type != c.wantType {
+				t.Errorf("RolarRecompensaBau(%v, %v).Type = %q, esperado %q", c.rollType, c.rollDetail, got.Type, c.wantType)
+			}
+			if got.Type == ChestRewardGems && got.GemsAmount != c.wantGemsAmount {
+				t.Errorf("RolarRecompensaBau(%v, %v).GemsAmount = %d, esperado %d", c.rollType, c.rollDetail, got.GemsAmount, c.wantGemsAmount)
+			}
+		})
+	}
+
+	t.Run("gemas sempre entre 1 e 5 pra qualquer rollDetail no pool de gemas", func(t *testing.T) {
+		for i := 0; i < 100; i++ {
+			rollDetail := float64(i) / 100
+			got := RolarRecompensaBau(0.1, rollDetail)
+			if got.GemsAmount < 1 || got.GemsAmount > 5 {
+				t.Errorf("RolarRecompensaBau(0.1, %v).GemsAmount = %d, esperado entre 1 e 5", rollDetail, got.GemsAmount)
+			}
+		}
+	})
+}
+
+func TestQuestoesSemanaAposReset(t *testing.T) {
+	if got, ciclo := QuestoesSemanaAposReset(30, "", "2026-08-15"); got != 0 || ciclo != "2026-08-15" {
+		t.Errorf("sem ciclo ativo deveria iniciar ciclo hoje com contador 0, veio (%d, %q)", got, ciclo)
+	}
+	if got, ciclo := QuestoesSemanaAposReset(30, "2026-08-15", "2026-08-15"); got != 30 || ciclo != "2026-08-15" {
+		t.Errorf("mesmo dia do início do ciclo deveria manter contador e ciclo, veio (%d, %q)", got, ciclo)
+	}
+	if got, ciclo := QuestoesSemanaAposReset(30, "2026-08-15", "2026-08-21"); got != 30 || ciclo != "2026-08-15" {
+		t.Errorf("6 dias depois (dentro da janela de 7) deveria manter, veio (%d, %q)", got, ciclo)
+	}
+	if got, ciclo := QuestoesSemanaAposReset(30, "2026-08-15", "2026-08-22"); got != 0 || ciclo != "2026-08-22" {
+		t.Errorf("exatamente 7 dias depois deveria resetar e iniciar novo ciclo hoje, veio (%d, %q)", got, ciclo)
+	}
+	if got, ciclo := QuestoesSemanaAposReset(30, "2026-08-15", "2026-09-01"); got != 0 || ciclo != "2026-09-01" {
+		t.Errorf("muito depois do fim do ciclo deveria resetar, veio (%d, %q)", got, ciclo)
+	}
+}
+
+func TestRolarRecompensaBauSemanal(t *testing.T) {
+	casos := []struct {
+		nome           string
+		rollType       float64
+		rollDetail     float64
+		wantType       ChestRewardType
+		wantGemsAmount int
+	}{
+		{"abaixo do corte de gemas, detalhe 0 -> 5 gemas (mínimo)", 0.0, 0.0, ChestRewardGems, 5},
+		{"abaixo do corte de gemas, detalhe alto -> 15 gemas (teto)", 0.5, 0.999, ChestRewardGems, 15},
+		{"exatamente no corte de gemas (0.60) já cai pro pool de item", 0.60, 0.0, ChestRewardStreakFreeze, 0},
+		{"acima do corte, detalhe baixo -> bloqueio de ofensiva", 0.9, 0.0, ChestRewardStreakFreeze, 0},
+		{"acima do corte, detalhe alto -> recarga de vidas", 0.9, 0.999, ChestRewardHeartsRefill, 0},
+	}
+	for _, c := range casos {
+		t.Run(c.nome, func(t *testing.T) {
+			got := RolarRecompensaBauSemanal(c.rollType, c.rollDetail)
+			if got.Type != c.wantType {
+				t.Errorf("RolarRecompensaBauSemanal(%v, %v).Type = %q, esperado %q", c.rollType, c.rollDetail, got.Type, c.wantType)
+			}
+			if got.Type == ChestRewardGems && got.GemsAmount != c.wantGemsAmount {
+				t.Errorf("RolarRecompensaBauSemanal(%v, %v).GemsAmount = %d, esperado %d", c.rollType, c.rollDetail, got.GemsAmount, c.wantGemsAmount)
+			}
+		})
+	}
+
+	t.Run("gemas sempre entre 5 e 15 pra qualquer rollDetail no pool de gemas", func(t *testing.T) {
+		for i := 0; i < 100; i++ {
+			rollDetail := float64(i) / 100
+			got := RolarRecompensaBauSemanal(0.1, rollDetail)
+			if got.GemsAmount < 5 || got.GemsAmount > 15 {
+				t.Errorf("RolarRecompensaBauSemanal(0.1, %v).GemsAmount = %d, esperado entre 5 e 15", rollDetail, got.GemsAmount)
+			}
+		}
+	})
+}
+
+func TestEhVIPAtivo(t *testing.T) {
+	base := time.Date(2026, 8, 15, 12, 0, 0, 0, time.UTC)
+	futuro := base.Add(24 * time.Hour)
+	passado := base.Add(-24 * time.Hour)
+
+	if EhVIPAtivo(false, nil, base) {
+		t.Error("is_vip=false nunca deveria estar ativo")
+	}
+	if EhVIPAtivo(false, &futuro, base) {
+		t.Error("is_vip=false nunca deveria estar ativo, mesmo com expiração futura")
+	}
+	if !EhVIPAtivo(true, nil, base) {
+		t.Error("is_vip=true sem vip_expires_at deveria ser VIP vitalício")
+	}
+	if !EhVIPAtivo(true, &futuro, base) {
+		t.Error("is_vip=true com expiração futura deveria estar ativo")
+	}
+	if EhVIPAtivo(true, &passado, base) {
+		t.Error("is_vip=true com expiração passada não deveria estar ativo")
+	}
+}
+
+func TestEstenderVIP(t *testing.T) {
+	base := time.Date(2026, 8, 15, 12, 0, 0, 0, time.UTC)
+
+	t.Run("sem VIP ativo: conta a partir de agora", func(t *testing.T) {
+		got := EstenderVIP(false, nil, base, 30)
+		esperado := base.AddDate(0, 0, 30)
+		if got == nil || !got.Equal(esperado) {
+			t.Errorf("EstenderVIP = %v, esperado %v", got, esperado)
+		}
+	})
+
+	t.Run("VIP expirado: conta a partir de agora, não da expiração antiga", func(t *testing.T) {
+		expirado := base.Add(-24 * time.Hour)
+		got := EstenderVIP(true, &expirado, base, 10)
+		esperado := base.AddDate(0, 0, 10)
+		if got == nil || !got.Equal(esperado) {
+			t.Errorf("EstenderVIP = %v, esperado %v", got, esperado)
+		}
+	})
+
+	t.Run("VIP ativo com prazo: empilha a partir da expiração atual", func(t *testing.T) {
+		expiraEm := base.AddDate(0, 0, 5)
+		got := EstenderVIP(true, &expiraEm, base, 10)
+		esperado := expiraEm.AddDate(0, 0, 10)
+		if got == nil || !got.Equal(esperado) {
+			t.Errorf("EstenderVIP = %v, esperado %v (15 dias a partir de agora)", got, esperado)
+		}
+	})
+
+	t.Run("VIP vitalício permanece vitalício", func(t *testing.T) {
+		got := EstenderVIP(true, nil, base, 30)
+		if got != nil {
+			t.Errorf("EstenderVIP = %v, esperado nil (vitalício)", got)
+		}
+	})
+}
+
+func TestVIPResetsAposReset(t *testing.T) {
+	if got := VIPResetsAposReset(1, "2026-08-14", "2026-08-15"); got != 0 {
+		t.Errorf("esperado reset para 0 em período novo, veio %d", got)
+	}
+	if got := VIPResetsAposReset(1, "2026-08-15", "2026-08-15"); got != 1 {
+		t.Errorf("esperado manter 1 no mesmo período, veio %d", got)
+	}
+	if got := VIPResetsAposReset(1, "", "2026-08-15"); got != 0 {
+		t.Errorf("período salvo vazio deveria resetar pra 0, veio %d", got)
 	}
 }

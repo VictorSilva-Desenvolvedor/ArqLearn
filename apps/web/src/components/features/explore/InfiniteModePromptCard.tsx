@@ -1,14 +1,19 @@
 import Link from "next/link";
 import { Card } from "@/components/ui/Card";
+import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
 import { Icon } from "@/components/ui/Icon";
 
 interface InfiniteModePromptCardProps {
   topic: string;
   themeLabel: string;
+  hasContent: boolean;
 }
 
-export function InfiniteModePromptCard({ topic, themeLabel }: InfiniteModePromptCardProps) {
+// hasContent:false desabilita "Desafiar-se" em vez de deixar cair no 404
+// TOPIC_HAS_NO_QUESTIONS do backend (POST /v1/infinite-mode/sessions só sorteia entre perguntas
+// aprovadas do tópico — sem nenhuma, não tem o que sortear).
+export function InfiniteModePromptCard({ topic, themeLabel, hasContent }: InfiniteModePromptCardProps) {
   return (
     <Card radius="xl" className="flex flex-col md:flex-row items-center justify-between gap-md bg-surface-gray">
       <div className="flex items-center gap-md">
@@ -20,9 +25,13 @@ export function InfiniteModePromptCard({ topic, themeLabel }: InfiniteModePrompt
           </p>
         </div>
       </div>
-      <Link href={`/infinito/${topic}/sessao`}>
-        <Button variant="gamification">Desafiar-se</Button>
-      </Link>
+      {hasContent ? (
+        <Link href={`/infinito/${topic}/sessao`}>
+          <Button variant="gamification">Desafiar-se</Button>
+        </Link>
+      ) : (
+        <Badge tone="neutral">Em construção</Badge>
+      )}
     </Card>
   );
 }

@@ -5,16 +5,21 @@ import { colors } from "@/theme/tokens";
 interface IconButtonProps {
   icon: ReactNode;
   label: string;
+  disabled?: boolean;
   onPress?: () => void;
 }
 
-export function IconButton({ icon, label, onPress }: IconButtonProps) {
+// Sem `disabled` no Pressable de propósito — dentro de uma ScrollView, um Pressable desabilitado
+// é uma armadilha conhecida do Android que trava o gesto de arrastar (mesmo bug de Button.tsx/
+// ThemeSelector.tsx). accessibilityState continua marcando desabilitado pra leitor de tela.
+export function IconButton({ icon, label, disabled, onPress }: IconButtonProps) {
   return (
     <Pressable
       accessibilityRole="button"
       accessibilityLabel={label}
-      onPress={onPress}
-      style={({ pressed }) => [styles.base, pressed && styles.pressed]}
+      accessibilityState={{ disabled }}
+      onPress={() => !disabled && onPress?.()}
+      style={({ pressed }) => [styles.base, pressed && !disabled && styles.pressed, disabled && styles.disabled]}
     >
       {icon}
     </Pressable>
@@ -31,5 +36,8 @@ const styles = StyleSheet.create({
   },
   pressed: {
     backgroundColor: colors.surfaceGray,
+  },
+  disabled: {
+    opacity: 0.5,
   },
 });

@@ -5,6 +5,7 @@ import { QuestionCard } from "@/components/features/quiz/QuestionCard";
 import { QuizActionBar } from "@/components/features/quiz/QuizActionBar";
 import { QuizHeader } from "@/components/features/quiz/QuizHeader";
 import { useQuizSession } from "@/components/features/quiz/useQuizSession";
+import { LoadingBlueprint } from "@/components/ui/LoadingBlueprint";
 import { colors, type } from "@/theme/tokens";
 
 // Espelha apps/web/src/app/(lesson)/trilhas/[trackId]/[lessonId]/sessao/page.tsx.
@@ -16,11 +17,7 @@ export default function LessonSessionScreen() {
   const noHeartsOpen = quiz.revealed && quiz.noHearts;
 
   if (quiz.loading || !quiz.currentQuestion) {
-    return (
-      <View style={styles.loading}>
-        <Text style={[type.bodyLg, styles.loadingText]}>Carregando lição…</Text>
-      </View>
-    );
+    return <LoadingBlueprint variant="fullscreen" size={160} label="Carregando lição…" />;
   }
 
   return (
@@ -78,14 +75,5 @@ const styles = StyleSheet.create({
   },
   bodyContent: {
     flexGrow: 1,
-  },
-  loading: {
-    flex: 1,
-    alignItems: "center",
-    justifyContent: "center",
-    backgroundColor: colors.background,
-  },
-  loadingText: {
-    color: colors.onSurfaceVariant,
   },
 });

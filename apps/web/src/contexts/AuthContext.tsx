@@ -7,12 +7,13 @@ import {
   getAccountById,
   type MockAccountId,
 } from "@/lib/api/mocks/fixtures/accounts";
-import { levelForXp } from "@/lib/api/mocks/fixtures/levelCurve";
+import { nivelDoXp } from "@/lib/gamification/level";
 import { clearAccountCookie, setAccountCookie } from "@/lib/auth/clientSession";
 import { createClient } from "@/lib/supabase/client";
 import { apiFetch, setAccessTokenProvider } from "@/lib/api/http";
 import { isResourceReal } from "@/lib/api/config";
 import { getGamificationProfile } from "@/lib/api/resources/gamification";
+import { LoadingBlueprint } from "@/components/ui/LoadingBlueprint";
 import type { GamificationProfile, User } from "@/types/api";
 
 // TDD §5.4 — mesmo intervalo/teto do backend, usado aqui só como stand-in de mock (nunca no
@@ -37,8 +38,6 @@ export interface AuthContextValue {
   gamification: GamificationProfile;
   updateGamification: (patch: Partial<GamificationProfile>) => void;
   updateUser: (patch: Partial<User>) => void;
-  // GamificationProfile (contrato real) não tem esse campo — só aparece na resposta de
-  // POST /v1/gamification/streak/freeze. Rastreado à parte, igual ao patch de User.
   streakFreezesAvailable: number;
   adjustStreakFreezes: (delta: number) => void;
   // Sessão real (Supabase Auth) — usar isto pro login de verdade (Maria/Marina/Admin, todas
@@ -94,7 +93,6 @@ export function AuthProvider({
   // Patch local sobre o User da sessão ativa (nome/fuso editados em Configurações) — não muta
   // fixture/perfil compartilhado, só a sessão atual; reseta ao trocar de conta/sessão.
   const [userPatch, setUserPatch] = useState<Partial<User>>({});
-  const [streakFreezesAvailable, setStreakFreezesAvailable] = useState(0);
   const [justLeveledUpTo, setJustLeveledUpTo] = useState<number | null>(null);
 
   // Evita aplicar a resposta de uma sessão antiga se o usuário trocar de sessão rápido demais
@@ -167,16 +165,20 @@ export function AuthProvider({
     setAccountId(id);
     setGamification(gamificationForAccount(id));
     setUserPatch({});
-    setStreakFreezesAvailable(0);
     setJustLeveledUpTo(null);
-  }, [setAccountId, setGamification, setUserPatch, setStreakFreezesAvailable, setJustLeveledUpTo]);
+  }, [setAccountId, setGamification, setUserPatch, setJustLeveledUpTo]);
 
   const updateUser = useCallback((patch: Partial<User>) => {
     setUserPatch((current) => ({ ...current, ...patch }));
   }, []);
 
+  // streak_freezes_available agora vem no próprio GamificationProfile (GET /v1/users/me e
+  // /v1/gamification/me) — ajusta ali em vez de manter um contador solto e desincronizado.
   const adjustStreakFreezes = useCallback((delta: number) => {
-    setStreakFreezesAvailable((current) => Math.max(0, current + delta));
+    setGamification((current) => ({
+      ...current,
+      streak_freezes_available: Math.max(0, current.streak_freezes_available + delta),
+    }));
   }, []);
 
   const logout = useCallback(() => {
@@ -198,7 +200,7 @@ export function AuthProvider({
       // consumidor). Se o caller já mandou `level` explícito, respeita e não recalcula.
       const nextLevel =
         patch.xp_total !== undefined && patch.level === undefined
-          ? levelForXp(patch.xp_total)
+          ? nivelDoXp(patch.xp_total)
           : (patch.level ?? current.level);
       if (nextLevel > current.level) {
         setJustLeveledUpTo(nextLevel);
@@ -277,7 +279,7 @@ export function AuthProvider({
       gamification,
       updateGamification,
       updateUser,
-      streakFreezesAvailable,
+      streakFreezesAvailable: gamification.streak_freezes_available,
       adjustStreakFreezes,
       loginWithPassword,
       isRealSession,
@@ -292,7 +294,6 @@ export function AuthProvider({
       gamification,
       updateGamification,
       updateUser,
-      streakFreezesAvailable,
       adjustStreakFreezes,
       loginWithPassword,
       isRealSession,
@@ -310,7 +311,7 @@ export function AuthProvider({
     <AuthContext.Provider value={value}>
       {shouldWait ? (
         <div className="min-h-screen flex items-center justify-center bg-background">
-          <div className="animate-pulse rounded-full h-10 w-10 bg-surface-container" />
+          <LoadingBlueprint variant="fullscreen" size={160} />
         </div>
       ) : (
         children

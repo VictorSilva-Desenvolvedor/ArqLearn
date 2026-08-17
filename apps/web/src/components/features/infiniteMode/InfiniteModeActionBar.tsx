@@ -1,5 +1,6 @@
 import { Button } from "@/components/ui/Button";
 import { Icon } from "@/components/ui/Icon";
+import { LoadingBlueprint } from "@/components/ui/LoadingBlueprint";
 
 interface InfiniteModeActionBarProps {
   revealed: boolean;
@@ -41,11 +42,7 @@ export function InfiniteModeActionBar({
             <Button
               variant="primary"
               disabled={!canConfirm || verifying}
-              icon={
-                verifying ? (
-                  <Icon name="progress_activity" className="animate-spin text-xl" />
-                ) : undefined
-              }
+              icon={verifying ? <LoadingBlueprint size={20} /> : undefined}
               onClick={onConfirm}
             >
               {verifying ? "Verificando…" : "Confirmar"}

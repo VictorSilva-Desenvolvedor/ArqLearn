@@ -13,7 +13,36 @@ export interface User {
   created_at: string;
 }
 
-export type LeagueTier = "bronze" | "prata" | "ouro" | "platina" | "diamante" | null;
+// Payload de GET /v1/users/me/export (LGPD, portabilidade de dados).
+export interface ExportedUserData {
+  exported_at: string;
+  user: User;
+  gamification: {
+    xp_total: number;
+    level: number;
+    streak_current: number;
+    streak_best: number;
+    hearts_current: number;
+    gems: number;
+    current_tier: number;
+  };
+  achievements: Achievement[];
+  progress: ProgressSummary;
+}
+
+// Espelha LEAGUE_TIERS de lib/gamification/leagueTiers.ts (hierarquia de 10 ligas).
+export type LeagueTier =
+  | "madeira"
+  | "pedra"
+  | "bronze"
+  | "prata"
+  | "ouro"
+  | "platina"
+  | "esmeralda"
+  | "safira"
+  | "rubi"
+  | "diamante"
+  | null;
 
 export interface GamificationProfile {
   xp_total: number;
@@ -21,12 +50,19 @@ export interface GamificationProfile {
   level: number;
   streak_current: number;
   streak_best: number;
+  streak_freezes_available: number;
+  // Streak positiva e ainda sem prática hoje (TDD §5.2) — gatilho pra oferecer usar um
+  // Bloqueio de Ofensiva assim que o app abre, em vez de só descobrir a perda no dia seguinte.
+  streak_at_risk: boolean;
   hearts_current: number; // 0-5
   // Instante da próxima regeneração de vida (TDD §5.4, 1 vida a cada 3h) — null quando
   // hearts_current já está no teto (5).
   hearts_next_at: string | null;
   gems: number;
   league_tier: LeagueTier;
+  // VIP "Mestre Arquiteto" — já reflete a expiração (nunca true com vip_expires_at no passado).
+  is_vip: boolean;
+  vip_expires_at: string | null;
 }
 
 export type AchievementType = string;
@@ -46,8 +82,23 @@ export interface LeagueRankingEntry {
 export interface League {
   league_id: string;
   tier: LeagueTier;
+  division: number;
   week_reference: string;
   ranking: LeagueRankingEntry[];
+  promotion_slots: number;
+  demotion_slots: number;
+  // Só vêm preenchidos quando é a liga do próprio usuário (sem passar `tier` pra getLeague) —
+  // null ao navegar o ranking de outra liga, ou quando o grupo é pequeno demais pra uma promoção
+  // real acontecer essa semana, ou o usuário já está na tier mais alta.
+  viewer_position: number | null;
+  xp_to_promotion: number | null;
+}
+
+export interface ProgressSummary {
+  tracks_in_progress: number;
+  tracks_completed: number;
+  lessons_completed_last_7d: number;
+  accuracy_rate: number;
 }
 
 export type ShopItemType = "hearts_refill" | "streak_freeze" | "cosmetic";
@@ -80,6 +131,45 @@ export interface ApiErrorBody {
   details?: Record<string, unknown>;
 }
 
+export type NotificationType =
+  | "streak_at_risk"
+  | "league_promotion"
+  | "league_demotion"
+  | "new_challenge"
+  | "questions_ready_for_review"
+  | "welcome"
+  | "bug_fixed"
+  | "suggestion_implemented";
+
+export interface AppNotification {
+  id: string;
+  type: NotificationType;
+  message: string;
+  read: boolean;
+  created_at: string;
+}
+
+export type BugReportStatus = "open" | "fixed";
+export type BugReportType = "bug" | "suggestion";
+export type DeviceType = "mobile" | "desktop" | "tablet";
+
+// Ver API Spec §14 — enviado por qualquer usuário (POST /v1/bug-reports); listagem/resolução são
+// só do professor/admin (GET /v1/bug-reports, POST .../resolve), fora de escopo do mobile.
+export interface BugReport {
+  id: string;
+  user_id: string;
+  reporter_name?: string;
+  reporter_email?: string;
+  type: BugReportType;
+  description: string;
+  screenshot_base64?: string;
+  device_model?: string;
+  device_type?: DeviceType;
+  status: BugReportStatus;
+  created_at: string;
+  resolved_at?: string | null;
+}
+
 export type TrackOrigin = "curated" | "user_generated";
 
 export interface Track {
@@ -102,6 +192,9 @@ export interface Lesson {
 export interface TrackLesson {
   lesson: Lesson;
   progress_status: LessonProgressStatus;
+  // false = "em construção" (sem pergunta aprovada ainda) — deveria ficar acessível quando true,
+  // independente de progress_status (sem bloqueio por sequência fake).
+  has_questions: boolean;
 }
 
 export type QuestionType =
@@ -140,4 +233,145 @@ export interface AnswerResult {
   vidas_restantes: number;
   streak_atual: number;
   explicacao: string;
+  // Baú Diário (v1.18) — 10 perguntas no dia (lição + Modo Infinito somados) liberam 1 abertura.
+  daily_chest_available: boolean;
+  daily_chest_questions: number;
+}
+
+export interface InfiniteModeQuestion {
+  id: string;
+  prompt: string;
+  type: QuestionType;
+  difficulty: QuestionDifficulty;
+  image_url?: string;
+  options: QuestionOption[];
+}
+
+export interface InfiniteModeSession {
+  session_id: string;
+  topic: string;
+  question: InfiniteModeQuestion;
+}
+
+export interface InfiniteModeAnswerResult {
+  correct: boolean;
+  xp_ganho: number;
+  xp_daily_cap_reached: boolean;
+  questions_answered: number;
+  correct_count: number;
+  level: number;
+  next_question?: InfiniteModeQuestion;
+  // Baú Diário (v1.18) — mesmo contador acumulado do dia de AnswerResult, Modo Infinito soma junto.
+  daily_chest_available: boolean;
+  daily_chest_questions: number;
+}
+
+// --- Baú Diário (v1.18) ---
+
+export interface DailyChestStatus {
+  questions_today: number;
+  questions_required: number;
+  available: boolean;
+  claimed_today: boolean;
+}
+
+export type ChestRewardType = "gems" | "streak_freeze" | "hearts_refill";
+
+export interface ChestOpenResult {
+  reward_type: ChestRewardType;
+  // Só preenchido quando reward_type === "gems".
+  gems_earned?: number;
+  // Saldo total de gemas após a abertura (não é quanto foi ganho, ver gems_earned).
+  gems: number;
+}
+
+// --- Baú Semanal (v1.19) — mesmo formato de ChestOpenResult na abertura, ver
+// GET/POST /v1/gamification/weekly-chest[/open]. ---
+
+export interface WeeklyChestStatus {
+  questions_this_cycle: number;
+  questions_required: number;
+  available: boolean;
+  claimed_this_cycle: boolean;
+}
+
+// --- VIP "Mestre Arquiteto" ---
+
+export interface VipStatus {
+  is_vip: boolean;
+  vip_expires_at: string | null;
+  daily_chest_resets_used: number;
+  daily_chest_resets_max: number;
+  weekly_chest_resets_used: number;
+  weekly_chest_resets_max: number;
+}
+
+export interface VipChestResetResult {
+  available: boolean;
+  resets_used: number;
+  resets_max: number;
+  questions_required: number;
+}
+
+export interface VipRedeemCouponResult {
+  is_vip: boolean;
+  vip_expires_at: string | null;
+}
+
+export interface InfiniteModeEndResult {
+  questions_answered: number;
+  correct_count: number;
+  accuracy_rate: number;
+  xp_earned: number;
+  avg_time_ms: number;
+}
+
+export type UploadFileType = "pdf" | "docx" | "pptx" | "image" | "video";
+
+export type UploadStatus = "received" | "processing" | "ready_for_review" | "published" | "failed";
+
+export interface UploadedContent {
+  id: string;
+  filename: string;
+  file_type: UploadFileType;
+  status: UploadStatus;
+  size_bytes: number;
+  progress_percent?: number;
+  created_at: string;
+}
+
+export interface UploadSummaryKeyPoint {
+  title: string;
+  explanation: string;
+}
+
+export interface UploadSummary {
+  upload_id: string;
+  title: string;
+  synopsis: string;
+  key_points: UploadSummaryKeyPoint[];
+  architect_tip: string | null;
+  generated_at: string;
+}
+
+export interface ChatSourceRef {
+  page?: number;
+  timestamp_ms?: number;
+}
+
+export interface ChatAnswer {
+  message_id: string;
+  answer: string;
+  source_excerpt: string;
+  source_ref: ChatSourceRef;
+  created_at: string;
+}
+
+export type ChatRole = "user" | "assistant";
+
+export interface ChatMessage {
+  message_id: string;
+  role: ChatRole;
+  message: string;
+  created_at: string;
 }

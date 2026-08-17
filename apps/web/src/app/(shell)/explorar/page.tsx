@@ -16,6 +16,7 @@ import { InfiniteModePromptCard } from "@/components/features/explore/InfiniteMo
 import { TrackCard } from "@/components/features/explore/TrackCard";
 import { UploadedContentItem } from "@/components/features/explore/UploadedContentItem";
 import { useTheme } from "@/hooks/useTheme";
+import { useToast } from "@/hooks/useToast";
 import type { UploadedContent, UploadStatus } from "@/types/api";
 
 const TERMINAL_STATUSES: UploadStatus[] = ["ready_for_review", "published", "failed"];
@@ -25,7 +26,8 @@ export default function ExplorePage() {
   const [query, setQuery] = useState("");
   const [uploads, setUploads] = useState<UploadedContent[]>([]);
   const [uploadError, setUploadError] = useState<string | null>(null);
-  const { theme } = useTheme();
+  const { theme, setTopic } = useTheme();
+  const { showToast } = useToast();
   const activePolls = useRef(new Set<string>());
 
   useEffect(() => {
@@ -109,13 +111,21 @@ export default function ExplorePage() {
           </p>
         )}
       </div>
-      <InfiniteModePromptCard topic={theme.topic} themeLabel={theme.label} />
+      <InfiniteModePromptCard topic={theme.topic} themeLabel={theme.label} hasContent={theme.hasContent} />
 
       <section className="flex flex-col gap-sm">
         <h2 className="font-display text-headline-md text-on-surface">Trilhas Recomendadas</h2>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-md">
           {filteredTracks.map((item) => (
-            <TrackCard key={item.track.id} {...item} isSelectedTheme={item.track.topic === theme.topic} />
+            <TrackCard
+              key={item.track.id}
+              {...item}
+              isSelectedTheme={item.track.topic === theme.topic}
+              onSelect={() => {
+                setTopic(item.track.topic);
+                showToast(`Tema "${item.track.title}" selecionado`, "success");
+              }}
+            />
           ))}
         </div>
       </section>

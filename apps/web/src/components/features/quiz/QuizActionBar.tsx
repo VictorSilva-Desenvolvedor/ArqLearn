@@ -1,5 +1,6 @@
 import { Button } from "@/components/ui/Button";
 import { Icon } from "@/components/ui/Icon";
+import { LoadingBlueprint } from "@/components/ui/LoadingBlueprint";
 import { cn } from "@/lib/utils/cn";
 
 interface QuizActionBarProps {
@@ -60,8 +61,9 @@ export function QuizActionBar({
               type="button"
               onClick={onExplainMore}
               disabled={explainLoading}
-              className="self-start font-label text-body-sm text-primary underline disabled:opacity-50"
+              className="self-start flex items-center gap-1 font-label text-body-sm text-primary underline disabled:opacity-50"
             >
+              {explainLoading && <LoadingBlueprint size={16} />}
               {explainLoading ? "Aprofundando..." : "Explique melhor"}
             </button>
           )}
@@ -87,11 +89,7 @@ export function QuizActionBar({
             <Button
               variant="gamification"
               disabled={!canVerify || verifying}
-              icon={
-                verifying ? (
-                  <Icon name="progress_activity" className="animate-spin text-xl" />
-                ) : undefined
-              }
+              icon={verifying ? <LoadingBlueprint size={20} /> : undefined}
               onClick={onVerify}
             >
               {verifying ? "Verificando…" : "Verificar"}

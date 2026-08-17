@@ -1,6 +1,6 @@
 import { createContext, useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { AppState } from "react-native";
-import { levelForXp } from "@/lib/api/mocks/fixtures/levelCurve";
+import { nivelDoXp } from "@/lib/gamification/level";
 import { createSupabaseClient } from "@/lib/supabase/client";
 import { apiFetch, setAccessTokenProvider } from "@/lib/api/http";
 import { isResourceReal } from "@/lib/api/config";
@@ -44,17 +44,20 @@ const emptyGamification: GamificationProfile = {
   level: 1,
   streak_current: 0,
   streak_best: 0,
+  streak_freezes_available: 0,
+  streak_at_risk: false,
   hearts_current: HEARTS_MAX,
   hearts_next_at: null,
   gems: 0,
   league_tier: null,
+  is_vip: false,
+  vip_expires_at: null,
 };
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [isResolved, setIsResolved] = useState(false);
   const [gamification, setGamification] = useState<GamificationProfile>(emptyGamification);
-  const [streakFreezesAvailable, setStreakFreezesAvailable] = useState(0);
   const [justLeveledUpTo, setJustLeveledUpTo] = useState<number | null>(null);
 
   // Evita aplicar a resposta de uma sessão antiga se o usuário trocar de sessão rápido demais.
@@ -124,8 +127,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setUser((current) => (current ? { ...current, ...patch } : current));
   }, []);
 
+  // streak_freezes_available agora vem no próprio GamificationProfile (GET /v1/users/me e
+  // /v1/gamification/me) — ajusta ali em vez de manter um contador solto e desincronizado.
   const adjustStreakFreezes = useCallback((delta: number) => {
-    setStreakFreezesAvailable((current) => Math.max(0, current + delta));
+    setGamification((current) => ({
+      ...current,
+      streak_freezes_available: Math.max(0, current.streak_freezes_available + delta),
+    }));
   }, []);
 
   const logout = useCallback(async () => {
@@ -139,7 +147,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setGamification((current) => {
       const nextLevel =
         patch.xp_total !== undefined && patch.level === undefined
-          ? levelForXp(patch.xp_total)
+          ? nivelDoXp(patch.xp_total)
           : (patch.level ?? current.level);
       if (nextLevel > current.level) {
         setJustLeveledUpTo(nextLevel);
@@ -196,7 +204,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       gamification,
       updateGamification,
       updateUser,
-      streakFreezesAvailable,
+      streakFreezesAvailable: gamification.streak_freezes_available,
       adjustStreakFreezes,
       loginWithPassword,
       logout,
@@ -209,7 +217,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       gamification,
       updateGamification,
       updateUser,
-      streakFreezesAvailable,
       adjustStreakFreezes,
       loginWithPassword,
       logout,

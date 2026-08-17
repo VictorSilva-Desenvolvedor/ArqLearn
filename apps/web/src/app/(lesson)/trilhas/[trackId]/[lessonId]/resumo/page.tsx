@@ -12,6 +12,7 @@ export default function LessonSummaryPage() {
   const accuracy = Number(searchParams.get("accuracy") ?? 0);
   const streak = Number(searchParams.get("streak") ?? 0);
   const hearts = Number(searchParams.get("hearts") ?? 0);
+  const chestAvailable = searchParams.get("chest") === "true";
 
   // Marco simples e honesto de disparar no mock: lição concluída sem nenhum erro. Um backend
   // real decidiria isso no Gamification Service e devolveria em /v1/gamification/me.achievements.
@@ -29,6 +30,7 @@ export default function LessonSummaryPage() {
       moduleProgressPercent={75}
       gemsEarned={achievementUnlocked ? achievementCatalog.licao_perfeita.gems_reward : 0}
       nextHref={nextHref}
+      chestAvailable={chestAvailable}
     />
   );
 }

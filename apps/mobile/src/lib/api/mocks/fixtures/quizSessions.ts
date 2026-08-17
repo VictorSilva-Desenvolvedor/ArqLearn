@@ -1,6 +1,8 @@
 import { ApiError } from "../../http";
 import { getMockQuestionBank, xpForDifficulty, type MockQuestionEntry } from "./questions";
 import { awardXp } from "./dailyXpCap";
+import { bumpMockChestQuestions, mockChestAvailable, mockChestQuestionsToday } from "./dailyChest";
+import { bumpMockWeeklyChestQuestions } from "./weeklyChest";
 import type { AnswerResult, LessonSession, QuestionDifficulty } from "@/types/api";
 
 interface MockSessionState {
@@ -72,6 +74,8 @@ export function answerMockSession(
 
   const baseXp = correct ? xpForDifficulty(entry.question.difficulty as QuestionDifficulty) : 0;
   const { xp_ganho, xp_daily_cap_reached } = awardXp(baseXp);
+  bumpMockChestQuestions();
+  bumpMockWeeklyChestQuestions();
 
   return {
     correct,
@@ -80,5 +84,7 @@ export function answerMockSession(
     vidas_restantes: session.heartsRemaining,
     streak_atual: session.streak,
     explicacao: entry.explanation,
+    daily_chest_available: mockChestAvailable(),
+    daily_chest_questions: mockChestQuestionsToday(),
   };
 }

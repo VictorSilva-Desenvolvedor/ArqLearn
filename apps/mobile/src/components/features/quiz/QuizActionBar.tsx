@@ -1,6 +1,7 @@
-import { ActivityIndicator, Pressable, StyleSheet, Text, View } from "react-native";
+import { Pressable, StyleSheet, Text, View } from "react-native";
 import { Button } from "@/components/ui/Button";
 import { Icon } from "@/components/ui/Icon";
+import { LoadingBlueprint } from "@/components/ui/LoadingBlueprint";
 import { colors, spacing, type } from "@/theme/tokens";
 
 interface QuizActionBarProps {
@@ -56,7 +57,8 @@ export function QuizActionBar({
           {deepExplanation ? (
             <Text style={[type.bodySm, styles.deepExplanation]}>{deepExplanation}</Text>
           ) : (
-            <Pressable onPress={onExplainMore} disabled={explainLoading}>
+            <Pressable style={styles.explainRow} onPress={onExplainMore} disabled={explainLoading}>
+              {explainLoading && <LoadingBlueprint size={16} />}
               <Text style={[type.bodySm, styles.explainLink, explainLoading && styles.explainLinkDisabled]}>
                 {explainLoading ? "Aprofundando..." : "Explique melhor"}
               </Text>
@@ -86,7 +88,7 @@ export function QuizActionBar({
             <Button
               variant="gamification"
               disabled={!canVerify || verifying}
-              icon={verifying ? <ActivityIndicator size="small" color={colors.onSecondaryContainer} /> : undefined}
+              icon={verifying ? <LoadingBlueprint size={20} /> : undefined}
               onPress={onVerify}
             >
               {verifying ? "Verificando…" : "Verificar"}
@@ -120,8 +122,13 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing.md,
     paddingVertical: spacing.sm,
   },
-  explainLink: {
+  explainRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 4,
     alignSelf: "flex-start",
+  },
+  explainLink: {
     color: colors.primary,
     textDecorationLine: "underline",
   },

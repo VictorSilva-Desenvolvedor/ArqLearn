@@ -3,7 +3,11 @@ import { Pressable, StyleSheet, View } from "react-native";
 import { Icon, type IconName } from "@/components/ui/Icon";
 import { colors } from "@/theme/tokens";
 
-export type LessonNodeVariant = "completed" | "current" | "locked" | "checkpoint";
+// "available" = tem pergunta aprovada de verdade, mas o usuário ainda não começou — navegável,
+// fora de ordem (sem bloqueio por sequência fake). "construction" = sem nenhuma pergunta aprovada
+// ainda, não navegável — mostra o ícone de "em construção" em vez do ícone normal da lição, pra
+// não parecer só "bloqueada" (que sugeria um pré-requisito que não existe de verdade).
+export type LessonNodeVariant = "completed" | "current" | "available" | "construction" | "checkpoint";
 
 interface LessonNodeProps {
   variant: Exclude<LessonNodeVariant, "current">;
@@ -32,9 +36,22 @@ export function LessonNode({ variant, icon, href }: LessonNodeProps) {
     );
   }
 
+  if (variant === "available") {
+    return (
+      <Pressable
+        onPress={() => router.push(href as never)}
+        style={styles.available}
+        accessibilityRole="button"
+        accessibilityLabel="Lição disponível — toque para começar"
+      >
+        <Icon name={icon} size={28} color={colors.primary} />
+      </Pressable>
+    );
+  }
+
   return (
-    <View style={styles.locked}>
-      <Icon name={icon} size={28} color={colors.outline} />
+    <View style={styles.construction} accessibilityLabel="Lição em construção — ainda sem conteúdo">
+      <Icon name="construction" size={26} color={colors.outline} />
     </View>
   );
 }
@@ -64,13 +81,24 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
   },
-  locked: {
+  available: {
+    width: 64,
+    height: 64,
+    borderRadius: 32,
+    backgroundColor: colors.surfaceBright,
+    borderWidth: 2,
+    borderColor: colors.primary,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  construction: {
     width: 64,
     height: 64,
     borderRadius: 32,
     backgroundColor: colors.surfaceGray,
     borderWidth: 2,
     borderColor: colors.outlineVariant,
+    borderStyle: "dashed",
     alignItems: "center",
     justifyContent: "center",
   },

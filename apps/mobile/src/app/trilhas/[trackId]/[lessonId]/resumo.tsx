@@ -4,19 +4,21 @@ import { achievementCatalog } from "@/lib/gamification/achievementCatalog";
 
 // Espelha apps/web/src/app/(lesson)/trilhas/[trackId]/[lessonId]/resumo/page.tsx.
 export default function LessonSummaryScreen() {
-  const { trackId, lessonId, xp, accuracy, streak, hearts } = useLocalSearchParams<{
+  const { trackId, lessonId, xp, accuracy, streak, hearts, chest } = useLocalSearchParams<{
     trackId: string;
     lessonId: string;
     xp: string;
     accuracy: string;
     streak: string;
     hearts: string;
+    chest: string;
   }>();
 
   const xpValue = Number(xp ?? 0);
   const accuracyValue = Number(accuracy ?? 0);
   const streakValue = Number(streak ?? 0);
   const heartsValue = Number(hearts ?? 0);
+  const chestAvailable = chest === "true";
 
   // Marco simples e honesto de disparar no mock: lição concluída sem nenhum erro. Um backend
   // real decidiria isso no Gamification Service e devolveria em /v1/gamification/me.achievements.
@@ -34,6 +36,7 @@ export default function LessonSummaryScreen() {
       moduleProgressPercent={75}
       gemsEarned={achievementUnlocked ? achievementCatalog.licao_perfeita.gems_reward : 0}
       nextHref={nextHref}
+      chestAvailable={chestAvailable}
     />
   );
 }

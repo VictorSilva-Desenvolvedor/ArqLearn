@@ -51,9 +51,15 @@ export default async function ProfilePage() {
 
   return (
     <div className="max-w-2xl mx-auto px-lg py-section flex flex-col gap-lg">
-      <ProfileHeader name={user.name} level={gamification.level} xpTotal={gamification.xp_total} />
+      <ProfileHeader
+        name={user.name}
+        level={gamification.level}
+        xpTotal={gamification.xp_total}
+        vip={gamification.is_vip}
+      />
       <ProfileStatsGrid
         xpTotal={gamification.xp_total}
+        level={gamification.level}
         streakCurrent={gamification.streak_current}
         streakBest={gamification.streak_best}
         gems={gamification.gems}
@@ -62,6 +68,11 @@ export default async function ProfilePage() {
       <StreakFreezeCard />
       <AchievementGrid unlocked={gamification.achievements} />
       <div className="flex flex-col gap-sm">
+        <ProfileMenuLink
+          href="/vip"
+          icon="crown"
+          label={gamification.is_vip ? "Minha Assinatura VIP" : "Seja VIP"}
+        />
         <ProfileMenuLink href="/loja" icon="storefront" label="Loja" />
         <ProfileMenuLink href="/ajuda" icon="help" label="Ajuda e Bugs" />
         <ProfileMenuLink href="/perfil/configuracoes" icon="settings" label="Configurações" />

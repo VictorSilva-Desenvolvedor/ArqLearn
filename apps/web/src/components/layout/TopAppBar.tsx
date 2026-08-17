@@ -10,11 +10,13 @@ import { ThemeSelector } from "./ThemeSelector";
 import { NoHeartsDialog } from "@/components/features/gamification/NoHeartsDialog";
 import { StreakDialog } from "@/components/features/gamification/StreakDialog";
 import { useAuth } from "@/hooks/useAuth";
+import { xpParaProximoNivel } from "@/lib/gamification/level";
 
 export function TopAppBar() {
   const { user, gamification, logout } = useAuth();
   const [heartsDialogOpen, setHeartsDialogOpen] = useState(false);
   const [streakDialogOpen, setStreakDialogOpen] = useState(false);
+  const xpFaltam = xpParaProximoNivel(gamification.level, gamification.xp_total);
 
   const stats = (
     <>
@@ -44,11 +46,13 @@ export function TopAppBar() {
         />
       </button>
       <div className="w-px h-4 bg-outline-variant" />
-      <StatPill
-        tone="secondary"
-        icon={<Icon name="diamond" filled className="text-secondary" />}
-        value={gamification.gems}
-      />
+      <Link href="/loja" aria-label="Ir para a Loja" className="rounded-full">
+        <StatPill
+          tone="secondary"
+          icon={<Icon name="diamond" filled className="text-secondary" />}
+          value={gamification.gems}
+        />
+      </Link>
     </>
   );
 
@@ -77,8 +81,11 @@ export function TopAppBar() {
             href="/perfil"
             className="flex items-center gap-xs text-primary font-bold p-1 rounded-md hover:bg-surface-container transition-colors"
           >
-            <span className="font-label-caps text-label-caps uppercase">
-              {gamification.xp_total} XP
+            <span className="flex items-baseline gap-1 whitespace-nowrap">
+              <span className="font-label-caps text-label-caps text-primary uppercase">Nível {gamification.level}</span>
+              <span className="font-label-caps text-[10px] text-on-surface-variant normal-case">
+                · {xpFaltam} XP p/ próx.
+              </span>
             </span>
             <Avatar name={user.name} size={32} />
           </Link>
