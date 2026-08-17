@@ -1,11 +1,10 @@
 import { useEffect, useState } from "react";
-import { useRouter } from "expo-router";
 import { ScrollView, StyleSheet, Text, TextInput, View } from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
 import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
 import { Icon, type IconName } from "@/components/ui/Icon";
+import { TopAppBar } from "@/components/home/TopAppBar";
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/useToast";
 import { ApiError } from "@/lib/api/http";
@@ -14,9 +13,12 @@ import { colors, radius, spacing, type as typeTokens } from "@/theme/tokens";
 import type { VipStatus } from "@/types/api";
 
 // Tela VIP "Mestre Arquiteto" (a pedido do usuário), adaptada do mockup "Assinatura VIP" pros
-// tokens reais do app. Dois caminhos de ativação: cupom de 10 dígitos (funcional) e assinatura
-// recorrente (desabilitada nesta fase — sem gateway de pagamento integrado, ver
-// services/monolith/internal/gamification/vip.go VIPSubscriptionsEnabled).
+// tokens reais do app. Aba de primeiro nível (não mais tela empilhada) — usuário pediu pra VIP
+// ficar na bottom nav, no centro entre Explorar e Liga, ver (tabs)/_layout.tsx — por isso usa
+// TopAppBar (mesmo cabeçalho das outras abas) em vez de um botão "Voltar". Dois caminhos de
+// ativação: cupom de 10 dígitos (funcional) e assinatura recorrente (desabilitada nesta fase —
+// sem gateway de pagamento integrado, ver services/monolith/internal/gamification/vip.go
+// VIPSubscriptionsEnabled).
 const BENEFITS: { icon: IconName; title: string; description: string }[] = [
   {
     icon: "chest",
@@ -46,7 +48,6 @@ function formatExpiresAt(iso: string | null): string {
 }
 
 export default function VipScreen() {
-  const router = useRouter();
   const { gamification, updateGamification } = useAuth();
   const { showToast } = useToast();
   const [status, setStatus] = useState<VipStatus | null>(null);
@@ -84,14 +85,9 @@ export default function VipScreen() {
   const isVip = gamification.is_vip;
 
   return (
-    <SafeAreaView style={styles.screen} edges={["top"]}>
+    <View style={styles.screen}>
+      <TopAppBar />
       <ScrollView contentContainerStyle={styles.content}>
-        <View style={styles.header}>
-          <Button variant="ghost" size="sm" onPress={() => router.back()}>
-            Voltar
-          </Button>
-        </View>
-
         <View style={styles.hero}>
           <View style={styles.crownBadge}>
             <Icon name="crown" size={40} color={colors.onSecondary} />
@@ -173,7 +169,7 @@ export default function VipScreen() {
           </Card>
         )}
       </ScrollView>
-    </SafeAreaView>
+    </View>
   );
 }
 
@@ -186,9 +182,6 @@ const styles = StyleSheet.create({
     padding: spacing.md,
     paddingBottom: spacing.lg,
     gap: spacing.lg,
-  },
-  header: {
-    flexDirection: "row",
   },
   hero: {
     alignItems: "center",

@@ -2,13 +2,14 @@ import { Icon } from "@/components/ui/Icon";
 import { NavLink } from "./NavLink";
 
 const items = [
-  { href: "/", label: "Home", icon: "home" },
-  { href: "/explorar", label: "Explorar", icon: "explore" },
-  { href: "/liga", label: "Liga", icon: "leaderboard" },
-  { href: "/perfil", label: "Perfil", icon: "person" },
-  { href: "/loja", label: "Loja", icon: "storefront" },
-  { href: "/notificacoes", label: "Notificações", icon: "notifications" },
-  { href: "/ajuda", label: "Ajuda e Bugs", icon: "help" },
+  { href: "/", label: "Home", icon: "home", tone: "default" as const },
+  { href: "/explorar", label: "Explorar", icon: "explore", tone: "default" as const },
+  { href: "/vip", label: "VIP", icon: "crown", tone: "gold" as const },
+  { href: "/liga", label: "Liga", icon: "leaderboard", tone: "default" as const },
+  { href: "/perfil", label: "Perfil", icon: "person", tone: "default" as const },
+  { href: "/loja", label: "Loja", icon: "storefront", tone: "default" as const },
+  { href: "/notificacoes", label: "Notificações", icon: "notifications", tone: "default" as const },
+  { href: "/ajuda", label: "Ajuda e Bugs", icon: "help", tone: "default" as const },
 ];
 
 export function SideNav() {
@@ -20,6 +21,7 @@ export function SideNav() {
           href={item.href}
           label={item.label}
           variant="side"
+          tone={item.tone}
           icon={<Icon name={item.icon} />}
           activeIcon={<Icon name={item.icon} filled />}
         />

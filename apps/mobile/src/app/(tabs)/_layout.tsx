@@ -1,6 +1,7 @@
+import { StyleSheet, View } from "react-native";
 import { Tabs } from "expo-router";
 import { Icon } from "@/components/ui/Icon";
-import { colors } from "@/theme/tokens";
+import { colors, radius } from "@/theme/tokens";
 
 export default function TabsLayout() {
   return (
@@ -30,6 +31,24 @@ export default function TabsLayout() {
           tabBarIcon: ({ color, size }) => <Icon name="explore" size={size} color={String(color)} />,
         }}
       />
+      {/* VIP fica de propósito no centro (a pedido do usuário: "no meio entre os dois", 2 abas de
+          cada lado) — dourado sempre, ativo ou não, pra ler como destino premium e não só mais um
+          item que "apaga" quando inativo igual aos outros. tabBar*TintColor globais (acima) só se
+          aplicam ao texto do label das outras abas; sobrescritos aqui pra manter o rótulo VIP
+          dourado nos dois estados. */}
+      <Tabs.Screen
+        name="vip"
+        options={{
+          title: "VIP",
+          tabBarActiveTintColor: colors.secondary,
+          tabBarInactiveTintColor: colors.secondary,
+          tabBarIcon: ({ focused, size }) => (
+            <View style={[vipStyles.badge, focused && vipStyles.badgeActive]}>
+              <Icon name="crown" size={size - 6} color={focused ? colors.onSecondary : colors.secondary} />
+            </View>
+          ),
+        }}
+      />
       <Tabs.Screen
         name="liga"
         options={{
@@ -47,3 +66,17 @@ export default function TabsLayout() {
     </Tabs>
   );
 }
+
+const vipStyles = StyleSheet.create({
+  badge: {
+    width: 30,
+    height: 30,
+    borderRadius: radius.full,
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: colors.secondaryFixed,
+  },
+  badgeActive: {
+    backgroundColor: colors.secondary,
+  },
+});

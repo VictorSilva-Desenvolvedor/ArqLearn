@@ -68,11 +68,6 @@ export default async function ProfilePage() {
       <StreakFreezeCard />
       <AchievementGrid unlocked={gamification.achievements} />
       <div className="flex flex-col gap-sm">
-        <ProfileMenuLink
-          href="/vip"
-          icon="crown"
-          label={gamification.is_vip ? "Minha Assinatura VIP" : "Seja VIP"}
-        />
         <ProfileMenuLink href="/loja" icon="storefront" label="Loja" />
         <ProfileMenuLink href="/ajuda" icon="help" label="Ajuda e Bugs" />
         <ProfileMenuLink href="/perfil/configuracoes" icon="settings" label="Configurações" />
