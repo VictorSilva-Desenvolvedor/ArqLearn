@@ -37,6 +37,8 @@ export const EMPTY_GAMIFICATION: GamificationProfile = {
   hearts_next_at: null,
   gems: 0,
   league_tier: null,
+  is_vip: false,
+  vip_expires_at: null,
 };
 
 export function gamificationForAccount(id: MockAccountId | null | undefined): GamificationProfile {

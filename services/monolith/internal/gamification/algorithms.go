@@ -32,9 +32,15 @@ type XPResult struct {
 	DailyCapReached bool
 }
 
+// VIPXPMultiplier é o bônus de XP do VIP (a pedido do usuário: "+25% de XP") — aplicado por
+// resposta, ANTES do teto diário (DailyXPCap continua valendo 500/dia igual pra todo mundo; VIP só
+// alcança o teto mais rápido, não ganha um teto maior).
+const VIPXPMultiplier = 1.25
+
 // CalcularXP implementa TDD §3. xpToday é o valor já lido de user_gamification.xp_today
 // (depois do reset preguiçoso — ver XPHojeAposReset) ANTES desta resposta ser contabilizada.
-func CalcularXP(difficulty string, answerTimeMs int, isFirstCompletion, correct bool, xpToday int) XPResult {
+// vipAtivo aplica VIPXPMultiplier (ver EhVIPAtivo) antes do teto diário.
+func CalcularXP(difficulty string, answerTimeMs int, isFirstCompletion, correct bool, xpToday int, vipAtivo bool) XPResult {
 	if !correct {
 		return XPResult{}
 	}
@@ -49,6 +55,9 @@ func CalcularXP(difficulty string, answerTimeMs int, isFirstCompletion, correct 
 		bonusPrimeiraConclusao = 10
 	}
 	xpCalculado := base + bonusVelocidade + bonusPrimeiraConclusao
+	if vipAtivo {
+		xpCalculado = int(math.Round(float64(xpCalculado) * VIPXPMultiplier))
+	}
 
 	xpDisponivelHoje := DailyXPCap - xpToday
 	if xpDisponivelHoje < 0 {
@@ -301,6 +310,61 @@ func RolarRecompensaBau(rollType, rollDetail float64) ChestReward {
 		return ChestReward{Type: ChestRewardStreakFreeze}
 	}
 	return ChestReward{Type: ChestRewardHeartsRefill}
+}
+
+// EhVIPAtivo decide se o VIP está em vigor agora — expiração preguiçosa (mesmo padrão de
+// RegenerarVidas/AplicarExpiracaoStreak, sem job/cron): isVip=false nunca é VIP, vipExpiresAt=nil
+// com isVip=true é VIP vitalício (nunca expira), e qualquer vipExpiresAt no passado desliga o VIP
+// sem precisar zerar is_vip em lugar nenhum — a próxima leitura já reflete a expiração sozinha.
+func EhVIPAtivo(isVip bool, vipExpiresAt *time.Time, now time.Time) bool {
+	if !isVip {
+		return false
+	}
+	if vipExpiresAt == nil {
+		return true
+	}
+	return now.Before(*vipExpiresAt)
+}
+
+// VIPDailyChestResetsMax é quantas vezes o VIP pode resetar o Baú Diário no mesmo dia local (a
+// pedido do usuário: "resetar o baú diário mais uma vez por dia") — usuário comum não tem essa
+// opção (LoadDailyChestStatus nem expõe a rota de reset pra quem não é VIP).
+const VIPDailyChestResetsMax = 1
+
+// VIPWeeklyChestResetsMax é quantas vezes o VIP pode resetar o Baú Semanal no mesmo ciclo de 7
+// dias (a pedido do usuário: "2x reset do baú semanal por semana").
+const VIPWeeklyChestResetsMax = 2
+
+// EstenderVIP calcula a nova vip_expires_at ao resgatar um cupom (ou, futuramente, confirmar uma
+// assinatura) — pura e testável, mesmo estilo dos outros helpers de gamificação. Regras:
+//   - VIP vitalício (is_vip=true, vip_expires_at=nil) permanece vitalício — um cupom nunca
+//     "encolhe" um benefício já concedido sem prazo, então devolve nil de novo.
+//   - VIP ainda ativo (não vitalício): soma durationDays a partir da expiração atual, não de
+//     "agora" — resgatar um cupom antes do anterior acabar empilha os dias em vez de desperdiçar o
+//     que sobrava.
+//   - Sem VIP ativo (nunca teve ou já expirou): conta durationDays a partir de agora.
+func EstenderVIP(isVip bool, vipExpiresAt *time.Time, now time.Time, durationDays int) *time.Time {
+	if EhVIPAtivo(isVip, vipExpiresAt, now) && vipExpiresAt == nil {
+		return nil
+	}
+	base := now
+	if EhVIPAtivo(isVip, vipExpiresAt, now) {
+		base = *vipExpiresAt
+	}
+	novaExpiracao := base.AddDate(0, 0, durationDays)
+	return &novaExpiracao
+}
+
+// VIPResetsAposReset aplica o mesmo reset preguiçoso de QuestoesHojeAposReset/
+// QuestoesSemanaAposReset ao contador de resets VIP já usados: comparado contra o período vigente
+// (data local pro diário, cycle_start vigente do Baú Semanal pro semanal — não um ciclo próprio),
+// volta a zero quando o período mudou. Serve pros dois casos (diário e semanal) porque a
+// comparação é a mesma forma, só o "período" de entrada muda (data vs. cycle_start).
+func VIPResetsAposReset(resetsUsados int, periodoSalvo, periodoVigente string) int {
+	if periodoSalvo != periodoVigente {
+		return 0
+	}
+	return resetsUsados
 }
 
 // ChestWeeklyQuestionsRequired é quantas perguntas respondidas dentro do ciclo vigente (ver

@@ -138,6 +138,9 @@ const glyphs = {
   chest: "treasure-chest",
   lockOpen: "lock-open-variant",
   arrowForward: "arrow-right",
+  // --- VIP "Mestre Arquiteto" ---
+  crown: "crown",
+  ticketPercent: "ticket-percent-outline",
 } as const;
 
 export type IconName = keyof typeof glyphs;

@@ -35,7 +35,7 @@ func TestNivel_TabelaDoTDD(t *testing.T) {
 }
 
 func TestCalcularXP_CorretoDentroDoLimiar(t *testing.T) {
-	r := CalcularXP("medium", 3000, false, true, 0)
+	r := CalcularXP("medium", 3000, false, true, 0, false)
 	if r.XPConcedido != 25 { // base 20 + bônus velocidade 5
 		t.Errorf("XPConcedido = %d, esperado 25", r.XPConcedido)
 	}
@@ -45,14 +45,14 @@ func TestCalcularXP_CorretoDentroDoLimiar(t *testing.T) {
 }
 
 func TestCalcularXP_PrimeiraConclusao(t *testing.T) {
-	r := CalcularXP("easy", 10000, true, true, 0) // fora do limiar de velocidade (5000ms)
-	if r.XPConcedido != 20 {                      // base 10 + bônus primeira conclusão 10
+	r := CalcularXP("easy", 10000, true, true, 0, false) // fora do limiar de velocidade (5000ms)
+	if r.XPConcedido != 20 {                             // base 10 + bônus primeira conclusão 10
 		t.Errorf("XPConcedido = %d, esperado 20", r.XPConcedido)
 	}
 }
 
 func TestCalcularXP_Errado(t *testing.T) {
-	r := CalcularXP("hard", 1000, true, false, 0)
+	r := CalcularXP("hard", 1000, true, false, 0, false)
 	if r.XPConcedido != 0 {
 		t.Errorf("XPConcedido = %d, esperado 0 (resposta errada nunca dá XP)", r.XPConcedido)
 	}
@@ -60,7 +60,7 @@ func TestCalcularXP_Errado(t *testing.T) {
 
 func TestCalcularXP_TetoDiario(t *testing.T) {
 	// 490 já ganhos hoje, resposta valeria 30 (hard, sem bônus) — só cabem 10.
-	r := CalcularXP("hard", 99999, false, true, 490)
+	r := CalcularXP("hard", 99999, false, true, 490, false)
 	if r.XPConcedido != 10 {
 		t.Errorf("XPConcedido = %d, esperado 10 (teto de 500)", r.XPConcedido)
 	}
@@ -70,9 +70,29 @@ func TestCalcularXP_TetoDiario(t *testing.T) {
 }
 
 func TestCalcularXP_TetoJaEstourado(t *testing.T) {
-	r := CalcularXP("easy", 100, false, true, 500)
+	r := CalcularXP("easy", 100, false, true, 500, false)
 	if r.XPConcedido != 0 {
 		t.Errorf("XPConcedido = %d, esperado 0 (teto já no limite)", r.XPConcedido)
+	}
+	if !r.DailyCapReached {
+		t.Error("DailyCapReached deveria ser true")
+	}
+}
+
+func TestCalcularXP_VIPAplicaMultiplicadorAntesDoTeto(t *testing.T) {
+	// medium sem bônus = 20 base; VIP: round(20 * 1.25) = 25.
+	r := CalcularXP("medium", 99999, false, true, 0, true)
+	if r.XPConcedido != 25 {
+		t.Errorf("XPConcedido = %d, esperado 25 (base 20 * 1.25)", r.XPConcedido)
+	}
+}
+
+func TestCalcularXP_VIPNaoUltrapassaTetoDiario(t *testing.T) {
+	// 490 já ganhos hoje; hard com bônus de velocidade = 35 base, VIP eleva pra round(35*1.25)=44,
+	// mas só cabem 10 no teto de 500 — VIP não ganha um teto maior, só chega nele mais rápido.
+	r := CalcularXP("hard", 100, false, true, 490, true)
+	if r.XPConcedido != 10 {
+		t.Errorf("XPConcedido = %d, esperado 10 (capado pelo teto diário mesmo com VIP)", r.XPConcedido)
 	}
 	if !r.DailyCapReached {
 		t.Error("DailyCapReached deveria ser true")
@@ -390,4 +410,75 @@ func TestRolarRecompensaBauSemanal(t *testing.T) {
 			}
 		}
 	})
+}
+
+func TestEhVIPAtivo(t *testing.T) {
+	base := time.Date(2026, 8, 15, 12, 0, 0, 0, time.UTC)
+	futuro := base.Add(24 * time.Hour)
+	passado := base.Add(-24 * time.Hour)
+
+	if EhVIPAtivo(false, nil, base) {
+		t.Error("is_vip=false nunca deveria estar ativo")
+	}
+	if EhVIPAtivo(false, &futuro, base) {
+		t.Error("is_vip=false nunca deveria estar ativo, mesmo com expiração futura")
+	}
+	if !EhVIPAtivo(true, nil, base) {
+		t.Error("is_vip=true sem vip_expires_at deveria ser VIP vitalício")
+	}
+	if !EhVIPAtivo(true, &futuro, base) {
+		t.Error("is_vip=true com expiração futura deveria estar ativo")
+	}
+	if EhVIPAtivo(true, &passado, base) {
+		t.Error("is_vip=true com expiração passada não deveria estar ativo")
+	}
+}
+
+func TestEstenderVIP(t *testing.T) {
+	base := time.Date(2026, 8, 15, 12, 0, 0, 0, time.UTC)
+
+	t.Run("sem VIP ativo: conta a partir de agora", func(t *testing.T) {
+		got := EstenderVIP(false, nil, base, 30)
+		esperado := base.AddDate(0, 0, 30)
+		if got == nil || !got.Equal(esperado) {
+			t.Errorf("EstenderVIP = %v, esperado %v", got, esperado)
+		}
+	})
+
+	t.Run("VIP expirado: conta a partir de agora, não da expiração antiga", func(t *testing.T) {
+		expirado := base.Add(-24 * time.Hour)
+		got := EstenderVIP(true, &expirado, base, 10)
+		esperado := base.AddDate(0, 0, 10)
+		if got == nil || !got.Equal(esperado) {
+			t.Errorf("EstenderVIP = %v, esperado %v", got, esperado)
+		}
+	})
+
+	t.Run("VIP ativo com prazo: empilha a partir da expiração atual", func(t *testing.T) {
+		expiraEm := base.AddDate(0, 0, 5)
+		got := EstenderVIP(true, &expiraEm, base, 10)
+		esperado := expiraEm.AddDate(0, 0, 10)
+		if got == nil || !got.Equal(esperado) {
+			t.Errorf("EstenderVIP = %v, esperado %v (15 dias a partir de agora)", got, esperado)
+		}
+	})
+
+	t.Run("VIP vitalício permanece vitalício", func(t *testing.T) {
+		got := EstenderVIP(true, nil, base, 30)
+		if got != nil {
+			t.Errorf("EstenderVIP = %v, esperado nil (vitalício)", got)
+		}
+	})
+}
+
+func TestVIPResetsAposReset(t *testing.T) {
+	if got := VIPResetsAposReset(1, "2026-08-14", "2026-08-15"); got != 0 {
+		t.Errorf("esperado reset para 0 em período novo, veio %d", got)
+	}
+	if got := VIPResetsAposReset(1, "2026-08-15", "2026-08-15"); got != 1 {
+		t.Errorf("esperado manter 1 no mesmo período, veio %d", got)
+	}
+	if got := VIPResetsAposReset(1, "", "2026-08-15"); got != 0 {
+		t.Errorf("período salvo vazio deveria resetar pra 0, veio %d", got)
+	}
 }

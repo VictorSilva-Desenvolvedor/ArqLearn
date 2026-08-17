@@ -37,3 +37,10 @@ export function mockOpenDailyChest(): ChestOpenResult {
   const rewardType: ChestRewardType = "gems";
   return { reward_type: rewardType, gems_earned: 3, gems: 343 };
 }
+
+// Benefício VIP "resetar o Baú Diário mais uma vez por dia" — em modo mock, sem relógio de
+// verdade, resetar só volta claimedToday pra false (questions_today já está acima do teto e não
+// precisa ser refeito, mesma ideia do backend real).
+export function mockResetDailyChest(): void {
+  claimedToday = false;
+}

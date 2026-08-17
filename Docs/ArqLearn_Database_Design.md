@@ -30,6 +30,7 @@ Documento complementar ao SAD e ao TDD do ArqLearn v1.0
 | 1.13 | 09/08/2026 | Equipe de Engenharia / Dados | Adiciona a coleção `bug_reports` (§4.4.5, a pedido do usuário) — print embutido como base64 pra não depender do R2 bloqueado. Adiciona `bug_fixed` ao enum de `notifications.type` (§4.4.4) — primeiro gatilho síncrono real que insere notificação, sem depender de job |
 | 1.14 | 09/08/2026 | Equipe de Engenharia / Dados | `bug_reports` (§4.4.5) ganha `type` (`bug \| suggestion`) e `device_model`/`device_type` (a pedido do usuário) — mesma coleção passa a cobrir sugestões de melhoria, não só bugs. Adiciona `suggestion_implemented` ao enum de `notifications.type` (§4.4.4) |
 | 1.15 | 09/08/2026 | Equipe de Engenharia / Dados | Adiciona 15 contadores vitalícios a `user_gamification` (migrations/0006, a pedido do usuário) — nenhum contador cumulativo existia antes, só saldos atuais (xp_total/gems), que não servem pra checar limiar tipo "responda 100 perguntas ao todo". `achievements` (schema inalterado desde v1.0) passa a ser gravada de verdade pela primeira vez — catálogo completo em `internal/gamification/achievements.go` |
+| 1.16 | 15/08/2026 | Equipe de Engenharia / Dados | VIP "Mestre Arquiteto" (migrations/0011, a pedido do usuário) — adiciona `is_vip`/`vip_expires_at` e contadores de reset de baú a `user_gamification`, e a tabela `vip_coupons` (ativação por cupom de 10 dígitos; assinatura recorrente tem schema pronto porém desabilitada, ver API Spec §8.3). **Nota:** as colunas de `migrations/0009_daily_chest`/`0010_weekly_chest` (Baú Diário/Semanal) ainda não estavam documentadas aqui antes desta entrada — divergência pré-existente entre código e este documento, sinalizada e não resolvida retroativamente nesta mudança (fora do escopo desta demanda) |
 
 ---
 
@@ -169,7 +170,30 @@ CREATE TABLE user_gamification (
   summaries_generated_total INTEGER NOT NULL DEFAULT 0,
   material_chat_messages_total INTEGER NOT NULL DEFAULT 0,
   bug_reports_total INTEGER NOT NULL DEFAULT 0,
-  bug_reports_resolved_total INTEGER NOT NULL DEFAULT 0
+  bug_reports_resolved_total INTEGER NOT NULL DEFAULT 0,
+  -- VIP "Mestre Arquiteto" (migrations/0011, v1.16, a pedido do usuário). Expiração preguiçosa —
+  -- ver EhVIPAtivo em internal/gamification/algorithms.go, mesmo espírito de hearts_updated_at.
+  -- Os contadores de reset de baú seguem o mesmo padrão preguiçoso de xp_today/xp_today_date:
+  -- vip_daily_chest_resets_date compara contra o dia local vigente; vip_weekly_chest_resets_
+  -- cycle_start compara contra o chest_weekly_cycle_start já existente acima (não é um ciclo
+  -- próprio). Nota: as colunas do Baú Diário/Semanal em si (chest_questions_today,
+  -- chest_questions_date, chest_claimed_date, chest_weekly_questions, chest_weekly_cycle_start,
+  -- chest_weekly_claimed_cycle_start — migrations/0009 e 0010) faltavam nesta tabela documentada
+  -- até esta versão; adicionadas aqui junto das colunas VIP que dependem delas.
+  chest_questions_today SMALLINT NOT NULL DEFAULT 0 CHECK (chest_questions_today >= 0),
+  chest_questions_date DATE,
+  chest_claimed_date DATE,
+  chest_weekly_questions SMALLINT NOT NULL DEFAULT 0 CHECK (chest_weekly_questions >= 0),
+  chest_weekly_cycle_start DATE,
+  chest_weekly_claimed_cycle_start DATE,
+  is_vip BOOLEAN NOT NULL DEFAULT false,
+  vip_expires_at TIMESTAMPTZ,
+  vip_daily_chest_resets_used SMALLINT NOT NULL DEFAULT 0 CHECK (vip_daily_chest_resets_used >= 0),
+  vip_daily_chest_resets_date DATE,
+  vip_weekly_chest_resets_used SMALLINT NOT NULL DEFAULT 0 CHECK (vip_weekly_chest_resets_used >= 0),
+  vip_weekly_chest_resets_cycle_start DATE,
+  vip_subscription_status TEXT NOT NULL DEFAULT 'none'
+    CHECK (vip_subscription_status IN ('none', 'pending', 'active', 'canceled'))
 );
 
 CREATE TABLE leagues (
@@ -199,6 +223,21 @@ CREATE TABLE achievements (
   type VARCHAR(60) NOT NULL,
   unlocked_at TIMESTAMPTZ NOT NULL DEFAULT now(),
   UNIQUE (user_id, type)
+);
+
+-- VIP "Mestre Arquiteto" (migrations/0011, v1.16, a pedido do usuário). Cupons de 10 dígitos
+-- numéricos gerados por um admin (POST /v1/vip/coupons) e entregues manualmente fora do sistema
+-- (sem painel admin ainda). redeemed_by NULL = ainda não resgatado; UNIQUE(code) + WHERE
+-- redeemed_by IS NULL na trava de resgate evitam a corrida de duas requisições resgatando o mesmo
+-- código ao mesmo tempo.
+CREATE TABLE vip_coupons (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  code CHAR(10) NOT NULL UNIQUE,
+  duration_days SMALLINT NOT NULL CHECK (duration_days > 0),
+  created_by UUID NOT NULL REFERENCES users(id),
+  redeemed_by UUID REFERENCES users(id),
+  redeemed_at TIMESTAMPTZ,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT now()
 );
 
 CREATE TABLE shop_items (
@@ -245,6 +284,7 @@ CREATE INDEX idx_gamevents_user_time ON gamification_events(user_id, created_at 
 | `leagues` / `league_members` | `league_id` + `user_id` (PK composta) | Recriadas semanalmente pelo job de fechamento de liga (TDD §6). |
 | `gamification_events` | `id` (PK), particionada por mês | Log append-only de eventos, usado para auditoria e Analytics; particionamento mensal facilita expurgo por retenção. |
 | `purchases` | `idempotency_key` (UNIQUE) | Garante que retries de compra não gerem cobrança duplicada de gemas. |
+| `vip_coupons` | `code` (UNIQUE) | Cupons VIP de 10 dígitos numéricos; `redeemed_by IS NULL` distingue disponível de já resgatado — não há coluna booleana solta pra isso, evitando os dois campos divergirem. |
 
 *Tabela 2 — Dicionário de dados das tabelas relacionais principais.*
 

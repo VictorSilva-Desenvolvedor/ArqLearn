@@ -11,6 +11,7 @@ import {
   openDailyChest,
   openWeeklyChest,
 } from "@/lib/api/resources/gamification";
+import { resetDailyChestVip, resetWeeklyChestVip } from "@/lib/api/resources/vip";
 import { ApiError } from "@/lib/api/http";
 import { colors, radius, spacing, type as typeTokens } from "@/theme/tokens";
 import type { ChestOpenResult, ChestRewardType } from "@/types/api";
@@ -56,10 +57,12 @@ export default function DailyChestScreen() {
   const { tipo: tipoParam } = useLocalSearchParams<{ tipo?: string }>();
   const tipo: ChestType = tipoParam === "semanal" ? "semanal" : "diario";
   const copy = CHEST_COPY[tipo];
-  const { updateGamification, adjustStreakFreezes } = useAuth();
+  const { gamification, updateGamification, adjustStreakFreezes } = useAuth();
   const [checking, setChecking] = useState(true);
   const [available, setAvailable] = useState(false);
+  const [claimed, setClaimed] = useState(false);
   const [opening, setOpening] = useState(false);
+  const [resetting, setResetting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [reward, setReward] = useState<ChestOpenResult | null>(null);
 
@@ -70,12 +73,32 @@ export default function DailyChestScreen() {
     statusPromise.then((status) => {
       if (cancelled) return;
       setAvailable(status.available);
+      setClaimed(tipo === "semanal" ? "claimed_this_cycle" in status && status.claimed_this_cycle : "claimed_today" in status && status.claimed_today);
       setChecking(false);
     });
     return () => {
       cancelled = true;
     };
   }, [tipo]);
+
+  // Benefício VIP: resetar o baú já reivindicado libera uma nova abertura na hora (a pedido do
+  // usuário, ver services/monolith/internal/gamification/vip.go handleResetDailyChest/
+  // handleResetWeeklyChest) — só faz sentido oferecer quando já foi aberto (não quando ainda
+  // faltam perguntas pra liberar o primeiro).
+  const handleReset = async () => {
+    if (resetting) return;
+    setResetting(true);
+    setError(null);
+    try {
+      await (tipo === "semanal" ? resetWeeklyChestVip() : resetDailyChestVip());
+      setAvailable(true);
+      setClaimed(false);
+    } catch (err) {
+      setError(err instanceof ApiError ? err.message : "Não foi possível resetar o baú agora.");
+    } finally {
+      setResetting(false);
+    }
+  };
 
   const handleOpen = async () => {
     if (opening) return;
@@ -118,6 +141,18 @@ export default function DailyChestScreen() {
             <Text style={[typeTokens.headlineMd, styles.title]}>Nenhum Baú disponível</Text>
             <Text style={[typeTokens.bodyMd, styles.description]}>{copy.unavailable}</Text>
           </View>
+          {error && <Text style={[typeTokens.bodySm, styles.error]}>{error}</Text>}
+          {claimed && gamification.is_vip && (
+            <Button
+              variant="gamification"
+              fullWidth
+              disabled={resetting}
+              onPress={handleReset}
+              icon={<Icon name="replay" size={18} color={colors.onSecondaryContainer} />}
+            >
+              {resetting ? "Resetando…" : "Resetar Baú (VIP)"}
+            </Button>
+          )}
           <Button variant="primary" fullWidth onPress={() => router.push("/")}>
             Voltar ao Mapa
           </Button>

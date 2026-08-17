@@ -5,14 +5,17 @@ interface AvatarProps {
   name: string;
   size?: number;
   className?: string;
+  // VIP "Mestre Arquiteto" (a pedido do usuário): borda dourada no lugar da primária.
+  vip?: boolean;
 }
 
-export function Avatar({ src, name, size = 32, className }: AvatarProps) {
+export function Avatar({ src, name, size = 32, className, vip = false }: AvatarProps) {
   const initials = name
     .split(" ")
     .slice(0, 2)
     .map((part) => part[0]?.toUpperCase())
     .join("");
+  const borderClass = vip ? "border-secondary" : "border-primary";
 
   if (src) {
     return (
@@ -22,7 +25,7 @@ export function Avatar({ src, name, size = 32, className }: AvatarProps) {
         alt={name}
         width={size}
         height={size}
-        className={cn("rounded-full border-2 border-primary object-cover", className)}
+        className={cn("rounded-full border-2 object-cover", borderClass, className)}
         style={{ width: size, height: size }}
       />
     );
@@ -31,7 +34,8 @@ export function Avatar({ src, name, size = 32, className }: AvatarProps) {
   return (
     <div
       className={cn(
-        "rounded-full border-2 border-primary bg-primary-fixed text-on-primary-fixed flex items-center justify-center font-bold",
+        "rounded-full border-2 bg-primary-fixed text-on-primary-fixed flex items-center justify-center font-bold",
+        borderClass,
         className,
       )}
       style={{ width: size, height: size, fontSize: size * 0.4 }}

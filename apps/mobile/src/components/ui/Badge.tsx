@@ -1,7 +1,7 @@
 import { StyleSheet, Text, View } from "react-native";
 import { colors, type } from "@/theme/tokens";
 
-export type BadgeTone = "primary" | "secondary" | "tertiary" | "error" | "neutral";
+export type BadgeTone = "primary" | "secondary" | "tertiary" | "error" | "neutral" | "gold";
 
 interface BadgeProps {
   tone?: BadgeTone;
@@ -14,6 +14,9 @@ const toneStyles: Record<BadgeTone, { bg: string; fg: string; border?: string }>
   tertiary: { bg: colors.tertiaryFixed, fg: colors.onTertiaryFixedVariant },
   error: { bg: colors.errorContainer, fg: colors.error },
   neutral: { bg: colors.surfaceGray, fg: colors.outline, border: colors.outlineVariant },
+  // VIP "Mestre Arquiteto" (a pedido do usuário) — mais contraste que "secondary" pro selo de
+  // perfil se destacar (bg cheio em vez do tom pastel fixed).
+  gold: { bg: colors.secondaryContainer, fg: colors.onSecondaryContainer },
 };
 
 export function Badge({ tone = "neutral", children }: BadgeProps) {

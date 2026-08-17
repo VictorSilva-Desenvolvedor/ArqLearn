@@ -17,6 +17,7 @@ Documento complementar ao SAD, ao Database Design e à API Specification do ArqL
 |---|---|---|---|
 | 1.0 | 08/08/2026 | Equipe de Arquitetura/Engenharia | Versão inicial — preenche a lacuna apontada no CLAUDE.md |
 | 1.1 | 09/08/2026 | Equipe de Arquitetura/Engenharia | Adiciona §5.4 Vidas — Regeneração (a pedido do usuário): `hearts_current` nunca regenerava sozinho, `hearts_updated_at` existia no schema (Database Design) mas não era usado em lugar nenhum do backend |
+| 1.2 | 15/08/2026 | Equipe de Arquitetura/Engenharia | Adiciona §3.3 (multiplicador de XP do VIP) e §9 (VIP "Mestre Arquiteto" — ativação, expiração preguiçosa, extensão de cupom, baú garantido, resets), a pedido do usuário |
 
 ---
 
@@ -142,6 +143,16 @@ Não há job separado porque, diferente do streak, o reset do teto não dispara 
 | Ordem de grandeza | ~50 XP | ~500 XP |
 | Efeito ao atingir | Preenche a barra, sem restringir nada | `calcularXP` passa a retornar 0 |
 | Bloqueia prática? | Não | Não |
+
+### 3.3 VIP: Multiplicador de XP *(v1.16, a pedido do usuário)*
+
+Usuário com VIP "Mestre Arquiteto" ativo (ver §10) recebe `VIP_XP_MULTIPLIER = 1.25` (+25%) sobre o
+XP calculado de cada resposta certa — aplicado **dentro** de `calcularXP`, **antes** do Limite
+Diário de XP (§3.2): `xp_calculado = round((base + bonus_velocidade + bonus_primeira_conclusao) *
+1.25)` quando VIP ativo, e só então esse valor é capado pelo `DAILY_XP_CAP` como qualquer outro.
+Decisão deliberada: o teto diário continua **500 XP/dia para todo mundo**, VIP ou não — o
+multiplicador só faz o VIP alcançar esse teto mais rápido, não elevar o teto em si. Implementado em
+`internal/gamification.CalcularXP` (parâmetro `vipAtivo`).
 
 ## 4. SRS — Repetição Espaçada (variação SM-2)
 
@@ -450,7 +461,52 @@ resultado do cálculo, que roda em linha antes de responder (o evento `lesson.an
 para os consumidores *além* do Learning Service — Analytics, auditoria — não é o único caminho de escrita
 do XP). Isso evita depender de round-trip assíncrono dentro do plano síncrono de baixa latência (SAD §5.1).
 
-## 9. Glossário
+## 9. VIP "Mestre Arquiteto" *(v1.16, a pedido do usuário)*
+
+Tier de entitlement (não uma role de `users.role`) que concede: multiplicador de XP (§3.3), Baú
+Semanal garantido e resets extras de baú diário/semanal (contratos completos em
+`ArqLearn_API_Specification.md` §8.3 — não duplicados aqui). Esta seção cobre só as regras de
+negócio que não são óbvias a partir do contrato de API.
+
+**Ativação:** dois caminhos, ambos gravam `user_gamification.is_vip`/`vip_expires_at`.
+1. **Cupom** — 10 dígitos numéricos, gerado por um admin, resgatável uma única vez.
+2. **Assinatura recorrente** — schema pronto (`vip_subscription_status`), endpoint **desabilitado**
+   até um gateway de pagamento real ser integrado (nenhuma cobrança acontece hoje).
+
+**Expiração — preguiçosa, sem job (mesmo padrão de §5.4 vidas e §5.2/§5.3 streak):**
+`EhVIPAtivo(is_vip, vip_expires_at, agora)`:
+- `is_vip = false` → nunca ativo, independentemente de `vip_expires_at`.
+- `is_vip = true` e `vip_expires_at = null` → ativo, **vitalício** (sem prazo).
+- `is_vip = true` e `vip_expires_at` no futuro → ativo até esse instante.
+- `is_vip = true` e `vip_expires_at` no passado → **inativo** — nenhum job zera `is_vip`; a próxima
+  leitura já calcula `false` a partir da comparação de data. Nenhum benefício (multiplicador, baú
+  garantido, resets) é aplicado quando este cálculo resulta em `false`, mesmo com `is_vip = true`
+  gravado no banco.
+
+**Extensão ao resgatar cupom (`EstenderVIP`):** se o VIP já está ativo (não vitalício), o novo prazo
+soma a partir da **expiração atual**, não de agora — resgatar um segundo cupom antes do primeiro
+acabar empilha os dias em vez de desperdiçar o que sobrava. Sem VIP ativo (nunca teve ou já
+expirou), o prazo conta a partir de agora. VIP vitalício permanece vitalício (um cupom nunca
+"encolhe" um benefício concedido sem prazo).
+
+**Baú Semanal garantido:** para VIP ativo, a recompensa do Baú Semanal (ver nota de divergência
+abaixo sobre onde o Baú em si está documentado) não é sorteada: é sempre Bloqueio de Ofensiva. O
+Baú Diário continua sorteado normalmente mesmo para VIP.
+
+**Resets de baú (1x/dia no diário, 2x/ciclo no semanal):** não é uma segunda recompensa — resetar só
+limpa a marca de "já reivindicado" do período vigente (`chest_claimed_date` /
+`chest_weekly_claimed_cycle_start`), reabrindo a mesma abertura pendente sem exigir novas perguntas
+respondidas (o contador de perguntas do baú não é zerado ao abrir). O contador de quantos resets já
+foram usados no período (`vip_daily_chest_resets_used`/`vip_weekly_chest_resets_used`) segue o
+mesmo reset preguiçoso do contador de perguntas — compara a data/ciclo salvo contra o vigente.
+
+> **Nota de divergência (transparência, não resolvida nesta mudança):** os algoritmos do Baú
+> Diário/Semanal em si (`RolarRecompensaBau`, `QuestoesHojeAposReset` etc., migrations 0009/0010)
+> nunca ganharam uma seção própria neste documento, apesar de já implementados e em produção — só
+> os comentários de código e a API Spec §8.1/§8.2 os documentam hoje. Fora do escopo desta mudança
+> (VIP), sinalizado aqui em vez de resolvido silenciosamente, conforme `Docs/CLAUDE.md`.
+
+## 10. Glossário
 
 - **SM-2**: algoritmo clássico de repetição espaçada (Wozniak, 1987), adaptado aqui para entrada
   binária correto/incorreto + tempo de resposta.

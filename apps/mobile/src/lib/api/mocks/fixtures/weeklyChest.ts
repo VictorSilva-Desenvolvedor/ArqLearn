@@ -32,3 +32,8 @@ export function mockOpenWeeklyChest(): ChestOpenResult {
   const rewardType: ChestRewardType = "gems";
   return { reward_type: rewardType, gems_earned: 10, gems: 350 };
 }
+
+// Benefício VIP "2x reset do Baú Semanal por semana" — mesma ideia de mockResetDailyChest.ts.
+export function mockResetWeeklyChest(): void {
+  claimedThisCycle = false;
+}

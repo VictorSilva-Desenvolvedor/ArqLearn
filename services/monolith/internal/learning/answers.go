@@ -95,17 +95,19 @@ func handleSubmitAnswer(pool *pgxpool.Pool, mongoDB *mongo.Database) http.Handle
 		var xpTotal, xpToday, heartsCurrent, streakCurrent, streakBest, streakFreezesAvailable, chestQuestionsToday, chestWeeklyQuestions int
 		var xpTodayDate, streakLastActiveDate, chestQuestionsDate, chestClaimedDate, chestWeeklyCycleStart *time.Time
 		var heartsUpdatedAt time.Time
+		var isVip bool
+		var vipExpiresAt *time.Time
 		err = pool.QueryRow(r.Context(), `
 			SELECT u.timezone, g.xp_total, g.xp_today, g.xp_today_date, g.hearts_current, g.hearts_updated_at,
 			       g.streak_current, g.streak_best, g.streak_last_active_date, g.streak_freezes_available,
 			       g.chest_questions_today, g.chest_questions_date, g.chest_claimed_date,
-			       g.chest_weekly_questions, g.chest_weekly_cycle_start
+			       g.chest_weekly_questions, g.chest_weekly_cycle_start, g.is_vip, g.vip_expires_at
 			FROM users u JOIN user_gamification g ON g.user_id = u.id
 			WHERE u.id = $1
 		`, userID).Scan(&timezone, &xpTotal, &xpToday, &xpTodayDate, &heartsCurrent, &heartsUpdatedAt,
 			&streakCurrent, &streakBest, &streakLastActiveDate, &streakFreezesAvailable,
 			&chestQuestionsToday, &chestQuestionsDate, &chestClaimedDate,
-			&chestWeeklyQuestions, &chestWeeklyCycleStart)
+			&chestWeeklyQuestions, &chestWeeklyCycleStart, &isVip, &vipExpiresAt)
 		if err != nil {
 			apierror.Write(w, http.StatusInternalServerError, "INTERNAL_ERROR", "Falha ao consultar perfil.")
 			return
@@ -148,7 +150,8 @@ func handleSubmitAnswer(pool *pgxpool.Pool, mongoDB *mongo.Database) http.Handle
 		isLastQuestion := len(sess.AnsweredQuestionIDs)+1 >= len(sess.QuestionIDs)
 		isFirstCompletion := isLastQuestion && (!progressExists || prevProgress.Status != "completed")
 
-		xpResult := gamification.CalcularXP(q.Difficulty, req.TimeMs, isFirstCompletion, correct, xpToday)
+		vipAtivo := gamification.EhVIPAtivo(isVip, vipExpiresAt, now)
+		xpResult := gamification.CalcularXP(q.Difficulty, req.TimeMs, isFirstCompletion, correct, xpToday, vipAtivo)
 
 		newHearts := heartsCurrent
 		newHeartsUpdatedAt := heartsUpdatedAt

@@ -14,6 +14,8 @@ export const mockGamificationProfile: GamificationProfile = {
   hearts_next_at: null,
   gems: 340,
   league_tier: "bronze",
+  is_vip: false,
+  vip_expires_at: null,
 };
 
 export const mockAchievementUnlocks: Achievement[] = [

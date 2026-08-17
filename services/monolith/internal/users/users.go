@@ -49,12 +49,14 @@ type userMeResponse struct {
 		HeartsNextAt           *time.Time `json:"hearts_next_at"`
 		Gems                   int        `json:"gems"`
 		LeagueTier             *string    `json:"league_tier"`
+		IsVIP                  bool       `json:"is_vip"`
+		VIPExpiresAt           *time.Time `json:"vip_expires_at"`
 	} `json:"gamification"`
 }
 
 const getMeQuery = `
 	SELECT u.id, u.name, u.email, u.role, u.timezone, u.created_at,
-	       g.xp_total, g.xp_today, g.level, g.gems
+	       g.xp_total, g.xp_today, g.level, g.gems, g.is_vip, g.vip_expires_at
 	FROM users u
 	JOIN user_gamification g ON g.user_id = u.id
 	WHERE u.id = $1 AND u.deleted_at IS NULL
@@ -69,10 +71,12 @@ func handleGetMe(pool *pgxpool.Pool) http.HandlerFunc {
 		}
 
 		var resp userMeResponse
+		var isVipRaw bool
 		err := pool.QueryRow(r.Context(), getMeQuery, userID).Scan(
 			&resp.User.ID, &resp.User.Name, &resp.User.Email, &resp.User.Role,
 			&resp.User.Timezone, &resp.User.CreatedAt,
 			&resp.Gamification.XPTotal, &resp.Gamification.XPToday, &resp.Gamification.Level, &resp.Gamification.Gems,
+			&isVipRaw, &resp.Gamification.VIPExpiresAt,
 		)
 		if err == pgx.ErrNoRows {
 			// Não deveria acontecer — o trigger on_auth_user_created (Database Design §3.2)
@@ -110,6 +114,8 @@ func handleGetMe(pool *pgxpool.Pool) http.HandlerFunc {
 			apierror.Write(w, http.StatusInternalServerError, "INTERNAL_ERROR", "Falha ao consultar liga.")
 			return
 		}
+
+		resp.Gamification.IsVIP = gamification.EhVIPAtivo(isVipRaw, resp.Gamification.VIPExpiresAt, time.Now().UTC())
 
 		writeJSON(w, http.StatusOK, resp)
 	}
