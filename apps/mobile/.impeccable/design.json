@@ -1,0 +1,117 @@
+{
+  "schemaVersion": 2,
+  "generatedAt": "2026-08-17T00:00:00.000Z",
+  "title": "Design System: ArqLearn Mobile",
+  "extensions": {
+    "colorMeta": {
+      "primary": { "role": "primary", "displayName": "Primary Blue", "canonical": "#0e4471" },
+      "primary-fixed": { "role": "primary", "displayName": "Primary Fixed Tint", "canonical": "#d1e4ff" },
+      "secondary": { "role": "secondary", "displayName": "Secondary Orange (text-on)", "canonical": "#8f4e0f" },
+      "secondary-container": { "role": "secondary", "displayName": "Secondary Orange Container", "canonical": "#fda864" },
+      "tertiary": { "role": "tertiary", "displayName": "Tertiary Green (text-on)", "canonical": "#004e10" },
+      "tertiary-fixed": { "role": "tertiary", "displayName": "Tertiary Fixed Tint", "canonical": "#a3f69c" },
+      "surface": { "role": "neutral", "displayName": "Near-White Surface", "canonical": "#f8f9ff" },
+      "surface-gray": { "role": "neutral", "displayName": "Surface Gray", "canonical": "#f3f4f6" },
+      "blueprint-grid": { "role": "neutral", "displayName": "Blueprint Grid Line", "canonical": "#e5e7eb" },
+      "on-surface": { "role": "neutral", "displayName": "On Surface Text", "canonical": "#121c2a" },
+      "muted-text": { "role": "neutral", "displayName": "Muted Text", "canonical": "#6b7280" },
+      "outline-variant": { "role": "neutral", "displayName": "Default Border", "canonical": "#c2c7d0" },
+      "error": { "role": "error", "displayName": "Error Red", "canonical": "#ba1a1a" }
+    },
+    "typographyMeta": {
+      "display": { "displayName": "Display", "purpose": "Rare screen-level headline." },
+      "headline": { "displayName": "Headline", "purpose": "Section titles, large buttons." },
+      "question": { "displayName": "Question", "purpose": "Quiz question text, distinct from Headline." },
+      "body": { "displayName": "Body", "purpose": "All instructional and UI copy." },
+      "label": { "displayName": "Label Caps", "purpose": "Metadata and category tags, tracked uppercase." },
+      "statsNum": { "displayName": "Stats Number", "purpose": "Any gamified counter — XP, streak, accuracy." }
+    },
+    "shadows": [],
+    "motion": [],
+    "breakpoints": []
+  },
+  "components": [
+    {
+      "name": "Primary Button",
+      "kind": "button",
+      "refersTo": "button-primary",
+      "description": "Main call-to-action; solid primary fill.",
+      "html": "<button class=\"ds-btn-primary\">Continuar</button>",
+      "css": ".ds-btn-primary { display: inline-flex; align-items: center; justify-content: center; gap: 8px; background: #0e4471; color: #ffffff; border: 2px solid #0e4471; border-radius: 24px; padding: 12px 24px; font-family: 'Hanken Grotesk', sans-serif; font-weight: 700; font-size: 16px; transition: opacity 0.15s; } .ds-btn-primary:active { opacity: 0.85; } .ds-btn-primary:disabled { opacity: 0.5; }"
+    },
+    {
+      "name": "Gamification CTA Button",
+      "kind": "button",
+      "refersTo": "button-gamification",
+      "description": "Reward-flavored CTA with a pressable bottom border.",
+      "html": "<button class=\"ds-btn-gamification\">Abrir Baú</button>",
+      "css": ".ds-btn-gamification { display: inline-flex; align-items: center; justify-content: center; gap: 8px; background: #fda864; color: #753c00; border: none; border-bottom: 4px solid #8f4e0f; border-radius: 24px; padding: 12px 24px; font-family: 'Hanken Grotesk', sans-serif; font-weight: 700; font-size: 16px; }"
+    },
+    {
+      "name": "Ghost Button",
+      "kind": "button",
+      "refersTo": "button-ghost",
+      "description": "Secondary action, transparent fill.",
+      "html": "<button class=\"ds-btn-ghost\">Cancelar</button>",
+      "css": ".ds-btn-ghost { display: inline-flex; align-items: center; justify-content: center; gap: 8px; background: transparent; color: #0e4471; border: 2px solid #0e4471; border-radius: 24px; padding: 12px 24px; font-family: 'Hanken Grotesk', sans-serif; font-weight: 700; font-size: 16px; }"
+    },
+    {
+      "name": "Answer Card — Selected",
+      "kind": "card",
+      "refersTo": "answer-option",
+      "description": "Quiz answer option in the selected, unverified state.",
+      "html": "<div class=\"ds-answer-card ds-answer-selected\">Resposta selecionada</div>",
+      "css": ".ds-answer-card { display: flex; align-items: center; gap: 8px; width: 100%; min-height: 60px; border-radius: 12px; padding: 12px 16px; font-family: Inter, sans-serif; font-size: 16px; color: #121c2a; } .ds-answer-selected { border: 2px solid #0e4471; background: #d1e4ff; }"
+    },
+    {
+      "name": "Answer Card — Correct",
+      "kind": "card",
+      "refersTo": "answer-option",
+      "description": "Quiz answer option revealed as correct.",
+      "html": "<div class=\"ds-answer-card ds-answer-correct\">Resposta correta</div>",
+      "css": ".ds-answer-card { display: flex; align-items: center; gap: 8px; width: 100%; min-height: 60px; border-radius: 12px; padding: 12px 16px; font-family: Inter, sans-serif; font-size: 16px; } .ds-answer-correct { border: 2px solid #004e10; background: #a3f69c; color: #005312; }"
+    },
+    {
+      "name": "Lesson Node — Available",
+      "kind": "custom",
+      "refersTo": "learning-map-node",
+      "description": "Circular map node for a navigable, not-yet-started lesson.",
+      "html": "<div class=\"ds-lesson-node ds-node-available\"></div>",
+      "css": ".ds-lesson-node { width: 64px; height: 64px; border-radius: 32px; display: flex; align-items: center; justify-content: center; } .ds-node-available { background: #f8f9ff; border: 2px solid #0e4471; }"
+    },
+    {
+      "name": "Checkpoint Node",
+      "kind": "custom",
+      "refersTo": "learning-map-checkpoint",
+      "description": "Diamond (45°-rotated square) marking a major stop on the learning map.",
+      "html": "<div class=\"ds-checkpoint\"><span class=\"ds-checkpoint-icon\">★</span></div>",
+      "css": ".ds-checkpoint { width: 80px; height: 80px; border-radius: 16px; background: #0e4471; border: 2px solid #0e4471; display: flex; align-items: center; justify-content: center; transform: rotate(45deg); } .ds-checkpoint-icon { transform: rotate(-45deg); color: #ffffff; }"
+    }
+  ],
+  "narrative": {
+    "northStar": "The Digital Drafting Table",
+    "overview": "ArqLearn's mobile app merges the professional precision of architectural practice with the dopamine-driven engagement of gamified learning. The personality is educational and authoritative, but never dry — it stays motivating for students grinding a daily streak. The visual style hybridizes Modern Minimalism and Technical Brutalism: heavy whitespace and clean layouts, punctuated by Drafting Accents — thin technical strokes, monospaced numerals, and a subtle blueprint-grid tone. Unlike typical gamified apps that lean into soft, bubbly shapes, this system stays sharp and structured on purpose.",
+    "keyCharacteristics": [
+      "Sharp, structured geometry — never bubbly or soft-gamified",
+      "Flat by default: depth comes from tonal fills and 1–2px borders, not shadows",
+      "One color per job: blue = learning/navigation, orange = gamification, green = success — never mixed",
+      "Monospaced numerals (JetBrains Mono) for anything that counts (XP, streak, stats)"
+    ],
+    "rules": [
+      { "name": "The One Job Per Color Rule", "body": "Blue is structural/navigational, orange is exclusively gamification reward, green is exclusively success/validation. A card never borrows orange or green for anything but their assigned job.", "section": "colors" },
+      { "name": "The Mono-Counts Rule", "body": "Anything the user is meant to watch go up (XP, streak days, accuracy %) renders in statsNum (JetBrains Mono Bold), never in Hanken Grotesk or Inter.", "section": "typography" },
+      { "name": "The Flat-By-Default Rule", "body": "Surfaces are flat at rest. The only escapes are a transient overlay like Toast, and the gamification CTA's heavier bottom border to read as pressable.", "section": "elevation" }
+    ],
+    "dos": [
+      "Do keep orange strictly to XP/streak/reward surfaces.",
+      "Do pair every color-coded correct/incorrect state with a distinct icon, never color alone.",
+      "Do use statsNum (JetBrains Mono Bold) for every counter the user watches change.",
+      "Do keep lesson-map nodes flat (border + fill only) — the diamond checkpoint is the one allowed shape break."
+    ],
+    "donts": [
+      "Don't add shadowColor/elevation to a resting surface.",
+      "Don't wire a Pressable inside a ScrollView through the native disabled prop — it traps Android's scroll gesture.",
+      "Don't silently reconcile the button-radius gap between mobile (24px) and the shared spec (12px) by copying one value over the other without a design decision."
+    ]
+  }
+}

@@ -27,8 +27,10 @@ export function DailyGoalCard({ xpToday, goal }: DailyGoalCardProps) {
           </Text>
         </View>
       </View>
+      {/* Ghost, não primary — a feature ainda não existe (ver nota acima); um botão sólido
+          treinaria o usuário a confiar num toque que não faz nada de verdade. */}
       <Button
-        variant="primary"
+        variant="ghost"
         size="md"
         onPress={() => showToast("Revisão de erros ainda não está disponível — em breve!")}
       >

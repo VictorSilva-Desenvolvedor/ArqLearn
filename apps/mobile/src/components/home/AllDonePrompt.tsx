@@ -32,9 +32,12 @@ export function AllDonePrompt({ topic, themeLabel, suppressAutoOpen }: AllDonePr
 
   useEffect(() => {
     if (suppressAutoOpen) return;
+    // Delay proposital (não 0ms): dá um instante pro mapa 100% verde aparecer primeiro — a
+    // conquista se lê no próprio mapa antes do modal chegar, em vez de interceptar a tela no
+    // instante do mount como uma interrupção não pedida.
     const id = setTimeout(() => {
       if (!dismissedThisSession.has(topic)) setOpen(true);
-    }, 0);
+    }, 600);
     return () => clearTimeout(id);
   }, [topic, suppressAutoOpen]);
 
