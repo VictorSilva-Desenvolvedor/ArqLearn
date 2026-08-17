@@ -6,6 +6,10 @@
 > `Docs/stitch_app_visual_identity/` não se aplica aqui — o plano vivo é o que orientou a Fase 0
 > (PR #44); as fases seguintes devem seguir a mesma lógica de "espelhar o padrão do web pro RN".
 > Apagar cada item conforme for endereçado.
+>
+> **Checklist de teste manual em device real** (o que já foi testado ao vivo, o que falta, e como
+> retomar o ambiente de outro computador) está em `Docs/PENDENCIAS_TESTE_DEVICE.md` — não duplicado
+> aqui.
 
 ## O que já é real hoje (Fase 0 — fundação, PR #44)
 
