@@ -58,7 +58,10 @@ export function LessonNode({ variant, icon, href }: LessonNodeProps) {
       className={cn(
         "w-16 h-16 rounded-full bg-surface-gray text-outline border-2 border-dashed border-outline-variant flex items-center justify-center cursor-not-allowed",
       )}
-      aria-disabled
+      // role="button" + aria-disabled: um <div> sem role não garante que aria-disabled seja
+      // anunciado por leitor de tela — precisa de um role de widget pra esse estado valer.
+      role="button"
+      aria-disabled="true"
       aria-label="Lição em construção — ainda sem conteúdo"
     >
       <Icon name="construction" className="text-2xl" />

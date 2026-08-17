@@ -34,12 +34,17 @@ export function Card({
 }: CardProps) {
   return (
     <div
+      // interactive não é usado por nenhum consumidor ainda, mas quando for, precisa ser
+      // navegável por teclado de verdade — não só parecer clicável ao mouse.
+      role={interactive ? "button" : undefined}
+      tabIndex={interactive ? 0 : undefined}
       className={cn(
         "bg-surface-bright",
         paddingClasses[padding],
         radiusClasses[radius],
         bordered && "border-2 border-outline-variant",
-        interactive && "transition-colors hover:border-primary cursor-pointer",
+        interactive &&
+          "transition-colors hover:border-primary cursor-pointer focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary",
         className,
       )}
       {...rest}
