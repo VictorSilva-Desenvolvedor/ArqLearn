@@ -26,15 +26,22 @@ export function ShopFeatureCard({ item, disabled, pending, onPurchase }: ShopFea
           <p className="font-body-sm text-body-sm text-on-surface-variant">{item.description}</p>
         </div>
       </div>
-      <Button variant="gamification" disabled={disabled || pending} onClick={onPurchase}>
-        {pending ? (
-          <LoadingBlueprint size={18} />
-        ) : (
-          <>
-            <Icon name="diamond" filled className="text-base" /> {item.price_gems}
-          </>
+      <div className="flex flex-col items-center gap-xs">
+        <Button variant="gamification" disabled={disabled || pending} onClick={onPurchase}>
+          {pending ? (
+            <LoadingBlueprint size={18} />
+          ) : (
+            <>
+              <Icon name="diamond" filled className="text-base" /> {item.price_gems}
+            </>
+          )}
+        </Button>
+        {/* Botão desabilitado sozinho não deixa claro que é "sem gemas" — achado ao vivo no mobile,
+            mesmo componente espelhado aqui. */}
+        {disabled && !pending && (
+          <span className="font-label-caps text-label-caps text-error">Gemas insuficientes</span>
         )}
-      </Button>
+      </div>
     </Card>
   );
 }

@@ -1,5 +1,8 @@
+"use client";
+
 import Link from "next/link";
 import { Icon } from "@/components/ui/Icon";
+import { useToast } from "@/hooks/useToast";
 import { cn } from "@/lib/utils/cn";
 
 // "available" = tem pergunta aprovada de verdade, mas o usuário ainda não começou — navegável,
@@ -15,6 +18,8 @@ interface LessonNodeProps {
 }
 
 export function LessonNode({ variant, icon, href }: LessonNodeProps) {
+  const { showToast } = useToast();
+
   if (variant === "checkpoint") {
     return (
       <Link
@@ -53,15 +58,24 @@ export function LessonNode({ variant, icon, href }: LessonNodeProps) {
     );
   }
 
+  // Não é mais aria-disabled: tocar/clicar agora dá um retorno real (toast) em vez de nada —
+  // marcar como "disabled" pra leitor de tela enquanto ainda responde ao clique seria enganoso.
+  // Continua "não navegável" de propósito (sem <Link>), só explica por que não abre.
   return (
     <div
-      className={cn(
-        "w-16 h-16 rounded-full bg-surface-gray text-outline border-2 border-dashed border-outline-variant flex items-center justify-center cursor-not-allowed",
-      )}
-      // role="button" + aria-disabled: um <div> sem role não garante que aria-disabled seja
-      // anunciado por leitor de tela — precisa de um role de widget pra esse estado valer.
       role="button"
-      aria-disabled="true"
+      tabIndex={0}
+      onClick={() => showToast("Esta lição ainda está em preparação — volte em breve!")}
+      onKeyDown={(e) => {
+        if (e.key === "Enter" || e.key === " ") {
+          e.preventDefault();
+          showToast("Esta lição ainda está em preparação — volte em breve!");
+        }
+      }}
+      className={cn(
+        "w-16 h-16 rounded-full bg-surface-gray text-outline border-2 border-dashed border-outline-variant flex items-center justify-center cursor-pointer",
+        "focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary",
+      )}
       aria-label="Lição em construção — ainda sem conteúdo"
     >
       <Icon name="construction" className="text-2xl" />

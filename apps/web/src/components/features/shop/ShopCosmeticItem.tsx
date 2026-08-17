@@ -31,14 +31,21 @@ export function ShopCosmeticItem({ item, disabled, pending, onPurchase }: ShopCo
           Nível {item.requires_level}
         </span>
       ) : (
-        <button
-          type="button"
-          disabled={disabled || pending}
-          onClick={onPurchase}
-          className="flex items-center gap-1 font-label text-body-sm font-bold text-primary disabled:opacity-50"
-        >
-          <Icon name="diamond" filled className="text-base" /> {item.price_gems} gemas
-        </button>
+        <>
+          <button
+            type="button"
+            disabled={disabled || pending}
+            onClick={onPurchase}
+            className="flex items-center gap-1 font-label text-body-sm font-bold text-primary disabled:opacity-50"
+          >
+            <Icon name="diamond" filled className="text-base" /> {item.price_gems} gemas
+          </button>
+          {/* Botão desabilitado sozinho não deixa claro que é "sem gemas" — achado ao vivo no
+              mobile, mesmo componente espelhado aqui. */}
+          {disabled && !pending && (
+            <span className="font-label-caps text-label-caps text-error">Gemas insuficientes</span>
+          )}
+        </>
       )}
     </Card>
   );
