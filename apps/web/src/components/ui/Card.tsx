@@ -1,4 +1,4 @@
-import type { HTMLAttributes } from "react";
+import type { HTMLAttributes, KeyboardEvent } from "react";
 import { cn } from "@/lib/utils/cn";
 
 type CardPadding = "sm" | "md" | "lg";
@@ -30,14 +30,28 @@ export function Card({
   interactive = false,
   className,
   children,
+  onKeyDown,
   ...rest
 }: CardProps) {
+  // interactive já tem 6 consumidores reais (TrackCard, ProfileMenuLink, LogoutMenuLink,
+  // ShopCosmeticItem, NotificationItem, UploadedContentItem) — role="button"+tabIndex sozinhos só
+  // tornam o card focável, não ativável por teclado (div não herda o Enter/Espaço nativo de
+  // <button>). `.click()` dispara o onClick real de quem consome o Card, sem duplicar a lógica de
+  // clique aqui (achado de /impeccable audit, 2026-08-17 — regressão do fix anterior de focus).
+  const handleKeyDown = (e: KeyboardEvent<HTMLDivElement>) => {
+    onKeyDown?.(e);
+    if (!interactive || e.defaultPrevented) return;
+    if (e.key === "Enter" || e.key === " ") {
+      e.preventDefault();
+      e.currentTarget.click();
+    }
+  };
+
   return (
     <div
-      // interactive não é usado por nenhum consumidor ainda, mas quando for, precisa ser
-      // navegável por teclado de verdade — não só parecer clicável ao mouse.
       role={interactive ? "button" : undefined}
       tabIndex={interactive ? 0 : undefined}
+      onKeyDown={interactive ? handleKeyDown : onKeyDown}
       className={cn(
         "bg-surface-bright",
         paddingClasses[padding],
