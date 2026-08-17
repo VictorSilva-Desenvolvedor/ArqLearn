@@ -135,6 +135,8 @@ reprocessar.
 | `hearts_next_at` | datetime \| null | Instante em que a próxima vida será regenerada (TDD §5.4) — `null` quando `hearts_current` já está no teto (5). Cliente calcula a contagem regressiva localmente a partir deste timestamp fixo. *(v1.12)* |
 | `gems` | integer | Moeda virtual acumulada. |
 | `league_tier` | integer | Tier da liga semanal atual. |
+| `is_vip` | boolean | VIP "Mestre Arquiteto" ativo agora — já reflete a expiração preguiçosa (`EhVIPAtivo`, ver §8.3); nunca `true` com `vip_expires_at` no passado. *(v1.20)* |
+| `vip_expires_at` | datetime \| null | Instante em que o VIP expira. `null` quando não há VIP ativo, **ou** quando é vitalício (concedido sem prazo) — distinguir os dois casos exige olhar `is_vip` junto. *(v1.20)* |
 
 ### 3.3 Track / Lesson / Question
 
@@ -737,6 +739,106 @@ Mesmo formato de resposta do §8.1 (`gems` é sempre o saldo total, não o ganho
 `409 CHEST_NOT_AVAILABLE` (ainda não bateu as 50 perguntas do ciclo, ou já foi aberto neste ciclo —
 reconsultado no servidor).
 
+### 8.3 VIP "Mestre Arquiteto" *(v1.20)*
+
+A pedido do usuário: tier de entitlement que multiplica XP, garante recompensa no Baú Semanal e dá
+resets extras nos dois baús (§8.1/§8.2), além de identidade visual própria no perfil (cliente only —
+coroa, nome em destaque, selo "Mestre Arquiteto", sem campo de API dedicado). Dois caminhos de
+ativação:
+
+- **Cupom** (`vip_coupons`, Postgres) — 10 dígitos numéricos, gerado por um administrador
+  (`POST /v1/vip/coupons`) e entregue manualmente ao usuário fora do sistema (não há painel admin
+  ainda — endpoint chamado direto via curl/Postman). Resgatável uma única vez
+  (`POST /v1/vip/coupons/redeem`).
+- **Assinatura recorrente** (`POST /v1/vip/subscribe`) — endpoint existe mas está **desabilitado**
+  (`internal/gamification.VIPSubscriptionsEnabled = false`, retorna `501
+  VIP_SUBSCRIPTION_UNAVAILABLE`) até um gateway de pagamento real (Stripe/RevenueCat/IAP) ser
+  integrado — nenhuma cobrança real acontece no projeto hoje.
+
+> **Expiração preguiçosa (mesmo padrão de vidas/streak/baú — TDD §5.4, §5.2/§5.3):**
+> `internal/gamification.EhVIPAtivo(is_vip, vip_expires_at, now)` decide se o VIP vale agora, sem
+> job/cron: `is_vip=false` nunca é VIP; `is_vip=true` com `vip_expires_at=null` é vitalício;
+> `vip_expires_at` no passado desliga o benefício sozinho na próxima leitura, sem UPDATE nenhum
+> zerando `is_vip`.
+
+> **+25% de XP** (`internal/gamification.CalcularXP`, parâmetro `vipAtivo`): aplicado ao XP
+> calculado da resposta **antes** do teto diário de 500 XP (`DailyXPCap`, TDD §3.2) — VIP não ganha
+> um teto maior, só alcança o teto de 500/dia mais rápido. Aplicado nos dois pontos que concedem XP:
+> `POST /v1/lessons/{lesson_id}/answers` (§6) e `POST
+> /v1/infinite-mode/sessions/{session_id}/answers` (§6.1).
+
+> **Baú Semanal garantido:** para VIP ativo, `POST /v1/gamification/weekly-chest/open` (§8.2)
+> **não sorteia** a recompensa — vem sempre `reward_type: "streak_freeze"` (Bloqueio de Ofensiva
+> garantido). O Baú Diário (§8.1) continua sorteado normalmente mesmo para VIP.
+
+**`GET /v1/vip/status`** — Status VIP do usuário autenticado, incluindo os resets de baú
+disponíveis no período vigente (reset preguiçoso, mesmo padrão do próprio contador de perguntas dos
+baús).
+
+```json
+// Response 200
+{
+  "is_vip": boolean,
+  "vip_expires_at": "datetime | null",
+  "daily_chest_resets_used": integer,
+  "daily_chest_resets_max": 1,
+  "weekly_chest_resets_used": integer,
+  "weekly_chest_resets_max": 2
+}
+```
+
+**`POST /v1/gamification/daily-chest/reset`** — Benefício VIP: reseta o Baú Diário já reivindicado
+hoje, liberando uma nova abertura na hora (não zera `chest_questions_today` — o contador de
+perguntas do dia já está acima do teto, só `chest_claimed_date` é limpo). Até **1x por dia local**.
+
+```json
+// Response 200
+{ "available": true, "resets_used": integer, "resets_max": 1, "questions_required": 10 }
+```
+Erros: `403 VIP_REQUIRED` · `409 CHEST_NOT_CLAIMED_YET` (baú de hoje ainda não foi aberto — nada
+para resetar) · `409 CHEST_RESET_LIMIT_REACHED` (já usou o reset do dia).
+
+**`POST /v1/gamification/weekly-chest/reset`** — Mesmo benefício aplicado ao Baú Semanal, até
+**2x por ciclo** de 7 dias vigente (§8.2).
+
+```json
+// Response 200
+{ "available": true, "resets_used": integer, "resets_max": 2, "questions_required": 50 }
+```
+Erros: `403 VIP_REQUIRED` · `409 CHEST_NOT_CLAIMED_YET` · `409 CHEST_RESET_LIMIT_REACHED`.
+
+**`POST /v1/vip/coupons`** — Gera um cupom VIP de 10 dígitos numéricos. Requer `role = admin`
+(checado direto contra `users.role` — sem middleware de papel dedicado ainda).
+
+```json
+// Request body
+{ "duration_days": integer }
+// Response 201
+{ "code": "string (10 dígitos)", "duration_days": integer }
+```
+Erros: `400 INVALID_BODY` (`duration_days` ausente ou ≤ 0) · `403 ADMIN_REQUIRED`.
+
+**`POST /v1/vip/coupons/redeem`** — Resgata um cupom e ativa/estende o VIP do usuário autenticado
+(`internal/gamification.EstenderVIP`: sem VIP ativo conta `duration_days` a partir de agora; com VIP
+ainda ativo, empilha a partir da expiração atual em vez de desperdiçar o que sobrava; VIP vitalício
+permanece vitalício).
+
+```json
+// Request body
+{ "code": "string" }
+// Response 200
+{ "is_vip": true, "vip_expires_at": "datetime | null" }
+```
+Erros: `400 INVALID_BODY` · `409 COUPON_INVALID` (não existe ou já foi resgatado — mesma mensagem
+pros dois casos, pra não confirmar a existência de um código a quem não tem o código de verdade).
+
+**`POST /v1/vip/subscribe`** — Desabilitado nesta fase (ver nota acima). Sempre responde:
+
+```json
+// Response 501
+{ "error_code": "VIP_SUBSCRIPTION_UNAVAILABLE", "message": "..." }
+```
+
 ## 9. Notifications Service
 
 > **v1.11 — os dois endpoints abaixo são reais** (implementados contra a coleção `notifications`,
@@ -814,6 +916,12 @@ completos a detalhar no TDD quando a implementação desses três recursos come�
 | `BUG_REPORT_NOT_FOUND` | 404 | Relato de bug inexistente. *(v1.14)* |
 | `BUG_REPORT_ALREADY_RESOLVED` | 409 | Relato já estava `fixed` — resolver de novo não concede gemas outra vez. *(v1.14)* |
 | `PAYLOAD_TOO_LARGE` | 413 | Corpo da requisição excede o limite (ex.: print de bug grande demais). *(v1.14)* |
+| `VIP_REQUIRED` | 403 | Endpoint exclusivo de usuário VIP ativo (ex.: reset de baú). *(v1.20)* |
+| `CHEST_NOT_CLAIMED_YET` | 409 | Tentou resetar um baú (VIP) que ainda não foi aberto neste período. *(v1.20)* |
+| `CHEST_RESET_LIMIT_REACHED` | 409 | VIP já usou todos os resets de baú disponíveis no período vigente. *(v1.20)* |
+| `ADMIN_REQUIRED` | 403 | Endpoint restrito a `role=admin` (ex.: gerar cupom VIP). *(v1.20)* |
+| `COUPON_INVALID` | 409 | Cupom VIP inexistente ou já resgatado. *(v1.20)* |
+| `VIP_SUBSCRIPTION_UNAVAILABLE` | 501 | Assinatura VIP por cartão ainda não integrada a um gateway de pagamento. *(v1.20)* |
 
 *Tabela — Catálogo consolidado de códigos de erro da API.*
 

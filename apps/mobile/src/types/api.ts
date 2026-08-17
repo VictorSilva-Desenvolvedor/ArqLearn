@@ -60,6 +60,9 @@ export interface GamificationProfile {
   hearts_next_at: string | null;
   gems: number;
   league_tier: LeagueTier;
+  // VIP "Mestre Arquiteto" — já reflete a expiração (nunca true com vip_expires_at no passado).
+  is_vip: boolean;
+  vip_expires_at: string | null;
 }
 
 export type AchievementType = string;
@@ -290,6 +293,29 @@ export interface WeeklyChestStatus {
   questions_required: number;
   available: boolean;
   claimed_this_cycle: boolean;
+}
+
+// --- VIP "Mestre Arquiteto" ---
+
+export interface VipStatus {
+  is_vip: boolean;
+  vip_expires_at: string | null;
+  daily_chest_resets_used: number;
+  daily_chest_resets_max: number;
+  weekly_chest_resets_used: number;
+  weekly_chest_resets_max: number;
+}
+
+export interface VipChestResetResult {
+  available: boolean;
+  resets_used: number;
+  resets_max: number;
+  questions_required: number;
+}
+
+export interface VipRedeemCouponResult {
+  is_vip: boolean;
+  vip_expires_at: string | null;
 }
 
 export interface InfiniteModeEndResult {

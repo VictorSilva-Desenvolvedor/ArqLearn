@@ -29,6 +29,12 @@ func RegisterRoutes(mux *http.ServeMux, pool *pgxpool.Pool, verifier *authmiddle
 	mux.Handle("POST /v1/gamification/daily-chest/open", verifier.Middleware(http.HandlerFunc(handleOpenDailyChest(pool))))
 	mux.Handle("GET /v1/gamification/weekly-chest", verifier.Middleware(http.HandlerFunc(handleGetWeeklyChestStatus(pool))))
 	mux.Handle("POST /v1/gamification/weekly-chest/open", verifier.Middleware(http.HandlerFunc(handleOpenWeeklyChest(pool))))
+	mux.Handle("POST /v1/gamification/daily-chest/reset", verifier.Middleware(http.HandlerFunc(handleResetDailyChest(pool))))
+	mux.Handle("POST /v1/gamification/weekly-chest/reset", verifier.Middleware(http.HandlerFunc(handleResetWeeklyChest(pool))))
+	mux.Handle("GET /v1/vip/status", verifier.Middleware(http.HandlerFunc(handleGetVIPStatus(pool))))
+	mux.Handle("POST /v1/vip/coupons", verifier.Middleware(http.HandlerFunc(handleCreateVIPCoupon(pool))))
+	mux.Handle("POST /v1/vip/coupons/redeem", verifier.Middleware(http.HandlerFunc(handleRedeemVIPCoupon(pool))))
+	mux.Handle("POST /v1/vip/subscribe", verifier.Middleware(http.HandlerFunc(handleSubscribeVIP(pool))))
 }
 
 // --- GET /v1/gamification/me ---
@@ -54,6 +60,8 @@ type gamificationMeResponse struct {
 	Gems          int               `json:"gems"`
 	LeagueTier    *string           `json:"league_tier"`
 	Achievements  []achievementJSON `json:"achievements"`
+	IsVIP         bool              `json:"is_vip"`
+	VIPExpiresAt  *time.Time        `json:"vip_expires_at"`
 }
 
 // LoadHeartsWithRegen lê hearts_current/hearts_updated_at, aplica a regeneração preguiçosa (TDD
@@ -151,10 +159,11 @@ func handleGetGamificationMe(pool *pgxpool.Pool) http.HandlerFunc {
 		}
 
 		var resp gamificationMeResponse
+		var isVipRaw bool
 		err := pool.QueryRow(r.Context(), `
-			SELECT xp_total, xp_today, level, gems
+			SELECT xp_total, xp_today, level, gems, is_vip, vip_expires_at
 			FROM user_gamification WHERE user_id = $1
-		`, userID).Scan(&resp.XPTotal, &resp.XPToday, &resp.Level, &resp.Gems)
+		`, userID).Scan(&resp.XPTotal, &resp.XPToday, &resp.Level, &resp.Gems, &isVipRaw, &resp.VIPExpiresAt)
 		if err == pgx.ErrNoRows {
 			apierror.Write(w, http.StatusNotFound, "USER_PROFILE_NOT_FOUND", "Perfil de usuário não encontrado.")
 			return
@@ -185,6 +194,10 @@ func handleGetGamificationMe(pool *pgxpool.Pool) http.HandlerFunc {
 			apierror.Write(w, http.StatusInternalServerError, "INTERNAL_ERROR", "Falha ao consultar liga.")
 			return
 		}
+
+		// IsVIP reflete o estado JÁ EXPIRADO (EhVIPAtivo), não a coluna crua is_vip — evita o
+		// cliente achar que o VIP ainda vale só porque ninguém rodou um UPDATE zerando a flag.
+		resp.IsVIP = EhVIPAtivo(isVipRaw, resp.VIPExpiresAt, time.Now().UTC())
 
 		rows, err := pool.Query(r.Context(), `SELECT type, unlocked_at FROM achievements WHERE user_id = $1 ORDER BY unlocked_at DESC`, userID)
 		if err != nil {
@@ -1126,7 +1139,11 @@ func handleOpenWeeklyChest(pool *pgxpool.Pool) http.HandlerFunc {
 		}
 
 		var cycleStart *time.Time
-		if err := pool.QueryRow(r.Context(), `SELECT chest_weekly_cycle_start FROM user_gamification WHERE user_id = $1`, userID).Scan(&cycleStart); err != nil {
+		var isVip bool
+		var vipExpiresAt *time.Time
+		if err := pool.QueryRow(r.Context(),
+			`SELECT chest_weekly_cycle_start, is_vip, vip_expires_at FROM user_gamification WHERE user_id = $1`, userID,
+		).Scan(&cycleStart, &isVip, &vipExpiresAt); err != nil {
 			apierror.Write(w, http.StatusInternalServerError, "INTERNAL_ERROR", "Falha ao consultar ciclo semanal.")
 			return
 		}
@@ -1136,6 +1153,12 @@ func handleOpenWeeklyChest(pool *pgxpool.Pool) http.HandlerFunc {
 		}
 
 		reward := RolarRecompensaBauSemanal(rand.Float64(), rand.Float64())
+		// Benefício VIP (a pedido do usuário): Baú Semanal do VIP não é sorteado — vem sempre com
+		// Bloqueio de Ofensiva garantido. RolarRecompensaBauSemanal continua pura/testável; o
+		// override fica só aqui, no ponto de uso.
+		if EhVIPAtivo(isVip, vipExpiresAt, time.Now().UTC()) {
+			reward = ChestReward{Type: ChestRewardStreakFreeze}
+		}
 
 		tx, err := pool.Begin(r.Context())
 		if err != nil {

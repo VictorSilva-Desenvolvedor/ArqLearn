@@ -201,15 +201,17 @@ func handleInfiniteModeAnswer(pool *pgxpool.Pool, mongoDB *mongo.Database, gemin
 		var timezone string
 		var xpTotal, xpToday, chestQuestionsToday, chestWeeklyQuestions int
 		var xpTodayDate, chestQuestionsDate, chestClaimedDate, chestWeeklyCycleStart *time.Time
+		var isVip bool
+		var vipExpiresAt *time.Time
 		if err := pool.QueryRow(r.Context(), `
 			SELECT u.timezone, g.xp_total, g.xp_today, g.xp_today_date,
 			       g.chest_questions_today, g.chest_questions_date, g.chest_claimed_date,
-			       g.chest_weekly_questions, g.chest_weekly_cycle_start
+			       g.chest_weekly_questions, g.chest_weekly_cycle_start, g.is_vip, g.vip_expires_at
 			FROM users u JOIN user_gamification g ON g.user_id = u.id
 			WHERE u.id = $1
 		`, userID).Scan(&timezone, &xpTotal, &xpToday, &xpTodayDate,
 			&chestQuestionsToday, &chestQuestionsDate, &chestClaimedDate,
-			&chestWeeklyQuestions, &chestWeeklyCycleStart); err != nil {
+			&chestWeeklyQuestions, &chestWeeklyCycleStart, &isVip, &vipExpiresAt); err != nil {
 			apierror.Write(w, http.StatusInternalServerError, "INTERNAL_ERROR", "Falha ao consultar perfil.")
 			return
 		}
@@ -229,7 +231,8 @@ func handleInfiniteModeAnswer(pool *pgxpool.Pool, mongoDB *mongo.Database, gemin
 		chestWeeklyQuestions++
 		chestWeeklyCycleStartDate, _ := time.Parse("2006-01-02", chestWeeklyCycleStartStr)
 
-		xpResult := gamification.CalcularXP(q.Difficulty, int(req.TimeMs), false, correct, xpToday)
+		vipAtivo := gamification.EhVIPAtivo(isVip, vipExpiresAt, now)
+		xpResult := gamification.CalcularXP(q.Difficulty, int(req.TimeMs), false, correct, xpToday, vipAtivo)
 		newXPTotal := xpTotal + xpResult.XPConcedido
 		newXPToday := xpToday + xpResult.XPConcedido
 		newLevel := gamification.Nivel(newXPTotal)

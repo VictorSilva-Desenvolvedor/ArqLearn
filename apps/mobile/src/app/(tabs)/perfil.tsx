@@ -37,7 +37,12 @@ export default function PerfilScreen() {
     <View style={styles.screen}>
       <TopAppBar />
       <ScrollView contentContainerStyle={styles.content}>
-        <ProfileHeader name={user.name} level={gamification.level} xpTotal={gamification.xp_total} />
+        <ProfileHeader
+          name={user.name}
+          level={gamification.level}
+          xpTotal={gamification.xp_total}
+          vip={gamification.is_vip}
+        />
         <ProfileStatsGrid
           xpTotal={gamification.xp_total}
           level={gamification.level}
@@ -49,6 +54,11 @@ export default function PerfilScreen() {
         <StreakFreezeCard />
         {achievements && <AchievementGrid unlocked={achievements} />}
         <View style={styles.menu}>
+          <ProfileMenuLink
+            href="/vip"
+            icon="crown"
+            label={gamification.is_vip ? "Minha Assinatura VIP" : "Seja VIP"}
+          />
           <ProfileMenuLink href="/loja" icon="storefront" label="Loja" />
           <ProfileMenuLink href="/ajuda" icon="help" label="Ajuda e Bugs" />
           <ProfileMenuLink href="/perfil/configuracoes" icon="settings" label="Configurações" />

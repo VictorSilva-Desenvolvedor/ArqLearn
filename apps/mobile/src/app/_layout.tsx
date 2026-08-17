@@ -53,6 +53,7 @@ function RootNavigator() {
         <Stack.Screen name="materiais/[uploadId]/resumo" />
         <Stack.Screen name="materiais/[uploadId]/chat" />
         <Stack.Screen name="perfil/configuracoes" />
+        <Stack.Screen name="vip" />
         <Stack.Screen name="loja" />
         <Stack.Screen name="notificacoes" />
         <Stack.Screen name="ajuda" />

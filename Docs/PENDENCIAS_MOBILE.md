@@ -855,3 +855,30 @@ sessão) — login real preenchendo o formulário, sem atalho.
 
 Conta de teste restaurada ao estado neutro ao final (baú diário/semanal zerados, gems=5).
 **Itens #16 e #17 estão fechados** — não há mais pendência de teste de UI pra Baú Diário/Semanal.
+
+### 19. VIP "Mestre Arquiteto" (15/08/2026)
+
+A pedido do usuário: tier VIP com +25% de XP, Baú Semanal garantido (sempre Bloqueio de Ofensiva,
+sem sorteio), 1 reset extra do Baú Diário/dia e 2 do Baú Semanal/ciclo, e perfil com coroa/selo
+dourado — a partir de 3 mockups Stitch anexados (Assinatura VIP, Recompensa VIP - Baú de Ouro,
+Perfil VIP). Backend: migration 0011 (`is_vip`/`vip_expires_at`/contadores de reset em
+`user_gamification`, tabela `vip_coupons`), `internal/gamification/vip.go` novo (6 endpoints —
+`GET /v1/vip/status`, `POST /v1/vip/coupons[/redeem]`, `POST /v1/vip/subscribe`, `POST
+/v1/gamification/{daily,weekly}-chest/reset`), `EhVIPAtivo`/`EstenderVIP`/`VIPResetsAposReset`
+testados em `algorithms_test.go`. Ativação por dois caminhos (decisão do usuário): cupom de 10
+dígitos gerado por admin (funcional) e assinatura recorrente (schema pronto, endpoint desabilitado
+— `VIPSubscriptionsEnabled = false`, sem gateway de pagamento integrado ainda).
+
+Frontend (paridade mobile+web): nova tela `/vip` (paywall/resgate de cupom, adaptada do mockup),
+`ProfileHeader` com coroa/nome dourado/selo "Mestre Arquiteto" quando `is_vip`, botão "Resetar Baú
+(VIP)" na tela `/bau` quando o baú do período já foi reivindicado.
+
+Verificado: `go build/vet/test` limpos (`algorithms_test.go` cobre os novos helpers puros),
+`tsc --noEmit` limpo nos dois apps, `npm install` na raiz rodado antes (branch estava com
+dependências desatualizadas em relação à `main`, corrigido). **Teste de UI ao vivo não foi possível
+nesta rodada** — sem credenciais de conta de teste disponíveis nesta sessão (mesma limitação já
+registrada nos itens #16/#17 antes da senha ser fornecida); fica pendente pra próxima sessão com
+acesso à conta de teste, junto de: (1) confirmar ao vivo que o Baú Semanal de uma conta VIP sai
+sempre com Bloqueio de Ofensiva; (2) confirmar que o reset de baú realmente reabre a tela sem exigir
+novas perguntas; (3) testar o fluxo de resgate de cupom ponta a ponta contra o Postgres real
+(gerar cupom via `POST /v1/vip/coupons` com uma conta admin, resgatar com a conta de teste).
