@@ -42,7 +42,7 @@ export function CurrentLessonNode({ icon, href, ctaLabel }: CurrentLessonNodePro
         onClick={handleClick}
         aria-label={ctaLabel ?? "Lição atual"}
         // Navegação/estado "em andamento" — azul primário, não laranja.
-        className="w-20 h-20 rounded-full bg-primary text-on-primary border-4 border-surface-bright shadow-[0_0_0_2px_var(--color-primary)] flex items-center justify-center hover:scale-105 transition-transform"
+        className="w-20 h-20 rounded-full bg-primary text-on-primary border-4 border-surface-bright shadow-[0_0_0_2px_var(--color-primary)] flex items-center justify-center hover:scale-105 transition-transform focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
       >
         <Icon name={icon} filled className="text-4xl" />
       </button>

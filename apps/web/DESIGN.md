@@ -222,9 +222,12 @@ border of its own — never a generic Tailwind shadow utility added to a resting
 - **Revealed correct / incorrect:** 2px `border-tertiary`/`bg-tertiary-fixed` or
   `border-error`/`bg-error-container`, plus a dedicated icon — color is never the only signal.
 - **Focus:** `focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2
-  focus-visible:outline-primary` — real, themed keyboard focus. Worth porting the same explicit
-  focus treatment to `apps/mobile`'s equivalent once RN's focus-visible story is worked out; mobile
-  currently has no equivalent documented state.
+  focus-visible:outline-primary` — real, themed keyboard focus. As of 2026-08-17 the same treatment
+  also covers `Button`, `Card` (interactive), `Toggle`, `DropdownMenuItem`, and — closing a gap an
+  audit caught, since these are Home's actual primary interactive content, not just its shared
+  primitives — `LessonNode`'s three navigable variants and `CurrentLessonNode`. Worth porting to
+  `apps/mobile`'s equivalent once RN's focus-visible story is worked out; mobile currently has no
+  equivalent documented state.
 
 ### Cards / Containers
 - **Corner style:** `rounded-lg` (16px) by default, `md`/`xl` available per instance.
@@ -233,7 +236,13 @@ border of its own — never a generic Tailwind shadow utility added to a resting
   disabled) — thicker at rest than the answer card's 1px default, which is deliberate per the source
   spec (cards are containers, answer options are a more numerous repeated element that shouldn't
   compete as hard visually until selected).
-- **Interactive variant:** `hover:border-primary` + pointer cursor, no shadow lift.
+- **Interactive variant:** `hover:border-primary` + pointer cursor, themed focus ring, no shadow
+  lift. Has 6 live consumers (`TrackCard`, `ProfileMenuLink`, `LogoutMenuLink`, `ShopCosmeticItem`,
+  `NotificationItem`, `UploadedContentItem`). Fixed 2026-08-17: `role="button"`+`tabIndex` alone
+  made it focusable but not keyboard-*activatable* — Enter/Space did nothing, a real WCAG 2.1.1
+  regression from the focus-ring fix above shipping without it. `Card.tsx` now calls
+  `e.currentTarget.click()` on Enter/Space, routing through whatever `onClick` the consumer already
+  passes instead of duplicating click logic.
 
 ## Do's and Don'ts
 

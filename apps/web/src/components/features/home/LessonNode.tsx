@@ -20,7 +20,7 @@ export function LessonNode({ variant, icon, href }: LessonNodeProps) {
       <Link
         href={href ?? "#"}
         aria-label="Checkpoint — toque para abrir"
-        className="w-20 h-20 rounded-xl bg-primary text-on-primary border-2 border-primary flex items-center justify-center hover:scale-105 transition-transform shadow-gamified rotate-45"
+        className="w-20 h-20 rounded-xl bg-primary text-on-primary border-2 border-primary flex items-center justify-center hover:scale-105 transition-transform shadow-gamified rotate-45 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
       >
         <Icon name={icon} filled className="text-4xl -rotate-45" />
       </Link>
@@ -32,7 +32,7 @@ export function LessonNode({ variant, icon, href }: LessonNodeProps) {
       <Link
         href={href ?? "#"}
         aria-label="Lição concluída — toque para revisar"
-        className="w-16 h-16 rounded-full bg-primary text-on-primary border-2 border-primary flex items-center justify-center hover:scale-105 transition-transform shadow-gamified"
+        className="w-16 h-16 rounded-full bg-primary text-on-primary border-2 border-primary flex items-center justify-center hover:scale-105 transition-transform shadow-gamified focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
       >
         {/* "completed" sempre mostra check — não depende de nenhum dado mockado atribuir esse
             ícone à lição; o ícone da matéria (`icon`) só faz sentido pra checkpoint/available. */}
@@ -45,7 +45,7 @@ export function LessonNode({ variant, icon, href }: LessonNodeProps) {
     return (
       <Link
         href={href ?? "#"}
-        className="w-16 h-16 rounded-full bg-surface-bright text-primary border-2 border-primary flex items-center justify-center hover:scale-105 transition-transform"
+        className="w-16 h-16 rounded-full bg-surface-bright text-primary border-2 border-primary flex items-center justify-center hover:scale-105 transition-transform focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
         aria-label="Lição disponível — toque para começar"
       >
         <Icon name={icon} className="text-3xl" />
