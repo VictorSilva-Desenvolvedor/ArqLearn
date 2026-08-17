@@ -28,19 +28,27 @@ export function ShopCosmeticItem({ item, disabled, pending, onPurchase }: ShopCo
       {item.locked ? (
         <Text style={[type.labelCaps, styles.lockedLabel]}>Nível {item.requires_level}</Text>
       ) : (
-        // Sem `disabled` no Pressable de propósito — este card fica numa grade dentro de uma
-        // ScrollView (loja.tsx); um Pressable desabilitado ali é a mesma armadilha do Android já
-        // corrigida em ThemeSelector.tsx/Button.tsx (trava o gesto de arrastar pra rolar).
-        <Pressable
-          onPress={() => !(disabled || pending) && onPurchase()}
-          accessibilityState={{ disabled: disabled || pending }}
-          style={styles.purchaseButton}
-        >
-          <Icon name="gems" size={16} color={disabled || pending ? colors.onSurfaceVariant : colors.primary} />
-          <Text style={[type.bodySm, styles.priceText, (disabled || pending) && styles.priceTextDisabled]}>
-            {item.price_gems} gemas
-          </Text>
-        </Pressable>
+        <>
+          {/* Sem `disabled` no Pressable de propósito — este card fica numa grade dentro de uma
+              ScrollView (loja.tsx); um Pressable desabilitado ali é a mesma armadilha do Android
+              já corrigida em ThemeSelector.tsx/Button.tsx (trava o gesto de arrastar pra rolar). */}
+          <Pressable
+            onPress={() => !(disabled || pending) && onPurchase()}
+            accessibilityState={{ disabled: disabled || pending }}
+            style={styles.purchaseButton}
+          >
+            <Icon name="gems" size={16} color={disabled || pending ? colors.onSurfaceVariant : colors.primary} />
+            <Text style={[type.bodySm, styles.priceText, (disabled || pending) && styles.priceTextDisabled]}>
+              {item.price_gems} gemas
+            </Text>
+          </Pressable>
+          {/* Texto explícito, não só cor apagada: um botão cinza sozinho não deixa claro se é
+              "sem gemas" ou "processando" — achado ao vivo, tocar num item caro parecia não fazer
+              nada. */}
+          {disabled && !pending && (
+            <Text style={[type.labelCaps, styles.insufficientLabel]}>Gemas insuficientes</Text>
+          )}
+        </>
       )}
     </Card>
   );
@@ -79,5 +87,9 @@ const styles = StyleSheet.create({
   },
   priceTextDisabled: {
     color: colors.onSurfaceVariant,
+  },
+  insufficientLabel: {
+    color: colors.error,
+    textAlign: "center",
   },
 });

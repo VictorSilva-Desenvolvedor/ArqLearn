@@ -29,14 +29,18 @@ export function ShopFeatureCard({ item, disabled, pending, onPurchase }: ShopFea
           <Text style={[type.bodySm, styles.description]}>{item.description}</Text>
         </View>
       </View>
-      <Button
-        variant="gamification"
-        disabled={disabled || pending}
-        onPress={onPurchase}
-        icon={pending ? <LoadingBlueprint size={18} /> : <Icon name="gems" size={18} color={colors.onSecondaryContainer} />}
-      >
-        {pending ? "" : `${item.price_gems}`}
-      </Button>
+      <View style={styles.action}>
+        <Button
+          variant="gamification"
+          disabled={disabled || pending}
+          onPress={onPurchase}
+          icon={pending ? <LoadingBlueprint size={18} /> : <Icon name="gems" size={18} color={colors.onSecondaryContainer} />}
+        >
+          {pending ? "" : `${item.price_gems}`}
+        </Button>
+        {/* Botão desabilitado sozinho não deixa claro que é "sem gemas" — achado ao vivo. */}
+        {disabled && !pending && <Text style={[type.labelCaps, styles.insufficientLabel]}>Gemas insuficientes</Text>}
+      </View>
     </Card>
   );
 }
@@ -64,5 +68,12 @@ const styles = StyleSheet.create({
   description: {
     color: colors.onSurfaceVariant,
     marginTop: 2,
+  },
+  action: {
+    alignItems: "center",
+    gap: 4,
+  },
+  insufficientLabel: {
+    color: colors.error,
   },
 });
