@@ -19,10 +19,15 @@ export const colors = {
   inverseOnSurface: "#eaf1ff",
   // Escurecido em 2026-08-17 (/impeccable audit): #727780 media 4.09:1 como texto (ex.: Badge
   // "neutral"), abaixo do mínimo AA de 4.5:1 — novo valor ~4.9-5.1:1, mesmo tom, mais escuro.
-  // Aplicado nas duas plataformas (apps/web/globals.css tem a mesma mudança). outlineVariant
-  // (borda) NÃO foi tocado aqui — só o web teve esse achado auditado até agora.
+  // Aplicado nas duas plataformas (apps/web/globals.css tem a mesma mudança).
   outline: "#626b76",
-  outlineVariant: "#c2c7d0",
+  // Escurecido em 2026-08-17 (/impeccable audit, achado replicado do web): #c2c7d0 media só
+  // ~1.6:1 contra surfaceBright/surfaceGray, abaixo do mínimo AA de 3:1 pra contraste não-textual
+  // (WCAG 1.4.11) — mesmo valor exato já validado e publicado em apps/web (#7f8894), que passa
+  // 3.4:1 contra surfaceBright e 3.3:1 contra surfaceGray (as duas superfícies onde esta borda
+  // aparece). Replicado em vez de derivar um novo tom, já que os dois tokens de superfície são
+  // hex idênticos nas duas plataformas.
+  outlineVariant: "#7f8894",
   surfaceTint: "#34618f",
   surfaceVariant: "#d9e3f6",
   surfaceGray: "#f3f4f6",

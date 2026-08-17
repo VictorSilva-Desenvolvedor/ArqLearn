@@ -1,6 +1,6 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { useRouter } from "expo-router";
-import { ScrollView, StyleSheet, Text, View } from "react-native";
+import { RefreshControl, ScrollView, StyleSheet, Text, View } from "react-native";
 import { AllDonePrompt } from "@/components/home/AllDonePrompt";
 import { ChestProgressCard } from "@/components/home/ChestProgressCard";
 import { DailyGoalCard } from "@/components/home/DailyGoalCard";
@@ -90,46 +90,57 @@ export default function HomeScreen() {
   const [retryToken, setRetryToken] = useState(0);
   const [dailyChest, setDailyChest] = useState<DailyChestStatus | null>(null);
   const [weeklyChest, setWeeklyChest] = useState<WeeklyChestStatus | null>(null);
+  const [refreshing, setRefreshing] = useState(false);
 
-  useEffect(() => {
-    let cancelled = false;
-    async function load() {
-      setMapLoadError(false);
-      try {
-        const { data: tracks } = await listTracks();
-        const featuredTrack = tracks.find((track) => track.topic === selectedTheme.topic);
-        const otherTracks = tracks.filter((track) => track.topic !== selectedTheme.topic);
-        const orderedTracks = [...(featuredTrack ? [featuredTrack] : []), ...otherTracks].slice(0, MAX_UNITS_SHOWN);
+  // Extraído do useEffect original pra ser reaproveitado pelo pull-to-refresh (onRefresh abaixo)
+  // sem duplicar a lógica de busca/derivação de trilha em destaque.
+  const loadMap = useCallback(async () => {
+    setMapLoadError(false);
+    try {
+      const { data: tracks } = await listTracks();
+      const featuredTrack = tracks.find((track) => track.topic === selectedTheme.topic);
+      const otherTracks = tracks.filter((track) => track.topic !== selectedTheme.topic);
+      const orderedTracks = [...(featuredTrack ? [featuredTrack] : []), ...otherTracks].slice(0, MAX_UNITS_SHOWN);
 
-        const withLessons = await Promise.all(
-          orderedTracks.map(async (track) => {
-            const { data: rawLessons } = await listTrackLessons(track.id);
-            const trackLessons = track.topic === selectedTheme.topic ? featureSelectedTheme(rawLessons) : rawLessons;
-            return toUnit(track, trackLessons);
-          }),
-        );
-        if (!cancelled) setUnits(withLessons);
-      } catch {
-        if (!cancelled) setMapLoadError(true);
-      }
+      const withLessons = await Promise.all(
+        orderedTracks.map(async (track) => {
+          const { data: rawLessons } = await listTrackLessons(track.id);
+          const trackLessons = track.topic === selectedTheme.topic ? featureSelectedTheme(rawLessons) : rawLessons;
+          return toUnit(track, trackLessons);
+        }),
+      );
+      setUnits(withLessons);
+    } catch {
+      setMapLoadError(true);
     }
-    void load();
-    return () => {
-      cancelled = true;
-    };
-  }, [selectedTheme.topic, retryToken]);
+  }, [selectedTheme.topic]);
+
+  const loadChests = useCallback(async () => {
+    const [daily, weekly] = await Promise.all([getDailyChestStatus(), getWeeklyChestStatus()]);
+    setDailyChest(daily);
+    setWeeklyChest(weekly);
+  }, []);
 
   useEffect(() => {
-    let cancelled = false;
-    Promise.all([getDailyChestStatus(), getWeeklyChestStatus()]).then(([daily, weekly]) => {
-      if (cancelled) return;
-      setDailyChest(daily);
-      setWeeklyChest(weekly);
-    });
-    return () => {
-      cancelled = true;
-    };
-  }, []);
+    void loadMap();
+  }, [loadMap, retryToken]);
+
+  useEffect(() => {
+    void loadChests();
+  }, [loadChests]);
+
+  // Pull-to-refresh (achado do teste em device real, PENDENCIAS_MOBILE.md #21): reusa loadMap/
+  // loadChests em vez de duplicar a busca. Não zera `units`/chests antes de recarregar — o spinner
+  // nativo do RefreshControl já é o indicador de carregamento; zerar acionaria o skeleton
+  // fullscreen (LoadingBlueprint) por cima do mapa que o usuário já está vendo.
+  const onRefresh = useCallback(async () => {
+    setRefreshing(true);
+    try {
+      await Promise.all([loadMap(), loadChests()]);
+    } finally {
+      setRefreshing(false);
+    }
+  }, [loadMap, loadChests]);
 
   // "Tudo em dia" = a trilha em destaque (primeiro item de units, ver orderedTracks acima)
   // concluída — só oferece Modo Infinito se o tema realmente tem conteúdo (hasContent).
@@ -139,7 +150,12 @@ export default function HomeScreen() {
   return (
     <View style={styles.screen}>
       <TopAppBar />
-      <ScrollView contentContainerStyle={styles.content}>
+      <ScrollView
+        contentContainerStyle={styles.content}
+        refreshControl={
+          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={colors.primary} colors={[colors.primary]} />
+        }
+      >
         <DailyGoalCard xpToday={gamification.xp_today} goal={DAILY_GOAL_XP} />
         <LevelProgressCard level={gamification.level} xpTotal={gamification.xp_total} />
         {dailyChest && weeklyChest && (

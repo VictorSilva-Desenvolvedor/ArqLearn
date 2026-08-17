@@ -88,27 +88,32 @@ pedir print de tela na próxima sessão antes de mexer em qualquer coisa.**
 
 Itens que dependem de decisão de design ou de outro tipo de ambiente, não de mais teste manual:
 
-1. **Densidade do `TopAppBar`** (mobile) — 6 alvos de toque em 3 linhas antes do mapa. Adiado
-   desde o `/impeccable critique` original por precisar de decisão de layout + visualização.
-   Comando sugerido: `/impeccable layout`.
-2. **`ThemeSelector` sem virtualização de lista** — `ScrollView` com ~50 itens, `FlatList`/
-   `SectionList` seria mais correto se o catálogo crescer. `/impeccable optimize`.
-3. **Formato do `Toggle`** — visual de switch estilo iOS nas duas plataformas; decisão de design
-   em aberto (aceitar como estilo próprio da marca, documentar no DESIGN.md, ou trocar por
-   `Switch` nativo por plataforma). `/impeccable shape`.
-4. **Lock de orientação (`app.json`, `"orientation": "portrait"`)** não documentado — decidir se é
-   intencional e registrar o motivo, ou permitir paisagem no iPad. `/impeccable document`.
+1. ✅ **Densidade do `TopAppBar`** (mobile) — resolvido 17/08/2026 (`/impeccable layout`, ver
+   `PENDENCIAS_MOBILE.md` #22): as duas faixas utilitárias viraram uma só, sem borda duplicada.
+   **Falta**: confirmar visualmente ao vivo (sem credenciais de login disponíveis na sessão que
+   fez a mudança).
+2. ✅ **`ThemeSelector` sem virtualização de lista** — resolvido 17/08/2026 (`/impeccable
+   optimize`, `PENDENCIAS_MOBILE.md` #22): `ScrollView` trocado por `SectionList`.
+3. ✅ **Formato do `Toggle`** — resolvido 17/08/2026 (`/impeccable shape`, `PENDENCIAS_MOBILE.md`
+   #22): mantido como estilo próprio da marca, documentado em `apps/mobile/DESIGN.md`.
+4. ✅ **Lock de orientação** — resolvido 17/08/2026 (`/impeccable document`, `PENDENCIAS_MOBILE.md`
+   #22): confirmado intencional (nenhuma tela tem composição landscape), motivo registrado em
+   `apps/mobile/DESIGN.md`.
 5. **Gesto preditivo de voltar do Android** — só testável em modo de navegação por gestos; o
    device de teste usa modo de 3 botões. Já validado que o botão voltar normal funciona
    (`PENDENCIAS_MOBILE.md` #20); falta o teste real do gesto em si.
-6. **`--color-outline-variant` (borda)** foi escurecido só no web (achado de contraste WCAG AA,
-   `/impeccable audit`) — mobile usa o mesmo valor original (`#c2c7d0`) e nunca foi auditado pra
-   contraste de borda. Rodar `/impeccable audit` focado nisso antes de decidir se replica o fix.
+6. ✅ **`--color-outline-variant` (borda)** — resolvido 17/08/2026 (`/impeccable audit` focado
+   nisso, `PENDENCIAS_MOBILE.md` #22): media ~1.6:1, abaixo do mínimo 3:1 — replicado o fix já
+   validado no web (`#c2c7d0` → `#7f8894`).
 7. **iOS e iPad** — nada testado (sem Mac/dispositivo Apple nesta sessão). Todo achado de
    `/impeccable audit` referente a `ios.md`/adaptividade em tablet continua só verificado por
    leitura de código, nunca ao vivo.
-8. **Pull-to-refresh ausente na Home** (achado nesta sessão, `PENDENCIAS_MOBILE.md` #21) — depois
-   de implementar, re-verificar se `LoadingBlueprint` respeita "Remover animações" no reload real.
+8. 🔧 **Pull-to-refresh ausente na Home** — implementado 17/08/2026 (`PENDENCIAS_MOBILE.md` #22).
+   **Falta**: re-verificar ao vivo se `LoadingBlueprint` respeita "Remover animações" no reload
+   real (não testável sem device/credenciais na sessão que implementou) — mesma pendência #2 do
+   achado original (`PENDENCIAS_MOBILE.md` #21).
+9. **Espelhar no `apps/web`** as 6 mudanças do item #22 acima (regra permanente de paridade,
+   `PENDENCIAS_MOBILE.md` #9) — ainda não feito, fora do escopo da demanda que fechou 1-4/6/8.
 
 ## Referências
 
