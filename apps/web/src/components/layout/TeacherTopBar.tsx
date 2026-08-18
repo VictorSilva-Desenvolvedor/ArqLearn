@@ -15,7 +15,7 @@ export function TeacherTopBar() {
         <Link href="/painel" className="flex items-center gap-xs">
           <Icon name="architecture" filled className="text-primary text-display-lg font-bold" />
           <h1 className="font-display text-display-lg font-bold text-primary">ArqLearn</h1>
-          <span className="ml-xs font-label-caps text-label-caps uppercase text-on-surface-variant bg-surface-gray px-2 py-1 rounded">
+          <span className="ml-xs font-label text-label-caps uppercase text-on-surface-variant bg-surface-gray px-2 py-1 rounded">
             Professor
           </span>
         </Link>

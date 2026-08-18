@@ -6,6 +6,7 @@ import { InfiniteModeHeader } from "@/components/features/infiniteMode/InfiniteM
 import { InfiniteModeActionBar } from "@/components/features/infiniteMode/InfiniteModeActionBar";
 import { QuestionCard } from "@/components/features/quiz/QuestionCard";
 import { useInfiniteModeSession } from "@/components/features/infiniteMode/useInfiniteModeSession";
+import { useQuizKeyboardShortcuts } from "@/components/features/quiz/useQuizKeyboardShortcuts";
 import { getThemeByTopic } from "@/lib/api/mocks/fixtures/themes";
 import { Icon } from "@/components/ui/Icon";
 import { Button } from "@/components/ui/Button";
@@ -25,6 +26,19 @@ export default function InfiniteModeSessionPage() {
     infinite.dismissLevelUp();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [infinite.levelUpTo]);
+
+  // Antes de qualquer early return de propósito — hooks não podem ser condicionais.
+  useQuizKeyboardShortcuts({
+    enabled: !infinite.notAvailable && !infinite.loading,
+    revealed: infinite.revealed,
+    optionIds: infinite.question?.options.map((o) => o.id) ?? [],
+    canSelect: infinite.question?.type !== "fill_blank",
+    canVerify: Boolean(infinite.selectedOptionId?.trim()),
+    verifying: infinite.verifying,
+    onSelect: infinite.selectOption,
+    onVerify: infinite.verify,
+    onContinue: infinite.continueNext,
+  });
 
   if (infinite.notAvailable) {
     return (

@@ -20,7 +20,7 @@ export function ThemeSelector() {
         <button
           type="button"
           aria-label={`Trocar de matéria — atual: ${theme.label}`}
-          className="flex items-center gap-1.5 font-label-caps text-label-caps text-primary bg-surface-bright hover:bg-primary-fixed transition-colors px-3 py-1.5 rounded-full border-2 border-primary"
+          className="flex items-center gap-1.5 font-label text-label-caps text-primary bg-surface-bright hover:bg-primary-fixed transition-colors px-3 py-1.5 rounded-full border-2 border-primary"
         >
           <Icon name={theme.icon} filled className="text-base" />
           <span className="hidden lg:inline max-w-40 truncate font-bold">{theme.label}</span>
@@ -44,7 +44,7 @@ export function ThemeSelector() {
             />
             <span className="flex-1">{entry.label}</span>
             {!entry.hasContent && (
-              <span className="font-label-caps text-label-caps uppercase text-error shrink-0">
+              <span className="font-label text-label-caps uppercase text-error shrink-0">
                 Em construção
               </span>
             )}
@@ -73,7 +73,7 @@ export function ThemeSelector() {
                     />
                     <span className="flex-1">{entry.label}</span>
                     {!entry.hasContent && (
-                      <span className="font-label-caps text-label-caps uppercase text-error shrink-0">
+                      <span className="font-label text-label-caps uppercase text-error shrink-0">
                         Em construção
                       </span>
                     )}

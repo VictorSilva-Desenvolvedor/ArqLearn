@@ -5,18 +5,22 @@ import { IconButton } from "@/components/ui/IconButton";
 import { Icon } from "@/components/ui/Icon";
 
 interface ChatInputBarProps {
-  onSend: (message: string) => void;
+  // Retorna (ou resolve para) `false` em caso de falha — o rascunho só é limpo em caso de
+  // sucesso (achado do /impeccable critique, 18/08/2026: antes disso o texto era apagado
+  // otimisticamente antes da chamada assíncrona resolver, então uma falha de rede fazia a
+  // pergunta digitada simplesmente sumir).
+  onSend: (message: string) => void | boolean | Promise<void | boolean>;
   disabled?: boolean;
 }
 
 export function ChatInputBar({ onSend, disabled }: ChatInputBarProps) {
   const [value, setValue] = useState("");
 
-  const submit = () => {
+  const submit = async () => {
     const trimmed = value.trim();
     if (!trimmed || disabled) return;
-    onSend(trimmed);
-    setValue("");
+    const result = await onSend(trimmed);
+    if (result !== false) setValue("");
   };
 
   return (

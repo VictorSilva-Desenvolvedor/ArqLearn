@@ -262,6 +262,20 @@ list), not decorative. Formalized here rather than removed; don't strip it chasi
 default "no side-tab" preference — it's earning its place. `apps/mobile`'s equivalent uses the
 same pattern.
 
+### Citation Blockquote (`border-l-4`, second earned exception)
+`ChatMessageBubble.tsx` (source excerpt inside a chat answer) and `QuestionReviewCard.tsx`
+(source excerpt in the teacher review queue) both use `border-l-4` on a `<blockquote>`-style
+element to set a cited source excerpt apart from surrounding prose — the conventional citation
+pattern, not a decorative "side-tab". Also flagged by the detector; also verified 18/08/2026 as
+earning its place. Between this and the Active-Row Pattern above, `border-l-4` on this codebase
+has exactly two jobs (own-row highlight, source citation) — never a third, generic one.
+
+### Material Symbols (icon font, not a typography family)
+`layout.tsx` loads "Material Symbols Outlined" via `next/font` for `Icon.tsx` — the detector
+flags it as an undeclared typography family because it's absent from the Typography table above,
+but that table is for text copy (display/headline/question/body/label), not glyph fonts. Not a
+gap to fix; the detector's `design-system-font` rule doesn't distinguish the two categories.
+
 ## Do's and Don'ts
 
 ### Do:

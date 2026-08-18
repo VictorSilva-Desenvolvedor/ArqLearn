@@ -45,7 +45,7 @@ export function LeagueHeader({ league, currentUserId }: { league: League; curren
             16px de largura (uma palavra por linha). Nenhum outro lugar do app usa max-w-md hoje. */}
         <p className="font-body-md text-body-md text-on-surface-variant w-full max-w-[28rem] mx-auto">{description}</p>
         <div className="mt-md bg-surface-container rounded-lg px-lg py-sm border border-outline-variant">
-          <span className="font-label-caps text-label-caps text-on-surface-variant block mb-1">Tempo Restante</span>
+          <span className="font-label text-label-caps text-on-surface-variant block mb-1">Tempo Restante</span>
           <span className="font-label text-question-lg text-primary">2d 14h 32m</span>
         </div>
       </div>

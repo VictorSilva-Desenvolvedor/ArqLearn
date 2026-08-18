@@ -33,7 +33,7 @@ export function AchievementBadge({ entry, unlocked, unlockedAt }: AchievementBad
   );
 
   const label = (
-    <span className={cn("font-label-caps text-label-caps", unlocked ? "text-on-surface" : "text-outline")}>
+    <span className={cn("font-label text-label-caps", unlocked ? "text-on-surface" : "text-outline")}>
       {unlocked ? entry.title : "Bloqueada"}
     </span>
   );

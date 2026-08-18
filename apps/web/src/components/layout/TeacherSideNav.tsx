@@ -14,7 +14,7 @@ export function TeacherSideNav() {
       <div className="flex items-center gap-sm rounded-lg px-md py-sm font-body-lg text-body-lg text-outline cursor-default opacity-60">
         <Icon name="groups" />
         Turmas
-        <span className="ml-auto font-label-caps text-label-caps">Em breve</span>
+        <span className="ml-auto font-label text-label-caps">Em breve</span>
       </div>
       <NavLink
         href="/revisao/upload-bim-intro"

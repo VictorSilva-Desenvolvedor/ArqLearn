@@ -82,8 +82,8 @@ export function TopAppBar() {
             className="flex items-center gap-xs text-primary font-bold p-1 rounded-md hover:bg-surface-container transition-colors"
           >
             <span className="flex items-baseline gap-1 whitespace-nowrap">
-              <span className="font-label-caps text-label-caps text-primary uppercase">Nível {gamification.level}</span>
-              <span className="font-label-caps text-label-caps text-on-surface-variant normal-case">
+              <span className="font-label text-label-caps text-primary uppercase">Nível {gamification.level}</span>
+              <span className="font-label text-label-caps text-on-surface-variant normal-case">
                 · {xpFaltam} XP p/ próx.
               </span>
             </span>
@@ -112,7 +112,7 @@ export function TopAppBar() {
           <Link
             href="/notificacoes"
             aria-label="Notificações"
-            className="flex items-center justify-center w-8 h-8 rounded-full hover:bg-surface-container-lowest transition-colors text-on-surface-variant"
+            className="flex items-center justify-center w-11 h-11 rounded-full hover:bg-surface-container-lowest transition-colors text-on-surface-variant"
           >
             <Icon name="notifications" />
           </Link>

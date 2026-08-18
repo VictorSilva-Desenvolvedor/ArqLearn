@@ -42,7 +42,7 @@ export default function AchievementScreenPage() {
           <Icon name={entry.icon} filled className="text-6xl -rotate-45" />
         </div>
         <div>
-          <p className="font-label-caps text-label-caps uppercase text-secondary mb-1">Conquista desbloqueada</p>
+          <p className="font-label text-label-caps uppercase text-secondary mb-1">Conquista desbloqueada</p>
           <h1 className="font-display text-headline-md font-bold text-on-surface">{entry.title}</h1>
           <p className="font-body-md text-body-md text-on-surface-variant mt-2">{entry.description}</p>
         </div>

@@ -26,7 +26,7 @@ export function LevelProgressCard({ level, xpTotal }: LevelProgressCardProps) {
       </div>
       <div className="flex-1 w-full">
         <div className="flex items-center justify-between gap-xs flex-wrap mb-1">
-          <span className="font-label-caps text-label-caps uppercase text-on-surface-variant">Nível {level}</span>
+          <span className="font-label text-label-caps uppercase text-on-surface-variant">Nível {level}</span>
           <span className="font-label text-body-sm text-on-surface-variant">
             {xpIntoLevel} / {xpNeededForLevel} XP
           </span>

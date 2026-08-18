@@ -39,7 +39,7 @@ export function ChatMessageBubble({ role, message, sourceExcerpt, sourceRef }: C
         </blockquote>
       )}
       {sourceLabel && (
-        <span className="flex items-center gap-1 pl-sm font-label-caps text-label-caps uppercase text-on-surface-variant">
+        <span className="flex items-center gap-1 pl-sm font-label text-label-caps uppercase text-on-surface-variant">
           <Icon name="bookmark" className="text-sm" />
           {sourceLabel}
         </span>

@@ -22,6 +22,15 @@ export default function ResetPasswordPage() {
   const [error, setError] = useState<string | null>(null);
 
   const passwordValid = newPassword.length >= MIN_PASSWORD_LENGTH && newPassword === confirmPassword;
+  // P2 do /impeccable critique (18/08/2026): antes disso, o botão só ficava desabilitado sem
+  // nenhuma explicação de por quê — first-timer não tinha como saber se digitou errado ou se
+  // o formulário travou.
+  const passwordHint =
+    newPassword.length > 0 && newPassword.length < MIN_PASSWORD_LENGTH
+      ? `A senha precisa ter pelo menos ${MIN_PASSWORD_LENGTH} caracteres.`
+      : confirmPassword.length > 0 && newPassword !== confirmPassword
+        ? "As senhas não coincidem."
+        : null;
 
   useEffect(() => {
     const supabase = createClient();
@@ -109,6 +118,7 @@ export default function ResetPasswordPage() {
               className="rounded-xl border-2 border-outline-variant bg-surface px-md py-sm font-body-md text-body-md text-on-surface focus:border-primary focus:outline-none"
             />
           </label>
+          {passwordHint && <p className="font-body-sm text-body-sm text-on-surface-variant">{passwordHint}</p>}
           {error && <p className="font-body-sm text-body-sm text-error">{error}</p>}
           <Button type="submit" fullWidth disabled={!passwordValid || submitting}>
             {submitting ? "Salvando…" : "Redefinir senha"}

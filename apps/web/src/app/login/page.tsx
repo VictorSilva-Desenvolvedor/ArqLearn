@@ -98,7 +98,7 @@ export default function LoginPage() {
           type="button"
           onClick={handleForgotPassword}
           disabled={resetSubmitting}
-          className="font-body-sm text-body-sm text-primary hover:underline self-center disabled:opacity-50"
+          className="font-body-sm text-body-sm text-primary hover:underline self-center disabled:opacity-50 py-3"
         >
           {resetSubmitting ? "Enviando…" : "Esqueci minha senha"}
         </button>

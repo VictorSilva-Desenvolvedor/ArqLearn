@@ -36,7 +36,7 @@ export function LeagueProgressionTrack({ currentTier, onSelectTier }: LeagueProg
                 </div>
                 <span
                   className={cn(
-                    "font-label-caps text-[10px] truncate max-w-[60px]",
+                    "font-label text-label-caps truncate max-w-[60px]",
                     active ? "text-primary font-bold" : "text-outline",
                   )}
                 >

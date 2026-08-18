@@ -15,7 +15,7 @@ export function StatCard({ icon, label, value, onClick }: StatCardProps) {
     <Card padding="md" radius="lg" className="flex flex-col items-center text-center gap-1">
       {icon}
       <span className="font-label text-stats-num font-bold text-on-surface">{value}</span>
-      <span className="font-label-caps text-label-caps uppercase text-on-surface-variant">{label}</span>
+      <span className="font-label text-label-caps uppercase text-on-surface-variant">{label}</span>
     </Card>
   );
 

@@ -5,6 +5,7 @@ import { QuizHeader } from "@/components/features/quiz/QuizHeader";
 import { QuestionCard } from "@/components/features/quiz/QuestionCard";
 import { QuizActionBar } from "@/components/features/quiz/QuizActionBar";
 import { useQuizSession } from "@/components/features/quiz/useQuizSession";
+import { useQuizKeyboardShortcuts } from "@/components/features/quiz/useQuizKeyboardShortcuts";
 import { NoHeartsDialog } from "@/components/features/gamification/NoHeartsDialog";
 import { LoadingBlueprint } from "@/components/ui/LoadingBlueprint";
 
@@ -14,6 +15,20 @@ export default function LessonSessionPage() {
   const quiz = useQuizSession(trackId, lessonId);
   // Vidas zeraram após responder — a lição para aqui, igual ao clique num nó sem vidas na Home.
   const noHeartsOpen = quiz.revealed && quiz.noHearts;
+
+  // Antes do early return de loading de propósito — hooks não podem ser condicionais; os
+  // valores caem em defaults inofensivos (lista vazia) enquanto currentQuestion ainda é null.
+  useQuizKeyboardShortcuts({
+    enabled: !noHeartsOpen && !quiz.loading,
+    revealed: quiz.revealed,
+    optionIds: quiz.currentQuestion?.options.map((o) => o.id) ?? [],
+    canSelect: quiz.currentQuestion?.type !== "fill_blank",
+    canVerify: Boolean(quiz.selectedOptionId?.trim()),
+    verifying: quiz.verifying,
+    onSelect: quiz.selectOption,
+    onVerify: quiz.verify,
+    onContinue: quiz.continueNext,
+  });
 
   if (quiz.loading || !quiz.currentQuestion) {
     return <LoadingBlueprint variant="fullscreen" size={160} label="Carregando lição…" />;

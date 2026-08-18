@@ -55,7 +55,7 @@ export function ReviewQueueTable({ rows }: { rows: ReviewQueueRow[] }) {
                 <button
                   type="button"
                   onClick={() => toggleSort(column.key)}
-                  className="flex items-center gap-1 font-label-caps text-label-caps text-on-surface-variant hover:text-on-surface"
+                  className="flex items-center gap-1 font-label text-label-caps text-on-surface-variant hover:text-on-surface"
                   aria-label={`Ordenar por ${column.label}`}
                 >
                   {column.label}
@@ -66,7 +66,7 @@ export function ReviewQueueTable({ rows }: { rows: ReviewQueueRow[] }) {
                 </button>
               </th>
             ))}
-            <th className="px-md py-sm font-label-caps text-label-caps text-on-surface-variant">Ação</th>
+            <th className="px-md py-sm font-label text-label-caps text-on-surface-variant">Ação</th>
           </tr>
         </thead>
         <tbody>

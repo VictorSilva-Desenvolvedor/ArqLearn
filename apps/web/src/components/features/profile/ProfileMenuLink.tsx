@@ -22,7 +22,7 @@ export function ProfileMenuLink({ href, icon, label }: ProfileMenuLinkProps) {
       {href ? (
         <Icon name="chevron_right" className="text-on-surface-variant" />
       ) : (
-        <span className="font-label-caps text-label-caps text-on-surface-variant">Em breve</span>
+        <span className="font-label text-label-caps text-on-surface-variant">Em breve</span>
       )}
     </Card>
   );

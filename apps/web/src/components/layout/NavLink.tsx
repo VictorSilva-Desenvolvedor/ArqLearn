@@ -38,7 +38,7 @@ export function NavLink({ href, icon, activeIcon, label, variant, tone = "defaul
         )}
       >
         <span className="mb-1 text-2xl">{isActive ? activeIcon : icon}</span>
-        <span className="font-label-caps text-label-caps">{label}</span>
+        <span className="font-label text-label-caps">{label}</span>
       </Link>
     );
   }

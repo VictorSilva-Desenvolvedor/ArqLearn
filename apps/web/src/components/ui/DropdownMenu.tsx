@@ -63,7 +63,7 @@ export function DropdownMenuItem({
 
 export function DropdownMenuLabel({ children }: { children: ReactNode }) {
   return (
-    <Dropdown.Label className="px-sm pt-sm pb-1 font-label-caps text-label-caps uppercase text-on-surface-variant">
+    <Dropdown.Label className="px-sm pt-sm pb-1 font-label text-label-caps uppercase text-on-surface-variant">
       {children}
     </Dropdown.Label>
   );

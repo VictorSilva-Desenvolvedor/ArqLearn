@@ -37,7 +37,7 @@ export function ProfileHeader({ name, level, xpTotal, vip = false }: ProfileHead
           </h1>
           {vip && <Icon name="crown" filled className="text-secondary text-xl" />}
         </div>
-        <p className="font-label-caps text-label-caps uppercase text-on-surface-variant">
+        <p className="font-label text-label-caps uppercase text-on-surface-variant">
           Nível {level} • {levelTitleFor(level)}
         </p>
         {vip && <Badge tone="gold">Mestre Arquiteto</Badge>}

@@ -39,7 +39,7 @@ export function ShopFeatureCard({ item, disabled, pending, onPurchase }: ShopFea
         {/* Botão desabilitado sozinho não deixa claro que é "sem gemas" — achado ao vivo no mobile,
             mesmo componente espelhado aqui. */}
         {disabled && !pending && (
-          <span className="font-label-caps text-label-caps text-error">Gemas insuficientes</span>
+          <span className="font-label text-label-caps text-error">Gemas insuficientes</span>
         )}
       </div>
     </Card>

@@ -129,7 +129,7 @@ export function LeagueTiersDialog({ open, onOpenChange, currentUserId, ownLeague
           );
         })}
       </div>
-      <p className="font-label-caps text-label-caps text-on-surface-variant mb-sm">{LEAGUE_TIER_LABELS[selectedTier]}</p>
+      <p className="font-label text-label-caps text-on-surface-variant mb-sm">{LEAGUE_TIER_LABELS[selectedTier]}</p>
 
       <div className="flex gap-1 mb-sm">
         {LEAGUE_DIVISIONS.map((division) => (
@@ -139,7 +139,7 @@ export function LeagueTiersDialog({ open, onOpenChange, currentUserId, ownLeague
             aria-pressed={selectedDivision === division}
             onClick={() => setSelectedDivision(division)}
             className={cn(
-              "flex-1 py-2 rounded-full font-label-caps text-label-caps text-center transition-colors",
+              "flex-1 py-2 rounded-full font-label text-label-caps text-center transition-colors",
               selectedDivision === division
                 ? "bg-secondary-container text-on-secondary-container font-bold"
                 : "bg-surface-gray text-on-surface-variant",

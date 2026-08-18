@@ -36,7 +36,10 @@ export default function MaterialChatPage() {
     bottomRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
 
-  const handleSend = async (text: string) => {
+  // Retorna se deu certo — ChatInputBar só limpa o campo em caso de sucesso (achado do
+  // /impeccable critique, 18/08/2026: antes disso o rascunho era apagado otimisticamente antes
+  // da chamada resolver, então uma falha fazia o texto digitado sumir do input).
+  const handleSend = async (text: string): Promise<boolean> => {
     const userMessage: ViewMessage = { id: `local-${Date.now()}`, role: "user", message: text };
     setMessages((current) => [...current, userMessage]);
     setSending(true);
@@ -53,10 +56,13 @@ export default function MaterialChatPage() {
           sourceRef: answer.source_ref,
         },
       ]);
+      return true;
     } catch (err) {
-      // P2 do /impeccable critique (18/08/2026): antes disso, uma falha aqui deixava a mensagem
-      // do usuário "presa" no histórico sem nenhuma explicação nem forma de tentar de novo.
       setError(err instanceof ApiError ? err.message : "Não foi possível enviar sua mensagem. Tente novamente.");
+      // Remove a bolha otimista do usuário já que o envio falhou — evita duplicar a mensagem
+      // quando ela for reenviada a partir do input restaurado.
+      setMessages((current) => current.filter((m) => m.id !== userMessage.id));
+      return false;
     } finally {
       setSending(false);
     }
