@@ -34,6 +34,7 @@ Documento complementar ao SAD e ao TDD do ArqLearn v1.0
 | 1.17 | 15/08/2026 | Equipe de Engenharia | §3.2: adiciona `streak_freezes_available`/`streak_at_risk` ao `GamificationProfile` — streak agora expira sozinha após 24h sem prática (expiração preguiçosa, TDD §5.2/§5.3, mesmo padrão da regeneração de vidas §5.4, sem job/cron), consumindo automaticamente um Bloqueio de Ofensiva por dia faltante quando disponível. §8: `POST /v1/gamification/streak/freeze` passa a também avançar `streak_last_active_date` (uso manual, diferente do consumo automático — ver nota) |
 | 1.18 | 15/08/2026 | Equipe de Engenharia | §8.1 (novo): Baú Diário — a pedido do usuário, 1 abertura por dia local ao responder 10 perguntas no dia (lição + Modo Infinito somados). `GET /v1/gamification/daily-chest` (status) e `POST .../daily-chest/open` (sorteia 75% gemas 1-5 / 25% item consumível grátis — Bloqueio de Ofensiva ou Recarga de Vidas) são endpoints novos. §6/§6.1: `POST .../answers` (lição e Modo Infinito) ganham `daily_chest_available`/`daily_chest_questions` na resposta |
 | 1.19 | 15/08/2026 | Equipe de Engenharia | §8.2 (novo): Baú Semanal — a pedido do usuário, 1 abertura por ciclo rolante de 7 dias ao responder 50 perguntas dentro do ciclo (mesma contagem lição + Modo Infinito do Baú Diário). Ciclo só reseta quando 7 dias se passam desde o início do ciclo vigente — abrir antes disso não adianta o reset (decisão explícita do usuário). `GET /v1/gamification/weekly-chest` (status) e `POST .../weekly-chest/open` (sorteia 60% gemas 5-15 / 40% item — recompensa maior que o Baú Diário, reflete o esforço extra) são endpoints novos |
+| 1.20 | 18/08/2026 | Equipe de Engenharia | §8.1/§8.2: Baú Diário e Semanal passam a contar só respostas **certas** ("acertar N perguntas"), não mais toda resposta certa ou errada — reverte a decisão da v1.18/v1.19 a pedido do usuário, após achado em teste ao vivo em device real (confuso contar erro como progresso). Nenhum contrato/campo mudou, só a regra de quando `chest_questions_today`/`chest_weekly_questions` incrementam |
 
 ---
 
@@ -649,8 +650,9 @@ Erros: `402 INSUFFICIENT_GEMS` · `404 ITEM_NOT_FOUND`
 
 ### 8.1 Baú Diário *(v1.18)*
 
-A pedido do usuário: 1 baú por dia local, liberado ao responder 10 perguntas no dia (lição OU Modo
-Infinito, contagem acumulada, qualquer combinação — não precisa ser na mesma sessão). Sem job/cron
+A pedido do usuário: 1 baú por dia local, liberado ao **acertar** 10 perguntas no dia (lição OU Modo
+Infinito, contagem acumulada, qualquer combinação — não precisa ser na mesma sessão). Só respostas
+certas contam *(regra desde v1.20 — antes contava toda resposta, certa ou errada)*. Sem job/cron
 — expiração/contagem preguiçosa, mesmo padrão de vidas (TDD §5.4) e streak (§5.2/§5.3):
 `internal/gamification.LoadDailyChestStatus` reresolve o contador do dia (`chest_questions_today`/
 `chest_questions_date`, mesmo reset preguiçoso de `xp_today`) a cada leitura. O contador em si é
@@ -691,11 +693,12 @@ reconsultado no servidor, nunca confiado no que o cliente mandou).
 
 ### 8.2 Baú Semanal *(v1.19)*
 
-A pedido do usuário: 1 baú por ciclo de 7 dias, liberado ao responder 50 perguntas dentro do ciclo
+A pedido do usuário: 1 baú por ciclo de 7 dias, liberado ao **acertar** 50 perguntas dentro do ciclo
 vigente (lição OU Modo Infinito, mesma contagem acumulada do Baú Diário §8.1 — a mesma resposta
-soma pros dois contadores independentemente). Diferente do diário (reset por igualdade de data de
-calendário), o ciclo semanal é uma janela **rolante** de 7 dias: começa na primeira pergunta
-respondida depois que não havia ciclo ativo ou o ciclo anterior já tinha expirado
+certa soma pros dois contadores independentemente; só respostas certas contam, regra desde v1.20).
+Diferente do diário (reset por igualdade de data de calendário), o ciclo semanal é uma janela
+**rolante** de 7 dias: começa na primeira pergunta certa respondida depois que não havia ciclo
+ativo ou o ciclo anterior já tinha expirado
 (`chest_weekly_cycle_start`), e só reseta quando 7 dias já se passaram desde esse início — abrir o
 baú antes do fim do ciclo **não** adianta o reset (decisão explícita do usuário: o próximo ciclo só
 começa no dia 8, mesmo que o usuário já tenha aberto o baú do ciclo atual no dia 3, por exemplo).

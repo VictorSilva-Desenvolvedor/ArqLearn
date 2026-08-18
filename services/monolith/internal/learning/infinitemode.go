@@ -220,15 +220,20 @@ func handleInfiniteModeAnswer(pool *pgxpool.Pool, mongoDB *mongo.Database, gemin
 		hojeLocal := gamification.HojeLocal(timezone, now)
 		xpToday = gamification.XPHojeAposReset(xpToday, dateOrEmpty(xpTodayDate), hojeLocal)
 
-		// Baú Diário (a pedido do usuário): Modo Infinito também conta pro total acumulado do dia
-		// (10 perguntas em qualquer combinação de lição/Modo Infinito), mesmo padrão de
-		// internal/learning/answers.go.
-		chestQuestionsToday = gamification.QuestoesHojeAposReset(chestQuestionsToday, dateOrEmpty(chestQuestionsDate), hojeLocal) + 1
+		// Baú Diário: Modo Infinito também conta pro total acumulado do dia (10 acertos em qualquer
+		// combinação de lição/Modo Infinito), mesmo padrão de internal/learning/answers.go — só
+		// respostas certas contam (mudou de "toda resposta" em 18/08/2026, ver comentário lá).
+		chestQuestionsToday = gamification.QuestoesHojeAposReset(chestQuestionsToday, dateOrEmpty(chestQuestionsDate), hojeLocal)
+		if correct {
+			chestQuestionsToday++
+		}
 
-		// Baú Semanal: mesma resposta soma pro ciclo rolante de 7 dias, mesmo padrão de answers.go.
+		// Baú Semanal: mesma regra do Baú Diário acima (só acertos), mesmo padrão de answers.go.
 		var chestWeeklyCycleStartStr string
 		chestWeeklyQuestions, chestWeeklyCycleStartStr = gamification.QuestoesSemanaAposReset(chestWeeklyQuestions, dateOrEmpty(chestWeeklyCycleStart), hojeLocal)
-		chestWeeklyQuestions++
+		if correct {
+			chestWeeklyQuestions++
+		}
 		chestWeeklyCycleStartDate, _ := time.Parse("2006-01-02", chestWeeklyCycleStartStr)
 
 		vipAtivo := gamification.EhVIPAtivo(isVip, vipExpiresAt, now)

@@ -123,17 +123,27 @@ func handleSubmitAnswer(pool *pgxpool.Pool, mongoDB *mongo.Database) http.Handle
 		xpTodayDateStr := dateOrEmpty(xpTodayDate)
 		xpToday = gamification.XPHojeAposReset(xpToday, xpTodayDateStr, hojeLocal)
 
-		// Baú Diário (a pedido do usuário): conta toda resposta (certa ou errada — "terminar 10
-		// perguntas", não "acertar 10") pro contador acumulado do dia, mesmo reset preguiçoso de
-		// xp_today. Incrementado ANTES de decidir daily_chest_available na resposta, pra essa
-		// própria resposta (a que bate 10) já refletir o baú liberado, sem esperar a próxima leitura.
-		chestQuestionsToday = gamification.QuestoesHojeAposReset(chestQuestionsToday, dateOrEmpty(chestQuestionsDate), hojeLocal) + 1
+		// Baú Diário: conta só respostas CERTAS ("acertar 10 perguntas") pro contador acumulado do
+		// dia, mesmo reset preguiçoso de xp_today. Mudou de "toda resposta, certa ou errada" pra
+		// "só acertos" em 18/08/2026, a pedido do usuário, revertendo a decisão original de
+		// 17/08/2026 (achada confusa em teste ao vivo em device real — ver
+		// Docs/PENDENCIAS_TESTE_DEVICE.md). QuestoesHojeAposReset roda sempre (mesmo em resposta
+		// errada) pra manter o reset de dia em dia certo; o incremento em si é condicional.
+		// Incrementado ANTES de decidir daily_chest_available na resposta, pra essa própria
+		// resposta (a que bate 10) já refletir o baú liberado, sem esperar a próxima leitura.
+		chestQuestionsToday = gamification.QuestoesHojeAposReset(chestQuestionsToday, dateOrEmpty(chestQuestionsDate), hojeLocal)
+		if correct {
+			chestQuestionsToday++
+		}
 
-		// Baú Semanal (a pedido do usuário): mesma resposta soma pro ciclo rolante de 7 dias —
-		// QuestoesSemanaAposReset decide se o ciclo vigente continua ou se um novo começa hoje.
+		// Baú Semanal: mesma regra do Baú Diário acima (só acertos) — QuestoesSemanaAposReset
+		// decide se o ciclo vigente continua ou se um novo começa hoje, sempre; o incremento é
+		// condicional a `correct`.
 		var chestWeeklyCycleStartStr string
 		chestWeeklyQuestions, chestWeeklyCycleStartStr = gamification.QuestoesSemanaAposReset(chestWeeklyQuestions, dateOrEmpty(chestWeeklyCycleStart), hojeLocal)
-		chestWeeklyQuestions++
+		if correct {
+			chestWeeklyQuestions++
+		}
 		chestWeeklyCycleStartDate, _ := time.Parse("2006-01-02", chestWeeklyCycleStartStr)
 
 		// --- MongoDB: progresso existente da lição (para is_first_completion e estado do SRS) ---
