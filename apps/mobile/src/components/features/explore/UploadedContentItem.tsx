@@ -67,7 +67,15 @@ export function UploadedContentItem({ item }: { item: UploadedContent }) {
 
   if (!canOpenSummary) return content;
 
-  return <Pressable onPress={() => router.push(`/materiais/${item.id}/resumo` as never)}>{content}</Pressable>;
+  return (
+    <Pressable
+      onPress={() => router.push(`/materiais/${item.id}/resumo` as never)}
+      accessibilityRole="button"
+      accessibilityLabel={`${item.filename}, ${status.label}`}
+    >
+      {content}
+    </Pressable>
+  );
 }
 
 const styles = StyleSheet.create({

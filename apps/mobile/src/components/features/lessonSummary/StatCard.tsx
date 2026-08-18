@@ -25,7 +25,12 @@ export function StatCard({ icon, label, value, onPress }: StatCardProps) {
   if (!onPress) return content;
 
   return (
-    <Pressable style={styles.pressable} onPress={onPress}>
+    <Pressable
+      style={styles.pressable}
+      onPress={onPress}
+      accessibilityRole="button"
+      accessibilityLabel={`${label}, ${value}`}
+    >
       {content}
     </Pressable>
   );

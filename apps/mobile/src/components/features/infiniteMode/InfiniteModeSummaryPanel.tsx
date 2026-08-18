@@ -1,5 +1,6 @@
 import { useRouter } from "expo-router";
 import { StyleSheet, Text, View } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 import { Button } from "@/components/ui/Button";
 import { Icon } from "@/components/ui/Icon";
 import { StatCard } from "@/components/features/lessonSummary/StatCard";
@@ -28,7 +29,7 @@ export function InfiniteModeSummaryPanel({
   const title = accuracy >= 90 ? "Nota Máxima Alcançada!" : "Sessão Concluída!";
 
   return (
-    <View style={styles.screen}>
+    <SafeAreaView style={styles.screen} edges={["top"]}>
       <View style={styles.panel}>
         <View style={styles.header}>
           <Text style={[type.displayLg, styles.title]}>{title}</Text>
@@ -80,7 +81,7 @@ export function InfiniteModeSummaryPanel({
           </Button>
         </View>
       </View>
-    </View>
+    </SafeAreaView>
   );
 }
 

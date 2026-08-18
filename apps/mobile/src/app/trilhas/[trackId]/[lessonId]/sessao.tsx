@@ -1,5 +1,6 @@
 import { useLocalSearchParams, useRouter } from "expo-router";
-import { ScrollView, StyleSheet, Text, View } from "react-native";
+import { ScrollView, StyleSheet } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 import { NoHeartsDialog } from "@/components/features/gamification/NoHeartsDialog";
 import { QuestionCard } from "@/components/features/quiz/QuestionCard";
 import { QuizActionBar } from "@/components/features/quiz/QuizActionBar";
@@ -21,7 +22,7 @@ export default function LessonSessionScreen() {
   }
 
   return (
-    <View style={styles.screen}>
+    <SafeAreaView style={styles.screen} edges={["top"]}>
       <QuizHeader
         currentIndex={quiz.currentIndex}
         total={quiz.totalQuestions}
@@ -61,7 +62,7 @@ export default function LessonSessionScreen() {
         />
       )}
       <NoHeartsDialog open={noHeartsOpen} onOpenChange={() => router.push("/")} />
-    </View>
+    </SafeAreaView>
   );
 }
 

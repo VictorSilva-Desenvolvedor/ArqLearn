@@ -1,9 +1,12 @@
 import { useEffect, useRef } from "react";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { StyleSheet, Text, View } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 import { Button } from "@/components/ui/Button";
 import { Icon } from "@/components/ui/Icon";
 import { useAuth } from "@/hooks/useAuth";
+import { isResourceReal } from "@/lib/api/config";
+import { getGamificationProfile } from "@/lib/api/resources/gamification";
 import { achievementCatalog } from "@/lib/gamification/achievementCatalog";
 import { colors, radius, spacing, type as typeTokens } from "@/theme/tokens";
 import type { AchievementType } from "@/types/api";
@@ -16,11 +19,21 @@ export default function AchievementScreen() {
   const { gamification, updateGamification } = useAuth();
   const entry = achievementType ? achievementCatalog[achievementType] : undefined;
 
-  // Credita a recompensa uma única vez ao entrar na tela.
+  // Credita a recompensa uma única vez ao entrar na tela. P1 do /impeccable critique
+  // (18/08/2026): somar localmente (xp_total + entry.xp_reward) contrariava a regra do próprio
+  // projeto ("nunca calcular XP/streak/nível no cliente" — PRODUCT.md) — se o valor real do
+  // servidor divergisse por qualquer motivo (teto diário, corrida entre requisições), o número
+  // mostrado aqui ficaria simplesmente errado. Com backend real, busca o perfil atualizado de
+  // verdade em vez de somar; o modo mock (sem endpoint de conquista pra buscar) mantém a soma
+  // local como stand-in, mesmo padrão já usado noutros lugares do app.
   const creditedRef = useRef(false);
   useEffect(() => {
     if (!entry || creditedRef.current) return;
     creditedRef.current = true;
+    if (isResourceReal("gamification")) {
+      getGamificationProfile().then((fresh) => updateGamification(fresh));
+      return;
+    }
     updateGamification({
       xp_total: gamification.xp_total + entry.xp_reward,
       gems: gamification.gems + entry.gems_reward,
@@ -34,7 +47,7 @@ export default function AchievementScreen() {
   }
 
   return (
-    <View style={styles.screen}>
+    <SafeAreaView style={styles.screen} edges={["top"]}>
       <View style={styles.content}>
         <View style={styles.badge}>
           <View style={styles.badgeIconCounterRotate}>
@@ -60,7 +73,7 @@ export default function AchievementScreen() {
           Continuar
         </Button>
       </View>
-    </View>
+    </SafeAreaView>
   );
 }
 

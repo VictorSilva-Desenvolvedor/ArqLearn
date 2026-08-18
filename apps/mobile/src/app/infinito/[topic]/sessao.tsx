@@ -1,6 +1,7 @@
 import { useEffect } from "react";
 import { useLocalSearchParams, useRouter } from "expo-router";
-import { ScrollView, StyleSheet, Text, View } from "react-native";
+import { ScrollView, StyleSheet, Text } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 import { Button } from "@/components/ui/Button";
 import { Icon } from "@/components/ui/Icon";
 import { InfiniteModeActionBar } from "@/components/features/infiniteMode/InfiniteModeActionBar";
@@ -29,7 +30,7 @@ export default function InfiniteModeSessionScreen() {
 
   if (infinite.notAvailable) {
     return (
-      <View style={styles.centerScreen}>
+      <SafeAreaView style={styles.centerScreen} edges={["top"]}>
         <Icon name="construction" size={48} color={colors.outline} />
         <Text style={[type.headlineMd, styles.notAvailableTitle]}>
           Modo Infinito de {themeLabel} ainda não está pronto
@@ -40,7 +41,7 @@ export default function InfiniteModeSessionScreen() {
         <Button variant="primary" onPress={() => router.push("/explorar")}>
           Voltar para Explorar
         </Button>
-      </View>
+      </SafeAreaView>
     );
   }
 
@@ -49,7 +50,7 @@ export default function InfiniteModeSessionScreen() {
   }
 
   return (
-    <View style={styles.screen}>
+    <SafeAreaView style={styles.screen} edges={["top"]}>
       <InfiniteModeHeader
         topicLabel={themeLabel}
         current={infinite.levelProgress}
@@ -79,7 +80,7 @@ export default function InfiniteModeSessionScreen() {
         onConfirm={infinite.verify}
         onContinue={infinite.continueNext}
       />
-    </View>
+    </SafeAreaView>
   );
 }
 

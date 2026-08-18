@@ -19,6 +19,10 @@ export function Toggle({ checked, onChange, label, disabled }: ToggleProps) {
       accessibilityState={{ checked, disabled }}
       accessibilityLabel={label}
       onPress={() => !disabled && onChange(!checked)}
+      // Achado de audit (18/08/2026): a trilha visual de 44x24 sozinha fica abaixo do mínimo de
+      // 48dp do Android — hitSlop fecha a lacuna sem mudar a aparência (mesma técnica de
+      // IconButton.tsx).
+      hitSlop={{ top: 12, bottom: 12, left: 2, right: 2 }}
       style={[styles.track, { backgroundColor: checked ? colors.primary : colors.outlineVariant }, disabled && styles.disabled]}
     >
       <View style={[styles.thumb, checked && styles.thumbChecked]} />

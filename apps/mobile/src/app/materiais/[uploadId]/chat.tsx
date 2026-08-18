@@ -1,6 +1,7 @@
 import { useEffect, useRef } from "react";
 import { useLocalSearchParams } from "expo-router";
-import { KeyboardAvoidingView, Platform, ScrollView, StyleSheet, Text, View } from "react-native";
+import { KeyboardAvoidingView, Platform, ScrollView, StyleSheet, Text } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 import { ChatInputBar } from "@/components/features/materialChat/ChatInputBar";
 import { ChatMessageBubble } from "@/components/features/materialChat/ChatMessageBubble";
 import { useMaterialChat } from "@/components/features/materialChat/useMaterialChat";
@@ -20,26 +21,32 @@ export default function MaterialChatScreen() {
   }, [messages, sending]);
 
   return (
-    <KeyboardAvoidingView
-      style={styles.screen}
-      behavior={Platform.OS === "ios" ? "padding" : undefined}
-      keyboardVerticalOffset={Platform.OS === "ios" ? 88 : 0}
-    >
-      <SummaryHeader title={title} eyebrow="Chat sobre o Material" />
-      <ScrollView ref={scrollRef} style={styles.body} contentContainerStyle={styles.bodyContent}>
-        {messages.map((m) => (
-          <ChatMessageBubble
-            key={m.id}
-            role={m.role}
-            message={m.message}
-            sourceExcerpt={m.sourceExcerpt}
-            sourceRef={m.sourceRef}
-          />
-        ))}
-        {sending && <Text style={[type.bodySm, styles.typing]}>Arq está digitando…</Text>}
-      </ScrollView>
-      <ChatInputBar onSend={sendMessage} disabled={sending} />
-    </KeyboardAvoidingView>
+    <SafeAreaView style={styles.screen} edges={["top"]}>
+      <KeyboardAvoidingView
+        style={styles.flex}
+        behavior={Platform.OS === "ios" ? "padding" : "height"}
+        keyboardVerticalOffset={Platform.OS === "ios" ? 88 : 0}
+      >
+        <SummaryHeader title={title} eyebrow="Chat sobre o Material" />
+        <ScrollView ref={scrollRef} style={styles.body} contentContainerStyle={styles.bodyContent}>
+          {messages.map((m) => (
+            <ChatMessageBubble
+              key={m.id}
+              role={m.role}
+              message={m.message}
+              sourceExcerpt={m.sourceExcerpt}
+              sourceRef={m.sourceRef}
+            />
+          ))}
+          {sending && (
+            <Text accessibilityLiveRegion="polite" style={[type.bodySm, styles.typing]}>
+              Arq está digitando…
+            </Text>
+          )}
+        </ScrollView>
+        <ChatInputBar onSend={sendMessage} disabled={sending} />
+      </KeyboardAvoidingView>
+    </SafeAreaView>
   );
 }
 
@@ -47,6 +54,9 @@ const styles = StyleSheet.create({
   screen: {
     flex: 1,
     backgroundColor: colors.background,
+  },
+  flex: {
+    flex: 1,
   },
   body: {
     flex: 1,

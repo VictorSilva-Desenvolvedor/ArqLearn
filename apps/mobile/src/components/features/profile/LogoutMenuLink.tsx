@@ -18,7 +18,7 @@ export function LogoutMenuLink() {
   };
 
   return (
-    <Pressable onPress={handlePress}>
+    <Pressable onPress={handlePress} accessibilityRole="button" accessibilityLabel="Sair">
       <Card padding="md" radius="lg" style={styles.row}>
         <Icon name="logout" size={24} color={colors.error} />
         <Text style={[type.bodyLg, styles.label]}>Sair</Text>

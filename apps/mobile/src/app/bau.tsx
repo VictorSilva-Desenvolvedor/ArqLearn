@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { StyleSheet, Text, View } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 import { Button } from "@/components/ui/Button";
 import { Icon, type IconName } from "@/components/ui/Icon";
 import { LoadingBlueprint } from "@/components/ui/LoadingBlueprint";
@@ -123,15 +124,15 @@ export default function DailyChestScreen() {
 
   if (checking) {
     return (
-      <View style={styles.screen}>
+      <SafeAreaView style={styles.screen} edges={["top"]}>
         <LoadingBlueprint variant="inline" size={96} />
-      </View>
+      </SafeAreaView>
     );
   }
 
   if (!available && !reward) {
     return (
-      <View style={styles.screen}>
+      <SafeAreaView style={styles.screen} edges={["top"]}>
         <View style={styles.content}>
           <View style={styles.lockedBadge}>
             <Icon name="lock" size={48} color={colors.onSurfaceVariant} />
@@ -157,12 +158,12 @@ export default function DailyChestScreen() {
             Voltar ao Mapa
           </Button>
         </View>
-      </View>
+      </SafeAreaView>
     );
   }
 
   return (
-    <View style={styles.screen}>
+    <SafeAreaView style={styles.screen} edges={["top"]}>
       <View style={styles.content}>
         {reward ? (
           <>
@@ -213,7 +214,7 @@ export default function DailyChestScreen() {
           </>
         )}
       </View>
-    </View>
+    </SafeAreaView>
   );
 }
 
