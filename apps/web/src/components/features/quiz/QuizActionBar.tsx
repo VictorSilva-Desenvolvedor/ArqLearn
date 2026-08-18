@@ -10,6 +10,7 @@ interface QuizActionBarProps {
   xpDailyCapReached: boolean;
   canVerify: boolean;
   verifying?: boolean;
+  verifyError?: string | null;
   onSkip: () => void;
   onVerify: () => void;
   onContinue: () => void;
@@ -28,6 +29,7 @@ export function QuizActionBar({
   xpDailyCapReached,
   canVerify,
   verifying = false,
+  verifyError,
   onSkip,
   onVerify,
   onContinue,
@@ -75,6 +77,11 @@ export function QuizActionBar({
           <Icon name="bolt" filled className="text-base" />
           Você atingiu o limite diário de XP — continue praticando, mas o XP extra de hoje não conta.
         </div>
+      )}
+      {!revealed && verifyError && (
+        <p role="alert" className="px-md pt-xs max-w-2xl mx-auto font-body-sm text-body-sm text-error">
+          {verifyError}
+        </p>
       )}
       <div className="flex items-center justify-between gap-md max-w-2xl mx-auto px-md py-md">
         {revealed ? (

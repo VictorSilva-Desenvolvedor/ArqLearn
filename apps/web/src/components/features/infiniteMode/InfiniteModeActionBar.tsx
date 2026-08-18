@@ -7,6 +7,7 @@ interface InfiniteModeActionBarProps {
   xpDailyCapReached: boolean;
   canConfirm: boolean;
   verifying?: boolean;
+  verifyError?: string | null;
   onGiveUp: () => void;
   onConfirm: () => void;
   onContinue: () => void;
@@ -17,6 +18,7 @@ export function InfiniteModeActionBar({
   xpDailyCapReached,
   canConfirm,
   verifying = false,
+  verifyError,
   onGiveUp,
   onConfirm,
   onContinue,
@@ -28,6 +30,11 @@ export function InfiniteModeActionBar({
           <Icon name="bolt" filled className="text-base" />
           Você atingiu o limite diário de XP — o XP extra de hoje não conta.
         </div>
+      )}
+      {!revealed && verifyError && (
+        <p role="alert" className="max-w-2xl mx-auto mb-sm font-body-sm text-body-sm text-error">
+          {verifyError}
+        </p>
       )}
       <div className="flex items-center justify-between gap-md max-w-2xl mx-auto">
         {revealed ? (
