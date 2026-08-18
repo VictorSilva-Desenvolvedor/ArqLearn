@@ -1,6 +1,7 @@
 import { Image } from "expo-image";
 import { StyleSheet, Text, View } from "react-native";
-import { colors } from "@/theme/tokens";
+import { useColors } from "@/theme/useColors";
+import type { ColorTokens } from "@/theme/tokens";
 
 interface AvatarProps {
   src?: string;
@@ -11,6 +12,8 @@ interface AvatarProps {
 }
 
 export function Avatar({ src, name, size = 32, vip = false }: AvatarProps) {
+  const colors = useColors();
+  const styles = createStyles(colors);
   const initials = name
     .split(" ")
     .slice(0, 2)
@@ -38,22 +41,23 @@ export function Avatar({ src, name, size = 32, vip = false }: AvatarProps) {
   );
 }
 
-const styles = StyleSheet.create({
-  base: {
-    borderWidth: 2,
-    borderColor: colors.primary,
-  },
-  baseVip: {
-    borderWidth: 2,
-    borderColor: colors.secondary,
-  },
-  fallback: {
-    backgroundColor: colors.primaryFixed,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  initials: {
-    color: colors.onPrimaryFixed,
-    fontWeight: "700",
-  },
-});
+const createStyles = (colors: ColorTokens) =>
+  StyleSheet.create({
+    base: {
+      borderWidth: 2,
+      borderColor: colors.primary,
+    },
+    baseVip: {
+      borderWidth: 2,
+      borderColor: colors.secondary,
+    },
+    fallback: {
+      backgroundColor: colors.primaryFixed,
+      alignItems: "center",
+      justifyContent: "center",
+    },
+    initials: {
+      color: colors.onPrimaryFixed,
+      fontWeight: "700",
+    },
+  });

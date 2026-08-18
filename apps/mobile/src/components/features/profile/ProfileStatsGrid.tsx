@@ -6,7 +6,8 @@ import { StatCard } from "@/components/features/lessonSummary/StatCard";
 import { StreakDialog } from "@/components/features/gamification/StreakDialog";
 import { StatInfoDialog } from "./StatInfoDialog";
 import { progressoDoNivel, xpParaProximoNivel } from "@/lib/gamification/level";
-import { colors } from "@/theme/tokens";
+import { useColors } from "@/theme/useColors";
+import type { ColorTokens } from "@/theme/tokens";
 
 interface ProfileStatsGridProps {
   xpTotal: number;
@@ -22,6 +23,8 @@ interface ProfileStatsGridProps {
 // reaproveita a navegação já existente pra Loja.
 export function ProfileStatsGrid({ xpTotal, level, streakCurrent, streakBest, gems }: ProfileStatsGridProps) {
   const router = useRouter();
+  const colors = useColors();
+  const styles = createStyles(colors);
   const [streakDialogOpen, setStreakDialogOpen] = useState(false);
   const [xpDialogOpen, setXpDialogOpen] = useState(false);
   const xpFaltam = xpParaProximoNivel(level, xpTotal);
@@ -75,24 +78,25 @@ export function ProfileStatsGrid({ xpTotal, level, streakCurrent, streakBest, ge
   );
 }
 
-const styles = StyleSheet.create({
-  grid: {
-    gap: 8,
-  },
-  row: {
-    flexDirection: "row",
-    gap: 8,
-  },
-  progressTrack: {
-    width: "100%",
-    height: 8,
-    borderRadius: 4,
-    backgroundColor: colors.surfaceGray,
-    overflow: "hidden",
-  },
-  progressFill: {
-    height: "100%",
-    borderRadius: 4,
-    backgroundColor: colors.secondary,
-  },
-});
+const createStyles = (colors: ColorTokens) =>
+  StyleSheet.create({
+    grid: {
+      gap: 8,
+    },
+    row: {
+      flexDirection: "row",
+      gap: 8,
+    },
+    progressTrack: {
+      width: "100%",
+      height: 8,
+      borderRadius: 4,
+      backgroundColor: colors.surfaceGray,
+      overflow: "hidden",
+    },
+    progressFill: {
+      height: "100%",
+      borderRadius: 4,
+      backgroundColor: colors.secondary,
+    },
+  });

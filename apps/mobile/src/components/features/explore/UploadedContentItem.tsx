@@ -5,7 +5,9 @@ import { Card } from "@/components/ui/Card";
 import { Icon, type IconName } from "@/components/ui/Icon";
 import { ProgressBar } from "@/components/ui/ProgressBar";
 import { formatBytes } from "@/lib/utils/format";
-import { colors, spacing, type } from "@/theme/tokens";
+import { spacing, type } from "@/theme/tokens";
+import { useColors } from "@/theme/useColors";
+import type { ColorTokens } from "@/theme/tokens";
 import type { UploadedContent, UploadFileType, UploadStatus } from "@/types/api";
 
 const fileTypeIcon: Record<UploadFileType, IconName> = {
@@ -36,6 +38,8 @@ const SUMMARIZABLE_STATUSES: UploadStatus[] = ["ready_for_review", "published"];
 // Espelha apps/web/src/components/features/explore/UploadedContentItem.tsx.
 export function UploadedContentItem({ item }: { item: UploadedContent }) {
   const router = useRouter();
+  const colors = useColors();
+  const styles = createStyles(colors);
   const canOpenSummary = SUMMARIZABLE_STATUSES.includes(item.status);
   const showProgress = item.status === "processing" && typeof item.progress_percent === "number";
   const status =
@@ -78,37 +82,38 @@ export function UploadedContentItem({ item }: { item: UploadedContent }) {
   );
 }
 
-const styles = StyleSheet.create({
-  card: {
-    gap: 4,
-  },
-  row: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: spacing.sm,
-  },
-  info: {
-    flex: 1,
-    minWidth: 0,
-  },
-  filename: {
-    color: colors.onSurface,
-  },
-  size: {
-    color: colors.onSurfaceVariant,
-  },
-  progressRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: spacing.sm,
-    paddingLeft: 32,
-  },
-  progressBar: {
-    flex: 1,
-  },
-  progressValue: {
-    color: colors.onSurfaceVariant,
-    width: 40,
-    textAlign: "right",
-  },
-});
+const createStyles = (colors: ColorTokens) =>
+  StyleSheet.create({
+    card: {
+      gap: 4,
+    },
+    row: {
+      flexDirection: "row",
+      alignItems: "center",
+      gap: spacing.sm,
+    },
+    info: {
+      flex: 1,
+      minWidth: 0,
+    },
+    filename: {
+      color: colors.onSurface,
+    },
+    size: {
+      color: colors.onSurfaceVariant,
+    },
+    progressRow: {
+      flexDirection: "row",
+      alignItems: "center",
+      gap: spacing.sm,
+      paddingLeft: 32,
+    },
+    progressBar: {
+      flex: 1,
+    },
+    progressValue: {
+      color: colors.onSurfaceVariant,
+      width: 40,
+      textAlign: "right",
+    },
+  });

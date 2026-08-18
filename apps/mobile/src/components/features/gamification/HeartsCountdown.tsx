@@ -3,7 +3,9 @@ import { Icon } from "@/components/ui/Icon";
 import { ProgressBar } from "@/components/ui/ProgressBar";
 import { useCountdownToTimestamp } from "@/hooks/useCountdown";
 import { useAuth } from "@/hooks/useAuth";
-import { colors, type } from "@/theme/tokens";
+import { type } from "@/theme/tokens";
+import { useColors } from "@/theme/useColors";
+import type { ColorTokens } from "@/theme/tokens";
 
 // Mesmo intervalo do backend (TDD §5.4) — só usado aqui pra desenhar a barra de progresso (o
 // "quanto falta" vem de verdade de hearts_next_at, isto é só a escala visual da barra). Era 3h
@@ -14,6 +16,8 @@ const HEARTS_REGEN_INTERVAL_SECONDS = 36 * 60;
 export function HeartsCountdown() {
   const { gamification } = useAuth();
   const { secondsLeft, formatted, reachedZero } = useCountdownToTimestamp(gamification.hearts_next_at);
+  const colors = useColors();
+  const styles = createStyles(colors);
 
   if (!gamification.hearts_next_at) {
     return (
@@ -42,26 +46,27 @@ export function HeartsCountdown() {
   );
 }
 
-const styles = StyleSheet.create({
-  container: {
-    width: "100%",
-    alignItems: "center",
-    gap: 4,
-  },
-  row: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 4,
-  },
-  text: {
-    color: colors.onSurfaceVariant,
-  },
-  fullRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 4,
-  },
-  fullText: {
-    color: colors.onSurfaceVariant,
-  },
-});
+const createStyles = (colors: ColorTokens) =>
+  StyleSheet.create({
+    container: {
+      width: "100%",
+      alignItems: "center",
+      gap: 4,
+    },
+    row: {
+      flexDirection: "row",
+      alignItems: "center",
+      gap: 4,
+    },
+    text: {
+      color: colors.onSurfaceVariant,
+    },
+    fullRow: {
+      flexDirection: "row",
+      alignItems: "center",
+      gap: 4,
+    },
+    fullText: {
+      color: colors.onSurfaceVariant,
+    },
+  });

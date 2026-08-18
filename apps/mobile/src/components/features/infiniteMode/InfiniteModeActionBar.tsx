@@ -3,7 +3,9 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Button } from "@/components/ui/Button";
 import { Icon } from "@/components/ui/Icon";
 import { LoadingBlueprint } from "@/components/ui/LoadingBlueprint";
-import { colors, spacing, type } from "@/theme/tokens";
+import { spacing, type } from "@/theme/tokens";
+import { useColors } from "@/theme/useColors";
+import type { ColorTokens } from "@/theme/tokens";
 
 interface InfiniteModeActionBarProps {
   revealed: boolean;
@@ -31,6 +33,8 @@ export function InfiniteModeActionBar({
   // P1 do /impeccable audit (18/08/2026): mesmo achado do QuizActionBar.tsx — inset inferior do
   // Android edge-to-edge ausente na barra ancorada no rodapé.
   const insets = useSafeAreaInsets();
+  const colors = useColors();
+  const styles = createStyles(colors);
   return (
     <View style={[styles.bar, { paddingBottom: spacing.md + insets.bottom }]}>
       {revealed && xpDailyCapReached && (
@@ -71,32 +75,33 @@ export function InfiniteModeActionBar({
   );
 }
 
-const styles = StyleSheet.create({
-  bar: {
-    borderTopWidth: 2,
-    borderTopColor: colors.outlineVariant,
-    backgroundColor: colors.surfaceBright,
-    paddingHorizontal: spacing.md,
-    paddingVertical: spacing.md,
-  },
-  xpCapRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 4,
-    marginBottom: spacing.sm,
-  },
-  xpCapText: {
-    flex: 1,
-    color: colors.secondary,
-  },
-  verifyError: {
-    color: colors.error,
-    marginBottom: spacing.sm,
-  },
-  footer: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-    gap: spacing.md,
-  },
-});
+const createStyles = (colors: ColorTokens) =>
+  StyleSheet.create({
+    bar: {
+      borderTopWidth: 2,
+      borderTopColor: colors.outlineVariant,
+      backgroundColor: colors.surfaceBright,
+      paddingHorizontal: spacing.md,
+      paddingVertical: spacing.md,
+    },
+    xpCapRow: {
+      flexDirection: "row",
+      alignItems: "center",
+      gap: 4,
+      marginBottom: spacing.sm,
+    },
+    xpCapText: {
+      flex: 1,
+      color: colors.secondary,
+    },
+    verifyError: {
+      color: colors.error,
+      marginBottom: spacing.sm,
+    },
+    footer: {
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "space-between",
+      gap: spacing.md,
+    },
+  });

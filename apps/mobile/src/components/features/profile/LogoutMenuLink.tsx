@@ -3,7 +3,9 @@ import { useRouter } from "expo-router";
 import { Card } from "@/components/ui/Card";
 import { Icon } from "@/components/ui/Icon";
 import { useAuth } from "@/hooks/useAuth";
-import { colors, type } from "@/theme/tokens";
+import { type } from "@/theme/tokens";
+import { useColors } from "@/theme/useColors";
+import type { ColorTokens } from "@/theme/tokens";
 
 // Espelha apps/web/src/components/features/profile/LogoutMenuLink.tsx. Sem hack de reload de
 // página (não há SSR aqui) — router.replace("/login") depois do signOut basta, o guard de
@@ -11,6 +13,8 @@ import { colors, type } from "@/theme/tokens";
 export function LogoutMenuLink() {
   const { logout } = useAuth();
   const router = useRouter();
+  const colors = useColors();
+  const styles = createStyles(colors);
 
   const handlePress = async () => {
     await logout();
@@ -27,14 +31,15 @@ export function LogoutMenuLink() {
   );
 }
 
-const styles = StyleSheet.create({
-  row: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 12,
-  },
-  label: {
-    flex: 1,
-    color: colors.error,
-  },
-});
+const createStyles = (colors: ColorTokens) =>
+  StyleSheet.create({
+    row: {
+      flexDirection: "row",
+      alignItems: "center",
+      gap: 12,
+    },
+    label: {
+      flex: 1,
+      color: colors.error,
+    },
+  });

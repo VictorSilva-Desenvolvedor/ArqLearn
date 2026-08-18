@@ -1,7 +1,9 @@
 import type { ReactNode } from "react";
 import { Modal as RNModal, Pressable, StyleSheet, View } from "react-native";
 import { useReduceMotion } from "@/hooks/useReduceMotion";
-import { colors, radius } from "@/theme/tokens";
+import { radius } from "@/theme/tokens";
+import { useColors } from "@/theme/useColors";
+import type { ColorTokens } from "@/theme/tokens";
 
 type ModalRadius = "xl" | "full";
 
@@ -23,6 +25,8 @@ const radiusValues: Record<ModalRadius, number> = {
 // Usa o Modal nativo do react-native (não Radix — exclusivo do web); "fade" já dá a mesma
 // sensação de entrada suave que a animação CSS do web sem precisar de reanimated.
 export function Modal({ open, onOpenChange, children, dismissible = true, radius: radiusVariant = "xl" }: ModalProps) {
+  const colors = useColors();
+  const styles = createStyles(colors);
   const reduceMotion = useReduceMotion();
   return (
     <RNModal
@@ -43,20 +47,21 @@ export function Modal({ open, onOpenChange, children, dismissible = true, radius
   );
 }
 
-const styles = StyleSheet.create({
-  overlay: {
-    flex: 1,
-    backgroundColor: colors.scrim,
-    alignItems: "center",
-    justifyContent: "center",
-    padding: 24,
-  },
-  content: {
-    width: "100%",
-    maxWidth: 400,
-    backgroundColor: colors.surfaceBright,
-    borderWidth: 2,
-    borderColor: colors.outlineVariant,
-    padding: 24,
-  },
-});
+const createStyles = (colors: ColorTokens) =>
+  StyleSheet.create({
+    overlay: {
+      flex: 1,
+      backgroundColor: colors.scrim,
+      alignItems: "center",
+      justifyContent: "center",
+      padding: 24,
+    },
+    content: {
+      width: "100%",
+      maxWidth: 400,
+      backgroundColor: colors.surfaceBright,
+      borderWidth: 2,
+      borderColor: colors.outlineVariant,
+      padding: 24,
+    },
+  });

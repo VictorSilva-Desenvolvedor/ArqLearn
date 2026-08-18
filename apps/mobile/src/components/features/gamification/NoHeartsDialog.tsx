@@ -10,7 +10,9 @@ import { useToast } from "@/hooks/useToast";
 import { ApiError } from "@/lib/api/http";
 import { purchaseShopItem } from "@/lib/api/resources/gamification";
 import { mockShopCatalog } from "@/lib/api/mocks/fixtures/shopCatalog";
-import { colors, spacing, type } from "@/theme/tokens";
+import { spacing, type } from "@/theme/tokens";
+import { useColors } from "@/theme/useColors";
+import type { ColorTokens } from "@/theme/tokens";
 import { HeartsCountdown } from "./HeartsCountdown";
 
 const HEARTS_MAX = 5;
@@ -31,6 +33,8 @@ export function NoHeartsDialog({ open, onOpenChange }: NoHeartsDialogProps) {
   const { showToast } = useToast();
   const [pending, setPending] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const colors = useColors();
+  const styles = createStyles(colors);
   const canRestore = gamification.gems >= HEARTS_REFILL_ITEM.price_gems;
   const blocked = gamification.hearts_current <= 0;
 
@@ -97,43 +101,44 @@ export function NoHeartsDialog({ open, onOpenChange }: NoHeartsDialogProps) {
   );
 }
 
-const styles = StyleSheet.create({
-  content: {
-    alignItems: "center",
-    gap: spacing.md,
-  },
-  iconBadge: {
-    width: 80,
-    height: 80,
-    borderRadius: 40,
-    backgroundColor: colors.errorContainer,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  textBlock: {
-    alignItems: "center",
-  },
-  title: {
-    color: colors.onSurface,
-    fontWeight: "700",
-    textAlign: "center",
-  },
-  description: {
-    color: colors.onSurfaceVariant,
-    textAlign: "center",
-    marginTop: 8,
-  },
-  error: {
-    color: colors.error,
-    backgroundColor: colors.errorContainer,
-    borderRadius: 12,
-    paddingHorizontal: spacing.md,
-    paddingVertical: spacing.sm,
-    width: "100%",
-    textAlign: "center",
-  },
-  actions: {
-    width: "100%",
-    gap: spacing.sm,
-  },
-});
+const createStyles = (colors: ColorTokens) =>
+  StyleSheet.create({
+    content: {
+      alignItems: "center",
+      gap: spacing.md,
+    },
+    iconBadge: {
+      width: 80,
+      height: 80,
+      borderRadius: 40,
+      backgroundColor: colors.errorContainer,
+      alignItems: "center",
+      justifyContent: "center",
+    },
+    textBlock: {
+      alignItems: "center",
+    },
+    title: {
+      color: colors.onSurface,
+      fontWeight: "700",
+      textAlign: "center",
+    },
+    description: {
+      color: colors.onSurfaceVariant,
+      textAlign: "center",
+      marginTop: 8,
+    },
+    error: {
+      color: colors.error,
+      backgroundColor: colors.errorContainer,
+      borderRadius: 12,
+      paddingHorizontal: spacing.md,
+      paddingVertical: spacing.sm,
+      width: "100%",
+      textAlign: "center",
+    },
+    actions: {
+      width: "100%",
+      gap: spacing.sm,
+    },
+  });

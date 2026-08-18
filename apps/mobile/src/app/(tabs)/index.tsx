@@ -19,7 +19,9 @@ import { listTrackLessons } from "@/lib/api/resources/lessons";
 import { listTracks } from "@/lib/api/resources/tracks";
 import { getDailyChestStatus, getWeeklyChestStatus } from "@/lib/api/resources/gamification";
 import { lessonNodePresentation } from "@/lib/api/mocks/fixtures/lessons";
-import { colors, spacing, type } from "@/theme/tokens";
+import { spacing, type } from "@/theme/tokens";
+import { useColors } from "@/theme/useColors";
+import type { ColorTokens } from "@/theme/tokens";
 import type { DailyChestStatus, Track, TrackLesson, WeeklyChestStatus } from "@/types/api";
 
 const DAILY_GOAL_XP = 50;
@@ -82,6 +84,8 @@ function toUnit(track: Track, trackLessons: TrackLesson[]): LearningMapUnit {
 }
 
 export default function HomeScreen() {
+  const colors = useColors();
+  const styles = createStyles(colors);
   const router = useRouter();
   const { gamification } = useAuth();
   const { theme: selectedTheme } = useTheme();
@@ -207,49 +211,50 @@ export default function HomeScreen() {
   );
 }
 
-const styles = StyleSheet.create({
-  screen: {
-    flex: 1,
-    // Transparente de propósito (a pedido do usuário): deixa o fundo animado
-    // (AnimatedBlueprintBackground, montado em app/_layout.tsx) aparecer atrás.
-    backgroundColor: "transparent",
-  },
-  content: {
-    paddingHorizontal: 24,
-    paddingVertical: 48,
-    // maxWidth/alignSelf: mesmo limite que LearningMap.tsx já aplicava só a si mesmo — sem isso,
-    // em iPad (ios.supportsTablet: true no app.json) todo o resto da Home (goal/nível/baús/aviso)
-    // esticava full-width enquanto só o mapa ficava contido, um "phone UI esticado" inconsistente
-    // (achado do /impeccable audit).
-    maxWidth: 448,
-    width: "100%",
-    alignSelf: "center",
-  },
-  chestRow: {
-    flexDirection: "row",
-    gap: spacing.md,
-    marginBottom: spacing.lg,
-  },
-  mapLoading: {
-    alignItems: "center",
-    paddingVertical: spacing.section,
-  },
-  notice: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: spacing.sm,
-    backgroundColor: colors.surfaceGray,
-    borderWidth: 2,
-    borderColor: colors.outlineVariant,
-    borderRadius: 16,
-    padding: spacing.md,
-    marginBottom: spacing.lg,
-  },
-  noticeText: {
-    flex: 1,
-    color: colors.onSurfaceVariant,
-  },
-  bold: {
-    fontWeight: "700",
-  },
-});
+const createStyles = (colors: ColorTokens) =>
+  StyleSheet.create({
+    screen: {
+      flex: 1,
+      // Transparente de propósito (a pedido do usuário): deixa o fundo animado
+      // (AnimatedBlueprintBackground, montado em app/_layout.tsx) aparecer atrás.
+      backgroundColor: "transparent",
+    },
+    content: {
+      paddingHorizontal: 24,
+      paddingVertical: 48,
+      // maxWidth/alignSelf: mesmo limite que LearningMap.tsx já aplicava só a si mesmo — sem isso,
+      // em iPad (ios.supportsTablet: true no app.json) todo o resto da Home (goal/nível/baús/aviso)
+      // esticava full-width enquanto só o mapa ficava contido, um "phone UI esticado" inconsistente
+      // (achado do /impeccable audit).
+      maxWidth: 448,
+      width: "100%",
+      alignSelf: "center",
+    },
+    chestRow: {
+      flexDirection: "row",
+      gap: spacing.md,
+      marginBottom: spacing.lg,
+    },
+    mapLoading: {
+      alignItems: "center",
+      paddingVertical: spacing.section,
+    },
+    notice: {
+      flexDirection: "row",
+      alignItems: "center",
+      gap: spacing.sm,
+      backgroundColor: colors.surfaceGray,
+      borderWidth: 2,
+      borderColor: colors.outlineVariant,
+      borderRadius: 16,
+      padding: spacing.md,
+      marginBottom: spacing.lg,
+    },
+    noticeText: {
+      flex: 1,
+      color: colors.onSurfaceVariant,
+    },
+    bold: {
+      fontWeight: "700",
+    },
+  });

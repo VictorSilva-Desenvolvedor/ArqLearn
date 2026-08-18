@@ -1,6 +1,8 @@
 import { StyleSheet, Text, View } from "react-native";
 import { NotificationItem } from "./NotificationItem";
-import { colors, spacing, type } from "@/theme/tokens";
+import { spacing, type } from "@/theme/tokens";
+import { useColors } from "@/theme/useColors";
+import type { ColorTokens } from "@/theme/tokens";
 import type { AppNotification } from "@/types/api";
 
 interface NotificationListProps {
@@ -11,6 +13,8 @@ interface NotificationListProps {
 
 // Espelha apps/web/src/components/features/notifications/NotificationList.tsx.
 export function NotificationList({ notifications, currentLessonHref }: NotificationListProps) {
+  const colors = useColors();
+  const styles = createStyles(colors);
   if (notifications.length === 0) {
     return <Text style={[type.bodySm, styles.empty]}>Nenhuma notificação por enquanto.</Text>;
   }
@@ -28,13 +32,14 @@ export function NotificationList({ notifications, currentLessonHref }: Notificat
   );
 }
 
-const styles = StyleSheet.create({
-  list: {
-    gap: spacing.xs,
-  },
-  empty: {
-    color: colors.onSurfaceVariant,
-    textAlign: "center",
-    paddingVertical: spacing.lg,
-  },
-});
+const createStyles = (colors: ColorTokens) =>
+  StyleSheet.create({
+    list: {
+      gap: spacing.xs,
+    },
+    empty: {
+      color: colors.onSurfaceVariant,
+      textAlign: "center",
+      paddingVertical: spacing.lg,
+    },
+  });

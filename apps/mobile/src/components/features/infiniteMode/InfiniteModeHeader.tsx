@@ -4,7 +4,9 @@ import { Badge } from "@/components/ui/Badge";
 import { Icon } from "@/components/ui/Icon";
 import { IconButton } from "@/components/ui/IconButton";
 import { ProgressBar } from "@/components/ui/ProgressBar";
-import { colors, spacing, type } from "@/theme/tokens";
+import { spacing, type } from "@/theme/tokens";
+import { useColors } from "@/theme/useColors";
+import type { ColorTokens } from "@/theme/tokens";
 
 interface InfiniteModeHeaderProps {
   topicLabel: string;
@@ -17,6 +19,8 @@ interface InfiniteModeHeaderProps {
 // QuizHeader: sem hearts, sem gems, sem toggle de download.
 export function InfiniteModeHeader({ topicLabel, current, total, level }: InfiniteModeHeaderProps) {
   const router = useRouter();
+  const colors = useColors();
+  const styles = createStyles(colors);
 
   return (
     <View style={styles.header}>
@@ -42,34 +46,35 @@ export function InfiniteModeHeader({ topicLabel, current, total, level }: Infini
   );
 }
 
-const styles = StyleSheet.create({
-  header: {
-    paddingHorizontal: spacing.md,
-    paddingVertical: spacing.sm,
-    borderBottomWidth: 2,
-    borderBottomColor: colors.outlineVariant,
-    backgroundColor: colors.surfaceBright,
-    gap: spacing.xs,
-  },
-  topRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: spacing.sm,
-  },
-  title: {
-    flex: 1,
-    color: colors.onSurface,
-    fontWeight: "700",
-  },
-  progressRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: spacing.sm,
-  },
-  progress: {
-    flex: 1,
-  },
-  progressText: {
-    color: colors.onSurfaceVariant,
-  },
-});
+const createStyles = (colors: ColorTokens) =>
+  StyleSheet.create({
+    header: {
+      paddingHorizontal: spacing.md,
+      paddingVertical: spacing.sm,
+      borderBottomWidth: 2,
+      borderBottomColor: colors.outlineVariant,
+      backgroundColor: colors.surfaceBright,
+      gap: spacing.xs,
+    },
+    topRow: {
+      flexDirection: "row",
+      alignItems: "center",
+      gap: spacing.sm,
+    },
+    title: {
+      flex: 1,
+      color: colors.onSurface,
+      fontWeight: "700",
+    },
+    progressRow: {
+      flexDirection: "row",
+      alignItems: "center",
+      gap: spacing.sm,
+    },
+    progress: {
+      flex: 1,
+    },
+    progressText: {
+      color: colors.onSurfaceVariant,
+    },
+  });

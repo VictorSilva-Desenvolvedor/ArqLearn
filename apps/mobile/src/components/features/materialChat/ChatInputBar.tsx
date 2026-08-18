@@ -3,7 +3,9 @@ import { StyleSheet, TextInput, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Icon } from "@/components/ui/Icon";
 import { IconButton } from "@/components/ui/IconButton";
-import { colors, radius, spacing, type } from "@/theme/tokens";
+import { radius, spacing, type } from "@/theme/tokens";
+import { useColors } from "@/theme/useColors";
+import type { ColorTokens } from "@/theme/tokens";
 
 interface ChatInputBarProps {
   // Retorna (ou resolve para) `false` em caso de falha — o rascunho só é limpo em caso de
@@ -14,6 +16,8 @@ interface ChatInputBarProps {
 
 // Espelha apps/web/src/components/features/materialChat/ChatInputBar.tsx.
 export function ChatInputBar({ onSend, disabled }: ChatInputBarProps) {
+  const colors = useColors();
+  const styles = createStyles(colors);
   const [value, setValue] = useState("");
   // P1 do /impeccable audit (18/08/2026): mesmo achado do QuizActionBar.tsx — barra ancorada no
   // rodapé sem o inset inferior do Android edge-to-edge.
@@ -44,27 +48,28 @@ export function ChatInputBar({ onSend, disabled }: ChatInputBarProps) {
   );
 }
 
-const styles = StyleSheet.create({
-  bar: {
-    borderTopWidth: 2,
-    borderTopColor: colors.outlineVariant,
-    backgroundColor: colors.surfaceBright,
-    paddingHorizontal: spacing.md,
-    paddingVertical: spacing.sm,
-  },
-  inputRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 4,
-    backgroundColor: colors.surfaceGray,
-    borderWidth: 2,
-    borderColor: colors.outlineVariant,
-    borderRadius: radius.xl,
-    paddingLeft: spacing.sm,
-  },
-  input: {
-    flex: 1,
-    paddingVertical: spacing.sm,
-    color: colors.onSurface,
-  },
-});
+const createStyles = (colors: ColorTokens) =>
+  StyleSheet.create({
+    bar: {
+      borderTopWidth: 2,
+      borderTopColor: colors.outlineVariant,
+      backgroundColor: colors.surfaceBright,
+      paddingHorizontal: spacing.md,
+      paddingVertical: spacing.sm,
+    },
+    inputRow: {
+      flexDirection: "row",
+      alignItems: "center",
+      gap: 4,
+      backgroundColor: colors.surfaceGray,
+      borderWidth: 2,
+      borderColor: colors.outlineVariant,
+      borderRadius: radius.xl,
+      paddingLeft: spacing.sm,
+    },
+    input: {
+      flex: 1,
+      paddingVertical: spacing.sm,
+      color: colors.onSurface,
+    },
+  });

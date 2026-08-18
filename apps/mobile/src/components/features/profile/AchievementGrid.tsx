@@ -1,12 +1,16 @@
 import { StyleSheet, Text, View } from "react-native";
 import { achievementCatalog } from "@/lib/gamification/achievementCatalog";
 import { AchievementBadge } from "./AchievementBadge";
-import { colors, type } from "@/theme/tokens";
+import { type } from "@/theme/tokens";
+import { useColors } from "@/theme/useColors";
+import type { ColorTokens } from "@/theme/tokens";
 import type { Achievement } from "@/types/api";
 
 // Espelha apps/web/src/components/features/profile/AchievementGrid.tsx (grid de 3 colunas via
 // linhas manuais, RN não tem CSS grid).
 export function AchievementGrid({ unlocked }: { unlocked: Achievement[] }) {
+  const colors = useColors();
+  const styles = createStyles(colors);
   const unlockedAtByType = new Map(unlocked.map((a) => [a.type, a.unlocked_at]));
   const entries = Object.entries(achievementCatalog);
   const rows: (typeof entries)[number][][] = [];
@@ -37,20 +41,21 @@ export function AchievementGrid({ unlocked }: { unlocked: Achievement[] }) {
   );
 }
 
-const styles = StyleSheet.create({
-  title: {
-    color: colors.onSurface,
-    fontWeight: "700",
-    marginBottom: 8,
-  },
-  grid: {
-    gap: 16,
-  },
-  row: {
-    flexDirection: "row",
-    gap: 16,
-  },
-  spacer: {
-    flex: 1,
-  },
-});
+const createStyles = (colors: ColorTokens) =>
+  StyleSheet.create({
+    title: {
+      color: colors.onSurface,
+      fontWeight: "700",
+      marginBottom: 8,
+    },
+    grid: {
+      gap: 16,
+    },
+    row: {
+      flexDirection: "row",
+      gap: 16,
+    },
+    spacer: {
+      flex: 1,
+    },
+  });

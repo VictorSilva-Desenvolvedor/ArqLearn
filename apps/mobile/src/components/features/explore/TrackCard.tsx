@@ -2,7 +2,9 @@ import { Pressable, StyleSheet, Text, View } from "react-native";
 import { Badge } from "@/components/ui/Badge";
 import { Card } from "@/components/ui/Card";
 import { Icon } from "@/components/ui/Icon";
-import { colors, type } from "@/theme/tokens";
+import { type } from "@/theme/tokens";
+import { useColors } from "@/theme/useColors";
+import type { ColorTokens } from "@/theme/tokens";
 import type { RecommendedTrack } from "@/lib/api/mocks/fixtures/exploreTracks";
 
 interface TrackCardProps extends RecommendedTrack {
@@ -20,6 +22,8 @@ interface TrackCardProps extends RecommendedTrack {
 // ThemeSelector.tsx/Button.tsx (trava o gesto de arrastar). `onPress` sempre vem preenchido hoje,
 // mas isso evita a armadilha se algum dia deixar de vir.
 export function TrackCard({ track, difficulty, durationMinutes, icon, isSelectedTheme, hasContent, onPress }: TrackCardProps) {
+  const colors = useColors();
+  const styles = createStyles(colors);
   return (
     <Pressable onPress={() => onPress?.()} accessibilityState={{ disabled: !onPress }}>
       <Card
@@ -56,39 +60,40 @@ export function TrackCard({ track, difficulty, durationMinutes, icon, isSelected
   );
 }
 
-const styles = StyleSheet.create({
-  card: {
-    flex: 1,
-    gap: 8,
-    position: "relative",
-  },
-  selected: {
-    borderColor: colors.primary,
-    backgroundColor: colors.primaryFixed,
-  },
-  underConstruction: {
-    opacity: 0.6,
-  },
-  badgeWrap: {
-    position: "absolute",
-    top: 8,
-    right: 8,
-  },
-  title: {
-    color: colors.onSurface,
-    fontWeight: "700",
-  },
-  meta: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 8,
-  },
-  duration: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 4,
-  },
-  durationText: {
-    color: colors.onSurfaceVariant,
-  },
-});
+const createStyles = (colors: ColorTokens) =>
+  StyleSheet.create({
+    card: {
+      flex: 1,
+      gap: 8,
+      position: "relative",
+    },
+    selected: {
+      borderColor: colors.primary,
+      backgroundColor: colors.primaryFixed,
+    },
+    underConstruction: {
+      opacity: 0.6,
+    },
+    badgeWrap: {
+      position: "absolute",
+      top: 8,
+      right: 8,
+    },
+    title: {
+      color: colors.onSurface,
+      fontWeight: "700",
+    },
+    meta: {
+      flexDirection: "row",
+      alignItems: "center",
+      gap: 8,
+    },
+    duration: {
+      flexDirection: "row",
+      alignItems: "center",
+      gap: 4,
+    },
+    durationText: {
+      color: colors.onSurfaceVariant,
+    },
+  });

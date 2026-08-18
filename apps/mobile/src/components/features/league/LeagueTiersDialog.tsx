@@ -13,7 +13,9 @@ import {
   leagueFullLabel,
   type LeagueTierName,
 } from "@/lib/gamification/leagueTiers";
-import { colors, spacing, type } from "@/theme/tokens";
+import { spacing, type } from "@/theme/tokens";
+import { useColors } from "@/theme/useColors";
+import type { ColorTokens } from "@/theme/tokens";
 import type { League, LeagueRankingEntry } from "@/types/api";
 
 interface LeagueTiersDialogProps {
@@ -33,6 +35,8 @@ type CacheKey = `${LeagueTierName}-${number}`;
 // backend, GET /v1/gamification/league) e deixa trocar de liga (ícones) e divisão (3, 2, 1) pra
 // ver o ranking de qualquer uma (fetch sob demanda, cacheado em memória enquanto aberto).
 export function LeagueTiersDialog({ open, onOpenChange, currentUserId, ownLeague, initialTier }: LeagueTiersDialogProps) {
+  const colors = useColors();
+  const styles = createStyles(colors);
   const ownTier = (ownLeague.tier ?? "madeira") as LeagueTierName;
   const ownKey: CacheKey = `${ownTier}-${ownLeague.division}`;
 
@@ -167,85 +171,86 @@ export function LeagueTiersDialog({ open, onOpenChange, currentUserId, ownLeague
   );
 }
 
-const styles = StyleSheet.create({
-  header: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 8,
-    marginBottom: spacing.sm,
-  },
-  title: {
-    color: colors.onSurface,
-    fontWeight: "700",
-  },
-  progressCard: {
-    backgroundColor: colors.surfaceGray,
-    borderRadius: 12,
-    padding: spacing.sm,
-    gap: 4,
-    marginBottom: spacing.md,
-  },
-  position: {
-    color: colors.onSurfaceVariant,
-  },
-  progressText: {
-    color: colors.onSurface,
-    fontWeight: "600",
-  },
-  tierScroll: {
-    marginBottom: 4,
-  },
-  tierRow: {
-    gap: 6,
-    paddingVertical: 2,
-  },
-  tierBadge: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
-    alignItems: "center",
-    justifyContent: "center",
-    backgroundColor: colors.surfaceGray,
-  },
-  tierBadgeActive: {
-    backgroundColor: colors.primary,
-  },
-  tierLabel: {
-    color: colors.onSurfaceVariant,
-    marginBottom: spacing.sm,
-  },
-  divisionRow: {
-    flexDirection: "row",
-    gap: 4,
-    marginBottom: spacing.sm,
-  },
-  divisionTab: {
-    flex: 1,
-    paddingVertical: 8,
-    borderRadius: 9999,
-    alignItems: "center",
-    backgroundColor: colors.surfaceGray,
-  },
-  divisionTabActive: {
-    backgroundColor: colors.secondaryContainer,
-  },
-  divisionText: {
-    color: colors.onSurfaceVariant,
-  },
-  divisionTextActive: {
-    color: colors.onSecondaryContainer,
-    fontWeight: "700",
-  },
-  rankingScroll: {
-    maxHeight: 280,
-  },
-  loading: {
-    marginVertical: spacing.lg,
-    alignItems: "center",
-  },
-  empty: {
-    color: colors.onSurfaceVariant,
-    textAlign: "center",
-    marginVertical: spacing.lg,
-  },
-});
+const createStyles = (colors: ColorTokens) =>
+  StyleSheet.create({
+    header: {
+      flexDirection: "row",
+      alignItems: "center",
+      gap: 8,
+      marginBottom: spacing.sm,
+    },
+    title: {
+      color: colors.onSurface,
+      fontWeight: "700",
+    },
+    progressCard: {
+      backgroundColor: colors.surfaceGray,
+      borderRadius: 12,
+      padding: spacing.sm,
+      gap: 4,
+      marginBottom: spacing.md,
+    },
+    position: {
+      color: colors.onSurfaceVariant,
+    },
+    progressText: {
+      color: colors.onSurface,
+      fontWeight: "600",
+    },
+    tierScroll: {
+      marginBottom: 4,
+    },
+    tierRow: {
+      gap: 6,
+      paddingVertical: 2,
+    },
+    tierBadge: {
+      width: 36,
+      height: 36,
+      borderRadius: 18,
+      alignItems: "center",
+      justifyContent: "center",
+      backgroundColor: colors.surfaceGray,
+    },
+    tierBadgeActive: {
+      backgroundColor: colors.primary,
+    },
+    tierLabel: {
+      color: colors.onSurfaceVariant,
+      marginBottom: spacing.sm,
+    },
+    divisionRow: {
+      flexDirection: "row",
+      gap: 4,
+      marginBottom: spacing.sm,
+    },
+    divisionTab: {
+      flex: 1,
+      paddingVertical: 8,
+      borderRadius: 9999,
+      alignItems: "center",
+      backgroundColor: colors.surfaceGray,
+    },
+    divisionTabActive: {
+      backgroundColor: colors.secondaryContainer,
+    },
+    divisionText: {
+      color: colors.onSurfaceVariant,
+    },
+    divisionTextActive: {
+      color: colors.onSecondaryContainer,
+      fontWeight: "700",
+    },
+    rankingScroll: {
+      maxHeight: 280,
+    },
+    loading: {
+      marginVertical: spacing.lg,
+      alignItems: "center",
+    },
+    empty: {
+      color: colors.onSurfaceVariant,
+      textAlign: "center",
+      marginVertical: spacing.lg,
+    },
+  });

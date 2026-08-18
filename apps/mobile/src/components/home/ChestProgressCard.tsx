@@ -2,7 +2,9 @@ import { Pressable, StyleSheet, Text, View } from "react-native";
 import { Card } from "@/components/ui/Card";
 import { Icon } from "@/components/ui/Icon";
 import { ProgressBar } from "@/components/ui/ProgressBar";
-import { colors, type } from "@/theme/tokens";
+import { type } from "@/theme/tokens";
+import { useColors } from "@/theme/useColors";
+import type { ColorTokens } from "@/theme/tokens";
 
 interface ChestProgressCardProps {
   title: string;
@@ -27,6 +29,8 @@ export function ChestProgressCard({
   claimed,
   onPress,
 }: ChestProgressCardProps) {
+  const colors = useColors();
+  const styles = createStyles(colors);
   const statusLabel = available
     ? "Disponível!"
     : claimed
@@ -55,22 +59,23 @@ export function ChestProgressCard({
   );
 }
 
-const styles = StyleSheet.create({
-  flex: {
-    flex: 1,
-  },
-  card: {
-    alignItems: "center",
-    gap: 8,
-  },
-  textBlock: {
-    alignItems: "center",
-  },
-  title: {
-    color: colors.primary,
-  },
-  status: {
-    color: colors.secondary,
-    fontSize: 14,
-  },
-});
+const createStyles = (colors: ColorTokens) =>
+  StyleSheet.create({
+    flex: {
+      flex: 1,
+    },
+    card: {
+      alignItems: "center",
+      gap: 8,
+    },
+    textBlock: {
+      alignItems: "center",
+    },
+    title: {
+      color: colors.primary,
+    },
+    status: {
+      color: colors.secondary,
+      fontSize: 14,
+    },
+  });

@@ -1,7 +1,9 @@
 import { Pressable, StyleSheet, Text, View } from "react-native";
 import { Avatar } from "@/components/ui/Avatar";
 import { useToast } from "@/hooks/useToast";
-import { colors, type } from "@/theme/tokens";
+import { type } from "@/theme/tokens";
+import { useColors } from "@/theme/useColors";
+import type { ColorTokens } from "@/theme/tokens";
 import type { LeagueRankingEntry } from "@/types/api";
 
 interface LeagueRankRowProps {
@@ -17,6 +19,8 @@ interface LeagueRankRowProps {
 // aqui o toque mostra um toast com nome+XP da semana, em vez de ficar mudo.
 export function LeagueRankRow({ entry, isCurrentUser, inPromotionZone }: LeagueRankRowProps) {
   const { showToast } = useToast();
+  const colors = useColors();
+  const styles = createStyles(colors);
 
   return (
     <Pressable
@@ -46,46 +50,47 @@ export function LeagueRankRow({ entry, isCurrentUser, inPromotionZone }: LeagueR
   );
 }
 
-const styles = StyleSheet.create({
-  row: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 16,
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-    borderBottomWidth: 1,
-    borderBottomColor: colors.outlineVariant,
-  },
-  currentUserRow: {
-    borderLeftWidth: 4,
-    borderLeftColor: colors.primary,
-    backgroundColor: colors.primaryFixed,
-  },
-  position: {
-    width: 24,
-    color: colors.onSurfaceVariant,
-    fontWeight: "700",
-    textAlign: "center",
-  },
-  positionPromotion: {
-    color: colors.tertiary,
-  },
-  avatarWrap: {
-    borderRadius: 9999,
-  },
-  avatarWrapPromotion: {
-    borderWidth: 2,
-    borderColor: colors.tertiary,
-  },
-  name: {
-    flex: 1,
-    color: colors.onSurface,
-  },
-  xp: {
-    color: colors.primary,
-    fontWeight: "700",
-  },
-  xpPromotion: {
-    color: colors.tertiary,
-  },
-});
+const createStyles = (colors: ColorTokens) =>
+  StyleSheet.create({
+    row: {
+      flexDirection: "row",
+      alignItems: "center",
+      gap: 16,
+      paddingHorizontal: 16,
+      paddingVertical: 12,
+      borderBottomWidth: 1,
+      borderBottomColor: colors.outlineVariant,
+    },
+    currentUserRow: {
+      borderLeftWidth: 4,
+      borderLeftColor: colors.primary,
+      backgroundColor: colors.primaryFixed,
+    },
+    position: {
+      width: 24,
+      color: colors.onSurfaceVariant,
+      fontWeight: "700",
+      textAlign: "center",
+    },
+    positionPromotion: {
+      color: colors.tertiary,
+    },
+    avatarWrap: {
+      borderRadius: 9999,
+    },
+    avatarWrapPromotion: {
+      borderWidth: 2,
+      borderColor: colors.tertiary,
+    },
+    name: {
+      flex: 1,
+      color: colors.onSurface,
+    },
+    xp: {
+      color: colors.primary,
+      fontWeight: "700",
+    },
+    xpPromotion: {
+      color: colors.tertiary,
+    },
+  });

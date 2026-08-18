@@ -1,6 +1,8 @@
 import { StyleSheet, Text, View } from "react-native";
 import { Icon, type IconName } from "./Icon";
-import { colors, type } from "@/theme/tokens";
+import { type } from "@/theme/tokens";
+import { useColors } from "@/theme/useColors";
+import type { ColorTokens } from "@/theme/tokens";
 
 type StatPillTone = "primary" | "secondary" | "error";
 
@@ -10,13 +12,15 @@ interface StatPillProps {
   tone: StatPillTone;
 }
 
-const toneColor: Record<StatPillTone, string> = {
+const createToneColor = (colors: ColorTokens): Record<StatPillTone, string> => ({
   primary: colors.primary,
   secondary: colors.secondary,
   error: colors.errorRed,
-};
+});
 
 export function StatPill({ icon, value, tone }: StatPillProps) {
+  const colors = useColors();
+  const toneColor = createToneColor(colors);
   const color = toneColor[tone];
   return (
     <View style={styles.row}>

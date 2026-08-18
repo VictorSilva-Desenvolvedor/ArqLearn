@@ -10,13 +10,17 @@ import { NoHeartsDialog } from "@/components/features/gamification/NoHeartsDialo
 import { StreakDialog } from "@/components/features/gamification/StreakDialog";
 import { useAuth } from "@/hooks/useAuth";
 import { xpParaProximoNivel } from "@/lib/gamification/level";
-import { colors, spacing, type } from "@/theme/tokens";
+import { spacing, type } from "@/theme/tokens";
+import { useColors } from "@/theme/useColors";
+import type { ColorTokens } from "@/theme/tokens";
 import { ThemeSelector } from "./ThemeSelector";
 
 // Espelha apps/web/src/components/layout/TopAppBar.tsx — lá o streak/hearts do header abrem
 // StreakDialog/NoHeartsDialog ao toque (gemas não, nem no web); aqui o mobile só tinha o
 // NoHeartsDialog acoplado à tela de quiz (zerar vidas durante a sessão), nunca à barra do topo.
 export function TopAppBar() {
+  const colors = useColors();
+  const styles = createStyles(colors);
   const router = useRouter();
   const { user, gamification } = useAuth();
   const [streakDialogOpen, setStreakDialogOpen] = useState(false);
@@ -100,69 +104,70 @@ export function TopAppBar() {
   );
 }
 
-const styles = StyleSheet.create({
-  safeArea: {
-    backgroundColor: colors.surfaceBright,
-    borderBottomWidth: 2,
-    borderBottomColor: colors.outlineVariant,
-  },
-  // Mesmo limite de apps/mobile/src/app/(tabs)/index.tsx e LearningMap.tsx — centraliza e trava
-  // a largura em telas grandes (iPad) em vez de esticar full-width.
-  content: {
-    width: "100%",
-    maxWidth: 448,
-    alignSelf: "center",
-  },
-  row: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-    gap: 8,
-  },
-  brand: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 6,
-  },
-  brandText: {
-    color: colors.primary,
-    fontWeight: "700",
-  },
-  utilityBand: {
-    alignItems: "center",
-    backgroundColor: colors.surfaceGray,
-    borderTopWidth: 1,
-    borderTopColor: colors.outlineVariant,
-    paddingVertical: 8,
-    gap: spacing.xs,
-  },
-  statsRowInner: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-around",
-    width: "100%",
-  },
-  actions: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 4,
-  },
-  profile: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 8,
-  },
-  levelLine: {
-    maxWidth: 180,
-  },
-  levelText: {
-    color: colors.primary,
-    fontWeight: "700",
-  },
-  levelCaption: {
-    color: colors.onSurfaceVariant,
-    fontSize: 11,
-  },
-});
+const createStyles = (colors: ColorTokens) =>
+  StyleSheet.create({
+    safeArea: {
+      backgroundColor: colors.surfaceBright,
+      borderBottomWidth: 2,
+      borderBottomColor: colors.outlineVariant,
+    },
+    // Mesmo limite de apps/mobile/src/app/(tabs)/index.tsx e LearningMap.tsx — centraliza e trava
+    // a largura em telas grandes (iPad) em vez de esticar full-width.
+    content: {
+      width: "100%",
+      maxWidth: 448,
+      alignSelf: "center",
+    },
+    row: {
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "space-between",
+      paddingHorizontal: 16,
+      paddingVertical: 12,
+      gap: 8,
+    },
+    brand: {
+      flexDirection: "row",
+      alignItems: "center",
+      gap: 6,
+    },
+    brandText: {
+      color: colors.primary,
+      fontWeight: "700",
+    },
+    utilityBand: {
+      alignItems: "center",
+      backgroundColor: colors.surfaceGray,
+      borderTopWidth: 1,
+      borderTopColor: colors.outlineVariant,
+      paddingVertical: 8,
+      gap: spacing.xs,
+    },
+    statsRowInner: {
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "space-around",
+      width: "100%",
+    },
+    actions: {
+      flexDirection: "row",
+      alignItems: "center",
+      gap: 4,
+    },
+    profile: {
+      flexDirection: "row",
+      alignItems: "center",
+      gap: 8,
+    },
+    levelLine: {
+      maxWidth: 180,
+    },
+    levelText: {
+      color: colors.primary,
+      fontWeight: "700",
+    },
+    levelCaption: {
+      color: colors.onSurfaceVariant,
+      fontSize: 11,
+    },
+  });

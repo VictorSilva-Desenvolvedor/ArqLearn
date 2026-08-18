@@ -1,6 +1,6 @@
 import { StyleSheet, View } from "react-native";
 import { Icon } from "@/components/ui/Icon";
-import { colors } from "@/theme/tokens";
+import { useColors } from "@/theme/useColors";
 
 const MAX_HEARTS = 5;
 
@@ -12,6 +12,7 @@ interface HeartsRowProps {
 // vazio em vez de sumir — não 1 ícone + contador numérico. Espelha
 // apps/web/src/components/features/quiz/HeartsRow.tsx.
 export function HeartsRow({ hearts }: HeartsRowProps) {
+  const colors = useColors();
   return (
     <View
       style={styles.row}

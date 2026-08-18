@@ -1,9 +1,11 @@
 // Design tokens do ArqLearn ("Blueprint Narrative"), portados de
 // Docs/stitch_app_visual_identity/blueprint_narrative/DESIGN.md — a mesma fonte usada em
-// apps/web/src/app/globals.css. Não redefinir esses valores localmente em componentes;
-// sempre importar de "@/theme/tokens".
+// apps/web/src/app/globals.css. Não redefinir esses valores localmente em componentes; sempre
+// importar as cores via `useColors()` (@/theme/useColors) — nunca `lightColors`/`darkColors`
+// direto num componente, pra não hardcodar um tema só. `type`/`radius`/`spacing`/`fontFamily`
+// abaixo não variam por tema, continuam importáveis direto daqui.
 
-export const colors = {
+export const lightColors = {
   // Superfícies
   surface: "#f8f9ff",
   surfaceDim: "#d0dbed",
@@ -76,10 +78,84 @@ export const colors = {
   onBackground: "#121c2a",
   mutedText: "#6b7280",
 
-  // Overlay de Modal — onSurface (#121c2a = rgb(18,28,42)) a 40% de opacidade. Token em vez de
-  // literal hand-typed, pra não driftar do onSurface se ele mudar (achado do /impeccable audit).
+  // Overlay de Modal — mesmo valor nos dois temas (scrim é convencionalmente invariante: um
+  // neutro bem escuro sobre qualquer superfície, ver darkColors.scrim abaixo).
   scrim: "rgba(18, 28, 42, 0.4)",
 } as const;
+
+// Paleta escura (18/08/2026, autorizado explicitamente pelo usuário) — mesmos hues/matiz dos
+// tokens claros acima, luminância recalculada pro papel de tema escuro (convenção Material 3:
+// containers ficam progressivamente mais CLAROS por elevação no escuro, ao contrário do claro).
+// Todo par texto/fundo (onX sobre X) verificado ≥4.5:1 (WCAG AA texto normal) e bordas não-
+// textuais (outline/outlineVariant) ≥3:1 — script de verificação descartado após uso, valores
+// finais só aqui. As 12 variantes "Fixed" (primaryFixed*, secondaryFixed*, tertiaryFixed*) são
+// iguais nos dois temas por definição do Material 3 — usadas por componentes que precisam do
+// mesmo visual independente do tema.
+export const darkColors = {
+  surface: "#16191d",
+  surfaceDim: "#121417",
+  surfaceBright: "#363c45",
+  surfaceContainerLowest: "#0d0f11",
+  surfaceContainerLow: "#1d2025",
+  surfaceContainer: "#24282e",
+  surfaceContainerHigh: "#2d3239",
+  surfaceContainerHighest: "#3a414a",
+  onSurface: "#e6eaef",
+  onSurfaceVariant: "#c6cbd2",
+  inverseSurface: lightColors.surfaceContainerHighest,
+  inverseOnSurface: lightColors.onSurface,
+  outline: "#949ca8",
+  outlineVariant: "#5e6978",
+  surfaceTint: "#a4caea",
+  surfaceVariant: "#344051",
+  surfaceGray: "#22252b",
+  blueprintGrid: "#2d3239",
+
+  primary: "#a4caea",
+  onPrimary: "#0a2e4d",
+  primaryContainer: "#115288",
+  onPrimaryContainer: "#dae7f1",
+  inversePrimary: lightColors.primary,
+  primaryFixed: lightColors.primaryFixed,
+  primaryFixedDim: lightColors.primaryFixedDim,
+  onPrimaryFixed: lightColors.onPrimaryFixed,
+  onPrimaryFixedVariant: lightColors.onPrimaryFixedVariant,
+
+  secondary: "#eabc8f",
+  onSecondary: "#532d09",
+  secondaryContainer: "#8a4c0f",
+  onSecondaryContainer: "#f2e5d9",
+  secondaryFixed: lightColors.secondaryFixed,
+  secondaryFixedDim: lightColors.secondaryFixedDim,
+  onSecondaryFixed: lightColors.onSecondaryFixed,
+  onSecondaryFixedVariant: lightColors.onSecondaryFixedVariant,
+
+  tertiary: "#86ea9a",
+  onTertiary: "#005211",
+  tertiaryContainer: "#007518",
+  onTertiaryContainer: "#e3f7e7",
+  tertiaryFixed: lightColors.tertiaryFixed,
+  tertiaryFixedDim: lightColors.tertiaryFixedDim,
+  onTertiaryFixed: lightColors.onTertiaryFixed,
+  onTertiaryFixedVariant: lightColors.onTertiaryFixedVariant,
+
+  error: "#eb9898",
+  onError: "#510b0b",
+  errorContainer: "#861313",
+  onErrorContainer: "#f4e1e1",
+  errorRed: "#f58499",
+
+  background: "#16191d",
+  onBackground: "#e6eaef",
+  mutedText: "#a6abb5",
+
+  scrim: lightColors.scrim,
+} as const;
+
+// Larga os literais exatos de cada hex (`typeof lightColors` sozinho fixaria cada chave no valor
+// claro específico, e darkColors — mesmas chaves, hex diferentes — deixaria de ser atribuível a
+// esse tipo) — cada token só precisa ser "uma string", não aquele hex exato.
+export type ColorTokens = { [K in keyof typeof lightColors]: string };
 
 // Famílias carregadas via useFonts em app/_layout.tsx (@expo-google-fonts/*).
 export const fontFamily = {

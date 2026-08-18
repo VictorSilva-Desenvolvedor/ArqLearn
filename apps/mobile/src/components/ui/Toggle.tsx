@@ -1,5 +1,6 @@
 import { Pressable, StyleSheet, View } from "react-native";
-import { colors } from "@/theme/tokens";
+import { useColors } from "@/theme/useColors";
+import type { ColorTokens } from "@/theme/tokens";
 
 interface ToggleProps {
   checked: boolean;
@@ -13,6 +14,8 @@ interface ToggleProps {
 // armadilha conhecida do Android que trava o gesto de arrastar (mesmo bug de Button.tsx/
 // ThemeSelector.tsx). accessibilityState continua marcando desabilitado pra leitor de tela.
 export function Toggle({ checked, onChange, label, disabled }: ToggleProps) {
+  const colors = useColors();
+  const styles = createStyles(colors);
   return (
     <Pressable
       accessibilityRole="switch"
@@ -30,24 +33,25 @@ export function Toggle({ checked, onChange, label, disabled }: ToggleProps) {
   );
 }
 
-const styles = StyleSheet.create({
-  track: {
-    width: 44,
-    height: 24,
-    borderRadius: 12,
-    justifyContent: "center",
-    paddingHorizontal: 2,
-  },
-  disabled: {
-    opacity: 0.5,
-  },
-  thumb: {
-    width: 20,
-    height: 20,
-    borderRadius: 10,
-    backgroundColor: colors.surfaceContainerLowest,
-  },
-  thumbChecked: {
-    alignSelf: "flex-end",
-  },
-});
+const createStyles = (colors: ColorTokens) =>
+  StyleSheet.create({
+    track: {
+      width: 44,
+      height: 24,
+      borderRadius: 12,
+      justifyContent: "center",
+      paddingHorizontal: 2,
+    },
+    disabled: {
+      opacity: 0.5,
+    },
+    thumb: {
+      width: 20,
+      height: 20,
+      borderRadius: 10,
+      backgroundColor: colors.surfaceContainerLowest,
+    },
+    thumbChecked: {
+      alignSelf: "flex-end",
+    },
+  });

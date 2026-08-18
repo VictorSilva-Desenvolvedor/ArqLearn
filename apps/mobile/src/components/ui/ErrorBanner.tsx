@@ -1,7 +1,9 @@
 import { StyleSheet, Text, View } from "react-native";
 import { Icon } from "@/components/ui/Icon";
 import { Button } from "@/components/ui/Button";
-import { colors, type } from "@/theme/tokens";
+import { type } from "@/theme/tokens";
+import { useColors } from "@/theme/useColors";
+import type { ColorTokens } from "@/theme/tokens";
 
 interface ErrorBannerProps {
   message?: string;
@@ -14,6 +16,8 @@ export function ErrorBanner({
   message = "Não foi possível carregar esta página. Verifique sua conexão e tente novamente.",
   onRetry,
 }: ErrorBannerProps) {
+  const colors = useColors();
+  const styles = createStyles(colors);
   return (
     <View style={styles.container}>
       <Icon name="wifiOff" size={48} color={colors.outline} />
@@ -26,19 +30,20 @@ export function ErrorBanner({
   );
 }
 
-const styles = StyleSheet.create({
-  container: {
-    alignItems: "center",
-    gap: 12,
-    paddingHorizontal: 24,
-    paddingVertical: 48,
-  },
-  title: {
-    color: colors.onSurface,
-    textAlign: "center",
-  },
-  message: {
-    color: colors.onSurfaceVariant,
-    textAlign: "center",
-  },
-});
+const createStyles = (colors: ColorTokens) =>
+  StyleSheet.create({
+    container: {
+      alignItems: "center",
+      gap: 12,
+      paddingHorizontal: 24,
+      paddingVertical: 48,
+    },
+    title: {
+      color: colors.onSurface,
+      textAlign: "center",
+    },
+    message: {
+      color: colors.onSurfaceVariant,
+      textAlign: "center",
+    },
+  });

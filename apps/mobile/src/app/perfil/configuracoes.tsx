@@ -15,7 +15,9 @@ import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/useToast";
 import { deleteMe, exportMyData, updateMe } from "@/lib/api/resources/profile";
 import { createSupabaseClient } from "@/lib/supabase/client";
-import { colors, spacing, type } from "@/theme/tokens";
+import { spacing, type } from "@/theme/tokens";
+import { useColors } from "@/theme/useColors";
+import type { ColorTokens } from "@/theme/tokens";
 
 const MIN_PASSWORD_LENGTH = 6;
 
@@ -25,6 +27,8 @@ const MIN_PASSWORD_LENGTH = 6;
 const HOLD_TO_CONFIRM_MS = 10_000;
 
 export default function ConfiguracoesScreen() {
+  const colors = useColors();
+  const styles = createStyles(colors);
   const router = useRouter();
   const { user, updateUser, logout } = useAuth();
   const { showToast } = useToast();
@@ -389,159 +393,160 @@ export default function ConfiguracoesScreen() {
   );
 }
 
-const styles = StyleSheet.create({
-  screen: {
-    flex: 1,
-    backgroundColor: colors.background,
-  },
-  content: {
-    padding: spacing.md,
-    paddingBottom: spacing.lg,
-    gap: spacing.lg,
-  },
-  header: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: spacing.xs,
-  },
-  headerTitle: {
-    color: colors.onSurface,
-    fontWeight: "700",
-  },
-  card: {
-    gap: spacing.sm,
-  },
-  cardTitle: {
-    color: colors.onSurface,
-  },
-  cardCaption: {
-    color: colors.onSurfaceVariant,
-  },
-  passwordHint: {
-    color: colors.onSurfaceVariant,
-  },
-  passwordError: {
-    color: colors.error,
-  },
-  passwordSuccess: {
-    color: colors.tertiary,
-  },
-  field: {
-    gap: 4,
-  },
-  fieldLabel: {
-    color: colors.onSurfaceVariant,
-  },
-  input: {
-    borderWidth: 2,
-    borderColor: colors.outlineVariant,
-    backgroundColor: colors.surfaceGray,
-    borderRadius: 12,
-    paddingHorizontal: 12,
-    paddingVertical: 10,
-    fontSize: 16,
-    color: colors.onSurface,
-  },
-  email: {
-    color: colors.onSurfaceVariant,
-  },
-  saveRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: spacing.sm,
-  },
-  savedBadge: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 4,
-  },
-  savedText: {
-    color: colors.tertiary,
-  },
-  dangerCard: {
-    borderColor: colors.error,
-  },
-  dangerTitle: {
-    color: colors.error,
-  },
-  dangerCaption: {
-    color: colors.onSurfaceVariant,
-  },
-  dangerAction: {
-    alignItems: "flex-start",
-  },
-  deletionScheduled: {
-    flex: 1,
-    alignItems: "center",
-    justifyContent: "center",
-    gap: spacing.sm,
-    paddingHorizontal: 32,
-  },
-  deletionTitle: {
-    color: colors.onSurface,
-    textAlign: "center",
-  },
-  deletionCaption: {
-    color: colors.onSurfaceVariant,
-    textAlign: "center",
-  },
-  bold: {
-    fontWeight: "700",
-  },
-  modalContent: {
-    gap: spacing.md,
-  },
-  modalTitle: {
-    color: colors.onSurface,
-    fontWeight: "700",
-  },
-  modalDescription: {
-    color: colors.onSurfaceVariant,
-  },
-  modalFieldLabel: {
-    color: colors.error,
-    fontWeight: "700",
-  },
-  modalInput: {
-    borderWidth: 2,
-    borderColor: colors.error,
-    backgroundColor: colors.surfaceGray,
-    borderRadius: 12,
-    paddingHorizontal: 12,
-    paddingVertical: 10,
-    fontSize: 16,
-    color: colors.error,
-  },
-  modalActions: {
-    flexDirection: "row",
-    justifyContent: "flex-end",
-    alignItems: "center",
-    gap: spacing.sm,
-  },
-  holdButton: {
-    position: "relative",
-    overflow: "hidden",
-    borderRadius: 24,
-    paddingVertical: 12,
-    paddingHorizontal: 24,
-    backgroundColor: colors.error,
-    borderWidth: 2,
-    borderColor: colors.error,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  holdButtonDisabled: {
-    opacity: 0.5,
-  },
-  holdButtonLabel: {
-    color: colors.onError,
-    fontWeight: "700",
-  },
-  holdProgress: {
-    position: "absolute",
-    left: 0,
-    top: 0,
-    bottom: 0,
-    backgroundColor: "rgba(255,255,255,0.25)",
-  },
-});
+const createStyles = (colors: ColorTokens) =>
+  StyleSheet.create({
+    screen: {
+      flex: 1,
+      backgroundColor: colors.background,
+    },
+    content: {
+      padding: spacing.md,
+      paddingBottom: spacing.lg,
+      gap: spacing.lg,
+    },
+    header: {
+      flexDirection: "row",
+      alignItems: "center",
+      gap: spacing.xs,
+    },
+    headerTitle: {
+      color: colors.onSurface,
+      fontWeight: "700",
+    },
+    card: {
+      gap: spacing.sm,
+    },
+    cardTitle: {
+      color: colors.onSurface,
+    },
+    cardCaption: {
+      color: colors.onSurfaceVariant,
+    },
+    passwordHint: {
+      color: colors.onSurfaceVariant,
+    },
+    passwordError: {
+      color: colors.error,
+    },
+    passwordSuccess: {
+      color: colors.tertiary,
+    },
+    field: {
+      gap: 4,
+    },
+    fieldLabel: {
+      color: colors.onSurfaceVariant,
+    },
+    input: {
+      borderWidth: 2,
+      borderColor: colors.outlineVariant,
+      backgroundColor: colors.surfaceGray,
+      borderRadius: 12,
+      paddingHorizontal: 12,
+      paddingVertical: 10,
+      fontSize: 16,
+      color: colors.onSurface,
+    },
+    email: {
+      color: colors.onSurfaceVariant,
+    },
+    saveRow: {
+      flexDirection: "row",
+      alignItems: "center",
+      gap: spacing.sm,
+    },
+    savedBadge: {
+      flexDirection: "row",
+      alignItems: "center",
+      gap: 4,
+    },
+    savedText: {
+      color: colors.tertiary,
+    },
+    dangerCard: {
+      borderColor: colors.error,
+    },
+    dangerTitle: {
+      color: colors.error,
+    },
+    dangerCaption: {
+      color: colors.onSurfaceVariant,
+    },
+    dangerAction: {
+      alignItems: "flex-start",
+    },
+    deletionScheduled: {
+      flex: 1,
+      alignItems: "center",
+      justifyContent: "center",
+      gap: spacing.sm,
+      paddingHorizontal: 32,
+    },
+    deletionTitle: {
+      color: colors.onSurface,
+      textAlign: "center",
+    },
+    deletionCaption: {
+      color: colors.onSurfaceVariant,
+      textAlign: "center",
+    },
+    bold: {
+      fontWeight: "700",
+    },
+    modalContent: {
+      gap: spacing.md,
+    },
+    modalTitle: {
+      color: colors.onSurface,
+      fontWeight: "700",
+    },
+    modalDescription: {
+      color: colors.onSurfaceVariant,
+    },
+    modalFieldLabel: {
+      color: colors.error,
+      fontWeight: "700",
+    },
+    modalInput: {
+      borderWidth: 2,
+      borderColor: colors.error,
+      backgroundColor: colors.surfaceGray,
+      borderRadius: 12,
+      paddingHorizontal: 12,
+      paddingVertical: 10,
+      fontSize: 16,
+      color: colors.error,
+    },
+    modalActions: {
+      flexDirection: "row",
+      justifyContent: "flex-end",
+      alignItems: "center",
+      gap: spacing.sm,
+    },
+    holdButton: {
+      position: "relative",
+      overflow: "hidden",
+      borderRadius: 24,
+      paddingVertical: 12,
+      paddingHorizontal: 24,
+      backgroundColor: colors.error,
+      borderWidth: 2,
+      borderColor: colors.error,
+      alignItems: "center",
+      justifyContent: "center",
+    },
+    holdButtonDisabled: {
+      opacity: 0.5,
+    },
+    holdButtonLabel: {
+      color: colors.onError,
+      fontWeight: "700",
+    },
+    holdProgress: {
+      position: "absolute",
+      left: 0,
+      top: 0,
+      bottom: 0,
+      backgroundColor: "rgba(255,255,255,0.25)",
+    },
+  });

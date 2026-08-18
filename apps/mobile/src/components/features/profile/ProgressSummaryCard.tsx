@@ -4,7 +4,9 @@ import { StyleSheet, Text, View } from "react-native";
 import { Icon } from "@/components/ui/Icon";
 import { StatCard } from "@/components/features/lessonSummary/StatCard";
 import { StatInfoDialog } from "./StatInfoDialog";
-import { colors, type } from "@/theme/tokens";
+import { type } from "@/theme/tokens";
+import { useColors } from "@/theme/useColors";
+import type { ColorTokens } from "@/theme/tokens";
 import type { ProgressSummary } from "@/types/api";
 
 // Espelha apps/web/src/components/features/profile/ProgressSummaryCard.tsx — "Em Andamento"
@@ -13,6 +15,8 @@ import type { ProgressSummary } from "@/types/api";
 // concluídas", "histórico de lições" ou "detalhe de precisão".
 export function ProgressSummaryCard({ summary }: { summary: ProgressSummary }) {
   const router = useRouter();
+  const colors = useColors();
+  const styles = createStyles(colors);
   const [tracksDialogOpen, setTracksDialogOpen] = useState(false);
   const [lessonsDialogOpen, setLessonsDialogOpen] = useState(false);
   const [accuracyDialogOpen, setAccuracyDialogOpen] = useState(false);
@@ -80,17 +84,18 @@ export function ProgressSummaryCard({ summary }: { summary: ProgressSummary }) {
   );
 }
 
-const styles = StyleSheet.create({
-  title: {
-    color: colors.onSurface,
-    fontWeight: "700",
-    marginBottom: 8,
-  },
-  grid: {
-    gap: 8,
-  },
-  row: {
-    flexDirection: "row",
-    gap: 8,
-  },
-});
+const createStyles = (colors: ColorTokens) =>
+  StyleSheet.create({
+    title: {
+      color: colors.onSurface,
+      fontWeight: "700",
+      marginBottom: 8,
+    },
+    grid: {
+      gap: 8,
+    },
+    row: {
+      flexDirection: "row",
+      gap: 8,
+    },
+  });

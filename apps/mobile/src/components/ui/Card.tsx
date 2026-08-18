@@ -1,5 +1,7 @@
 import { StyleSheet, View, type StyleProp, type ViewProps, type ViewStyle } from "react-native";
-import { colors, radius, spacing } from "@/theme/tokens";
+import { radius, spacing } from "@/theme/tokens";
+import { useColors } from "@/theme/useColors";
+import type { ColorTokens } from "@/theme/tokens";
 
 type CardPadding = "sm" | "md" | "lg";
 type CardRadius = "md" | "lg" | "xl";
@@ -31,6 +33,8 @@ export function Card({
   children,
   ...rest
 }: CardProps) {
+  const colors = useColors();
+  const styles = createStyles(colors);
   return (
     <View
       style={[
@@ -46,12 +50,13 @@ export function Card({
   );
 }
 
-const styles = StyleSheet.create({
-  base: {
-    backgroundColor: colors.surfaceBright,
-  },
-  bordered: {
-    borderWidth: 2,
-    borderColor: colors.outlineVariant,
-  },
-});
+const createStyles = (colors: ColorTokens) =>
+  StyleSheet.create({
+    base: {
+      backgroundColor: colors.surfaceBright,
+    },
+    bordered: {
+      borderWidth: 2,
+      borderColor: colors.outlineVariant,
+    },
+  });

@@ -2,7 +2,9 @@ import { Pressable, StyleSheet, Text, View } from "react-native";
 import { useRouter } from "expo-router";
 import { Card } from "@/components/ui/Card";
 import { Icon, type IconName } from "@/components/ui/Icon";
-import { colors, type } from "@/theme/tokens";
+import { type } from "@/theme/tokens";
+import { useColors } from "@/theme/useColors";
+import type { ColorTokens } from "@/theme/tokens";
 
 interface ProfileMenuLinkProps {
   href?: string;
@@ -14,6 +16,8 @@ interface ProfileMenuLinkProps {
 // breve" (Loja/Ajuda ainda são Fase 5).
 export function ProfileMenuLink({ href, icon, label }: ProfileMenuLinkProps) {
   const router = useRouter();
+  const colors = useColors();
+  const styles = createStyles(colors);
 
   const content = (
     <Card padding="md" radius="lg" style={[styles.row, !href && styles.disabled]}>
@@ -36,20 +40,21 @@ export function ProfileMenuLink({ href, icon, label }: ProfileMenuLinkProps) {
   );
 }
 
-const styles = StyleSheet.create({
-  row: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 12,
-  },
-  disabled: {
-    opacity: 0.6,
-  },
-  label: {
-    flex: 1,
-    color: colors.onSurface,
-  },
-  soon: {
-    color: colors.onSurfaceVariant,
-  },
-});
+const createStyles = (colors: ColorTokens) =>
+  StyleSheet.create({
+    row: {
+      flexDirection: "row",
+      alignItems: "center",
+      gap: 12,
+    },
+    disabled: {
+      opacity: 0.6,
+    },
+    label: {
+      flex: 1,
+      color: colors.onSurface,
+    },
+    soon: {
+      color: colors.onSurfaceVariant,
+    },
+  });

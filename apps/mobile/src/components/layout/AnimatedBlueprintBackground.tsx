@@ -2,7 +2,8 @@ import { useEffect, useMemo, useRef } from "react";
 import { Animated, Easing, StyleSheet, useWindowDimensions, View } from "react-native";
 import Svg, { Circle, Defs, Path, Pattern, Rect } from "react-native-svg";
 import { useReduceMotion } from "@/hooks/useReduceMotion";
-import { colors } from "@/theme/tokens";
+import { useColors } from "@/theme/useColors";
+import type { ColorTokens } from "@/theme/tokens";
 
 // Fundo animado "Blueprint" — ícones de arquitetura caindo sobre a grade técnica, a pedido do
 // usuário (ver Docs/stitch_app_visual_identity/fundo-animado-blueprint-v2.html, referência de
@@ -28,7 +29,9 @@ function randomItem<T>(list: readonly T[]): T {
 interface FallConfig {
   id: number;
   icon: IconName;
-  color: string;
+  // Tom em vez de cor resolvida: assim o tema claro/escuro muda a cor renderizada na hora sem
+  // precisar regenerar a lista (o que reiniciaria a animação de todo mundo no meio do trajeto).
+  tone: (typeof TONES)[number];
   path: PathName;
   size: number;
   leftPercent: number;
@@ -40,7 +43,7 @@ function generateItems(): FallConfig[] {
   return Array.from({ length: TOTAL_ITEMS }, (_, id) => ({
     id,
     icon: randomItem(ICON_NAMES),
-    color: randomItem(TONES) === "primary" ? colors.primary : colors.secondary,
+    tone: randomItem(TONES),
     path: randomItem(PATH_NAMES),
     size: 16 + Math.random() * 16,
     leftPercent: Math.random() * 92,
@@ -129,7 +132,15 @@ function BlueprintIcon({ name, size, color }: { name: IconName; size: number; co
   }
 }
 
-function FallingIcon({ config, screenHeight }: { config: FallConfig; screenHeight: number }) {
+function FallingIcon({
+  config,
+  screenHeight,
+  colors,
+}: {
+  config: FallConfig;
+  screenHeight: number;
+  colors: ColorTokens;
+}) {
   const progress = useRef(new Animated.Value(0)).current;
 
   useEffect(() => {
@@ -175,7 +186,11 @@ function FallingIcon({ config, screenHeight }: { config: FallConfig; screenHeigh
         transform: [{ translateX }, { translateY }, { rotate }],
       }}
     >
-      <BlueprintIcon name={config.icon} size={config.size} color={config.color} />
+      <BlueprintIcon
+        name={config.icon}
+        size={config.size}
+        color={config.tone === "primary" ? colors.primary : colors.secondary}
+      />
     </Animated.View>
   );
 }
@@ -183,6 +198,7 @@ function FallingIcon({ config, screenHeight }: { config: FallConfig; screenHeigh
 export function AnimatedBlueprintBackground() {
   const { width, height } = useWindowDimensions();
   const reduceMotion = useReduceMotion();
+  const colors = useColors();
   const items = useMemo(() => generateItems(), []);
 
   return (
@@ -205,7 +221,10 @@ export function AnimatedBlueprintBackground() {
           comunica progresso real) — em vez de congelar tudo visível no meio do trajeto,
           simplesmente não renderiza nenhum, evitando qualquer chance de gatilho de enjoo por
           movimento. A base sólida acima continua valendo (não é decorativa, é o fundo real). */}
-      {!reduceMotion && items.map((item) => <FallingIcon key={item.id} config={item} screenHeight={height} />)}
+      {!reduceMotion &&
+        items.map((item) => (
+          <FallingIcon key={item.id} config={item} screenHeight={height} colors={colors} />
+        ))}
     </View>
   );
 }

@@ -4,7 +4,9 @@ import { StyleSheet, Text, View } from "react-native";
 import { Button } from "@/components/ui/Button";
 import { Icon } from "@/components/ui/Icon";
 import { Modal } from "@/components/ui/Modal";
-import { colors, spacing, type } from "@/theme/tokens";
+import { spacing, type } from "@/theme/tokens";
+import { useColors } from "@/theme/useColors";
+import type { ColorTokens } from "@/theme/tokens";
 
 interface AllDonePromptProps {
   topic: string;
@@ -29,6 +31,8 @@ const dismissedThisSession = new Set<string>();
 export function AllDonePrompt({ topic, themeLabel, suppressAutoOpen }: AllDonePromptProps) {
   const router = useRouter();
   const [open, setOpen] = useState(false);
+  const colors = useColors();
+  const styles = createStyles(colors);
 
   useEffect(() => {
     if (suppressAutoOpen) return;
@@ -78,34 +82,35 @@ export function AllDonePrompt({ topic, themeLabel, suppressAutoOpen }: AllDonePr
   );
 }
 
-const styles = StyleSheet.create({
-  content: {
-    alignItems: "center",
-    gap: spacing.md,
-  },
-  iconBadge: {
-    width: 80,
-    height: 80,
-    borderRadius: 40,
-    backgroundColor: colors.secondaryContainer,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  textBlock: {
-    alignItems: "center",
-  },
-  title: {
-    color: colors.onSurface,
-    fontWeight: "700",
-    textAlign: "center",
-  },
-  description: {
-    color: colors.onSurfaceVariant,
-    textAlign: "center",
-    marginTop: 8,
-  },
-  actions: {
-    width: "100%",
-    gap: spacing.sm,
-  },
-});
+const createStyles = (colors: ColorTokens) =>
+  StyleSheet.create({
+    content: {
+      alignItems: "center",
+      gap: spacing.md,
+    },
+    iconBadge: {
+      width: 80,
+      height: 80,
+      borderRadius: 40,
+      backgroundColor: colors.secondaryContainer,
+      alignItems: "center",
+      justifyContent: "center",
+    },
+    textBlock: {
+      alignItems: "center",
+    },
+    title: {
+      color: colors.onSurface,
+      fontWeight: "700",
+      textAlign: "center",
+    },
+    description: {
+      color: colors.onSurfaceVariant,
+      textAlign: "center",
+      marginTop: 8,
+    },
+    actions: {
+      width: "100%",
+      gap: spacing.sm,
+    },
+  });

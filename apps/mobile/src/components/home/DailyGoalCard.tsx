@@ -3,7 +3,8 @@ import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
 import { ProgressBar } from "@/components/ui/ProgressBar";
 import { useToast } from "@/hooks/useToast";
-import { colors, type } from "@/theme/tokens";
+import { type } from "@/theme/tokens";
+import { useColors } from "@/theme/useColors";
 
 interface DailyGoalCardProps {
   xpToday: number;
@@ -15,6 +16,7 @@ interface DailyGoalCardProps {
 // não dava feedback nenhum. Toast informativo até a funcionalidade existir de verdade.
 export function DailyGoalCard({ xpToday, goal }: DailyGoalCardProps) {
   const { showToast } = useToast();
+  const colors = useColors();
 
   return (
     <Card radius="xl" style={styles.card}>

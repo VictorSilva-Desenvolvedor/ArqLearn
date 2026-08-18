@@ -4,7 +4,9 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { Button } from "@/components/ui/Button";
 import { Icon } from "@/components/ui/Icon";
 import { ProgressBar } from "@/components/ui/ProgressBar";
-import { colors, radius, spacing, type } from "@/theme/tokens";
+import { radius, spacing, type } from "@/theme/tokens";
+import { useColors } from "@/theme/useColors";
+import type { ColorTokens } from "@/theme/tokens";
 import { StatCard } from "./StatCard";
 
 interface SummaryPanelProps {
@@ -30,6 +32,8 @@ export function SummaryPanel({
   chestAvailable = false,
 }: SummaryPanelProps) {
   const router = useRouter();
+  const colors = useColors();
+  const styles = createStyles(colors);
 
   return (
     <SafeAreaView style={styles.screen} edges={["top"]}>
@@ -88,58 +92,59 @@ export function SummaryPanel({
   );
 }
 
-const styles = StyleSheet.create({
-  screen: {
-    flex: 1,
-    alignItems: "center",
-    justifyContent: "center",
-    paddingHorizontal: spacing.md,
-    paddingVertical: spacing.lg,
-    backgroundColor: colors.background,
-  },
-  panel: {
-    width: "100%",
-    maxWidth: 448,
-    backgroundColor: colors.surfaceBright,
-    borderWidth: 2,
-    borderColor: colors.outlineVariant,
-    borderRadius: radius.xl,
-    padding: spacing.lg,
-    gap: spacing.lg,
-    alignItems: "center",
-  },
-  header: {
-    alignItems: "center",
-  },
-  title: {
-    color: colors.primary,
-    fontWeight: "700",
-    textAlign: "center",
-  },
-  subtitle: {
-    color: colors.onSurfaceVariant,
-    marginTop: 4,
-    textAlign: "center",
-  },
-  grid: {
-    width: "100%",
-    flexDirection: "row",
-    flexWrap: "wrap",
-    gap: spacing.sm,
-  },
-  gridItem: {
-    width: "47%",
-    flexGrow: 1,
-  },
-  progressBlock: {
-    width: "100%",
-    gap: 4,
-  },
-  progressLabels: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-  },
-  progressLabel: {
-    color: colors.onSurfaceVariant,
-  },
-});
+const createStyles = (colors: ColorTokens) =>
+  StyleSheet.create({
+    screen: {
+      flex: 1,
+      alignItems: "center",
+      justifyContent: "center",
+      paddingHorizontal: spacing.md,
+      paddingVertical: spacing.lg,
+      backgroundColor: colors.background,
+    },
+    panel: {
+      width: "100%",
+      maxWidth: 448,
+      backgroundColor: colors.surfaceBright,
+      borderWidth: 2,
+      borderColor: colors.outlineVariant,
+      borderRadius: radius.xl,
+      padding: spacing.lg,
+      gap: spacing.lg,
+      alignItems: "center",
+    },
+    header: {
+      alignItems: "center",
+    },
+    title: {
+      color: colors.primary,
+      fontWeight: "700",
+      textAlign: "center",
+    },
+    subtitle: {
+      color: colors.onSurfaceVariant,
+      marginTop: 4,
+      textAlign: "center",
+    },
+    grid: {
+      width: "100%",
+      flexDirection: "row",
+      flexWrap: "wrap",
+      gap: spacing.sm,
+    },
+    gridItem: {
+      width: "47%",
+      flexGrow: 1,
+    },
+    progressBlock: {
+      width: "100%",
+      gap: 4,
+    },
+    progressLabels: {
+      flexDirection: "row",
+      justifyContent: "space-between",
+    },
+    progressLabel: {
+      color: colors.onSurfaceVariant,
+    },
+  });

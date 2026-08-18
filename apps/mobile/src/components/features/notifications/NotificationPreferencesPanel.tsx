@@ -3,12 +3,16 @@ import { StyleSheet, Text, View } from "react-native";
 import { Card } from "@/components/ui/Card";
 import { Toggle } from "@/components/ui/Toggle";
 import { updateNotificationPreferences } from "@/lib/api/resources/notifications";
-import { colors, spacing, type } from "@/theme/tokens";
+import { spacing, type } from "@/theme/tokens";
+import { useColors } from "@/theme/useColors";
+import type { ColorTokens } from "@/theme/tokens";
 
 // Sem GET de preferências no contrato — só o PATCH. Começa com os dois canais habilitados
 // (padrão razoável) e persiste a partir daí. Espelha
 // apps/web/src/components/features/notifications/NotificationPreferencesPanel.tsx.
 export function NotificationPreferencesPanel() {
+  const colors = useColors();
+  const styles = createStyles(colors);
   const [pushEnabled, setPushEnabled] = useState(true);
   const [emailEnabled, setEmailEnabled] = useState(true);
   const [saving, setSaving] = useState<"push" | "email" | null>(null);
@@ -44,20 +48,21 @@ export function NotificationPreferencesPanel() {
   );
 }
 
-const styles = StyleSheet.create({
-  card: {
-    gap: spacing.sm,
-  },
-  title: {
-    color: colors.onSurface,
-    fontWeight: "700",
-  },
-  row: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-  },
-  label: {
-    color: colors.onSurface,
-  },
-});
+const createStyles = (colors: ColorTokens) =>
+  StyleSheet.create({
+    card: {
+      gap: spacing.sm,
+    },
+    title: {
+      color: colors.onSurface,
+      fontWeight: "700",
+    },
+    row: {
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "space-between",
+    },
+    label: {
+      color: colors.onSurface,
+    },
+  });

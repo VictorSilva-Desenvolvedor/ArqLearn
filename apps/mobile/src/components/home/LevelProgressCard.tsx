@@ -2,7 +2,9 @@ import { StyleSheet, Text, View } from "react-native";
 import { Card } from "@/components/ui/Card";
 import { ProgressBar } from "@/components/ui/ProgressBar";
 import { xpMinimoDoNivel } from "@/lib/gamification/level";
-import { colors, type } from "@/theme/tokens";
+import { type } from "@/theme/tokens";
+import { useColors } from "@/theme/useColors";
+import type { ColorTokens } from "@/theme/tokens";
 
 interface LevelProgressCardProps {
   level: number;
@@ -12,6 +14,8 @@ interface LevelProgressCardProps {
 // Espelha apps/web/src/components/features/home/LevelProgressCard.tsx (DESIGN.md "XP Bar") — não
 // existia no mobile Home ainda, só no web.
 export function LevelProgressCard({ level, xpTotal }: LevelProgressCardProps) {
+  const colors = useColors();
+  const styles = createStyles(colors);
   const currentLevelXp = xpMinimoDoNivel(level);
   const nextLevelXp = xpMinimoDoNivel(level + 1);
   const xpIntoLevel = Math.max(0, xpTotal - currentLevelXp);
@@ -35,40 +39,41 @@ export function LevelProgressCard({ level, xpTotal }: LevelProgressCardProps) {
   );
 }
 
-const styles = StyleSheet.create({
-  card: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 16,
-    marginBottom: 32,
-  },
-  badge: {
-    width: 48,
-    height: 48,
-    borderRadius: 24,
-    backgroundColor: colors.secondary,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  badgeText: {
-    color: colors.onSecondary,
-  },
-  content: {
-    flex: 1,
-  },
-  row: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-    marginBottom: 4,
-  },
-  label: {
-    color: colors.onSurfaceVariant,
-  },
-  xpText: {
-    color: colors.onSurfaceVariant,
-  },
-  progress: {
-    marginTop: 0,
-  },
-});
+const createStyles = (colors: ColorTokens) =>
+  StyleSheet.create({
+    card: {
+      flexDirection: "row",
+      alignItems: "center",
+      gap: 16,
+      marginBottom: 32,
+    },
+    badge: {
+      width: 48,
+      height: 48,
+      borderRadius: 24,
+      backgroundColor: colors.secondary,
+      alignItems: "center",
+      justifyContent: "center",
+    },
+    badgeText: {
+      color: colors.onSecondary,
+    },
+    content: {
+      flex: 1,
+    },
+    row: {
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "space-between",
+      marginBottom: 4,
+    },
+    label: {
+      color: colors.onSurfaceVariant,
+    },
+    xpText: {
+      color: colors.onSurfaceVariant,
+    },
+    progress: {
+      marginTop: 0,
+    },
+  });

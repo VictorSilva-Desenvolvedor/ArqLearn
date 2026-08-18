@@ -8,10 +8,14 @@ import { QuizHeader } from "@/components/features/quiz/QuizHeader";
 import { useQuizSession } from "@/components/features/quiz/useQuizSession";
 import { ErrorBanner } from "@/components/ui/ErrorBanner";
 import { LoadingBlueprint } from "@/components/ui/LoadingBlueprint";
-import { colors, type } from "@/theme/tokens";
+import { type } from "@/theme/tokens";
+import { useColors } from "@/theme/useColors";
+import type { ColorTokens } from "@/theme/tokens";
 
 // Espelha apps/web/src/app/(lesson)/trilhas/[trackId]/[lessonId]/sessao/page.tsx.
 export default function LessonSessionScreen() {
+  const colors = useColors();
+  const styles = createStyles(colors);
   const router = useRouter();
   const { trackId, lessonId } = useLocalSearchParams<{ trackId: string; lessonId: string }>();
   const quiz = useQuizSession(trackId, lessonId);
@@ -81,15 +85,16 @@ export default function LessonSessionScreen() {
   );
 }
 
-const styles = StyleSheet.create({
-  screen: {
-    flex: 1,
-    backgroundColor: colors.background,
-  },
-  body: {
-    flex: 1,
-  },
-  bodyContent: {
-    flexGrow: 1,
-  },
-});
+const createStyles = (colors: ColorTokens) =>
+  StyleSheet.create({
+    screen: {
+      flex: 1,
+      backgroundColor: colors.background,
+    },
+    body: {
+      flex: 1,
+    },
+    bodyContent: {
+      flexGrow: 1,
+    },
+  });

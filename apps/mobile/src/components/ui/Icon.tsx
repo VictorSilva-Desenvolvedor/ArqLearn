@@ -1,5 +1,5 @@
 import { MaterialCommunityIcons } from "@expo/vector-icons";
-import { colors } from "@/theme/tokens";
+import { useColors } from "@/theme/useColors";
 
 // Web usa Material Symbols Outlined (webfont). RN usa MaterialCommunityIcons (bundled em
 // @expo/vector-icons) — nomes de glifo são diferentes, então o mapeamento fica centralizado
@@ -151,6 +151,7 @@ interface IconProps {
   color?: string;
 }
 
-export function Icon({ name, size = 24, color = colors.onSurface }: IconProps) {
-  return <MaterialCommunityIcons name={glyphs[name]} size={size} color={color} />;
+export function Icon({ name, size = 24, color }: IconProps) {
+  const colors = useColors();
+  return <MaterialCommunityIcons name={glyphs[name]} size={size} color={color ?? colors.onSurface} />;
 }

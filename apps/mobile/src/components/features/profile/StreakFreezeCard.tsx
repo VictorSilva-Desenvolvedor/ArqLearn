@@ -7,7 +7,9 @@ import { Icon } from "@/components/ui/Icon";
 import { useAuth } from "@/hooks/useAuth";
 import { freezeStreak } from "@/lib/api/resources/gamification";
 import { ApiError } from "@/lib/api/http";
-import { colors, type } from "@/theme/tokens";
+import { type } from "@/theme/tokens";
+import { useColors } from "@/theme/useColors";
+import type { ColorTokens } from "@/theme/tokens";
 
 // Espelha apps/web/src/components/features/profile/StreakFreezeCard.tsx — lá só o botão "Usar"
 // reage ao clique, o corpo do card (ícone+texto) é mudo. Aqui o corpo também reage: usa o
@@ -15,6 +17,8 @@ import { colors, type } from "@/theme/tokens";
 // pontos do app) pra comprar um quando não houver.
 export function StreakFreezeCard() {
   const router = useRouter();
+  const colors = useColors();
+  const styles = createStyles(colors);
   const { streakFreezesAvailable, adjustStreakFreezes, updateGamification } = useAuth();
   const [pending, setPending] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
@@ -71,30 +75,31 @@ export function StreakFreezeCard() {
   );
 }
 
-const styles = StyleSheet.create({
-  card: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 12,
-  },
-  body: {
-    flex: 1,
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 12,
-  },
-  textBlock: {
-    flex: 1,
-  },
-  title: {
-    color: colors.onSurface,
-    fontWeight: "700",
-  },
-  caption: {
-    color: colors.onSurfaceVariant,
-  },
-  message: {
-    color: colors.tertiary,
-    marginTop: 4,
-  },
-});
+const createStyles = (colors: ColorTokens) =>
+  StyleSheet.create({
+    card: {
+      flexDirection: "row",
+      alignItems: "center",
+      gap: 12,
+    },
+    body: {
+      flex: 1,
+      flexDirection: "row",
+      alignItems: "center",
+      gap: 12,
+    },
+    textBlock: {
+      flex: 1,
+    },
+    title: {
+      color: colors.onSurface,
+      fontWeight: "700",
+    },
+    caption: {
+      color: colors.onSurfaceVariant,
+    },
+    message: {
+      color: colors.tertiary,
+      marginTop: 4,
+    },
+  });

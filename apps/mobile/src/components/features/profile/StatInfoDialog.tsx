@@ -3,7 +3,9 @@ import { StyleSheet, Text, View } from "react-native";
 import { Button } from "@/components/ui/Button";
 import { Icon, type IconName } from "@/components/ui/Icon";
 import { Modal } from "@/components/ui/Modal";
-import { colors, spacing, type } from "@/theme/tokens";
+import { spacing, type } from "@/theme/tokens";
+import { useColors } from "@/theme/useColors";
+import type { ColorTokens } from "@/theme/tokens";
 
 type StatInfoTone = "primary" | "secondary" | "tertiary";
 
@@ -17,16 +19,19 @@ interface StatInfoDialogProps {
   footer?: ReactNode;
 }
 
-const toneColors: Record<StatInfoTone, { bg: string; fg: string }> = {
+const createToneColors = (colors: ColorTokens): Record<StatInfoTone, { bg: string; fg: string }> => ({
   primary: { bg: colors.primaryContainer, fg: colors.onPrimaryContainer },
   secondary: { bg: colors.secondaryContainer, fg: colors.onSecondaryContainer },
   tertiary: { bg: colors.tertiaryContainer, fg: colors.onTertiaryContainer },
-};
+});
 
 // Modal genérico pros StatCard de Perfil (XP Total, Trilhas Concluídas, Lições, Precisão) que
 // antes só mostravam um toast — mesma casca visual do StreakDialog/NoHeartsDialog (ícone
 // circular + título + descrição + botão "Entendi"), parametrizado pelo conteúdo de cada stat.
 export function StatInfoDialog({ open, onOpenChange, icon, tone = "primary", title, description, footer }: StatInfoDialogProps) {
+  const colors = useColors();
+  const styles = createStyles(colors);
+  const toneColors = createToneColors(colors);
   const { bg, fg } = toneColors[tone];
 
   return (
@@ -48,29 +53,30 @@ export function StatInfoDialog({ open, onOpenChange, icon, tone = "primary", tit
   );
 }
 
-const styles = StyleSheet.create({
-  content: {
-    alignItems: "center",
-    gap: spacing.md,
-  },
-  iconBadge: {
-    width: 80,
-    height: 80,
-    borderRadius: 40,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  textBlock: {
-    alignItems: "center",
-  },
-  title: {
-    color: colors.onSurface,
-    fontWeight: "700",
-    textAlign: "center",
-  },
-  description: {
-    color: colors.onSurfaceVariant,
-    textAlign: "center",
-    marginTop: 8,
-  },
-});
+const createStyles = (colors: ColorTokens) =>
+  StyleSheet.create({
+    content: {
+      alignItems: "center",
+      gap: spacing.md,
+    },
+    iconBadge: {
+      width: 80,
+      height: 80,
+      borderRadius: 40,
+      alignItems: "center",
+      justifyContent: "center",
+    },
+    textBlock: {
+      alignItems: "center",
+    },
+    title: {
+      color: colors.onSurface,
+      fontWeight: "700",
+      textAlign: "center",
+    },
+    description: {
+      color: colors.onSurfaceVariant,
+      textAlign: "center",
+      marginTop: 8,
+    },
+  });

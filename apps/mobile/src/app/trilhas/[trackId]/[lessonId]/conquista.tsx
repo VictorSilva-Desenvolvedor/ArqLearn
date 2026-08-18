@@ -8,12 +8,16 @@ import { useAuth } from "@/hooks/useAuth";
 import { isResourceReal } from "@/lib/api/config";
 import { getGamificationProfile } from "@/lib/api/resources/gamification";
 import { achievementCatalog } from "@/lib/gamification/achievementCatalog";
-import { colors, radius, spacing, type as typeTokens } from "@/theme/tokens";
+import { radius, spacing, type as typeTokens } from "@/theme/tokens";
+import { useColors } from "@/theme/useColors";
+import type { ColorTokens } from "@/theme/tokens";
 import type { AchievementType } from "@/types/api";
 
 // Tela própria de transição (spec §C: "If an achievement was unlocked, transition to Achievement
 // screen"). Espelha apps/web/src/app/(lesson)/trilhas/[trackId]/[lessonId]/conquista/page.tsx.
 export default function AchievementScreen() {
+  const colors = useColors();
+  const styles = createStyles(colors);
   const router = useRouter();
   const { type: achievementType } = useLocalSearchParams<{ type: AchievementType }>();
   const { gamification, updateGamification } = useAuth();
@@ -77,62 +81,63 @@ export default function AchievementScreen() {
   );
 }
 
-const styles = StyleSheet.create({
-  screen: {
-    flex: 1,
-    alignItems: "center",
-    justifyContent: "center",
-    paddingHorizontal: spacing.md,
-    paddingVertical: spacing.lg,
-    backgroundColor: colors.background,
-  },
-  content: {
-    width: "100%",
-    maxWidth: 448,
-    alignItems: "center",
-    gap: spacing.lg,
-  },
-  badge: {
-    width: 112,
-    height: 112,
-    borderRadius: radius.xl,
-    backgroundColor: colors.secondary,
-    alignItems: "center",
-    justifyContent: "center",
-    transform: [{ rotate: "45deg" }],
-  },
-  badgeIconCounterRotate: {
-    transform: [{ rotate: "-45deg" }],
-  },
-  textBlock: {
-    alignItems: "center",
-  },
-  eyebrow: {
-    color: colors.secondary,
-    textTransform: "uppercase",
-    marginBottom: 4,
-  },
-  title: {
-    color: colors.onSurface,
-    fontWeight: "700",
-    textAlign: "center",
-  },
-  description: {
-    color: colors.onSurfaceVariant,
-    marginTop: 8,
-    textAlign: "center",
-  },
-  rewards: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: spacing.lg,
-  },
-  rewardChip: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 4,
-  },
-  rewardText: {
-    color: colors.secondary,
-  },
-});
+const createStyles = (colors: ColorTokens) =>
+  StyleSheet.create({
+    screen: {
+      flex: 1,
+      alignItems: "center",
+      justifyContent: "center",
+      paddingHorizontal: spacing.md,
+      paddingVertical: spacing.lg,
+      backgroundColor: colors.background,
+    },
+    content: {
+      width: "100%",
+      maxWidth: 448,
+      alignItems: "center",
+      gap: spacing.lg,
+    },
+    badge: {
+      width: 112,
+      height: 112,
+      borderRadius: radius.xl,
+      backgroundColor: colors.secondary,
+      alignItems: "center",
+      justifyContent: "center",
+      transform: [{ rotate: "45deg" }],
+    },
+    badgeIconCounterRotate: {
+      transform: [{ rotate: "-45deg" }],
+    },
+    textBlock: {
+      alignItems: "center",
+    },
+    eyebrow: {
+      color: colors.secondary,
+      textTransform: "uppercase",
+      marginBottom: 4,
+    },
+    title: {
+      color: colors.onSurface,
+      fontWeight: "700",
+      textAlign: "center",
+    },
+    description: {
+      color: colors.onSurfaceVariant,
+      marginTop: 8,
+      textAlign: "center",
+    },
+    rewards: {
+      flexDirection: "row",
+      alignItems: "center",
+      gap: spacing.lg,
+    },
+    rewardChip: {
+      flexDirection: "row",
+      alignItems: "center",
+      gap: 4,
+    },
+    rewardText: {
+      color: colors.secondary,
+    },
+  });

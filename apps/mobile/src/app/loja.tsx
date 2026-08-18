@@ -12,12 +12,16 @@ import { useToast } from "@/hooks/useToast";
 import { ApiError } from "@/lib/api/http";
 import { purchaseShopItem } from "@/lib/api/resources/gamification";
 import { mockShopCatalog } from "@/lib/api/mocks/fixtures/shopCatalog";
-import { colors, spacing, type } from "@/theme/tokens";
+import { spacing, type } from "@/theme/tokens";
+import { useColors } from "@/theme/useColors";
+import type { ColorTokens } from "@/theme/tokens";
 
 const HEARTS_MAX = 5;
 
 // Espelha apps/web/src/app/(shell)/loja/page.tsx.
 export default function LojaScreen() {
+  const colors = useColors();
+  const styles = createStyles(colors);
   const router = useRouter();
   const { gamification, updateGamification, adjustStreakFreezes } = useAuth();
   const { showToast } = useToast();
@@ -95,58 +99,59 @@ export default function LojaScreen() {
   );
 }
 
-const styles = StyleSheet.create({
-  screen: {
-    flex: 1,
-    backgroundColor: colors.background,
-  },
-  content: {
-    padding: spacing.md,
-    paddingBottom: spacing.lg,
-    gap: spacing.lg,
-  },
-  header: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: spacing.xs,
-  },
-  headerTitle: {
-    flex: 1,
-    color: colors.onSurface,
-    fontWeight: "700",
-  },
-  gemsRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 4,
-  },
-  gemsValue: {
-    color: colors.primary,
-  },
-  error: {
-    color: colors.error,
-    backgroundColor: colors.errorContainer,
-    borderRadius: 12,
-    paddingHorizontal: spacing.md,
-    paddingVertical: spacing.sm,
-  },
-  list: {
-    gap: spacing.sm,
-  },
-  section: {
-    gap: spacing.sm,
-  },
-  sectionTitle: {
-    color: colors.onSurface,
-  },
-  cosmeticGrid: {
-    flexDirection: "row",
-    flexWrap: "wrap",
-    marginHorizontal: -spacing.xs / 2,
-  },
-  cosmeticCell: {
-    width: "50%",
-    paddingHorizontal: spacing.xs / 2,
-    marginBottom: spacing.xs,
-  },
-});
+const createStyles = (colors: ColorTokens) =>
+  StyleSheet.create({
+    screen: {
+      flex: 1,
+      backgroundColor: colors.background,
+    },
+    content: {
+      padding: spacing.md,
+      paddingBottom: spacing.lg,
+      gap: spacing.lg,
+    },
+    header: {
+      flexDirection: "row",
+      alignItems: "center",
+      gap: spacing.xs,
+    },
+    headerTitle: {
+      flex: 1,
+      color: colors.onSurface,
+      fontWeight: "700",
+    },
+    gemsRow: {
+      flexDirection: "row",
+      alignItems: "center",
+      gap: 4,
+    },
+    gemsValue: {
+      color: colors.primary,
+    },
+    error: {
+      color: colors.error,
+      backgroundColor: colors.errorContainer,
+      borderRadius: 12,
+      paddingHorizontal: spacing.md,
+      paddingVertical: spacing.sm,
+    },
+    list: {
+      gap: spacing.sm,
+    },
+    section: {
+      gap: spacing.sm,
+    },
+    sectionTitle: {
+      color: colors.onSurface,
+    },
+    cosmeticGrid: {
+      flexDirection: "row",
+      flexWrap: "wrap",
+      marginHorizontal: -spacing.xs / 2,
+    },
+    cosmeticCell: {
+      width: "50%",
+      paddingHorizontal: spacing.xs / 2,
+      marginBottom: spacing.xs,
+    },
+  });
