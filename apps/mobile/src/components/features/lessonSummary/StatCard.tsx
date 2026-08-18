@@ -1,7 +1,9 @@
 import type { ReactNode } from "react";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 import { Card } from "@/components/ui/Card";
-import { colors, type } from "@/theme/tokens";
+import { type } from "@/theme/tokens";
+import { useColors } from "@/theme/useColors";
+import type { ColorTokens } from "@/theme/tokens";
 
 interface StatCardProps {
   icon: ReactNode;
@@ -14,6 +16,8 @@ interface StatCardProps {
 // onClick; onPress é opcional aqui pra deixar quem usa (ProfileStatsGrid, ProgressSummaryCard)
 // decidir dar alguma reação ao toque em vez de ficar mudo.
 export function StatCard({ icon, label, value, onPress }: StatCardProps) {
+  const colors = useColors();
+  const styles = createStyles(colors);
   const content = (
     <Card padding="md" radius="lg" style={styles.card}>
       {icon}
@@ -36,23 +40,24 @@ export function StatCard({ icon, label, value, onPress }: StatCardProps) {
   );
 }
 
-const styles = StyleSheet.create({
-  // RN não estica flex por padrão (flexGrow: 0) como o CSS do web faz — sem isso o Pressable
-  // encolhe pro tamanho do conteúdo em vez de dividir a row igualmente, quebrando o grid quando
-  // os dois cards da linha têm larguras de texto diferentes (ex.: "570" vs "1 dias").
-  pressable: {
-    flex: 1,
-  },
-  card: {
-    flex: 1,
-    alignItems: "center",
-    gap: 4,
-  },
-  value: {
-    color: colors.onSurface,
-  },
-  label: {
-    color: colors.onSurfaceVariant,
-    textAlign: "center",
-  },
-});
+const createStyles = (colors: ColorTokens) =>
+  StyleSheet.create({
+    // RN não estica flex por padrão (flexGrow: 0) como o CSS do web faz — sem isso o Pressable
+    // encolhe pro tamanho do conteúdo em vez de dividir a row igualmente, quebrando o grid quando
+    // os dois cards da linha têm larguras de texto diferentes (ex.: "570" vs "1 dias").
+    pressable: {
+      flex: 1,
+    },
+    card: {
+      flex: 1,
+      alignItems: "center",
+      gap: 4,
+    },
+    value: {
+      color: colors.onSurface,
+    },
+    label: {
+      color: colors.onSurfaceVariant,
+      textAlign: "center",
+    },
+  });

@@ -2,7 +2,9 @@ import { Pressable, StyleSheet, Text, View } from "react-native";
 import { Badge } from "@/components/ui/Badge";
 import { Card } from "@/components/ui/Card";
 import { Icon } from "@/components/ui/Icon";
-import { colors, type } from "@/theme/tokens";
+import { type } from "@/theme/tokens";
+import { useColors } from "@/theme/useColors";
+import type { ColorTokens } from "@/theme/tokens";
 import type { ShopItem } from "@/types/api";
 
 interface ShopCosmeticItemProps {
@@ -14,6 +16,8 @@ interface ShopCosmeticItemProps {
 
 // Espelha apps/web/src/components/features/shop/ShopCosmeticItem.tsx.
 export function ShopCosmeticItem({ item, disabled, pending, onPurchase }: ShopCosmeticItemProps) {
+  const colors = useColors();
+  const styles = createStyles(colors);
   return (
     <Card padding="md" radius="lg" style={[styles.card, item.locked && styles.cardLocked]}>
       {item.is_new && (
@@ -54,42 +58,43 @@ export function ShopCosmeticItem({ item, disabled, pending, onPurchase }: ShopCo
   );
 }
 
-const styles = StyleSheet.create({
-  card: {
-    alignItems: "center",
-    gap: 4,
-    position: "relative",
-  },
-  cardLocked: {
-    opacity: 0.6,
-  },
-  badgeWrap: {
-    position: "absolute",
-    top: 8,
-    right: 8,
-  },
-  name: {
-    color: colors.onSurface,
-    fontWeight: "700",
-    textAlign: "center",
-  },
-  lockedLabel: {
-    color: colors.outline,
-  },
-  purchaseButton: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 4,
-  },
-  priceText: {
-    color: colors.primary,
-    fontWeight: "700",
-  },
-  priceTextDisabled: {
-    color: colors.onSurfaceVariant,
-  },
-  insufficientLabel: {
-    color: colors.error,
-    textAlign: "center",
-  },
-});
+const createStyles = (colors: ColorTokens) =>
+  StyleSheet.create({
+    card: {
+      alignItems: "center",
+      gap: 4,
+      position: "relative",
+    },
+    cardLocked: {
+      opacity: 0.6,
+    },
+    badgeWrap: {
+      position: "absolute",
+      top: 8,
+      right: 8,
+    },
+    name: {
+      color: colors.onSurface,
+      fontWeight: "700",
+      textAlign: "center",
+    },
+    lockedLabel: {
+      color: colors.outline,
+    },
+    purchaseButton: {
+      flexDirection: "row",
+      alignItems: "center",
+      gap: 4,
+    },
+    priceText: {
+      color: colors.primary,
+      fontWeight: "700",
+    },
+    priceTextDisabled: {
+      color: colors.onSurfaceVariant,
+    },
+    insufficientLabel: {
+      color: colors.error,
+      textAlign: "center",
+    },
+  });

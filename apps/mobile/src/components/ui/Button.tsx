@@ -1,6 +1,8 @@
 import type { ReactNode } from "react";
 import { Pressable, StyleSheet, Text, View } from "react-native";
-import { colors, type } from "@/theme/tokens";
+import { type } from "@/theme/tokens";
+import { useColors } from "@/theme/useColors";
+import type { ColorTokens } from "@/theme/tokens";
 
 type ButtonVariant = "primary" | "gamification" | "ghost" | "danger";
 type ButtonSize = "sm" | "md" | "lg";
@@ -32,6 +34,7 @@ export function Button({
   onPress,
   children,
 }: ButtonProps) {
+  const colors = useColors();
   const sizeStyle = sizeStyles[size];
   return (
     // Sem `disabled` no Pressable de propósito: um Pressable desabilitado dentro de uma
@@ -53,7 +56,7 @@ export function Button({
         <View
           style={[
             styles.base,
-            variantStyle(variant),
+            variantStyle(variant, colors),
             { paddingVertical: sizeStyle.paddingVertical, paddingHorizontal: sizeStyle.paddingHorizontal },
             fullWidth && styles.fullWidth,
             pressed && !disabled && styles.pressed,
@@ -61,14 +64,14 @@ export function Button({
           ]}
         >
           {icon}
-          <Text style={[type[sizeStyle.text], styles.label, { color: variantTextColor(variant) }]}>{children}</Text>
+          <Text style={[type[sizeStyle.text], styles.label, { color: variantTextColor(variant, colors) }]}>{children}</Text>
         </View>
       )}
     </Pressable>
   );
 }
 
-function variantStyle(variant: ButtonVariant) {
+function variantStyle(variant: ButtonVariant, colors: ColorTokens) {
   switch (variant) {
     case "primary":
       return { backgroundColor: colors.primary, borderWidth: 2, borderColor: colors.primary };
@@ -85,7 +88,7 @@ function variantStyle(variant: ButtonVariant) {
   }
 }
 
-function variantTextColor(variant: ButtonVariant) {
+function variantTextColor(variant: ButtonVariant, colors: ColorTokens) {
   switch (variant) {
     case "primary":
       return colors.onPrimary;

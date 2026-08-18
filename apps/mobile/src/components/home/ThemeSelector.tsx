@@ -4,7 +4,9 @@ import { Icon } from "@/components/ui/Icon";
 import { Modal } from "@/components/ui/Modal";
 import { useTheme } from "@/hooks/useTheme";
 import { themeCatalog, type ThemeDefinition } from "@/lib/api/mocks/fixtures/themes";
-import { colors, spacing, type } from "@/theme/tokens";
+import { spacing, type } from "@/theme/tokens";
+import { useColors } from "@/theme/useColors";
+import type { ColorTokens } from "@/theme/tokens";
 
 const featured = themeCatalog.filter((t) => t.semester === undefined);
 const bySemester = Array.from({ length: 10 }, (_, i) => i + 1)
@@ -25,6 +27,8 @@ const sections = [
 // ThemeContext (AsyncStorage); temas sem conteúdo (`!hasContent`) ficam desabilitados com o
 // rótulo "Em construção", mesmo comportamento do web.
 export function ThemeSelector() {
+  const colors = useColors();
+  const styles = createStyles(colors);
   const { theme, setTopic } = useTheme();
   const [open, setOpen] = useState(false);
 
@@ -67,6 +71,8 @@ export function ThemeSelector() {
 }
 
 function ThemeGroupLabel({ label }: { label: string }) {
+  const colors = useColors();
+  const styles = createStyles(colors);
   return <Text style={[type.labelCaps, styles.groupLabel]}>{label}</Text>;
 }
 
@@ -79,6 +85,8 @@ function ThemeRow({
   active: boolean;
   onSelect: (topic: string) => void;
 }) {
+  const colors = useColors();
+  const styles = createStyles(colors);
   // Sem `disabled` no Pressable de propósito: um Pressable desabilitado dentro de uma ScrollView
   // é uma armadilha conhecida do Android — o toque de arrastar pra rolar a lista fica "preso" no
   // row desabilitado em vez de ser repassado pro ScrollView (reproduzido ao vivo num device real,
@@ -100,63 +108,64 @@ function ThemeRow({
   );
 }
 
-const styles = StyleSheet.create({
-  trigger: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 6,
-    maxWidth: 220,
-    backgroundColor: colors.surfaceBright,
-    borderWidth: 1.5,
-    borderColor: colors.primary,
-    borderRadius: 9999,
-    paddingHorizontal: 14,
-    paddingVertical: 7,
-  },
-  triggerPressed: {
-    backgroundColor: colors.primaryFixed,
-  },
-  triggerLabel: {
-    color: colors.primary,
-    fontWeight: "700",
-    flexShrink: 1,
-  },
-  modalTitle: {
-    color: colors.onSurface,
-    fontWeight: "700",
-    marginBottom: spacing.sm,
-  },
-  list: {
-    maxHeight: 420,
-  },
-  groupLabel: {
-    color: colors.onSurfaceVariant,
-    marginTop: spacing.sm,
-    marginBottom: 4,
-  },
-  row: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: spacing.sm,
-    paddingVertical: 10,
-    paddingHorizontal: 8,
-    borderRadius: 10,
-  },
-  rowActive: {
-    backgroundColor: colors.primaryFixed,
-  },
-  rowDisabled: {
-    opacity: 0.5,
-  },
-  rowLabel: {
-    flex: 1,
-    color: colors.onSurface,
-  },
-  rowLabelActive: {
-    color: colors.primary,
-    fontWeight: "700",
-  },
-  comingSoon: {
-    color: colors.error,
-  },
-});
+const createStyles = (colors: ColorTokens) =>
+  StyleSheet.create({
+    trigger: {
+      flexDirection: "row",
+      alignItems: "center",
+      gap: 6,
+      maxWidth: 220,
+      backgroundColor: colors.surfaceBright,
+      borderWidth: 1.5,
+      borderColor: colors.primary,
+      borderRadius: 9999,
+      paddingHorizontal: 14,
+      paddingVertical: 7,
+    },
+    triggerPressed: {
+      backgroundColor: colors.primaryFixed,
+    },
+    triggerLabel: {
+      color: colors.primary,
+      fontWeight: "700",
+      flexShrink: 1,
+    },
+    modalTitle: {
+      color: colors.onSurface,
+      fontWeight: "700",
+      marginBottom: spacing.sm,
+    },
+    list: {
+      maxHeight: 420,
+    },
+    groupLabel: {
+      color: colors.onSurfaceVariant,
+      marginTop: spacing.sm,
+      marginBottom: 4,
+    },
+    row: {
+      flexDirection: "row",
+      alignItems: "center",
+      gap: spacing.sm,
+      paddingVertical: 10,
+      paddingHorizontal: 8,
+      borderRadius: 10,
+    },
+    rowActive: {
+      backgroundColor: colors.primaryFixed,
+    },
+    rowDisabled: {
+      opacity: 0.5,
+    },
+    rowLabel: {
+      flex: 1,
+      color: colors.onSurface,
+    },
+    rowLabelActive: {
+      color: colors.primary,
+      fontWeight: "700",
+    },
+    comingSoon: {
+      color: colors.error,
+    },
+  });

@@ -2,7 +2,9 @@ import { StyleSheet, Text, View } from "react-native";
 import { Badge, type BadgeTone } from "@/components/ui/Badge";
 import { Card } from "@/components/ui/Card";
 import type { IconName } from "@/components/ui/Icon";
-import { colors, spacing, type } from "@/theme/tokens";
+import { spacing, type } from "@/theme/tokens";
+import { useColors } from "@/theme/useColors";
+import type { ColorTokens } from "@/theme/tokens";
 import { CurrentLessonNode } from "./CurrentLessonNode";
 import { LessonNode, type LessonNodeVariant } from "./LessonNode";
 import { PathConnector } from "./PathConnector";
@@ -37,6 +39,8 @@ const statusBadge: Record<UnitStatus, { label: string; tone: BadgeTone }> = {
 };
 
 export function UnitSection({ title, subtitle, status, nodes }: UnitSectionProps) {
+  const colors = useColors();
+  const styles = createStyles(colors);
   const badge = statusBadge[status];
 
   return (
@@ -91,39 +95,40 @@ export function UnitSection({ title, subtitle, status, nodes }: UnitSectionProps
   );
 }
 
-const styles = StyleSheet.create({
-  wrap: {
-    width: "100%",
-    marginBottom: 48,
-  },
-  dimmed: {
-    opacity: 0.6,
-  },
-  header: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-    marginBottom: 12,
-    paddingHorizontal: 16,
-  },
-  summaryCard: {
-    marginBottom: 8,
-  },
-  summaryCardCurrent: {
-    borderColor: colors.primary,
-  },
-  summaryCardCompleted: {
-    borderColor: colors.primary,
-    backgroundColor: colors.surfaceGray,
-  },
-  path: {
-    position: "relative",
-    alignItems: "center",
-    gap: 32,
-    paddingVertical: 24,
-  },
-  nodeSlot: {
-    position: "relative",
-    zIndex: 10,
-  },
-});
+const createStyles = (colors: ColorTokens) =>
+  StyleSheet.create({
+    wrap: {
+      width: "100%",
+      marginBottom: 48,
+    },
+    dimmed: {
+      opacity: 0.6,
+    },
+    header: {
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "space-between",
+      marginBottom: 12,
+      paddingHorizontal: 16,
+    },
+    summaryCard: {
+      marginBottom: 8,
+    },
+    summaryCardCurrent: {
+      borderColor: colors.primary,
+    },
+    summaryCardCompleted: {
+      borderColor: colors.primary,
+      backgroundColor: colors.surfaceGray,
+    },
+    path: {
+      position: "relative",
+      alignItems: "center",
+      gap: 32,
+      paddingVertical: 24,
+    },
+    nodeSlot: {
+      position: "relative",
+      zIndex: 10,
+    },
+  });

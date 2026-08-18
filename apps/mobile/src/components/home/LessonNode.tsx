@@ -2,7 +2,8 @@ import { useRouter } from "expo-router";
 import { Pressable, StyleSheet, View } from "react-native";
 import { Icon, type IconName } from "@/components/ui/Icon";
 import { useToast } from "@/hooks/useToast";
-import { colors } from "@/theme/tokens";
+import { useColors } from "@/theme/useColors";
+import type { ColorTokens } from "@/theme/tokens";
 
 // "available" = tem pergunta aprovada de verdade, mas o usuário ainda não começou — navegável,
 // fora de ordem (sem bloqueio por sequência fake). "construction" = sem nenhuma pergunta aprovada
@@ -19,6 +20,8 @@ interface LessonNodeProps {
 export function LessonNode({ variant, icon, href }: LessonNodeProps) {
   const router = useRouter();
   const { showToast } = useToast();
+  const colors = useColors();
+  const styles = createStyles(colors);
 
   if (variant === "checkpoint") {
     return (
@@ -75,50 +78,51 @@ export function LessonNode({ variant, icon, href }: LessonNodeProps) {
   );
 }
 
-const styles = StyleSheet.create({
-  checkpointOuter: {
-    width: 80,
-    height: 80,
-    borderRadius: 16,
-    backgroundColor: colors.primary,
-    borderWidth: 2,
-    borderColor: colors.primary,
-    alignItems: "center",
-    justifyContent: "center",
-    transform: [{ rotate: "45deg" }],
-  },
-  checkpointIcon: {
-    transform: [{ rotate: "-45deg" }],
-  },
-  completed: {
-    width: 64,
-    height: 64,
-    borderRadius: 32,
-    backgroundColor: colors.primary,
-    borderWidth: 2,
-    borderColor: colors.primary,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  available: {
-    width: 64,
-    height: 64,
-    borderRadius: 32,
-    backgroundColor: colors.surfaceBright,
-    borderWidth: 2,
-    borderColor: colors.primary,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  construction: {
-    width: 64,
-    height: 64,
-    borderRadius: 32,
-    backgroundColor: colors.surfaceGray,
-    borderWidth: 2,
-    borderColor: colors.outlineVariant,
-    borderStyle: "dashed",
-    alignItems: "center",
-    justifyContent: "center",
-  },
-});
+const createStyles = (colors: ColorTokens) =>
+  StyleSheet.create({
+    checkpointOuter: {
+      width: 80,
+      height: 80,
+      borderRadius: 16,
+      backgroundColor: colors.primary,
+      borderWidth: 2,
+      borderColor: colors.primary,
+      alignItems: "center",
+      justifyContent: "center",
+      transform: [{ rotate: "45deg" }],
+    },
+    checkpointIcon: {
+      transform: [{ rotate: "-45deg" }],
+    },
+    completed: {
+      width: 64,
+      height: 64,
+      borderRadius: 32,
+      backgroundColor: colors.primary,
+      borderWidth: 2,
+      borderColor: colors.primary,
+      alignItems: "center",
+      justifyContent: "center",
+    },
+    available: {
+      width: 64,
+      height: 64,
+      borderRadius: 32,
+      backgroundColor: colors.surfaceBright,
+      borderWidth: 2,
+      borderColor: colors.primary,
+      alignItems: "center",
+      justifyContent: "center",
+    },
+    construction: {
+      width: 64,
+      height: 64,
+      borderRadius: 32,
+      backgroundColor: colors.surfaceGray,
+      borderWidth: 2,
+      borderColor: colors.outlineVariant,
+      borderStyle: "dashed",
+      alignItems: "center",
+      justifyContent: "center",
+    },
+  });

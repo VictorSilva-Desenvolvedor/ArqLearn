@@ -3,7 +3,9 @@ import { StyleSheet, Text, View } from "react-native";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
 import { Icon } from "@/components/ui/Icon";
-import { colors, spacing, type } from "@/theme/tokens";
+import { spacing, type } from "@/theme/tokens";
+import { useColors } from "@/theme/useColors";
+import type { ColorTokens } from "@/theme/tokens";
 
 // Antes, o final da Home mostrava até 2 outras trilhas (outras matérias) empilhadas depois da
 // trilha em destaque — não fazia mais sentido com a tela de Explorar já madura (busca, seletor de
@@ -11,6 +13,8 @@ import { colors, spacing, type } from "@/theme/tokens";
 // direto pra tela certa de trocar de assunto, em vez de um preview truncado de outras matérias.
 export function ExploreMoreCard() {
   const router = useRouter();
+  const colors = useColors();
+  const styles = createStyles(colors);
 
   return (
     <Card padding="lg" radius="lg" style={styles.card}>
@@ -28,23 +32,24 @@ export function ExploreMoreCard() {
   );
 }
 
-const styles = StyleSheet.create({
-  card: {
-    alignItems: "center",
-    gap: spacing.sm,
-    marginTop: spacing.lg,
-  },
-  textBlock: {
-    alignItems: "center",
-  },
-  title: {
-    color: colors.onSurface,
-    fontWeight: "700",
-    textAlign: "center",
-  },
-  caption: {
-    color: colors.onSurfaceVariant,
-    textAlign: "center",
-    marginTop: 4,
-  },
-});
+const createStyles = (colors: ColorTokens) =>
+  StyleSheet.create({
+    card: {
+      alignItems: "center",
+      gap: spacing.sm,
+      marginTop: spacing.lg,
+    },
+    textBlock: {
+      alignItems: "center",
+    },
+    title: {
+      color: colors.onSurface,
+      fontWeight: "700",
+      textAlign: "center",
+    },
+    caption: {
+      color: colors.onSurfaceVariant,
+      textAlign: "center",
+      marginTop: 4,
+    },
+  });

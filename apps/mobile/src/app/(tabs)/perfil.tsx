@@ -11,7 +11,7 @@ import { TopAppBar } from "@/components/home/TopAppBar";
 import { useAuth } from "@/hooks/useAuth";
 import { getGamificationProfile } from "@/lib/api/resources/gamification";
 import { getProgressSummary } from "@/lib/api/resources/progress";
-import { colors, spacing } from "@/theme/tokens";
+import { spacing } from "@/theme/tokens";
 import type { Achievement, ProgressSummary } from "@/types/api";
 
 // Espelha apps/web/src/app/(shell)/perfil/page.tsx — sem o ramo de professor/admin do web

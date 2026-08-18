@@ -1,7 +1,9 @@
 import { StyleSheet, Text, View } from "react-native";
 import { Card } from "@/components/ui/Card";
 import { Icon, type IconName } from "@/components/ui/Icon";
-import { colors, spacing, type } from "@/theme/tokens";
+import { spacing, type } from "@/theme/tokens";
+import { useColors } from "@/theme/useColors";
+import type { ColorTokens } from "@/theme/tokens";
 
 interface FaqEntry {
   icon: IconName;
@@ -51,6 +53,8 @@ const faqEntries: FaqEntry[] = [
 ];
 
 export function HelpFaqSection() {
+  const colors = useColors();
+  const styles = createStyles(colors);
   return (
     <View style={styles.section}>
       <Text style={[type.headlineMd, styles.title]}>Como o ArqLearn funciona</Text>
@@ -69,30 +73,31 @@ export function HelpFaqSection() {
   );
 }
 
-const styles = StyleSheet.create({
-  section: {
-    gap: spacing.sm,
-  },
-  title: {
-    color: colors.onSurface,
-  },
-  list: {
-    gap: spacing.sm,
-  },
-  card: {
-    flexDirection: "row",
-    alignItems: "flex-start",
-    gap: spacing.sm,
-  },
-  textBlock: {
-    flex: 1,
-  },
-  question: {
-    color: colors.onSurface,
-    fontWeight: "700",
-  },
-  answer: {
-    color: colors.onSurfaceVariant,
-    marginTop: 4,
-  },
-});
+const createStyles = (colors: ColorTokens) =>
+  StyleSheet.create({
+    section: {
+      gap: spacing.sm,
+    },
+    title: {
+      color: colors.onSurface,
+    },
+    list: {
+      gap: spacing.sm,
+    },
+    card: {
+      flexDirection: "row",
+      alignItems: "flex-start",
+      gap: spacing.sm,
+    },
+    textBlock: {
+      flex: 1,
+    },
+    question: {
+      color: colors.onSurface,
+      fontWeight: "700",
+    },
+    answer: {
+      color: colors.onSurfaceVariant,
+      marginTop: 4,
+    },
+  });

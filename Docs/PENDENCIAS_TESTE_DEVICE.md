@@ -250,3 +250,30 @@ em retries de `verify()`, renovando só ao avançar de pergunta.
 3. Sem teste ao vivo desta rodada (backend ainda não implantado no Render até este PR ser
    mergeado e a próxima implantação rodar) — mesmo aviso já dado pras mudanças de baú/vidas
    anteriores nesta sessão.
+
+### Lote 9 — tema escuro no mobile (18/08/2026)
+
+A pedido explícito do usuário, revertendo uma decisão anterior desta mesma sessão ("só confirmar,
+não implementar agora" quando o report original foi feito). `app.json` (`userInterfaceStyle`) foi
+de `"light"` fixo pra `"automatic"`; `apps/mobile/src/theme/tokens.ts` ganhou uma paleta escura
+completa (`darkColors`) ao lado da clara (`lightColors`), e as ~88 telas/componentes que liam cor
+foram migrados pra ler via `useColors()` (`apps/mobile/src/theme/useColors.ts`) em vez de um objeto
+estático — ver `apps/mobile/DESIGN.md`, seção "Dark Theme", pro racional completo da derivação da
+paleta. Todo par texto/fundo foi conferido por script de contraste (WCAG AA), mas **nada disso foi
+visto numa tela de verdade** — a sessão que implementou não tinha device conectado.
+
+1. Com o celular de teste em modo claro, o app deve continuar idêntico a antes (nenhuma diferença
+   visual) — é o caso que não deveria ter mudado.
+2. Force o celular pro modo escuro (ajustes do sistema) com o app aberto: toda tela precisa trocar
+   de paleta sem reiniciar o app (RN atualiza `useColorScheme()` ao vivo). Percorrer pelo menos: as
+   5 abas, uma sessão de lição, o Modo Infinito, Loja, Baú, Liga, Perfil e suas subtelas, e os
+   modais (Baú, "Sem vidas", conquista, tiers de liga) — são as áreas com mais tokens de cor únicos.
+3. Conferir especificamente: nenhum texto ilegível (cor de texto igual à do fundo por trás dela),
+   nenhum ícone "sumindo" contra o novo fundo, o fundo animado "Blueprint"
+   (`AnimatedBlueprintBackground.tsx`) mantém contraste da grade/ícones caindo no escuro.
+4. Badges/Toggle/Toast — os únicos componentes com nota própria de cor "hardcoded por decisão" no
+   `DESIGN.md` (ex.: seção Shapes/Toggle) — confirmar que não sobrou nenhum tom claro esquecido
+   ali.
+5. Splash screen (`expo-splash-screen`) não foi tocada nesta rodada — fica fora de escopo,
+   confirmar se ela "pisca" claro antes do app assumir o tema escuro (comportamento esperado do
+   Expo hoje, não é bug desta mudança) ou se incomoda a ponto de valer uma correção futura.

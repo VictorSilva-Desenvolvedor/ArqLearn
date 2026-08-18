@@ -5,7 +5,9 @@ import { Icon } from "@/components/ui/Icon";
 import { ProgressBar } from "@/components/ui/ProgressBar";
 import { levelTitleFor } from "@/lib/gamification/levelTitle";
 import { xpMinimoDoNivel } from "@/lib/gamification/level";
-import { colors, type } from "@/theme/tokens";
+import { type } from "@/theme/tokens";
+import { useColors } from "@/theme/useColors";
+import type { ColorTokens } from "@/theme/tokens";
 
 interface ProfileHeaderProps {
   name: string;
@@ -18,6 +20,8 @@ interface ProfileHeaderProps {
 
 // Espelha apps/web/src/components/features/profile/ProfileHeader.tsx.
 export function ProfileHeader({ name, level, xpTotal, vip = false }: ProfileHeaderProps) {
+  const colors = useColors();
+  const styles = createStyles(colors);
   // xpMinimoDoNivel é a curva REAL (services/monolith/internal/gamification/algorithms.go
   // Nivel) — antes usava lib/api/mocks/fixtures/levelCurve.ts, uma curva de mock diferente
   // (calibrada só pra bater com um xp_total/level específico do fixture), que fazia essa barra
@@ -47,35 +51,36 @@ export function ProfileHeader({ name, level, xpTotal, vip = false }: ProfileHead
   );
 }
 
-const styles = StyleSheet.create({
-  container: {
-    alignItems: "center",
-    gap: 12,
-  },
-  textBlock: {
-    width: "100%",
-    maxWidth: 256,
-    alignItems: "center",
-    gap: 4,
-  },
-  nameRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 6,
-  },
-  name: {
-    color: colors.onSurface,
-    fontWeight: "700",
-  },
-  nameVip: {
-    color: colors.secondary,
-    fontWeight: "700",
-  },
-  subtitle: {
-    color: colors.onSurfaceVariant,
-    marginTop: 2,
-  },
-  progress: {
-    marginTop: 8,
-  },
-});
+const createStyles = (colors: ColorTokens) =>
+  StyleSheet.create({
+    container: {
+      alignItems: "center",
+      gap: 12,
+    },
+    textBlock: {
+      width: "100%",
+      maxWidth: 256,
+      alignItems: "center",
+      gap: 4,
+    },
+    nameRow: {
+      flexDirection: "row",
+      alignItems: "center",
+      gap: 6,
+    },
+    name: {
+      color: colors.onSurface,
+      fontWeight: "700",
+    },
+    nameVip: {
+      color: colors.secondary,
+      fontWeight: "700",
+    },
+    subtitle: {
+      color: colors.onSurfaceVariant,
+      marginTop: 2,
+    },
+    progress: {
+      marginTop: 8,
+    },
+  });

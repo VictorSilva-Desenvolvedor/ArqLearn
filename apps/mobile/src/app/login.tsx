@@ -6,9 +6,13 @@ import { Button } from "@/components/ui/Button";
 import { Icon } from "@/components/ui/Icon";
 import { AuthContext } from "@/contexts/AuthContext";
 import { createSupabaseClient } from "@/lib/supabase/client";
-import { colors, type } from "@/theme/tokens";
+import { type } from "@/theme/tokens";
+import { useColors } from "@/theme/useColors";
+import type { ColorTokens } from "@/theme/tokens";
 
 export default function LoginScreen() {
+  const colors = useColors();
+  const styles = createStyles(colors);
   const auth = useContext(AuthContext);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -115,60 +119,61 @@ export default function LoginScreen() {
   );
 }
 
-const styles = StyleSheet.create({
-  safeArea: {
-    flex: 1,
-    // Transparente de propósito (a pedido do usuário): deixa o fundo animado
-    // (AnimatedBlueprintBackground, montado em app/_layout.tsx) aparecer atrás.
-    backgroundColor: "transparent",
-  },
-  screen: {
-    flex: 1,
-    alignItems: "center",
-    justifyContent: "center",
-    paddingHorizontal: 24,
-    gap: 24,
-  },
-  brand: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 8,
-  },
-  brandText: {
-    color: colors.primary,
-    fontWeight: "700",
-  },
-  form: {
-    width: "100%",
-    maxWidth: 420,
-    gap: 12,
-  },
-  field: {
-    gap: 4,
-  },
-  label: {
-    color: colors.onSurfaceVariant,
-  },
-  input: {
-    borderWidth: 2,
-    borderColor: colors.outlineVariant,
-    backgroundColor: colors.surface,
-    borderRadius: 12,
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-    fontSize: 15,
-    color: colors.onSurface,
-  },
-  error: {
-    color: colors.error,
-  },
-  forgotPassword: {
-    color: colors.primary,
-    textAlign: "center",
-    paddingVertical: 10,
-  },
-  resetMessage: {
-    color: colors.onSurfaceVariant,
-    textAlign: "center",
-  },
-});
+const createStyles = (colors: ColorTokens) =>
+  StyleSheet.create({
+    safeArea: {
+      flex: 1,
+      // Transparente de propósito (a pedido do usuário): deixa o fundo animado
+      // (AnimatedBlueprintBackground, montado em app/_layout.tsx) aparecer atrás.
+      backgroundColor: "transparent",
+    },
+    screen: {
+      flex: 1,
+      alignItems: "center",
+      justifyContent: "center",
+      paddingHorizontal: 24,
+      gap: 24,
+    },
+    brand: {
+      flexDirection: "row",
+      alignItems: "center",
+      gap: 8,
+    },
+    brandText: {
+      color: colors.primary,
+      fontWeight: "700",
+    },
+    form: {
+      width: "100%",
+      maxWidth: 420,
+      gap: 12,
+    },
+    field: {
+      gap: 4,
+    },
+    label: {
+      color: colors.onSurfaceVariant,
+    },
+    input: {
+      borderWidth: 2,
+      borderColor: colors.outlineVariant,
+      backgroundColor: colors.surface,
+      borderRadius: 12,
+      paddingHorizontal: 16,
+      paddingVertical: 12,
+      fontSize: 15,
+      color: colors.onSurface,
+    },
+    error: {
+      color: colors.error,
+    },
+    forgotPassword: {
+      color: colors.primary,
+      textAlign: "center",
+      paddingVertical: 10,
+    },
+    resetMessage: {
+      color: colors.onSurfaceVariant,
+      textAlign: "center",
+    },
+  });

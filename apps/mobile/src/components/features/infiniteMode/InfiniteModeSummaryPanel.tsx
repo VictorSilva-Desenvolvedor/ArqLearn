@@ -5,7 +5,9 @@ import { Button } from "@/components/ui/Button";
 import { Icon } from "@/components/ui/Icon";
 import { StatCard } from "@/components/features/lessonSummary/StatCard";
 import { formatMinutesSeconds } from "@/lib/utils/format";
-import { colors, radius, spacing, type } from "@/theme/tokens";
+import { radius, spacing, type } from "@/theme/tokens";
+import { useColors } from "@/theme/useColors";
+import type { ColorTokens } from "@/theme/tokens";
 
 interface InfiniteModeSummaryPanelProps {
   questionsAnswered: number;
@@ -26,6 +28,8 @@ export function InfiniteModeSummaryPanel({
   chestAvailable = false,
 }: InfiniteModeSummaryPanelProps) {
   const router = useRouter();
+  const colors = useColors();
+  const styles = createStyles(colors);
   const title = accuracy >= 90 ? "Nota Máxima Alcançada!" : "Sessão Concluída!";
 
   return (
@@ -85,72 +89,73 @@ export function InfiniteModeSummaryPanel({
   );
 }
 
-const styles = StyleSheet.create({
-  screen: {
-    flex: 1,
-    alignItems: "center",
-    justifyContent: "center",
-    paddingHorizontal: spacing.md,
-    paddingVertical: spacing.lg,
-    backgroundColor: colors.background,
-  },
-  panel: {
-    width: "100%",
-    maxWidth: 448,
-    backgroundColor: colors.surfaceBright,
-    borderWidth: 2,
-    borderColor: colors.outlineVariant,
-    borderRadius: radius.xl,
-    padding: spacing.lg,
-    gap: spacing.lg,
-    alignItems: "center",
-  },
-  header: {
-    alignItems: "center",
-  },
-  title: {
-    color: colors.primary,
-    fontWeight: "700",
-    textAlign: "center",
-  },
-  subtitle: {
-    color: colors.onSurfaceVariant,
-    marginTop: 4,
-    textAlign: "center",
-  },
-  grid: {
-    width: "100%",
-    flexDirection: "row",
-    gap: spacing.sm,
-  },
-  gridItem: {
-    flex: 1,
-  },
-  analysisBox: {
-    width: "100%",
-    borderWidth: 2,
-    borderColor: colors.outlineVariant,
-    borderRadius: radius.lg,
-    padding: spacing.md,
-    gap: 4,
-  },
-  analysisTitle: {
-    color: colors.onSurface,
-    fontWeight: "700",
-    marginBottom: 4,
-  },
-  analysisRow: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-  },
-  analysisLabel: {
-    color: colors.onSurfaceVariant,
-  },
-  analysisValue: {
-    color: colors.onSurface,
-  },
-  actions: {
-    width: "100%",
-    gap: spacing.sm,
-  },
-});
+const createStyles = (colors: ColorTokens) =>
+  StyleSheet.create({
+    screen: {
+      flex: 1,
+      alignItems: "center",
+      justifyContent: "center",
+      paddingHorizontal: spacing.md,
+      paddingVertical: spacing.lg,
+      backgroundColor: colors.background,
+    },
+    panel: {
+      width: "100%",
+      maxWidth: 448,
+      backgroundColor: colors.surfaceBright,
+      borderWidth: 2,
+      borderColor: colors.outlineVariant,
+      borderRadius: radius.xl,
+      padding: spacing.lg,
+      gap: spacing.lg,
+      alignItems: "center",
+    },
+    header: {
+      alignItems: "center",
+    },
+    title: {
+      color: colors.primary,
+      fontWeight: "700",
+      textAlign: "center",
+    },
+    subtitle: {
+      color: colors.onSurfaceVariant,
+      marginTop: 4,
+      textAlign: "center",
+    },
+    grid: {
+      width: "100%",
+      flexDirection: "row",
+      gap: spacing.sm,
+    },
+    gridItem: {
+      flex: 1,
+    },
+    analysisBox: {
+      width: "100%",
+      borderWidth: 2,
+      borderColor: colors.outlineVariant,
+      borderRadius: radius.lg,
+      padding: spacing.md,
+      gap: 4,
+    },
+    analysisTitle: {
+      color: colors.onSurface,
+      fontWeight: "700",
+      marginBottom: 4,
+    },
+    analysisRow: {
+      flexDirection: "row",
+      justifyContent: "space-between",
+    },
+    analysisLabel: {
+      color: colors.onSurfaceVariant,
+    },
+    analysisValue: {
+      color: colors.onSurface,
+    },
+    actions: {
+      width: "100%",
+      gap: spacing.sm,
+    },
+  });

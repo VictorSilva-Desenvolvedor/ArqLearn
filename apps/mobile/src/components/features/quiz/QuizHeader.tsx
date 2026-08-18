@@ -5,7 +5,9 @@ import { IconButton } from "@/components/ui/IconButton";
 import { ProgressBar } from "@/components/ui/ProgressBar";
 import { StatPill } from "@/components/ui/StatPill";
 import { useLessonDownload } from "@/hooks/useLessonDownload";
-import { colors, spacing } from "@/theme/tokens";
+import { spacing } from "@/theme/tokens";
+import { useColors } from "@/theme/useColors";
+import type { ColorTokens } from "@/theme/tokens";
 import { HeartsRow } from "./HeartsRow";
 
 interface QuizHeaderProps {
@@ -21,6 +23,8 @@ interface QuizHeaderProps {
 // Espelha apps/web/src/components/features/quiz/QuizHeader.tsx.
 export function QuizHeader({ currentIndex, total, hearts, gems, lessonId }: QuizHeaderProps) {
   const router = useRouter();
+  const colors = useColors();
+  const styles = createStyles(colors);
 
   return (
     <View style={styles.header}>
@@ -39,6 +43,7 @@ export function QuizHeader({ currentIndex, total, hearts, gems, lessonId }: Quiz
 
 function LessonDownloadToggle({ lessonId }: { lessonId: string }) {
   const { downloaded, toggle } = useLessonDownload(lessonId);
+  const colors = useColors();
   return (
     <IconButton
       icon={<Icon name={downloaded ? "downloadDone" : "download"} color={downloaded ? colors.secondary : colors.onSurface} />}
@@ -48,18 +53,19 @@ function LessonDownloadToggle({ lessonId }: { lessonId: string }) {
   );
 }
 
-const styles = StyleSheet.create({
-  header: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: spacing.md,
-    paddingHorizontal: spacing.md,
-    paddingVertical: spacing.sm,
-    borderBottomWidth: 2,
-    borderBottomColor: colors.outlineVariant,
-    backgroundColor: colors.surfaceBright,
-  },
-  progress: {
-    flex: 1,
-  },
-});
+const createStyles = (colors: ColorTokens) =>
+  StyleSheet.create({
+    header: {
+      flexDirection: "row",
+      alignItems: "center",
+      gap: spacing.md,
+      paddingHorizontal: spacing.md,
+      paddingVertical: spacing.sm,
+      borderBottomWidth: 2,
+      borderBottomColor: colors.outlineVariant,
+      backgroundColor: colors.surfaceBright,
+    },
+    progress: {
+      flex: 1,
+    },
+  });

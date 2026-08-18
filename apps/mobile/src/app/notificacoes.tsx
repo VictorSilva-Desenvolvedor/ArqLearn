@@ -8,11 +8,15 @@ import { NotificationList } from "@/components/features/notifications/Notificati
 import { NotificationPreferencesPanel } from "@/components/features/notifications/NotificationPreferencesPanel";
 import { findCurrentLessonHref } from "@/lib/gamification/currentLesson";
 import { listNotifications } from "@/lib/api/resources/notifications";
-import { colors, spacing, type } from "@/theme/tokens";
+import { spacing, type } from "@/theme/tokens";
+import { useColors } from "@/theme/useColors";
+import type { ColorTokens } from "@/theme/tokens";
 import type { AppNotification } from "@/types/api";
 
 // Espelha apps/web/src/app/(shell)/notificacoes/page.tsx.
 export default function NotificacoesScreen() {
+  const colors = useColors();
+  const styles = createStyles(colors);
   const router = useRouter();
   const [notifications, setNotifications] = useState<AppNotification[] | null>(null);
   const [currentLessonHref, setCurrentLessonHref] = useState<string | null>(null);
@@ -47,23 +51,24 @@ export default function NotificacoesScreen() {
   );
 }
 
-const styles = StyleSheet.create({
-  screen: {
-    flex: 1,
-    backgroundColor: colors.background,
-  },
-  content: {
-    padding: spacing.md,
-    paddingBottom: spacing.lg,
-    gap: spacing.md,
-  },
-  header: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: spacing.xs,
-  },
-  headerTitle: {
-    color: colors.onSurface,
-    fontWeight: "700",
-  },
-});
+const createStyles = (colors: ColorTokens) =>
+  StyleSheet.create({
+    screen: {
+      flex: 1,
+      backgroundColor: colors.background,
+    },
+    content: {
+      padding: spacing.md,
+      paddingBottom: spacing.lg,
+      gap: spacing.md,
+    },
+    header: {
+      flexDirection: "row",
+      alignItems: "center",
+      gap: spacing.xs,
+    },
+    headerTitle: {
+      color: colors.onSurface,
+      fontWeight: "700",
+    },
+  });

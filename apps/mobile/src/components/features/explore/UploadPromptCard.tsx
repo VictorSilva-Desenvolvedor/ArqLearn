@@ -3,7 +3,9 @@ import { StyleSheet, Text, View } from "react-native";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
 import { Icon } from "@/components/ui/Icon";
-import { colors, spacing, type } from "@/theme/tokens";
+import { spacing, type } from "@/theme/tokens";
+import { useColors } from "@/theme/useColors";
+import type { ColorTokens } from "@/theme/tokens";
 import type { DocumentPickerAsset } from "expo-document-picker";
 
 const ACCEPTED_MIME_TYPES = [
@@ -24,6 +26,8 @@ interface UploadPromptCardProps {
 // type="file"> equivalente, então o seletor é o picker nativo do sistema
 // (expo-document-picker, mesmo pacote citado como pendência em Docs/PENDENCIAS_MOBILE.md #5).
 export function UploadPromptCard({ onFileSelected }: UploadPromptCardProps) {
+  const colors = useColors();
+  const styles = createStyles(colors);
   const pickFile = async () => {
     const result = await DocumentPicker.getDocumentAsync({
       type: ACCEPTED_MIME_TYPES,
@@ -53,33 +57,34 @@ export function UploadPromptCard({ onFileSelected }: UploadPromptCardProps) {
   );
 }
 
-const styles = StyleSheet.create({
-  card: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-    gap: spacing.md,
-    flexWrap: "wrap",
-  },
-  info: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: spacing.md,
-    flex: 1,
-  },
-  textBlock: {
-    flex: 1,
-  },
-  title: {
-    color: colors.onSurface,
-    fontWeight: "700",
-  },
-  caption: {
-    color: colors.onSurfaceVariant,
-    marginTop: 2,
-  },
-  limit: {
-    color: colors.outline,
-    marginTop: 4,
-  },
-});
+const createStyles = (colors: ColorTokens) =>
+  StyleSheet.create({
+    card: {
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "space-between",
+      gap: spacing.md,
+      flexWrap: "wrap",
+    },
+    info: {
+      flexDirection: "row",
+      alignItems: "center",
+      gap: spacing.md,
+      flex: 1,
+    },
+    textBlock: {
+      flex: 1,
+    },
+    title: {
+      color: colors.onSurface,
+      fontWeight: "700",
+    },
+    caption: {
+      color: colors.onSurfaceVariant,
+      marginTop: 2,
+    },
+    limit: {
+      color: colors.outline,
+      marginTop: 4,
+    },
+  });

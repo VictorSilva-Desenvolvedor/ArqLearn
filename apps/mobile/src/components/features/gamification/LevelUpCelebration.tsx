@@ -3,7 +3,9 @@ import { AccessibilityInfo, StyleSheet, Text, View } from "react-native";
 import { AuthContext } from "@/contexts/AuthContext";
 import { Icon } from "@/components/ui/Icon";
 import { Modal } from "@/components/ui/Modal";
-import { colors, spacing, type } from "@/theme/tokens";
+import { spacing, type } from "@/theme/tokens";
+import { useColors } from "@/theme/useColors";
+import type { ColorTokens } from "@/theme/tokens";
 
 // Celebração dedicada ao subir de nível, até 1.5s, dispensável. Fica montada uma vez no root
 // layout (dentro do AuthProvider) e reage a justLeveledUpTo vindo de qualquer tela que chame
@@ -15,6 +17,8 @@ export function LevelUpCelebration() {
   const justLeveledUpTo = auth?.justLeveledUpTo ?? null;
   const dismissLevelUp = auth?.dismissLevelUp;
   const [screenReaderEnabled, setScreenReaderEnabled] = useState(false);
+  const colors = useColors();
+  const styles = createStyles(colors);
 
   useEffect(() => {
     let mounted = true;
@@ -56,30 +60,31 @@ export function LevelUpCelebration() {
   );
 }
 
-const styles = StyleSheet.create({
-  content: {
-    alignItems: "center",
-    gap: spacing.md,
-  },
-  badge: {
-    width: 96,
-    height: 96,
-    borderRadius: 48,
-    backgroundColor: colors.secondary,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  textBlock: {
-    alignItems: "center",
-  },
-  title: {
-    color: colors.onSurface,
-    fontWeight: "700",
-    textAlign: "center",
-  },
-  description: {
-    color: colors.onSurfaceVariant,
-    textAlign: "center",
-    marginTop: 8,
-  },
-});
+const createStyles = (colors: ColorTokens) =>
+  StyleSheet.create({
+    content: {
+      alignItems: "center",
+      gap: spacing.md,
+    },
+    badge: {
+      width: 96,
+      height: 96,
+      borderRadius: 48,
+      backgroundColor: colors.secondary,
+      alignItems: "center",
+      justifyContent: "center",
+    },
+    textBlock: {
+      alignItems: "center",
+    },
+    title: {
+      color: colors.onSurface,
+      fontWeight: "700",
+      textAlign: "center",
+    },
+    description: {
+      color: colors.onSurfaceVariant,
+      textAlign: "center",
+      marginTop: 8,
+    },
+  });

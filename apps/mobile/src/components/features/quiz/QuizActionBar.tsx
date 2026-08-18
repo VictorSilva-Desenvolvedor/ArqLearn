@@ -3,7 +3,9 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Button } from "@/components/ui/Button";
 import { Icon } from "@/components/ui/Icon";
 import { LoadingBlueprint } from "@/components/ui/LoadingBlueprint";
-import { colors, spacing, type } from "@/theme/tokens";
+import { spacing, type } from "@/theme/tokens";
+import { useColors } from "@/theme/useColors";
+import type { ColorTokens } from "@/theme/tokens";
 
 interface QuizActionBarProps {
   revealed: boolean;
@@ -46,6 +48,8 @@ export function QuizActionBar({
   // edge-to-edge (SDK 57 não tem mais opt-out) — o botão primário desenhava sob a barra de
   // navegação do sistema.
   const insets = useSafeAreaInsets();
+  const colors = useColors();
+  const styles = createStyles(colors);
   return (
     <View style={[styles.bar, { paddingBottom: insets.bottom }]}>
       {revealed && (
@@ -123,65 +127,66 @@ export function QuizActionBar({
   );
 }
 
-const styles = StyleSheet.create({
-  bar: {
-    borderTopWidth: 2,
-    borderTopColor: colors.outlineVariant,
-    backgroundColor: colors.surfaceBright,
-  },
-  explanation: {
-    paddingHorizontal: spacing.md,
-    paddingTop: spacing.sm,
-  },
-  explainBlock: {
-    paddingHorizontal: spacing.md,
-    paddingTop: spacing.xs,
-    gap: 4,
-  },
-  deepExplanation: {
-    color: colors.onSurfaceVariant,
-    backgroundColor: colors.surfaceContainer,
-    borderRadius: 12,
-    paddingHorizontal: spacing.md,
-    paddingVertical: spacing.sm,
-  },
-  explainRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 4,
-    alignSelf: "flex-start",
-  },
-  explainLink: {
-    color: colors.primary,
-    textDecorationLine: "underline",
-  },
-  explainLinkDisabled: {
-    opacity: 0.5,
-  },
-  explainError: {
-    color: colors.error,
-  },
-  verifyError: {
-    paddingHorizontal: spacing.md,
-    paddingTop: spacing.xs,
-  },
-  xpCapRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 4,
-    paddingHorizontal: spacing.md,
-    paddingTop: spacing.xs,
-  },
-  xpCapText: {
-    flex: 1,
-    color: colors.secondary,
-  },
-  footer: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-    gap: spacing.md,
-    paddingHorizontal: spacing.md,
-    paddingVertical: spacing.md,
-  },
-});
+const createStyles = (colors: ColorTokens) =>
+  StyleSheet.create({
+    bar: {
+      borderTopWidth: 2,
+      borderTopColor: colors.outlineVariant,
+      backgroundColor: colors.surfaceBright,
+    },
+    explanation: {
+      paddingHorizontal: spacing.md,
+      paddingTop: spacing.sm,
+    },
+    explainBlock: {
+      paddingHorizontal: spacing.md,
+      paddingTop: spacing.xs,
+      gap: 4,
+    },
+    deepExplanation: {
+      color: colors.onSurfaceVariant,
+      backgroundColor: colors.surfaceContainer,
+      borderRadius: 12,
+      paddingHorizontal: spacing.md,
+      paddingVertical: spacing.sm,
+    },
+    explainRow: {
+      flexDirection: "row",
+      alignItems: "center",
+      gap: 4,
+      alignSelf: "flex-start",
+    },
+    explainLink: {
+      color: colors.primary,
+      textDecorationLine: "underline",
+    },
+    explainLinkDisabled: {
+      opacity: 0.5,
+    },
+    explainError: {
+      color: colors.error,
+    },
+    verifyError: {
+      paddingHorizontal: spacing.md,
+      paddingTop: spacing.xs,
+    },
+    xpCapRow: {
+      flexDirection: "row",
+      alignItems: "center",
+      gap: 4,
+      paddingHorizontal: spacing.md,
+      paddingTop: spacing.xs,
+    },
+    xpCapText: {
+      flex: 1,
+      color: colors.secondary,
+    },
+    footer: {
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "space-between",
+      gap: spacing.md,
+      paddingHorizontal: spacing.md,
+      paddingVertical: spacing.md,
+    },
+  });

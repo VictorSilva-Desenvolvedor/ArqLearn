@@ -3,7 +3,9 @@ import { Pressable, StyleSheet, Text, View } from "react-native";
 import { Icon } from "@/components/ui/Icon";
 import { Button } from "@/components/ui/Button";
 import { Modal } from "@/components/ui/Modal";
-import { colors, spacing, type } from "@/theme/tokens";
+import { spacing, type } from "@/theme/tokens";
+import { useColors } from "@/theme/useColors";
+import type { ColorTokens } from "@/theme/tokens";
 import type { AchievementCatalogEntry } from "@/lib/gamification/achievementCatalog";
 
 interface AchievementBadgeProps {
@@ -17,6 +19,8 @@ interface AchievementBadgeProps {
 // desbloqueada sem nenhuma interação; aqui o toque abre um modal com a data de desbloqueio, que a
 // API já retorna em unlocked_at mas o web nunca exibe em lugar nenhum.
 export function AchievementBadge({ entry, unlocked, unlockedAt }: AchievementBadgeProps) {
+  const colors = useColors();
+  const styles = createStyles(colors);
   const [open, setOpen] = useState(false);
 
   const shape = (
@@ -117,74 +121,75 @@ export function AchievementBadge({ entry, unlocked, unlockedAt }: AchievementBad
   );
 }
 
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    alignItems: "center",
-    gap: 4,
-  },
-  shape: {
-    width: 56,
-    height: 56,
-    borderRadius: 14,
-    alignItems: "center",
-    justifyContent: "center",
-    transform: [{ rotate: "45deg" }],
-  },
-  shapeUnlocked: {
-    backgroundColor: colors.secondaryContainer,
-  },
-  shapeLocked: {
-    backgroundColor: colors.surfaceGray,
-    borderWidth: 2,
-    borderColor: colors.outlineVariant,
-    borderStyle: "dashed",
-  },
-  labelUnlocked: {
-    color: colors.onSurface,
-    textAlign: "center",
-  },
-  labelLocked: {
-    color: colors.outline,
-    textAlign: "center",
-  },
-  modalContent: {
-    alignItems: "center",
-    gap: spacing.md,
-  },
-  modalShape: {
-    width: 80,
-    height: 80,
-  },
-  modalTextBlock: {
-    alignItems: "center",
-  },
-  modalTitle: {
-    color: colors.onSurface,
-    fontWeight: "700",
-    textAlign: "center",
-  },
-  modalDescription: {
-    color: colors.onSurfaceVariant,
-    textAlign: "center",
-    marginTop: 8,
-  },
-  modalDate: {
-    color: colors.onSurfaceVariant,
-    textAlign: "center",
-    marginTop: 8,
-  },
-  rewards: {
-    flexDirection: "row",
-    gap: spacing.lg,
-  },
-  rewardItem: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 4,
-  },
-  rewardText: {
-    color: colors.onSurfaceVariant,
-    fontWeight: "700",
-  },
-});
+const createStyles = (colors: ColorTokens) =>
+  StyleSheet.create({
+    container: {
+      flex: 1,
+      alignItems: "center",
+      gap: 4,
+    },
+    shape: {
+      width: 56,
+      height: 56,
+      borderRadius: 14,
+      alignItems: "center",
+      justifyContent: "center",
+      transform: [{ rotate: "45deg" }],
+    },
+    shapeUnlocked: {
+      backgroundColor: colors.secondaryContainer,
+    },
+    shapeLocked: {
+      backgroundColor: colors.surfaceGray,
+      borderWidth: 2,
+      borderColor: colors.outlineVariant,
+      borderStyle: "dashed",
+    },
+    labelUnlocked: {
+      color: colors.onSurface,
+      textAlign: "center",
+    },
+    labelLocked: {
+      color: colors.outline,
+      textAlign: "center",
+    },
+    modalContent: {
+      alignItems: "center",
+      gap: spacing.md,
+    },
+    modalShape: {
+      width: 80,
+      height: 80,
+    },
+    modalTextBlock: {
+      alignItems: "center",
+    },
+    modalTitle: {
+      color: colors.onSurface,
+      fontWeight: "700",
+      textAlign: "center",
+    },
+    modalDescription: {
+      color: colors.onSurfaceVariant,
+      textAlign: "center",
+      marginTop: 8,
+    },
+    modalDate: {
+      color: colors.onSurfaceVariant,
+      textAlign: "center",
+      marginTop: 8,
+    },
+    rewards: {
+      flexDirection: "row",
+      gap: spacing.lg,
+    },
+    rewardItem: {
+      flexDirection: "row",
+      alignItems: "center",
+      gap: 4,
+    },
+    rewardText: {
+      color: colors.onSurfaceVariant,
+      fontWeight: "700",
+    },
+  });

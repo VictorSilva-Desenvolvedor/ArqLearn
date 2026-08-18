@@ -5,10 +5,14 @@ import { IconButton } from "@/components/ui/IconButton";
 import { Icon } from "@/components/ui/Icon";
 import { BugReportForm } from "@/components/features/help/BugReportForm";
 import { HelpFaqSection } from "@/components/features/help/HelpFaqSection";
-import { colors, spacing, type } from "@/theme/tokens";
+import { spacing, type } from "@/theme/tokens";
+import { useColors } from "@/theme/useColors";
+import type { ColorTokens } from "@/theme/tokens";
 
 // Espelha apps/web/src/app/(shell)/ajuda/page.tsx.
 export default function AjudaScreen() {
+  const colors = useColors();
+  const styles = createStyles(colors);
   const router = useRouter();
 
   return (
@@ -31,30 +35,31 @@ export default function AjudaScreen() {
   );
 }
 
-const styles = StyleSheet.create({
-  screen: {
-    flex: 1,
-    backgroundColor: colors.background,
-  },
-  content: {
-    padding: spacing.md,
-    paddingBottom: spacing.lg,
-    gap: spacing.lg,
-  },
-  header: {
-    flexDirection: "row",
-    alignItems: "flex-start",
-    gap: spacing.xs,
-  },
-  headerText: {
-    flex: 1,
-  },
-  title: {
-    color: colors.onSurface,
-    fontWeight: "700",
-  },
-  caption: {
-    color: colors.onSurfaceVariant,
-    marginTop: 4,
-  },
-});
+const createStyles = (colors: ColorTokens) =>
+  StyleSheet.create({
+    screen: {
+      flex: 1,
+      backgroundColor: colors.background,
+    },
+    content: {
+      padding: spacing.md,
+      paddingBottom: spacing.lg,
+      gap: spacing.lg,
+    },
+    header: {
+      flexDirection: "row",
+      alignItems: "flex-start",
+      gap: spacing.xs,
+    },
+    headerText: {
+      flex: 1,
+    },
+    title: {
+      color: colors.onSurface,
+      fontWeight: "700",
+    },
+    caption: {
+      color: colors.onSurfaceVariant,
+      marginTop: 4,
+    },
+  });

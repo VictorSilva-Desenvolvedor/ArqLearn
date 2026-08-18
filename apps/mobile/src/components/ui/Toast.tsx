@@ -2,12 +2,14 @@ import { useContext } from "react";
 import { StyleSheet, Text, View } from "react-native";
 import { ToastContext } from "@/contexts/ToastContext";
 import { Icon } from "@/components/ui/Icon";
-import { colors, type } from "@/theme/tokens";
+import { type } from "@/theme/tokens";
+import { useColors } from "@/theme/useColors";
 
 // Montado uma vez no root layout (dentro do ToastProvider) — qualquer tela chama useToast() pra
 // disparar. Espelha apps/web/src/components/ui/Toast.tsx; posicionamento fixo via View absoluta
 // (sem portal — RN não tem DOM).
 export function Toast() {
+  const colors = useColors();
   const ctx = useContext(ToastContext);
   const toast = ctx?.toast ?? null;
   if (!toast) return null;

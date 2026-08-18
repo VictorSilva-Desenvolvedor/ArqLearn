@@ -1,11 +1,12 @@
 import { StyleSheet, View } from "react-native";
-import { colors } from "@/theme/tokens";
+import { useColors } from "@/theme/useColors";
 
 interface PathConnectorProps {
   dashed?: boolean;
 }
 
 export function PathConnector({ dashed = false }: PathConnectorProps) {
+  const colors = useColors();
   return (
     <View
       pointerEvents="none"

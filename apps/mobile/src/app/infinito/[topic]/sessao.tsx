@@ -12,10 +12,14 @@ import { ErrorBanner } from "@/components/ui/ErrorBanner";
 import { LoadingBlueprint } from "@/components/ui/LoadingBlueprint";
 import { useToast } from "@/hooks/useToast";
 import { getThemeByTopic } from "@/lib/api/mocks/fixtures/themes";
-import { colors, spacing, type } from "@/theme/tokens";
+import { spacing, type } from "@/theme/tokens";
+import { useColors } from "@/theme/useColors";
+import type { ColorTokens } from "@/theme/tokens";
 
 // Espelha apps/web/src/app/(lesson)/infinito/[topic]/sessao/page.tsx.
 export default function InfiniteModeSessionScreen() {
+  const colors = useColors();
+  const styles = createStyles(colors);
   const router = useRouter();
   const { topic } = useLocalSearchParams<{ topic: string }>();
   const infinite = useInfiniteModeSession(topic);
@@ -98,34 +102,35 @@ export default function InfiniteModeSessionScreen() {
   );
 }
 
-const styles = StyleSheet.create({
-  screen: {
-    flex: 1,
-    backgroundColor: colors.background,
-  },
-  body: {
-    flex: 1,
-  },
-  bodyContent: {
-    flexGrow: 1,
-  },
-  centerScreen: {
-    flex: 1,
-    alignItems: "center",
-    justifyContent: "center",
-    gap: spacing.sm,
-    paddingHorizontal: spacing.md,
-    paddingVertical: spacing.lg,
-    backgroundColor: colors.background,
-  },
-  notAvailableTitle: {
-    color: colors.onSurface,
-    fontWeight: "700",
-    textAlign: "center",
-  },
-  notAvailableCaption: {
-    color: colors.onSurfaceVariant,
-    textAlign: "center",
-    marginBottom: spacing.xs,
-  },
-});
+const createStyles = (colors: ColorTokens) =>
+  StyleSheet.create({
+    screen: {
+      flex: 1,
+      backgroundColor: colors.background,
+    },
+    body: {
+      flex: 1,
+    },
+    bodyContent: {
+      flexGrow: 1,
+    },
+    centerScreen: {
+      flex: 1,
+      alignItems: "center",
+      justifyContent: "center",
+      gap: spacing.sm,
+      paddingHorizontal: spacing.md,
+      paddingVertical: spacing.lg,
+      backgroundColor: colors.background,
+    },
+    notAvailableTitle: {
+      color: colors.onSurface,
+      fontWeight: "700",
+      textAlign: "center",
+    },
+    notAvailableCaption: {
+      color: colors.onSurfaceVariant,
+      textAlign: "center",
+      marginBottom: spacing.xs,
+    },
+  });

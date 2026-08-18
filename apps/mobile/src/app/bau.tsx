@@ -14,7 +14,9 @@ import {
 } from "@/lib/api/resources/gamification";
 import { resetDailyChestVip, resetWeeklyChestVip } from "@/lib/api/resources/vip";
 import { ApiError } from "@/lib/api/http";
-import { colors, radius, spacing, type as typeTokens } from "@/theme/tokens";
+import { radius, spacing, type as typeTokens } from "@/theme/tokens";
+import { useColors } from "@/theme/useColors";
+import type { ColorTokens } from "@/theme/tokens";
 import type { ChestOpenResult, ChestRewardType } from "@/types/api";
 
 const HEARTS_MAX = 5;
@@ -54,6 +56,8 @@ const CHEST_COPY: Record<ChestType, { eyebrow: string; titulo: string; unavailab
 // (trilhas/[trackId]/[lessonId]/conquista.tsx), mas credita via chamada de API real em vez de
 // crédito local — não há como simular a recompensa (é sorteada no servidor).
 export default function DailyChestScreen() {
+  const colors = useColors();
+  const styles = createStyles(colors);
   const router = useRouter();
   const { tipo: tipoParam } = useLocalSearchParams<{ tipo?: string }>();
   const tipo: ChestType = tipoParam === "semanal" ? "semanal" : "diario";
@@ -218,79 +222,80 @@ export default function DailyChestScreen() {
   );
 }
 
-const styles = StyleSheet.create({
-  screen: {
-    flex: 1,
-    alignItems: "center",
-    justifyContent: "center",
-    paddingHorizontal: spacing.md,
-    paddingVertical: spacing.lg,
-    backgroundColor: colors.background,
-  },
-  content: {
-    width: "100%",
-    maxWidth: 448,
-    alignItems: "center",
-    gap: spacing.lg,
-  },
-  badge: {
-    width: 112,
-    height: 112,
-    borderRadius: radius.xl,
-    backgroundColor: colors.secondary,
-    alignItems: "center",
-    justifyContent: "center",
-    transform: [{ rotate: "45deg" }],
-  },
-  badgeIconCounterRotate: {
-    transform: [{ rotate: "-45deg" }],
-  },
-  closedBadge: {
-    width: 112,
-    height: 112,
-    borderRadius: radius.xl,
-    backgroundColor: colors.secondaryContainer,
-    borderWidth: 2,
-    borderStyle: "dashed",
-    borderColor: colors.secondary,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  lockedBadge: {
-    width: 112,
-    height: 112,
-    borderRadius: radius.xl,
-    backgroundColor: colors.surfaceContainer,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  textBlock: {
-    alignItems: "center",
-  },
-  eyebrow: {
-    color: colors.secondary,
-    textTransform: "uppercase",
-    marginBottom: 4,
-  },
-  title: {
-    color: colors.onSurface,
-    fontWeight: "700",
-    textAlign: "center",
-  },
-  description: {
-    color: colors.onSurfaceVariant,
-    marginTop: 8,
-    textAlign: "center",
-  },
-  rewardChip: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 4,
-  },
-  rewardText: {
-    color: colors.secondary,
-  },
-  error: {
-    color: colors.errorRed,
-  },
-});
+const createStyles = (colors: ColorTokens) =>
+  StyleSheet.create({
+    screen: {
+      flex: 1,
+      alignItems: "center",
+      justifyContent: "center",
+      paddingHorizontal: spacing.md,
+      paddingVertical: spacing.lg,
+      backgroundColor: colors.background,
+    },
+    content: {
+      width: "100%",
+      maxWidth: 448,
+      alignItems: "center",
+      gap: spacing.lg,
+    },
+    badge: {
+      width: 112,
+      height: 112,
+      borderRadius: radius.xl,
+      backgroundColor: colors.secondary,
+      alignItems: "center",
+      justifyContent: "center",
+      transform: [{ rotate: "45deg" }],
+    },
+    badgeIconCounterRotate: {
+      transform: [{ rotate: "-45deg" }],
+    },
+    closedBadge: {
+      width: 112,
+      height: 112,
+      borderRadius: radius.xl,
+      backgroundColor: colors.secondaryContainer,
+      borderWidth: 2,
+      borderStyle: "dashed",
+      borderColor: colors.secondary,
+      alignItems: "center",
+      justifyContent: "center",
+    },
+    lockedBadge: {
+      width: 112,
+      height: 112,
+      borderRadius: radius.xl,
+      backgroundColor: colors.surfaceContainer,
+      alignItems: "center",
+      justifyContent: "center",
+    },
+    textBlock: {
+      alignItems: "center",
+    },
+    eyebrow: {
+      color: colors.secondary,
+      textTransform: "uppercase",
+      marginBottom: 4,
+    },
+    title: {
+      color: colors.onSurface,
+      fontWeight: "700",
+      textAlign: "center",
+    },
+    description: {
+      color: colors.onSurfaceVariant,
+      marginTop: 8,
+      textAlign: "center",
+    },
+    rewardChip: {
+      flexDirection: "row",
+      alignItems: "center",
+      gap: 4,
+    },
+    rewardText: {
+      color: colors.secondary,
+    },
+    error: {
+      color: colors.errorRed,
+    },
+  });

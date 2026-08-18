@@ -6,12 +6,16 @@ import { ChatInputBar } from "@/components/features/materialChat/ChatInputBar";
 import { ChatMessageBubble } from "@/components/features/materialChat/ChatMessageBubble";
 import { useMaterialChat, type ViewMessage } from "@/components/features/materialChat/useMaterialChat";
 import { SummaryHeader } from "@/components/features/materialSummary/SummaryHeader";
-import { colors, spacing, type } from "@/theme/tokens";
+import { spacing, type } from "@/theme/tokens";
+import { useColors } from "@/theme/useColors";
+import type { ColorTokens } from "@/theme/tokens";
 
 // Espelha apps/web/src/app/(lesson)/materiais/[uploadId]/chat/page.tsx. O KeyboardAvoidingView
 // não tem equivalente no web (o browser já evita que o teclado cubra o input) — é a adaptação
 // mínima de plataforma pra a barra de envio não ficar escondida atrás do teclado em RN.
 export default function MaterialChatScreen() {
+  const colors = useColors();
+  const styles = createStyles(colors);
   const { uploadId } = useLocalSearchParams<{ uploadId: string }>();
   const { title, messages, sending, error, sendMessage } = useMaterialChat(uploadId);
   // FlatList em vez de ScrollView+map (achado de /impeccable audit, 18/08/2026): uma conversa não
@@ -68,29 +72,30 @@ export default function MaterialChatScreen() {
   );
 }
 
-const styles = StyleSheet.create({
-  screen: {
-    flex: 1,
-    backgroundColor: colors.background,
-  },
-  flex: {
-    flex: 1,
-  },
-  body: {
-    flex: 1,
-  },
-  bodyContent: {
-    paddingHorizontal: spacing.md,
-    paddingVertical: spacing.lg,
-    gap: spacing.md,
-  },
-  typing: {
-    alignSelf: "flex-start",
-    color: colors.onSurfaceVariant,
-  },
-  error: {
-    alignSelf: "flex-start",
-    color: colors.error,
-    marginTop: spacing.xs,
-  },
-});
+const createStyles = (colors: ColorTokens) =>
+  StyleSheet.create({
+    screen: {
+      flex: 1,
+      backgroundColor: colors.background,
+    },
+    flex: {
+      flex: 1,
+    },
+    body: {
+      flex: 1,
+    },
+    bodyContent: {
+      paddingHorizontal: spacing.md,
+      paddingVertical: spacing.lg,
+      gap: spacing.md,
+    },
+    typing: {
+      alignSelf: "flex-start",
+      color: colors.onSurfaceVariant,
+    },
+    error: {
+      alignSelf: "flex-start",
+      color: colors.error,
+      marginTop: spacing.xs,
+    },
+  });

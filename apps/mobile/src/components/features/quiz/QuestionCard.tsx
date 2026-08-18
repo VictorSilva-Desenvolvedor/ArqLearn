@@ -2,7 +2,9 @@ import { useEffect } from "react";
 import { Image } from "expo-image";
 import { AccessibilityInfo, StyleSheet, Text, View } from "react-native";
 import { Badge, type BadgeTone } from "@/components/ui/Badge";
-import { colors, radius, spacing, type } from "@/theme/tokens";
+import { radius, spacing, type } from "@/theme/tokens";
+import { useColors } from "@/theme/useColors";
+import type { ColorTokens } from "@/theme/tokens";
 import type { QuestionDifficulty, QuestionOption, QuestionType } from "@/types/api";
 import { AnswerOption } from "./AnswerOption";
 import { FillBlankInput } from "./FillBlankInput";
@@ -40,6 +42,8 @@ export function QuestionCard({
   isSelectedCorrect,
   onSelect,
 }: QuestionCardProps) {
+  const colors = useColors();
+  const styles = createStyles(colors);
   const difficultyInfo = difficultyPresentation[difficulty];
 
   // Web usa um nó sr-only role="status"/aria-live persistente; RN não tem DOM, então o anúncio
@@ -107,57 +111,58 @@ export function QuestionCard({
   );
 }
 
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    width: "100%",
-    paddingHorizontal: spacing.md,
-    paddingVertical: spacing.lg,
-    gap: spacing.lg,
-  },
-  promptBlock: {
-    gap: spacing.xs,
-  },
-  prompt: {
-    color: colors.onSurface,
-  },
-  imageWrap: {
-    width: "100%",
-    height: 192,
-    borderRadius: radius.xl,
-    overflow: "hidden",
-    borderWidth: 2,
-    borderColor: colors.outlineVariant,
-    backgroundColor: colors.surfaceGray,
-  },
-  image: {
-    width: "100%",
-    height: "100%",
-  },
-  imageCaption: {
-    position: "absolute",
-    bottom: 8,
-    right: 8,
-    backgroundColor: "rgba(248, 249, 255, 0.9)",
-    borderWidth: 1,
-    borderColor: colors.outlineVariant,
-    borderRadius: 4,
-    paddingHorizontal: 6,
-    paddingVertical: 4,
-  },
-  imageCaptionText: {
-    fontSize: 10,
-    lineHeight: 12,
-    color: colors.outline,
-  },
-  optionsList: {
-    gap: spacing.sm,
-  },
-  optionsGrid: {
-    flexDirection: "row",
-    flexWrap: "wrap",
-  },
-  gridItem: {
-    width: "48%",
-  },
-});
+const createStyles = (colors: ColorTokens) =>
+  StyleSheet.create({
+    container: {
+      flex: 1,
+      width: "100%",
+      paddingHorizontal: spacing.md,
+      paddingVertical: spacing.lg,
+      gap: spacing.lg,
+    },
+    promptBlock: {
+      gap: spacing.xs,
+    },
+    prompt: {
+      color: colors.onSurface,
+    },
+    imageWrap: {
+      width: "100%",
+      height: 192,
+      borderRadius: radius.xl,
+      overflow: "hidden",
+      borderWidth: 2,
+      borderColor: colors.outlineVariant,
+      backgroundColor: colors.surfaceGray,
+    },
+    image: {
+      width: "100%",
+      height: "100%",
+    },
+    imageCaption: {
+      position: "absolute",
+      bottom: 8,
+      right: 8,
+      backgroundColor: "rgba(248, 249, 255, 0.9)",
+      borderWidth: 1,
+      borderColor: colors.outlineVariant,
+      borderRadius: 4,
+      paddingHorizontal: 6,
+      paddingVertical: 4,
+    },
+    imageCaptionText: {
+      fontSize: 10,
+      lineHeight: 12,
+      color: colors.outline,
+    },
+    optionsList: {
+      gap: spacing.sm,
+    },
+    optionsGrid: {
+      flexDirection: "row",
+      flexWrap: "wrap",
+    },
+    gridItem: {
+      width: "48%",
+    },
+  });

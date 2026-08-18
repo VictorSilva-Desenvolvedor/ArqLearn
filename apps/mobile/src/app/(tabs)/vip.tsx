@@ -9,7 +9,9 @@ import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/useToast";
 import { ApiError } from "@/lib/api/http";
 import { getVipStatus, redeemVipCoupon } from "@/lib/api/resources/vip";
-import { colors, radius, spacing, type as typeTokens } from "@/theme/tokens";
+import { radius, spacing, type as typeTokens } from "@/theme/tokens";
+import { useColors } from "@/theme/useColors";
+import type { ColorTokens } from "@/theme/tokens";
 import type { VipStatus } from "@/types/api";
 
 // Tela VIP "Mestre Arquiteto" (a pedido do usuário), adaptada do mockup "Assinatura VIP" pros
@@ -48,6 +50,8 @@ function formatExpiresAt(iso: string | null): string {
 }
 
 export default function VipScreen() {
+  const colors = useColors();
+  const styles = createStyles(colors);
   const { gamification, updateGamification } = useAuth();
   const { showToast } = useToast();
   const [status, setStatus] = useState<VipStatus | null>(null);
@@ -174,111 +178,112 @@ export default function VipScreen() {
   );
 }
 
-const styles = StyleSheet.create({
-  screen: {
-    flex: 1,
-    // Transparente de propósito (a pedido do usuário): deixa o fundo animado
-    // (AnimatedBlueprintBackground, montado em app/_layout.tsx) aparecer atrás.
-    backgroundColor: "transparent",
-  },
-  content: {
-    padding: spacing.md,
-    paddingBottom: spacing.lg,
-    gap: spacing.lg,
-  },
-  hero: {
-    alignItems: "center",
-    gap: spacing.xs,
-  },
-  crownBadge: {
-    width: 72,
-    height: 72,
-    borderRadius: radius.full,
-    backgroundColor: colors.secondary,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  title: {
-    color: colors.secondary,
-    fontWeight: "700",
-  },
-  subtitle: {
-    color: colors.onSurfaceVariant,
-    textAlign: "center",
-  },
-  statusCard: {
-    alignItems: "center",
-    gap: spacing.xs,
-    borderColor: colors.secondary,
-  },
-  statusTitle: {
-    color: colors.onSurface,
-  },
-  statusExpiry: {
-    color: colors.onSurfaceVariant,
-  },
-  statusResets: {
-    color: colors.onSurfaceVariant,
-  },
-  benefitsGrid: {
-    flexDirection: "row",
-    flexWrap: "wrap",
-    marginHorizontal: -spacing.xs / 2,
-  },
-  benefitCard: {
-    width: "50%",
-    marginBottom: spacing.xs,
-    paddingHorizontal: spacing.xs / 2,
-    gap: 4,
-  },
-  benefitTitle: {
-    color: colors.onSurface,
-  },
-  benefitDescription: {
-    color: colors.onSurfaceVariant,
-  },
-  redeemCard: {
-    gap: spacing.xs,
-  },
-  redeemTitle: {
-    color: colors.onSurface,
-  },
-  redeemDescription: {
-    color: colors.onSurfaceVariant,
-  },
-  input: {
-    borderWidth: 2,
-    borderColor: colors.outlineVariant,
-    backgroundColor: colors.surface,
-    borderRadius: 12,
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-    fontSize: 15,
-    color: colors.onSurface,
-    letterSpacing: 2,
-  },
-  error: {
-    color: colors.error,
-  },
-  subscribeCard: {
-    alignItems: "center",
-    gap: spacing.xs,
-  },
-  priceRow: {
-    flexDirection: "row",
-    alignItems: "flex-end",
-    gap: 4,
-  },
-  price: {
-    color: colors.onSurface,
-    fontWeight: "700",
-  },
-  pricePeriod: {
-    color: colors.onSurfaceVariant,
-    marginBottom: 4,
-  },
-  subscribeNote: {
-    color: colors.onSurfaceVariant,
-    textAlign: "center",
-  },
-});
+const createStyles = (colors: ColorTokens) =>
+  StyleSheet.create({
+    screen: {
+      flex: 1,
+      // Transparente de propósito (a pedido do usuário): deixa o fundo animado
+      // (AnimatedBlueprintBackground, montado em app/_layout.tsx) aparecer atrás.
+      backgroundColor: "transparent",
+    },
+    content: {
+      padding: spacing.md,
+      paddingBottom: spacing.lg,
+      gap: spacing.lg,
+    },
+    hero: {
+      alignItems: "center",
+      gap: spacing.xs,
+    },
+    crownBadge: {
+      width: 72,
+      height: 72,
+      borderRadius: radius.full,
+      backgroundColor: colors.secondary,
+      alignItems: "center",
+      justifyContent: "center",
+    },
+    title: {
+      color: colors.secondary,
+      fontWeight: "700",
+    },
+    subtitle: {
+      color: colors.onSurfaceVariant,
+      textAlign: "center",
+    },
+    statusCard: {
+      alignItems: "center",
+      gap: spacing.xs,
+      borderColor: colors.secondary,
+    },
+    statusTitle: {
+      color: colors.onSurface,
+    },
+    statusExpiry: {
+      color: colors.onSurfaceVariant,
+    },
+    statusResets: {
+      color: colors.onSurfaceVariant,
+    },
+    benefitsGrid: {
+      flexDirection: "row",
+      flexWrap: "wrap",
+      marginHorizontal: -spacing.xs / 2,
+    },
+    benefitCard: {
+      width: "50%",
+      marginBottom: spacing.xs,
+      paddingHorizontal: spacing.xs / 2,
+      gap: 4,
+    },
+    benefitTitle: {
+      color: colors.onSurface,
+    },
+    benefitDescription: {
+      color: colors.onSurfaceVariant,
+    },
+    redeemCard: {
+      gap: spacing.xs,
+    },
+    redeemTitle: {
+      color: colors.onSurface,
+    },
+    redeemDescription: {
+      color: colors.onSurfaceVariant,
+    },
+    input: {
+      borderWidth: 2,
+      borderColor: colors.outlineVariant,
+      backgroundColor: colors.surface,
+      borderRadius: 12,
+      paddingHorizontal: 16,
+      paddingVertical: 12,
+      fontSize: 15,
+      color: colors.onSurface,
+      letterSpacing: 2,
+    },
+    error: {
+      color: colors.error,
+    },
+    subscribeCard: {
+      alignItems: "center",
+      gap: spacing.xs,
+    },
+    priceRow: {
+      flexDirection: "row",
+      alignItems: "flex-end",
+      gap: 4,
+    },
+    price: {
+      color: colors.onSurface,
+      fontWeight: "700",
+    },
+    pricePeriod: {
+      color: colors.onSurfaceVariant,
+      marginBottom: 4,
+    },
+    subscribeNote: {
+      color: colors.onSurfaceVariant,
+      textAlign: "center",
+    },
+  });

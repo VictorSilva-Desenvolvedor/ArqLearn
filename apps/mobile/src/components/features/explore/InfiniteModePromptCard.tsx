@@ -4,7 +4,9 @@ import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
 import { Icon } from "@/components/ui/Icon";
-import { colors, spacing, type } from "@/theme/tokens";
+import { spacing, type } from "@/theme/tokens";
+import { useColors } from "@/theme/useColors";
+import type { ColorTokens } from "@/theme/tokens";
 
 interface InfiniteModePromptCardProps {
   topic: string;
@@ -17,6 +19,8 @@ interface InfiniteModePromptCardProps {
 // (POST /v1/infinite-mode/sessions só sorteia entre perguntas aprovadas do tópico — sem nenhuma,
 // não tem o que sortear).
 export function InfiniteModePromptCard({ topic, themeLabel, hasContent }: InfiniteModePromptCardProps) {
+  const colors = useColors();
+  const styles = createStyles(colors);
   const router = useRouter();
 
   return (
@@ -41,30 +45,31 @@ export function InfiniteModePromptCard({ topic, themeLabel, hasContent }: Infini
   );
 }
 
-const styles = StyleSheet.create({
-  card: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-    gap: spacing.md,
-    flexWrap: "wrap",
-    backgroundColor: colors.surfaceGray,
-  },
-  info: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: spacing.md,
-    flex: 1,
-  },
-  textBlock: {
-    flex: 1,
-  },
-  title: {
-    color: colors.onSurface,
-    fontWeight: "700",
-  },
-  caption: {
-    color: colors.onSurfaceVariant,
-    marginTop: 2,
-  },
-});
+const createStyles = (colors: ColorTokens) =>
+  StyleSheet.create({
+    card: {
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "space-between",
+      gap: spacing.md,
+      flexWrap: "wrap",
+      backgroundColor: colors.surfaceGray,
+    },
+    info: {
+      flexDirection: "row",
+      alignItems: "center",
+      gap: spacing.md,
+      flex: 1,
+    },
+    textBlock: {
+      flex: 1,
+    },
+    title: {
+      color: colors.onSurface,
+      fontWeight: "700",
+    },
+    caption: {
+      color: colors.onSurfaceVariant,
+      marginTop: 2,
+    },
+  });

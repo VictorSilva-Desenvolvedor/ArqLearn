@@ -16,13 +16,17 @@ import {
   type LeagueTierName,
 } from "@/lib/gamification/leagueTiers";
 import { formatDaysHoursMinutes } from "@/lib/utils/format";
-import { colors, spacing, type } from "@/theme/tokens";
+import { spacing, type } from "@/theme/tokens";
+import { useColors } from "@/theme/useColors";
+import type { ColorTokens } from "@/theme/tokens";
 import type { League } from "@/types/api";
 
 // Espelha apps/web/src/app/(shell)/liga/page.tsx. Redesenhado pra hierarquia de 10 ligas x 3
 // divisões (Madeira → Diamante): cabeçalho com ícone/nome/divisão, trilha de progressão
 // horizontal com as 10 ligas, e o ranking semanal da divisão atual.
 export default function LigaScreen() {
+  const colors = useColors();
+  const styles = createStyles(colors);
   const { user } = useAuth();
   const [league, setLeague] = useState<League | null>(null);
   const [tiersDialogOpen, setTiersDialogOpen] = useState(false);
@@ -102,60 +106,61 @@ export default function LigaScreen() {
   );
 }
 
-const styles = StyleSheet.create({
-  screen: {
-    flex: 1,
-    // Transparente de propósito (a pedido do usuário): deixa o fundo animado
-    // (AnimatedBlueprintBackground, montado em app/_layout.tsx) aparecer atrás.
-    backgroundColor: "transparent",
-  },
-  content: {
-    padding: spacing.md,
-    paddingBottom: spacing.lg,
-    gap: spacing.md,
-  },
-  header: {
-    alignItems: "center",
-    gap: 4,
-    marginBottom: spacing.sm,
-  },
-  badge: {
-    width: 96,
-    height: 96,
-    borderRadius: 48,
-    backgroundColor: colors.secondaryContainer,
-    borderWidth: 4,
-    borderColor: colors.outlineVariant,
-    alignItems: "center",
-    justifyContent: "center",
-    marginBottom: spacing.sm,
-  },
-  title: {
-    color: colors.onSurface,
-    fontWeight: "700",
-    textAlign: "center",
-  },
-  caption: {
-    color: colors.onSurfaceVariant,
-    textAlign: "center",
-    maxWidth: 320,
-  },
-  countdown: {
-    marginTop: spacing.md,
-    backgroundColor: colors.surfaceContainer,
-    borderWidth: 1,
-    borderColor: colors.outlineVariant,
-    borderRadius: 12,
-    paddingHorizontal: spacing.lg,
-    paddingVertical: spacing.sm,
-    alignItems: "center",
-  },
-  countdownLabel: {
-    color: colors.onSurfaceVariant,
-    marginBottom: 2,
-  },
-  countdownValue: {
-    color: colors.primary,
-    fontWeight: "700",
-  },
-});
+const createStyles = (colors: ColorTokens) =>
+  StyleSheet.create({
+    screen: {
+      flex: 1,
+      // Transparente de propósito (a pedido do usuário): deixa o fundo animado
+      // (AnimatedBlueprintBackground, montado em app/_layout.tsx) aparecer atrás.
+      backgroundColor: "transparent",
+    },
+    content: {
+      padding: spacing.md,
+      paddingBottom: spacing.lg,
+      gap: spacing.md,
+    },
+    header: {
+      alignItems: "center",
+      gap: 4,
+      marginBottom: spacing.sm,
+    },
+    badge: {
+      width: 96,
+      height: 96,
+      borderRadius: 48,
+      backgroundColor: colors.secondaryContainer,
+      borderWidth: 4,
+      borderColor: colors.outlineVariant,
+      alignItems: "center",
+      justifyContent: "center",
+      marginBottom: spacing.sm,
+    },
+    title: {
+      color: colors.onSurface,
+      fontWeight: "700",
+      textAlign: "center",
+    },
+    caption: {
+      color: colors.onSurfaceVariant,
+      textAlign: "center",
+      maxWidth: 320,
+    },
+    countdown: {
+      marginTop: spacing.md,
+      backgroundColor: colors.surfaceContainer,
+      borderWidth: 1,
+      borderColor: colors.outlineVariant,
+      borderRadius: 12,
+      paddingHorizontal: spacing.lg,
+      paddingVertical: spacing.sm,
+      alignItems: "center",
+    },
+    countdownLabel: {
+      color: colors.onSurfaceVariant,
+      marginBottom: 2,
+    },
+    countdownValue: {
+      color: colors.primary,
+      fontWeight: "700",
+    },
+  });

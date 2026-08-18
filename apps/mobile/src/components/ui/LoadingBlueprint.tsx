@@ -2,7 +2,9 @@ import { useEffect, useRef } from "react";
 import { Animated, Easing, StyleSheet, Text, View } from "react-native";
 import Svg, { Defs, Path, Pattern, Rect } from "react-native-svg";
 import { useReduceMotion } from "@/hooks/useReduceMotion";
-import { colors, spacing, type } from "@/theme/tokens";
+import { spacing, type } from "@/theme/tokens";
+import { useColors } from "@/theme/useColors";
+import type { ColorTokens } from "@/theme/tokens";
 
 const AnimatedPath = Animated.createAnimatedComponent(Path);
 
@@ -32,6 +34,8 @@ interface LoadingBlueprintProps {
 // console em todo carregamento. Substituída por um Animated.View simples (círculo) posicionado
 // por cima do Svg com left/top animados — mesmo trajeto, só sem a linha decorativa da ponta.
 function BlueprintIcon({ size }: { size: number }) {
+  const colors = useColors();
+  const styles = createStyles(colors);
   const progress = useRef(new Animated.Value(0)).current;
   const pulse = useRef(new Animated.Value(0)).current;
   const reduceMotion = useReduceMotion();
@@ -140,6 +144,8 @@ function BlueprintIcon({ size }: { size: number }) {
 }
 
 export function LoadingBlueprint({ size, variant = "inline", label }: LoadingBlueprintProps) {
+  const colors = useColors();
+  const styles = createStyles(colors);
   if (variant === "fullscreen") {
     const boxSize = size ?? 208;
     return (
@@ -169,44 +175,45 @@ export function LoadingBlueprint({ size, variant = "inline", label }: LoadingBlu
   return <BlueprintIcon size={size ?? 20} />;
 }
 
-const styles = StyleSheet.create({
-  pulseRing: {
-    position: "absolute",
-    borderWidth: 2,
-    borderColor: colors.primary,
-  },
-  fullscreenWrap: {
-    flex: 1,
-    alignItems: "center",
-    justifyContent: "center",
-    gap: spacing.lg,
-    backgroundColor: colors.background,
-  },
-  gridBox: {
-    position: "relative",
-    alignItems: "center",
-    justifyContent: "center",
-    borderRadius: 12,
-    overflow: "hidden",
-  },
-  corner: {
-    position: "absolute",
-    width: 16,
-    height: 16,
-    borderColor: colors.primaryContainer,
-    opacity: 0.5,
-  },
-  cornerTopLeft: { top: 0, left: 0, borderTopWidth: 2, borderLeftWidth: 2 },
-  cornerTopRight: { top: 0, right: 0, borderTopWidth: 2, borderRightWidth: 2 },
-  cornerBottomLeft: { bottom: 0, left: 0, borderBottomWidth: 2, borderLeftWidth: 2 },
-  cornerBottomRight: { bottom: 0, right: 0, borderBottomWidth: 2, borderRightWidth: 2 },
-  wordmark: {
-    color: colors.primary,
-    fontWeight: "700",
-  },
-  label: {
-    color: colors.onSurfaceVariant,
-    textAlign: "center",
-    paddingHorizontal: spacing.lg,
-  },
-});
+const createStyles = (colors: ColorTokens) =>
+  StyleSheet.create({
+    pulseRing: {
+      position: "absolute",
+      borderWidth: 2,
+      borderColor: colors.primary,
+    },
+    fullscreenWrap: {
+      flex: 1,
+      alignItems: "center",
+      justifyContent: "center",
+      gap: spacing.lg,
+      backgroundColor: colors.background,
+    },
+    gridBox: {
+      position: "relative",
+      alignItems: "center",
+      justifyContent: "center",
+      borderRadius: 12,
+      overflow: "hidden",
+    },
+    corner: {
+      position: "absolute",
+      width: 16,
+      height: 16,
+      borderColor: colors.primaryContainer,
+      opacity: 0.5,
+    },
+    cornerTopLeft: { top: 0, left: 0, borderTopWidth: 2, borderLeftWidth: 2 },
+    cornerTopRight: { top: 0, right: 0, borderTopWidth: 2, borderRightWidth: 2 },
+    cornerBottomLeft: { bottom: 0, left: 0, borderBottomWidth: 2, borderLeftWidth: 2 },
+    cornerBottomRight: { bottom: 0, right: 0, borderBottomWidth: 2, borderRightWidth: 2 },
+    wordmark: {
+      color: colors.primary,
+      fontWeight: "700",
+    },
+    label: {
+      color: colors.onSurfaceVariant,
+      textAlign: "center",
+      paddingHorizontal: spacing.lg,
+    },
+  });

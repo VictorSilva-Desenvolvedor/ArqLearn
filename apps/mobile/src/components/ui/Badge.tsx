@@ -1,5 +1,7 @@
 import { StyleSheet, Text, View } from "react-native";
-import { colors, type } from "@/theme/tokens";
+import { type } from "@/theme/tokens";
+import { useColors } from "@/theme/useColors";
+import type { ColorTokens } from "@/theme/tokens";
 
 export type BadgeTone = "primary" | "secondary" | "tertiary" | "error" | "neutral" | "gold";
 
@@ -8,7 +10,9 @@ interface BadgeProps {
   children: string;
 }
 
-const toneStyles: Record<BadgeTone, { bg: string; fg: string; border?: string }> = {
+const createToneStyles = (
+  colors: ColorTokens,
+): Record<BadgeTone, { bg: string; fg: string; border?: string }> => ({
   primary: { bg: colors.primaryFixed, fg: colors.primary },
   secondary: { bg: colors.secondaryFixed, fg: colors.secondary },
   tertiary: { bg: colors.tertiaryFixed, fg: colors.onTertiaryFixedVariant },
@@ -17,9 +21,11 @@ const toneStyles: Record<BadgeTone, { bg: string; fg: string; border?: string }>
   // VIP "Mestre Arquiteto" (a pedido do usuário) — mais contraste que "secondary" pro selo de
   // perfil se destacar (bg cheio em vez do tom pastel fixed).
   gold: { bg: colors.secondaryContainer, fg: colors.onSecondaryContainer },
-};
+});
 
 export function Badge({ tone = "neutral", children }: BadgeProps) {
+  const colors = useColors();
+  const toneStyles = createToneStyles(colors);
   const tones = toneStyles[tone];
   return (
     <View

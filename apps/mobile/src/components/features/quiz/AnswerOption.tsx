@@ -1,7 +1,9 @@
 import { Pressable, StyleSheet, Text } from "react-native";
 import { Icon } from "@/components/ui/Icon";
 import { LoadingBlueprint } from "@/components/ui/LoadingBlueprint";
-import { colors, radius, type } from "@/theme/tokens";
+import { radius, type } from "@/theme/tokens";
+import { useColors } from "@/theme/useColors";
+import type { ColorTokens } from "@/theme/tokens";
 
 interface AnswerOptionProps {
   label: string;
@@ -25,7 +27,9 @@ export function AnswerOption({
   disabled,
   onPress,
 }: AnswerOptionProps) {
-  const toneStyle = toneFor({ selected, revealed, verifying, isCorrect });
+  const colors = useColors();
+  const styles = createStyles(colors);
+  const toneStyle = toneFor({ selected, revealed, verifying, isCorrect, colors });
   // Nunca só cor pra indicar certo/errado — ícone dedicado some ambiguidade pra quem não
   // distingue verde/vermelho, e é o sinal equivalente ao aria-checked do web pra leitor de tela.
   const revealIcon = revealed && selected && !verifying ? (isCorrect ? "success" : "cancel") : null;
@@ -55,11 +59,13 @@ function toneFor({
   revealed,
   verifying,
   isCorrect,
+  colors,
 }: {
   selected: boolean;
   revealed: boolean;
   verifying?: boolean;
   isCorrect?: boolean;
+  colors: ColorTokens;
 }): { borderWidth: number; borderColor: string; backgroundColor: string; opacity?: number; text?: string } {
   if (revealed && selected) {
     return isCorrect
@@ -78,23 +84,24 @@ function toneFor({
   return { borderWidth: 1, borderColor: colors.outlineVariant, backgroundColor: colors.surfaceBright };
 }
 
-const styles = StyleSheet.create({
-  base: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 8,
-    width: "100%",
-    // Achado de /impeccable critique (18/08/2026): DESIGN.md especifica "mínimo 60px de altura
-    // de toque" pras answer cards — sem minHeight explícito, paddingVertical:12 em volta de
-    // bodyLg (24px de altura de linha) ficava perto de 48px, abaixo do próprio spec do produto
-    // no elemento mais tocado do app.
-    minHeight: 60,
-    borderRadius: radius.md,
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-  },
-  label: {
-    flex: 1,
-    color: colors.onSurface,
-  },
-});
+const createStyles = (colors: ColorTokens) =>
+  StyleSheet.create({
+    base: {
+      flexDirection: "row",
+      alignItems: "center",
+      gap: 8,
+      width: "100%",
+      // Achado de /impeccable critique (18/08/2026): DESIGN.md especifica "mínimo 60px de altura
+      // de toque" pras answer cards — sem minHeight explícito, paddingVertical:12 em volta de
+      // bodyLg (24px de altura de linha) ficava perto de 48px, abaixo do próprio spec do produto
+      // no elemento mais tocado do app.
+      minHeight: 60,
+      borderRadius: radius.md,
+      paddingHorizontal: 16,
+      paddingVertical: 12,
+    },
+    label: {
+      flex: 1,
+      color: colors.onSurface,
+    },
+  });

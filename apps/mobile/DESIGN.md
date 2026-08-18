@@ -178,6 +178,38 @@ progress" state — it reads as trust and focus, not decoration.
 reward, green is exclusively success/validation. A card never borrows orange or green for anything
 but their assigned job — mixing them breaks the mental model the whole system depends on.
 
+### Dark Theme (added 2026-08-18, explicit user request)
+
+`app.json`'s `userInterfaceStyle` used to be hardcoded `"light"` — the app ignored the phone's dark
+mode setting entirely (this was a deliberate earlier decision in the same session that added it,
+reversed once the user asked to implement dark mode for real). It's now `"automatic"`.
+
+`apps/mobile/src/theme/tokens.ts` exports `lightColors` and `darkColors` — same key set as each
+other, hex values only. Every component reads color through the `useColors()` hook
+(`apps/mobile/src/theme/useColors.ts`, backed by RN's `useColorScheme()`) instead of importing a
+static `colors` object — `StyleSheet.create` blocks that need color are wrapped in a
+`createStyles(colors: ColorTokens) => StyleSheet.create({...})` function, called with the hook's
+result inside the component body. This touched all ~88 components that reference color; there is no
+partial/opt-out dark mode, every screen responds to the system setting.
+
+**How the dark palette was derived**, not guessed: each seed hue (primary blue, secondary
+orange, tertiary green, error red, and the navy-tinted neutral used for all `surface*` tokens) was
+extracted from the light palette's hex values, then re-mapped to Material 3's dark-scheme tone
+convention — `X`/`onX` pairs keep their hue but invert which one is light vs. dark, and
+`surfaceContainer*` tiers go from "lighter = more elevated" (light theme) to "lighter = more
+elevated, starting from a near-black base" (dark theme), rather than a naive per-pixel invert. Every
+`onX`-over-`X` text pairing was checked against WCAG AA (≥4.5:1 for body text, ≥3:1 for large/bold
+text and non-text UI like `outline`/`outlineVariant` borders) with a throwaway contrast-ratio
+script — not eyeballed. The twelve `*Fixed`/`*FixedDim`/`on*Fixed`/`on*FixedVariant` tokens
+(primary/secondary/tertiary) are **identical in both themes** by Material 3 definition — they exist
+specifically for components that must look the same regardless of theme. `scrim` is likewise
+theme-invariant (a modal overlay is conventionally a fixed dark neutral, not something that flips
+light in dark mode).
+
+**Not visually confirmed on a real device** — this was built and contrast-verified computationally
+in a session without a connected device; see `Docs/PENDENCIAS_TESTE_DEVICE.md` for the live-testing
+checklist this needs before it's considered fully done.
+
 ## Typography
 
 **Display/Headline Font:** Hanken Grotesk (`HankenGrotesk_700Bold` / `_600SemiBold`)

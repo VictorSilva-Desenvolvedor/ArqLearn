@@ -8,7 +8,9 @@ import { Card } from "@/components/ui/Card";
 import { Icon } from "@/components/ui/Icon";
 import { ApiError } from "@/lib/api/http";
 import { submitBugReport } from "@/lib/api/resources/bugReports";
-import { colors, spacing, type } from "@/theme/tokens";
+import { spacing, type } from "@/theme/tokens";
+import { useColors } from "@/theme/useColors";
+import type { ColorTokens } from "@/theme/tokens";
 import type { BugReportType, DeviceType } from "@/types/api";
 
 const MIN_DESCRIPTION_LEN = 10;
@@ -46,6 +48,8 @@ export function BugReportForm() {
   const [error, setError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const [sent, setSent] = useState(false);
+  const colors = useColors();
+  const styles = createStyles(colors);
 
   const isBug = reportType === "bug";
   const gemsReward = isBug ? BUG_GEMS_REWARD : SUGGESTION_GEMS_REWARD;
@@ -233,115 +237,116 @@ export function BugReportForm() {
   );
 }
 
-const styles = StyleSheet.create({
-  card: {
-    gap: spacing.sm,
-  },
-  typeRow: {
-    flexDirection: "row",
-    gap: spacing.sm,
-  },
-  typeRowItem: {
-    flex: 1,
-  },
-  promptTitle: {
-    color: colors.onSurface,
-    fontWeight: "700",
-  },
-  promptCaption: {
-    color: colors.onSurfaceVariant,
-    marginTop: 4,
-  },
-  field: {
-    gap: 4,
-  },
-  fieldLabel: {
-    color: colors.onSurfaceVariant,
-  },
-  textarea: {
-    borderWidth: 2,
-    borderColor: colors.outlineVariant,
-    backgroundColor: colors.surface,
-    borderRadius: 12,
-    paddingHorizontal: 12,
-    paddingVertical: 10,
-    fontSize: 15,
-    color: colors.onSurface,
-    minHeight: 100,
-    textAlignVertical: "top",
-  },
-  input: {
-    borderWidth: 2,
-    borderColor: colors.outlineVariant,
-    backgroundColor: colors.surface,
-    borderRadius: 12,
-    paddingHorizontal: 12,
-    paddingVertical: 10,
-    fontSize: 15,
-    color: colors.onSurface,
-  },
-  counter: {
-    color: colors.onSurfaceVariant,
-    alignSelf: "flex-end",
-  },
-  chipRow: {
-    flexDirection: "row",
-    gap: spacing.xs,
-  },
-  chip: {
-    borderWidth: 2,
-    borderColor: colors.outlineVariant,
-    borderRadius: 9999,
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-  },
-  chipActive: {
-    borderColor: colors.primary,
-    backgroundColor: colors.primaryFixed,
-  },
-  chipText: {
-    color: colors.onSurfaceVariant,
-  },
-  chipTextActive: {
-    color: colors.primary,
-    fontWeight: "700",
-  },
-  screenshotRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: spacing.sm,
-    backgroundColor: colors.surfaceGray,
-    borderRadius: 12,
-    padding: spacing.sm,
-  },
-  screenshotThumb: {
-    width: 48,
-    height: 48,
-    borderRadius: 8,
-    borderWidth: 1,
-    borderColor: colors.outlineVariant,
-  },
-  screenshotName: {
-    flex: 1,
-    color: colors.onSurfaceVariant,
-  },
-  error: {
-    color: colors.error,
-    backgroundColor: colors.errorContainer,
-    borderRadius: 12,
-    paddingHorizontal: spacing.md,
-    paddingVertical: spacing.sm,
-  },
-  sentCard: {
-    alignItems: "center",
-    gap: spacing.sm,
-  },
-  sentTitle: {
-    color: colors.onSurface,
-    fontWeight: "700",
-  },
-  sentDescription: {
-    color: colors.onSurfaceVariant,
-    textAlign: "center",
-  },
-});
+const createStyles = (colors: ColorTokens) =>
+  StyleSheet.create({
+    card: {
+      gap: spacing.sm,
+    },
+    typeRow: {
+      flexDirection: "row",
+      gap: spacing.sm,
+    },
+    typeRowItem: {
+      flex: 1,
+    },
+    promptTitle: {
+      color: colors.onSurface,
+      fontWeight: "700",
+    },
+    promptCaption: {
+      color: colors.onSurfaceVariant,
+      marginTop: 4,
+    },
+    field: {
+      gap: 4,
+    },
+    fieldLabel: {
+      color: colors.onSurfaceVariant,
+    },
+    textarea: {
+      borderWidth: 2,
+      borderColor: colors.outlineVariant,
+      backgroundColor: colors.surface,
+      borderRadius: 12,
+      paddingHorizontal: 12,
+      paddingVertical: 10,
+      fontSize: 15,
+      color: colors.onSurface,
+      minHeight: 100,
+      textAlignVertical: "top",
+    },
+    input: {
+      borderWidth: 2,
+      borderColor: colors.outlineVariant,
+      backgroundColor: colors.surface,
+      borderRadius: 12,
+      paddingHorizontal: 12,
+      paddingVertical: 10,
+      fontSize: 15,
+      color: colors.onSurface,
+    },
+    counter: {
+      color: colors.onSurfaceVariant,
+      alignSelf: "flex-end",
+    },
+    chipRow: {
+      flexDirection: "row",
+      gap: spacing.xs,
+    },
+    chip: {
+      borderWidth: 2,
+      borderColor: colors.outlineVariant,
+      borderRadius: 9999,
+      paddingHorizontal: 12,
+      paddingVertical: 6,
+    },
+    chipActive: {
+      borderColor: colors.primary,
+      backgroundColor: colors.primaryFixed,
+    },
+    chipText: {
+      color: colors.onSurfaceVariant,
+    },
+    chipTextActive: {
+      color: colors.primary,
+      fontWeight: "700",
+    },
+    screenshotRow: {
+      flexDirection: "row",
+      alignItems: "center",
+      gap: spacing.sm,
+      backgroundColor: colors.surfaceGray,
+      borderRadius: 12,
+      padding: spacing.sm,
+    },
+    screenshotThumb: {
+      width: 48,
+      height: 48,
+      borderRadius: 8,
+      borderWidth: 1,
+      borderColor: colors.outlineVariant,
+    },
+    screenshotName: {
+      flex: 1,
+      color: colors.onSurfaceVariant,
+    },
+    error: {
+      color: colors.error,
+      backgroundColor: colors.errorContainer,
+      borderRadius: 12,
+      paddingHorizontal: spacing.md,
+      paddingVertical: spacing.sm,
+    },
+    sentCard: {
+      alignItems: "center",
+      gap: spacing.sm,
+    },
+    sentTitle: {
+      color: colors.onSurface,
+      fontWeight: "700",
+    },
+    sentDescription: {
+      color: colors.onSurfaceVariant,
+      textAlign: "center",
+    },
+  });

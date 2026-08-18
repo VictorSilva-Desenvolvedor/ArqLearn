@@ -3,7 +3,9 @@ import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
 import { Icon, type IconName } from "@/components/ui/Icon";
 import { LoadingBlueprint } from "@/components/ui/LoadingBlueprint";
-import { colors, type } from "@/theme/tokens";
+import { type } from "@/theme/tokens";
+import { useColors } from "@/theme/useColors";
+import type { ColorTokens } from "@/theme/tokens";
 import type { ShopItem } from "@/types/api";
 
 const featureIcon: Record<"hearts_refill" | "streak_freeze", IconName> = {
@@ -20,6 +22,8 @@ interface ShopFeatureCardProps {
 
 // Espelha apps/web/src/components/features/shop/ShopFeatureCard.tsx.
 export function ShopFeatureCard({ item, disabled, pending, onPurchase }: ShopFeatureCardProps) {
+  const colors = useColors();
+  const styles = createStyles(colors);
   return (
     <Card radius="xl" style={styles.card}>
       <View style={styles.info}>
@@ -45,35 +49,36 @@ export function ShopFeatureCard({ item, disabled, pending, onPurchase }: ShopFea
   );
 }
 
-const styles = StyleSheet.create({
-  card: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-    gap: 16,
-  },
-  info: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 16,
-    flex: 1,
-  },
-  textBlock: {
-    flex: 1,
-  },
-  title: {
-    color: colors.onSurface,
-    fontWeight: "700",
-  },
-  description: {
-    color: colors.onSurfaceVariant,
-    marginTop: 2,
-  },
-  action: {
-    alignItems: "center",
-    gap: 4,
-  },
-  insufficientLabel: {
-    color: colors.error,
-  },
-});
+const createStyles = (colors: ColorTokens) =>
+  StyleSheet.create({
+    card: {
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "space-between",
+      gap: 16,
+    },
+    info: {
+      flexDirection: "row",
+      alignItems: "center",
+      gap: 16,
+      flex: 1,
+    },
+    textBlock: {
+      flex: 1,
+    },
+    title: {
+      color: colors.onSurface,
+      fontWeight: "700",
+    },
+    description: {
+      color: colors.onSurfaceVariant,
+      marginTop: 2,
+    },
+    action: {
+      alignItems: "center",
+      gap: 4,
+    },
+    insufficientLabel: {
+      color: colors.error,
+    },
+  });

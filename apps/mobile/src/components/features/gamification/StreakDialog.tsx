@@ -9,7 +9,9 @@ import { useToast } from "@/hooks/useToast";
 import { freezeStreak, purchaseShopItem } from "@/lib/api/resources/gamification";
 import { mockShopCatalog } from "@/lib/api/mocks/fixtures/shopCatalog";
 import { ApiError } from "@/lib/api/http";
-import { colors, spacing, type } from "@/theme/tokens";
+import { spacing, type } from "@/theme/tokens";
+import { useColors } from "@/theme/useColors";
+import type { ColorTokens } from "@/theme/tokens";
 
 // Catálogo mock guarda os UUIDs reais de shop_items — mesmo item usado na Loja e aqui, não é
 // dado inventado. Espelha apps/web/src/components/features/gamification/StreakDialog.tsx.
@@ -25,6 +27,8 @@ export function StreakDialog({ open, onOpenChange }: StreakDialogProps) {
   const { showToast } = useToast();
   const [pending, setPending] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const colors = useColors();
+  const styles = createStyles(colors);
   const hasFreeze = streakFreezesAvailable > 0;
   const canBuyFreeze = gamification.gems >= STREAK_FREEZE_ITEM.price_gems;
 
@@ -103,46 +107,47 @@ export function StreakDialog({ open, onOpenChange }: StreakDialogProps) {
   );
 }
 
-const styles = StyleSheet.create({
-  content: {
-    alignItems: "center",
-    gap: spacing.md,
-  },
-  iconBadge: {
-    width: 80,
-    height: 80,
-    borderRadius: 40,
-    backgroundColor: colors.secondaryContainer,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  textBlock: {
-    alignItems: "center",
-  },
-  title: {
-    color: colors.onSurface,
-    fontWeight: "700",
-    textAlign: "center",
-  },
-  description: {
-    color: colors.onSurfaceVariant,
-    textAlign: "center",
-    marginTop: 8,
-  },
-  freezeCount: {
-    color: colors.onSurfaceVariant,
-  },
-  error: {
-    color: colors.error,
-    backgroundColor: colors.errorContainer,
-    borderRadius: 12,
-    paddingHorizontal: spacing.md,
-    paddingVertical: spacing.sm,
-    width: "100%",
-    textAlign: "center",
-  },
-  actions: {
-    width: "100%",
-    gap: spacing.sm,
-  },
-});
+const createStyles = (colors: ColorTokens) =>
+  StyleSheet.create({
+    content: {
+      alignItems: "center",
+      gap: spacing.md,
+    },
+    iconBadge: {
+      width: 80,
+      height: 80,
+      borderRadius: 40,
+      backgroundColor: colors.secondaryContainer,
+      alignItems: "center",
+      justifyContent: "center",
+    },
+    textBlock: {
+      alignItems: "center",
+    },
+    title: {
+      color: colors.onSurface,
+      fontWeight: "700",
+      textAlign: "center",
+    },
+    description: {
+      color: colors.onSurfaceVariant,
+      textAlign: "center",
+      marginTop: 8,
+    },
+    freezeCount: {
+      color: colors.onSurfaceVariant,
+    },
+    error: {
+      color: colors.error,
+      backgroundColor: colors.errorContainer,
+      borderRadius: 12,
+      paddingHorizontal: spacing.md,
+      paddingVertical: spacing.sm,
+      width: "100%",
+      textAlign: "center",
+    },
+    actions: {
+      width: "100%",
+      gap: spacing.sm,
+    },
+  });

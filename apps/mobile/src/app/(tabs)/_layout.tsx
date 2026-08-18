@@ -1,9 +1,13 @@
 import { StyleSheet, View } from "react-native";
 import { Tabs } from "expo-router";
 import { Icon } from "@/components/ui/Icon";
-import { colors, radius } from "@/theme/tokens";
+import { radius } from "@/theme/tokens";
+import { useColors } from "@/theme/useColors";
+import type { ColorTokens } from "@/theme/tokens";
 
 export default function TabsLayout() {
+  const colors = useColors();
+  const vipStyles = createVipStyles(colors);
   return (
     <Tabs
       screenOptions={{
@@ -71,16 +75,17 @@ export default function TabsLayout() {
   );
 }
 
-const vipStyles = StyleSheet.create({
-  badge: {
-    width: 30,
-    height: 30,
-    borderRadius: radius.full,
-    alignItems: "center",
-    justifyContent: "center",
-    backgroundColor: colors.secondaryFixed,
-  },
-  badgeActive: {
-    backgroundColor: colors.secondary,
-  },
-});
+const createVipStyles = (colors: ColorTokens) =>
+  StyleSheet.create({
+    badge: {
+      width: 30,
+      height: 30,
+      borderRadius: radius.full,
+      alignItems: "center",
+      justifyContent: "center",
+      backgroundColor: colors.secondaryFixed,
+    },
+    badgeActive: {
+      backgroundColor: colors.secondary,
+    },
+  });

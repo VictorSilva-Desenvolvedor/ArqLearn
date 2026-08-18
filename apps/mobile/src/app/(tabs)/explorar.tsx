@@ -17,7 +17,9 @@ import {
   initiateUpload,
   listMyUploads,
 } from "@/lib/api/resources/uploads";
-import { colors, spacing, type } from "@/theme/tokens";
+import { spacing, type } from "@/theme/tokens";
+import { useColors } from "@/theme/useColors";
+import type { ColorTokens } from "@/theme/tokens";
 import type { DocumentPickerAsset } from "expo-document-picker";
 import type { UploadedContent, UploadStatus } from "@/types/api";
 
@@ -26,6 +28,8 @@ const POLL_INTERVAL_MS = 700;
 
 // Espelha apps/web/src/app/(shell)/explorar/page.tsx.
 export default function ExplorarScreen() {
+  const colors = useColors();
+  const styles = createStyles(colors);
   const [query, setQuery] = useState("");
   const [uploads, setUploads] = useState<UploadedContent[]>([]);
   const [uploadError, setUploadError] = useState<string | null>(null);
@@ -152,48 +156,49 @@ export default function ExplorarScreen() {
   );
 }
 
-const styles = StyleSheet.create({
-  screen: {
-    flex: 1,
-    // Transparente de propósito (a pedido do usuário): deixa o fundo animado
-    // (AnimatedBlueprintBackground, montado em app/_layout.tsx) aparecer atrás.
-    backgroundColor: "transparent",
-  },
-  content: {
-    padding: spacing.md,
-    paddingBottom: spacing.lg,
-    gap: spacing.lg,
-  },
-  uploadBlock: {
-    gap: spacing.xs,
-  },
-  uploadError: {
-    color: colors.error,
-    backgroundColor: colors.errorContainer,
-    borderRadius: 12,
-    paddingHorizontal: spacing.md,
-    paddingVertical: spacing.sm,
-  },
-  section: {
-    gap: spacing.sm,
-  },
-  sectionTitle: {
-    color: colors.onSurface,
-  },
-  trackGrid: {
-    flexDirection: "row",
-    flexWrap: "wrap",
-    marginHorizontal: -spacing.xs / 2,
-  },
-  trackCell: {
-    width: "50%",
-    paddingHorizontal: spacing.xs / 2,
-    marginBottom: spacing.xs,
-  },
-  list: {
-    gap: spacing.xs,
-  },
-  empty: {
-    color: colors.onSurfaceVariant,
-  },
-});
+const createStyles = (colors: ColorTokens) =>
+  StyleSheet.create({
+    screen: {
+      flex: 1,
+      // Transparente de propósito (a pedido do usuário): deixa o fundo animado
+      // (AnimatedBlueprintBackground, montado em app/_layout.tsx) aparecer atrás.
+      backgroundColor: "transparent",
+    },
+    content: {
+      padding: spacing.md,
+      paddingBottom: spacing.lg,
+      gap: spacing.lg,
+    },
+    uploadBlock: {
+      gap: spacing.xs,
+    },
+    uploadError: {
+      color: colors.error,
+      backgroundColor: colors.errorContainer,
+      borderRadius: 12,
+      paddingHorizontal: spacing.md,
+      paddingVertical: spacing.sm,
+    },
+    section: {
+      gap: spacing.sm,
+    },
+    sectionTitle: {
+      color: colors.onSurface,
+    },
+    trackGrid: {
+      flexDirection: "row",
+      flexWrap: "wrap",
+      marginHorizontal: -spacing.xs / 2,
+    },
+    trackCell: {
+      width: "50%",
+      paddingHorizontal: spacing.xs / 2,
+      marginBottom: spacing.xs,
+    },
+    list: {
+      gap: spacing.xs,
+    },
+    empty: {
+      color: colors.onSurfaceVariant,
+    },
+  });

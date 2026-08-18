@@ -5,7 +5,9 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { Button } from "@/components/ui/Button";
 import { Icon } from "@/components/ui/Icon";
 import { createSupabaseClient } from "@/lib/supabase/client";
-import { colors, type } from "@/theme/tokens";
+import { type } from "@/theme/tokens";
+import { useColors } from "@/theme/useColors";
+import type { ColorTokens } from "@/theme/tokens";
 
 const MIN_PASSWORD_LENGTH = 6;
 
@@ -23,6 +25,8 @@ type Status = "checking" | "ready" | "invalid-link" | "done";
 // ou `#access_token=...&refresh_token=...` (implícito, setSession) — não dá pra saber qual sem
 // testar contra o projeto real, então cobre os dois.
 export default function ResetPasswordScreen() {
+  const colors = useColors();
+  const styles = createStyles(colors);
   const [status, setStatus] = useState<Status>("checking");
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
@@ -150,54 +154,55 @@ export default function ResetPasswordScreen() {
   );
 }
 
-const styles = StyleSheet.create({
-  safeArea: {
-    flex: 1,
-    backgroundColor: colors.background,
-  },
-  screen: {
-    flex: 1,
-    alignItems: "center",
-    justifyContent: "center",
-    paddingHorizontal: 24,
-    gap: 24,
-  },
-  brand: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 8,
-  },
-  brandText: {
-    color: colors.primary,
-    fontWeight: "700",
-  },
-  message: {
-    color: colors.onSurfaceVariant,
-    textAlign: "center",
-    maxWidth: 360,
-  },
-  form: {
-    width: "100%",
-    maxWidth: 420,
-    gap: 12,
-  },
-  field: {
-    gap: 4,
-  },
-  label: {
-    color: colors.onSurfaceVariant,
-  },
-  input: {
-    borderWidth: 2,
-    borderColor: colors.outlineVariant,
-    backgroundColor: colors.surface,
-    borderRadius: 12,
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-    fontSize: 15,
-    color: colors.onSurface,
-  },
-  error: {
-    color: colors.error,
-  },
-});
+const createStyles = (colors: ColorTokens) =>
+  StyleSheet.create({
+    safeArea: {
+      flex: 1,
+      backgroundColor: colors.background,
+    },
+    screen: {
+      flex: 1,
+      alignItems: "center",
+      justifyContent: "center",
+      paddingHorizontal: 24,
+      gap: 24,
+    },
+    brand: {
+      flexDirection: "row",
+      alignItems: "center",
+      gap: 8,
+    },
+    brandText: {
+      color: colors.primary,
+      fontWeight: "700",
+    },
+    message: {
+      color: colors.onSurfaceVariant,
+      textAlign: "center",
+      maxWidth: 360,
+    },
+    form: {
+      width: "100%",
+      maxWidth: 420,
+      gap: 12,
+    },
+    field: {
+      gap: 4,
+    },
+    label: {
+      color: colors.onSurfaceVariant,
+    },
+    input: {
+      borderWidth: 2,
+      borderColor: colors.outlineVariant,
+      backgroundColor: colors.surface,
+      borderRadius: 12,
+      paddingHorizontal: 16,
+      paddingVertical: 12,
+      fontSize: 15,
+      color: colors.onSurface,
+    },
+    error: {
+      color: colors.error,
+    },
+  });

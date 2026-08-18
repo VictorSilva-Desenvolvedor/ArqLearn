@@ -1,5 +1,7 @@
 import { StyleSheet, Text, TextInput, View } from "react-native";
-import { colors, radius, type } from "@/theme/tokens";
+import { radius, type } from "@/theme/tokens";
+import { useColors } from "@/theme/useColors";
+import type { ColorTokens } from "@/theme/tokens";
 
 interface FillBlankInputProps {
   value: string;
@@ -25,6 +27,8 @@ export function FillBlankInput({
   correctAnswer,
   onChangeText,
 }: FillBlankInputProps) {
+  const colors = useColors();
+  const styles = createStyles(colors);
   const toneStyle = revealed
     ? isCorrect
       ? { borderColor: colors.tertiary, backgroundColor: colors.tertiaryFixed, color: colors.onTertiaryFixedVariant }
@@ -51,18 +55,19 @@ export function FillBlankInput({
   );
 }
 
-const styles = StyleSheet.create({
-  container: {
-    gap: 8,
-  },
-  input: {
-    width: "100%",
-    borderWidth: 2,
-    borderRadius: radius.md,
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-  },
-  hint: {
-    color: colors.onSurfaceVariant,
-  },
-});
+const createStyles = (colors: ColorTokens) =>
+  StyleSheet.create({
+    container: {
+      gap: 8,
+    },
+    input: {
+      width: "100%",
+      borderWidth: 2,
+      borderRadius: radius.md,
+      paddingHorizontal: 16,
+      paddingVertical: 12,
+    },
+    hint: {
+      color: colors.onSurfaceVariant,
+    },
+  });
