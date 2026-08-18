@@ -1,5 +1,6 @@
 import { useContext, useState } from "react";
 import { KeyboardAvoidingView, Platform, StyleSheet, Text, TextInput, View } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 import { Button } from "@/components/ui/Button";
 import { Icon } from "@/components/ui/Icon";
 import { AuthContext } from "@/contexts/AuthContext";
@@ -34,57 +35,61 @@ export default function LoginScreen() {
   };
 
   return (
-    <KeyboardAvoidingView
-      style={styles.screen}
-      behavior={Platform.OS === "ios" ? "padding" : undefined}
-    >
-      <View style={styles.brand}>
-        <Icon name="logo" size={32} color={colors.primary} />
-        <Text style={[type.displayLg, styles.brandText]}>ArqLearn</Text>
-      </View>
+    <SafeAreaView style={styles.safeArea} edges={["top"]}>
+      <KeyboardAvoidingView style={styles.screen} behavior={Platform.OS === "ios" ? "padding" : "height"}>
+        <View style={styles.brand}>
+          <Icon name="logo" size={32} color={colors.primary} />
+          <Text style={[type.displayLg, styles.brandText]}>ArqLearn</Text>
+        </View>
 
-      <View style={styles.form}>
-        <View style={styles.field}>
-          <Text style={[type.bodySm, styles.label]}>E-mail</Text>
-          <TextInput
-            style={styles.input}
-            value={email}
-            onChangeText={setEmail}
-            autoCapitalize="none"
-            autoComplete="email"
-            keyboardType="email-address"
-            placeholder="voce@exemplo.com"
-            placeholderTextColor={colors.outline}
-          />
+        <View style={styles.form}>
+          <View style={styles.field}>
+            <Text style={[type.bodySm, styles.label]}>E-mail</Text>
+            <TextInput
+              style={styles.input}
+              value={email}
+              onChangeText={setEmail}
+              autoCapitalize="none"
+              autoComplete="email"
+              keyboardType="email-address"
+              placeholder="voce@exemplo.com"
+              placeholderTextColor={colors.outline}
+              accessibilityLabel="E-mail"
+            />
+          </View>
+          <View style={styles.field}>
+            <Text style={[type.bodySm, styles.label]}>Senha</Text>
+            <TextInput
+              style={styles.input}
+              value={password}
+              onChangeText={setPassword}
+              autoCapitalize="none"
+              autoComplete="password"
+              secureTextEntry
+              placeholder="••••••••"
+              placeholderTextColor={colors.outline}
+              accessibilityLabel="Senha"
+            />
+          </View>
+          {error && <Text style={[type.bodySm, styles.error]}>{error}</Text>}
+          <Button fullWidth onPress={handleSubmit}>
+            {submitting ? "Entrando..." : "Entrar"}
+          </Button>
         </View>
-        <View style={styles.field}>
-          <Text style={[type.bodySm, styles.label]}>Senha</Text>
-          <TextInput
-            style={styles.input}
-            value={password}
-            onChangeText={setPassword}
-            autoCapitalize="none"
-            autoComplete="password"
-            secureTextEntry
-            placeholder="••••••••"
-            placeholderTextColor={colors.outline}
-          />
-        </View>
-        {error && <Text style={[type.bodySm, styles.error]}>{error}</Text>}
-        <Button fullWidth onPress={handleSubmit}>
-          {submitting ? "Entrando..." : "Entrar"}
-        </Button>
-      </View>
-    </KeyboardAvoidingView>
+      </KeyboardAvoidingView>
+    </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
-  screen: {
+  safeArea: {
     flex: 1,
     // Transparente de propósito (a pedido do usuário): deixa o fundo animado
     // (AnimatedBlueprintBackground, montado em app/_layout.tsx) aparecer atrás.
     backgroundColor: "transparent",
+  },
+  screen: {
+    flex: 1,
     alignItems: "center",
     justifyContent: "center",
     paddingHorizontal: 24,

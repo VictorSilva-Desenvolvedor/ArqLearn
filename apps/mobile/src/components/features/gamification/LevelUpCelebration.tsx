@@ -1,5 +1,5 @@
-import { useContext, useEffect } from "react";
-import { StyleSheet, Text, View } from "react-native";
+import { useContext, useEffect, useState } from "react";
+import { AccessibilityInfo, StyleSheet, Text, View } from "react-native";
 import { AuthContext } from "@/contexts/AuthContext";
 import { Icon } from "@/components/ui/Icon";
 import { Modal } from "@/components/ui/Modal";
@@ -14,12 +14,28 @@ export function LevelUpCelebration() {
   const auth = useContext(AuthContext);
   const justLeveledUpTo = auth?.justLeveledUpTo ?? null;
   const dismissLevelUp = auth?.dismissLevelUp;
+  const [screenReaderEnabled, setScreenReaderEnabled] = useState(false);
 
   useEffect(() => {
-    if (justLeveledUpTo === null || !dismissLevelUp) return;
+    let mounted = true;
+    AccessibilityInfo.isScreenReaderEnabled().then((enabled) => {
+      if (mounted) setScreenReaderEnabled(enabled);
+    });
+    const subscription = AccessibilityInfo.addEventListener("screenReaderChanged", setScreenReaderEnabled);
+    return () => {
+      mounted = false;
+      subscription.remove();
+    };
+  }, []);
+
+  useEffect(() => {
+    // Achado de audit (18/08/2026): 1.5s fixos não davam tempo do TalkBack terminar de ler antes
+    // do modal desmontar sozinho. Com leitor de tela ativo, quem fecha é a pessoa (toque fora ou
+    // botão voltar, os dois já dismissible via Modal.tsx), sem prazo.
+    if (justLeveledUpTo === null || !dismissLevelUp || screenReaderEnabled) return;
     const timer = setTimeout(dismissLevelUp, 1500);
     return () => clearTimeout(timer);
-  }, [justLeveledUpTo, dismissLevelUp]);
+  }, [justLeveledUpTo, dismissLevelUp, screenReaderEnabled]);
 
   if (!dismissLevelUp) return null;
 

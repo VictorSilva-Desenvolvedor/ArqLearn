@@ -137,6 +137,7 @@ export default function VipScreen() {
               autoCapitalize="none"
               keyboardType="number-pad"
               maxLength={10}
+              accessibilityLabel="Código do cupom, 10 dígitos"
               placeholder="0000000000"
               placeholderTextColor={colors.outline}
             />

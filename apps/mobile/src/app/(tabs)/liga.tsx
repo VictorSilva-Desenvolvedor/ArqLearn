@@ -6,8 +6,16 @@ import { LeagueRankingList } from "@/components/features/league/LeagueRankingLis
 import { LeagueTiersDialog } from "@/components/features/league/LeagueTiersDialog";
 import { TopAppBar } from "@/components/home/TopAppBar";
 import { useAuth } from "@/hooks/useAuth";
+import { useCountdownToTimestamp } from "@/hooks/useCountdown";
 import { getLeague } from "@/lib/api/resources/gamification";
-import { LEAGUE_TIER_ICONS, LEAGUE_TIER_LABELS, nextTierDivision, type LeagueTierName } from "@/lib/gamification/leagueTiers";
+import {
+  LEAGUE_TIER_ICONS,
+  LEAGUE_TIER_LABELS,
+  nextTierDivision,
+  weekReferenceEndsAtIso,
+  type LeagueTierName,
+} from "@/lib/gamification/leagueTiers";
+import { formatDaysHoursMinutes } from "@/lib/utils/format";
 import { colors, spacing, type } from "@/theme/tokens";
 import type { League } from "@/types/api";
 
@@ -33,6 +41,8 @@ export default function LigaScreen() {
   const tier = (league?.tier ?? "madeira") as LeagueTierName;
   const tierLabel = LEAGUE_TIER_LABELS[tier];
   const next = league ? nextTierDivision(tier, league.division) : null;
+  const weekEndsAt = league ? weekReferenceEndsAtIso(league.week_reference) : null;
+  const { secondsLeft: weekSecondsLeft } = useCountdownToTimestamp(weekEndsAt);
 
   const description = next
     ? `Os ${league?.promotion_slots ?? 3} melhores avançam para a Liga ${LEAGUE_TIER_LABELS[next.tier]} ${next.division}. Compita aprendendo!`
@@ -55,10 +65,12 @@ export default function LigaScreen() {
             Liga {tierLabel} {league?.division ?? 3}
           </Text>
           <Text style={[type.bodyMd, styles.caption]}>{description}</Text>
-          <View style={styles.countdown}>
-            <Text style={[type.labelCaps, styles.countdownLabel]}>Tempo Restante</Text>
-            <Text style={[type.questionLg, styles.countdownValue]}>2d 14h 32m</Text>
-          </View>
+          {weekEndsAt && (
+            <View style={styles.countdown}>
+              <Text style={[type.labelCaps, styles.countdownLabel]}>Tempo Restante</Text>
+              <Text style={[type.questionLg, styles.countdownValue]}>{formatDaysHoursMinutes(weekSecondsLeft)}</Text>
+            </View>
+          )}
         </View>
 
         <LeagueProgressionTrack currentTier={tier} onSelectTier={(t) => openTiersDialog(t)} />

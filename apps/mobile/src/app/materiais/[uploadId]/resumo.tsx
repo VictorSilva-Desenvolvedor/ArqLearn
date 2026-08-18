@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { useLocalSearchParams, useRouter } from "expo-router";
-import { ScrollView, StyleSheet, Text, View } from "react-native";
+import { ScrollView, StyleSheet, Text } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 import { Button } from "@/components/ui/Button";
 import { ArchitectTipCallout } from "@/components/features/materialSummary/ArchitectTipCallout";
 import { DiagramCard } from "@/components/features/materialSummary/DiagramCard";
@@ -34,7 +35,7 @@ export default function MaterialSummaryScreen() {
   }
 
   return (
-    <View style={styles.screen}>
+    <SafeAreaView style={styles.screen} edges={["top"]}>
       <SummaryHeader title={summary.title} />
       <ScrollView contentContainerStyle={styles.content}>
         <Text style={[type.bodyLg, styles.synopsis]}>{summary.synopsis}</Text>
@@ -45,7 +46,7 @@ export default function MaterialSummaryScreen() {
           Tirar Dúvidas
         </Button>
       </ScrollView>
-    </View>
+    </SafeAreaView>
   );
 }
 

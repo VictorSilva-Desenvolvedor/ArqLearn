@@ -17,6 +17,7 @@ export function SearchBar({ value, onChange }: SearchBarProps) {
         onChangeText={onChange}
         placeholder="Pesquisar trilhas, tópicos ou materiais..."
         placeholderTextColor={colors.onSurfaceVariant}
+        accessibilityLabel="Pesquisar trilhas, tópicos ou materiais"
         style={[type.bodyLg, styles.input]}
       />
     </View>

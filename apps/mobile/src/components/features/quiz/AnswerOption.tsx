@@ -84,6 +84,11 @@ const styles = StyleSheet.create({
     alignItems: "center",
     gap: 8,
     width: "100%",
+    // Achado de /impeccable critique (18/08/2026): DESIGN.md especifica "mínimo 60px de altura
+    // de toque" pras answer cards — sem minHeight explícito, paddingVertical:12 em volta de
+    // bodyLg (24px de altura de linha) ficava perto de 48px, abaixo do próprio spec do produto
+    // no elemento mais tocado do app.
+    minHeight: 60,
     borderRadius: radius.md,
     paddingHorizontal: 16,
     paddingVertical: 12,

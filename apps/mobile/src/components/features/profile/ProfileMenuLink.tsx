@@ -29,7 +29,11 @@ export function ProfileMenuLink({ href, icon, label }: ProfileMenuLinkProps) {
 
   if (!href) return content;
 
-  return <Pressable onPress={() => router.push(href as never)}>{content}</Pressable>;
+  return (
+    <Pressable onPress={() => router.push(href as never)} accessibilityRole="button" accessibilityLabel={label}>
+      {content}
+    </Pressable>
+  );
 }
 
 const styles = StyleSheet.create({

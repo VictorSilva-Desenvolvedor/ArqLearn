@@ -57,7 +57,14 @@ export function QuizActionBar({
           {deepExplanation ? (
             <Text style={[type.bodySm, styles.deepExplanation]}>{deepExplanation}</Text>
           ) : (
-            <Pressable style={styles.explainRow} onPress={onExplainMore} disabled={explainLoading}>
+            <Pressable
+              style={styles.explainRow}
+              onPress={onExplainMore}
+              disabled={explainLoading}
+              accessibilityRole="button"
+              accessibilityLabel={explainLoading ? "Aprofundando explicação" : "Explique melhor"}
+              accessibilityState={{ disabled: explainLoading }}
+            >
               {explainLoading && <LoadingBlueprint size={16} />}
               <Text style={[type.bodySm, styles.explainLink, explainLoading && styles.explainLinkDisabled]}>
                 {explainLoading ? "Aprofundando..." : "Explique melhor"}

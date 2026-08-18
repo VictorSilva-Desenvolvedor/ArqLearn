@@ -113,6 +113,10 @@ export function LeagueTiersDialog({ open, onOpenChange, currentUserId, ownLeague
                 setSelectedTier(tier);
                 setSelectedDivision(tier === ownTier ? ownLeague.division : 1);
               }}
+              accessibilityRole="button"
+              accessibilityLabel={LEAGUE_TIER_LABELS[tier]}
+              accessibilityState={{ selected: active }}
+              hitSlop={{ top: 6, bottom: 6, left: 3, right: 3 }}
               style={[styles.tierBadge, active && styles.tierBadgeActive]}
             >
               <Icon name={LEAGUE_TIER_ICONS[tier]} size={18} color={active ? colors.onPrimary : colors.onSurfaceVariant} />
@@ -127,6 +131,9 @@ export function LeagueTiersDialog({ open, onOpenChange, currentUserId, ownLeague
           <Pressable
             key={division}
             onPress={() => setSelectedDivision(division)}
+            accessibilityRole="button"
+            accessibilityLabel={`Divisão ${division}`}
+            accessibilityState={{ selected: selectedDivision === division }}
             style={[styles.divisionTab, selectedDivision === division && styles.divisionTabActive]}
           >
             <Text

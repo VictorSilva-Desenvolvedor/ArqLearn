@@ -1,5 +1,6 @@
 import { useRouter } from "expo-router";
 import { StyleSheet, Text, View } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 import { Button } from "@/components/ui/Button";
 import { Icon } from "@/components/ui/Icon";
 import { ProgressBar } from "@/components/ui/ProgressBar";
@@ -31,7 +32,7 @@ export function SummaryPanel({
   const router = useRouter();
 
   return (
-    <View style={styles.screen}>
+    <SafeAreaView style={styles.screen} edges={["top"]}>
       <View style={styles.panel}>
         <View style={styles.header}>
           <Text style={[type.displayLg, styles.title]}>Lição Concluída!</Text>
@@ -83,7 +84,7 @@ export function SummaryPanel({
           Continuar para o Mapa
         </Button>
       </View>
-    </View>
+    </SafeAreaView>
   );
 }
 

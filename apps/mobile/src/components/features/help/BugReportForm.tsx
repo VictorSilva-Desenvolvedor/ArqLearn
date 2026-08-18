@@ -154,6 +154,7 @@ export function BugReportForm() {
               : "Ex.: Seria ótimo poder filtrar as lições por dificuldade antes de começar uma trilha."
           }
           placeholderTextColor={colors.outline}
+          accessibilityLabel={isBug ? "O que aconteceu?" : "Sua sugestão"}
           style={styles.textarea}
         />
         <Text style={[type.bodySm, styles.counter]}>
@@ -171,6 +172,8 @@ export function BugReportForm() {
                 <Pressable
                   key={opt.value}
                   onPress={() => setDeviceType(active ? "" : opt.value)}
+                  accessibilityRole="button"
+                  accessibilityState={{ selected: active }}
                   style={[styles.chip, active && styles.chipActive]}
                 >
                   <Text style={[type.bodySm, active ? styles.chipTextActive : styles.chipText]}>{opt.label}</Text>
@@ -189,6 +192,7 @@ export function BugReportForm() {
             onChangeText={setDeviceModel}
             placeholder="Ex.: iPhone 13, Galaxy S23…"
             placeholderTextColor={colors.outline}
+            accessibilityLabel="Modelo do dispositivo"
             style={styles.input}
           />
         </View>
@@ -205,7 +209,11 @@ export function BugReportForm() {
 
       {screenshot && (
         <View style={styles.screenshotRow}>
-          <Image source={{ uri: screenshot.uri }} style={styles.screenshotThumb} />
+          <Image
+            source={{ uri: screenshot.uri }}
+            accessibilityLabel="Prévia do print anexado"
+            style={styles.screenshotThumb}
+          />
           <Text style={[type.bodySm, styles.screenshotName]} numberOfLines={1}>
             {screenshot.name}
           </Text>

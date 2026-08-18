@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { useRouter } from "expo-router";
 import * as FileSystem from "expo-file-system/legacy";
 import * as Sharing from "expo-sharing";
-import { Pressable, ScrollView, StyleSheet, Text, TextInput, View } from "react-native";
+import { AccessibilityInfo, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
@@ -49,6 +49,23 @@ export default function ConfiguracoesScreen() {
   const [confirmPhraseInput, setConfirmPhraseInput] = useState("");
   const [holdProgress, setHoldProgress] = useState(0);
   const holdIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  // P0 do /impeccable audit (18/08/2026): o gesto de segurar 10s é estruturalmente incompatível
+  // com TalkBack (que intercepta o toque pra navegação por exploração) — sem isto, quem usa
+  // leitor de tela não tinha NENHUM caminho pra completar a exclusão de conta. Mesmo padrão de
+  // detecção de useReduceMotion.ts.
+  const [screenReaderEnabled, setScreenReaderEnabled] = useState(false);
+
+  useEffect(() => {
+    let mounted = true;
+    AccessibilityInfo.isScreenReaderEnabled().then((enabled) => {
+      if (mounted) setScreenReaderEnabled(enabled);
+    });
+    const subscription = AccessibilityInfo.addEventListener("screenReaderChanged", setScreenReaderEnabled);
+    return () => {
+      mounted = false;
+      subscription.remove();
+    };
+  }, []);
 
   const dirty = name !== user.name || timezone !== user.timezone;
 
@@ -72,7 +89,10 @@ export default function ConfiguracoesScreen() {
       const { deletion_scheduled_at } = await deleteMe();
       setDeletionScheduledAt(deletion_scheduled_at);
     } catch {
+      // Achado do /impeccable critique (18/08/2026): antes disso a falha aqui era totalmente
+      // silenciosa — nem toast, nem texto, nada, na ação mais irreversível do app.
       setHoldProgress(0);
+      showToast("Não foi possível excluir sua conta agora. Tente de novo.", "error");
     } finally {
       setDeleting(false);
     }
@@ -190,12 +210,18 @@ export default function ConfiguracoesScreen() {
 
           <View style={styles.field}>
             <Text style={[type.labelCaps, styles.fieldLabel]}>Nome</Text>
-            <TextInput style={styles.input} value={name} onChangeText={setName} />
+            <TextInput style={styles.input} value={name} onChangeText={setName} accessibilityLabel="Nome" />
           </View>
 
           <View style={styles.field}>
             <Text style={[type.labelCaps, styles.fieldLabel]}>Fuso horário</Text>
-            <TextInput style={styles.input} value={timezone} onChangeText={setTimezone} autoCapitalize="none" />
+            <TextInput
+              style={styles.input}
+              value={timezone}
+              onChangeText={setTimezone}
+              autoCapitalize="none"
+              accessibilityLabel="Fuso horário"
+            />
           </View>
 
           <Text style={[type.bodySm, styles.email]}>{user.email}</Text>
@@ -234,6 +260,7 @@ export default function ConfiguracoesScreen() {
               autoCapitalize="none"
               placeholder={`Pelo menos ${MIN_PASSWORD_LENGTH} caracteres`}
               placeholderTextColor={colors.onSurfaceVariant}
+              accessibilityLabel="Nova senha"
             />
           </View>
 
@@ -245,6 +272,7 @@ export default function ConfiguracoesScreen() {
               onChangeText={setConfirmPassword}
               secureTextEntry
               autoCapitalize="none"
+              accessibilityLabel="Confirmar nova senha"
             />
           </View>
 
@@ -313,6 +341,7 @@ export default function ConfiguracoesScreen() {
               autoCorrect={false}
               placeholder={requiredPhrase}
               placeholderTextColor={colors.error + "66"}
+              accessibilityLabel={`Frase de confirmação: ${requiredPhrase}`}
             />
           </View>
 
@@ -320,21 +349,30 @@ export default function ConfiguracoesScreen() {
             <Button variant="ghost" disabled={holding} onPress={() => setDeleteOpen(false)}>
               Cancelar
             </Button>
-            <Pressable
-              disabled={!phraseConfirmed || deleting}
-              onPressIn={startHold}
-              onPressOut={() => stopHold(true)}
-              style={[styles.holdButton, (!phraseConfirmed || deleting) && styles.holdButtonDisabled]}
-            >
-              {holdProgress > 0 && <View style={[styles.holdProgress, { width: `${holdProgress}%` }]} />}
-              <Text style={[type.bodyLg, styles.holdButtonLabel]}>
-                {deleting
-                  ? "Excluindo…"
-                  : holding
-                    ? `Segure… ${Math.ceil((HOLD_TO_CONFIRM_MS * (1 - holdProgress / 100)) / 1000)}s`
-                    : "Segure 10s para excluir"}
-              </Text>
-            </Pressable>
+            {screenReaderEnabled ? (
+              // Alternativa acessível ao gesto de segurar — a frase já digitada acima é a
+              // fricção deliberada aqui; um botão comum, ativável por toque duplo do TalkBack,
+              // substitui o hold que ele não consegue completar.
+              <Button variant="danger" disabled={!phraseConfirmed || deleting} onPress={() => void handleDelete()}>
+                {deleting ? "Excluindo…" : "Excluir definitivamente"}
+              </Button>
+            ) : (
+              <Pressable
+                disabled={!phraseConfirmed || deleting}
+                onPressIn={startHold}
+                onPressOut={() => stopHold(true)}
+                style={[styles.holdButton, (!phraseConfirmed || deleting) && styles.holdButtonDisabled]}
+              >
+                {holdProgress > 0 && <View style={[styles.holdProgress, { width: `${holdProgress}%` }]} />}
+                <Text style={[type.bodyLg, styles.holdButtonLabel]}>
+                  {deleting
+                    ? "Excluindo…"
+                    : holding
+                      ? `Segure… ${Math.ceil((HOLD_TO_CONFIRM_MS * (1 - holdProgress / 100)) / 1000)}s`
+                      : "Segure 10s para excluir"}
+                </Text>
+              </Pressable>
+            )}
           </View>
         </View>
       </Modal>

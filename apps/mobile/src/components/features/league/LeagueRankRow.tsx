@@ -21,6 +21,8 @@ export function LeagueRankRow({ entry, isCurrentUser, inPromotionZone }: LeagueR
   return (
     <Pressable
       style={[styles.row, isCurrentUser && styles.currentUserRow]}
+      accessibilityRole="button"
+      accessibilityLabel={`${isCurrentUser ? "Você" : entry.name}, ${entry.position}º lugar, ${entry.xp_this_week} XP essa semana`}
       onPress={() =>
         showToast(
           isCurrentUser

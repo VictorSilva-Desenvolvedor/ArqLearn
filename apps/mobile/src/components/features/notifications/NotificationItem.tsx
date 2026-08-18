@@ -37,8 +37,16 @@ export function NotificationItem({ notification, href }: NotificationItemProps) 
     </Card>
   );
 
+  const accessibilityLabel = notification.read
+    ? notification.message
+    : `${notification.message}, não lida`;
+
   if (href) {
-    return <Pressable onPress={() => router.push(href as never)}>{content}</Pressable>;
+    return (
+      <Pressable onPress={() => router.push(href as never)} accessibilityRole="button" accessibilityLabel={accessibilityLabel}>
+        {content}
+      </Pressable>
+    );
   }
 
   return content;
