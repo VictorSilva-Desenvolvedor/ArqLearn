@@ -136,7 +136,7 @@ export default function DailyChestPage() {
             <Icon name="lock" className="text-6xl text-on-surface-variant" />
           </div>
           <div>
-            <p className="font-label-caps text-label-caps uppercase text-secondary mb-1">{copy.eyebrow}</p>
+            <p className="font-label text-label-caps uppercase text-secondary mb-1">{copy.eyebrow}</p>
             <h1 className="font-display text-headline-md font-bold text-on-surface">
               Nenhum Baú disponível
             </h1>
@@ -165,7 +165,7 @@ export default function DailyChestPage() {
               <Icon name={REWARD_ICON[reward.reward_type]} filled className="text-6xl -rotate-45" />
             </div>
             <div>
-              <p className="font-label-caps text-label-caps uppercase text-secondary mb-1">{copy.eyebrow}</p>
+              <p className="font-label text-label-caps uppercase text-secondary mb-1">{copy.eyebrow}</p>
               <h1 className="font-display text-headline-md font-bold text-on-surface">
                 Recompensas Coletadas!
               </h1>
@@ -189,7 +189,7 @@ export default function DailyChestPage() {
               <Icon name="redeem" className="text-6xl text-secondary" />
             </div>
             <div>
-              <p className="font-label-caps text-label-caps uppercase text-secondary mb-1">{copy.eyebrow}</p>
+              <p className="font-label text-label-caps uppercase text-secondary mb-1">{copy.eyebrow}</p>
               <h1 className="font-display text-headline-md font-bold text-on-surface">{copy.titulo}</h1>
               <p className="font-body-md text-body-md text-on-surface-variant mt-2">
                 Abra pra revelar sua recompensa.

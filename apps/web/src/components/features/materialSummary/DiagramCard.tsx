@@ -8,7 +8,7 @@ export function DiagramCard({ caption }: { caption: string }) {
   return (
     <Card padding="lg" radius="lg" className="flex flex-col items-center justify-center gap-sm bg-surface-gray min-h-48">
       <Icon name="architecture" className="text-5xl text-outline" />
-      <p className="font-label-caps text-label-caps uppercase text-on-surface-variant text-center">{caption}</p>
+      <p className="font-label text-label-caps uppercase text-on-surface-variant text-center">{caption}</p>
     </Card>
   );
 }

@@ -37,6 +37,13 @@ export default function SettingsPage() {
   const [passwordError, setPasswordError] = useState<string | null>(null);
   const [passwordChanged, setPasswordChanged] = useState(false);
   const passwordValid = newPassword.length >= MIN_PASSWORD_LENGTH && newPassword === confirmPassword;
+  // P2 do /impeccable critique (18/08/2026): mesmo achado do redefinir-senha/page.tsx.
+  const passwordHint =
+    newPassword.length > 0 && newPassword.length < MIN_PASSWORD_LENGTH
+      ? `A senha precisa ter pelo menos ${MIN_PASSWORD_LENGTH} caracteres.`
+      : confirmPassword.length > 0 && newPassword !== confirmPassword
+        ? "As senhas não coincidem."
+        : null;
 
   const [exporting, setExporting] = useState(false);
 
@@ -183,7 +190,7 @@ export default function SettingsPage() {
         <h2 className="font-display text-headline-md text-on-surface">Perfil</h2>
 
         <label className="flex flex-col gap-1">
-          <span className="font-label-caps text-label-caps uppercase text-on-surface-variant">Nome</span>
+          <span className="font-label text-label-caps uppercase text-on-surface-variant">Nome</span>
           <input
             type="text"
             value={name}
@@ -193,7 +200,7 @@ export default function SettingsPage() {
         </label>
 
         <label className="flex flex-col gap-1">
-          <span className="font-label-caps text-label-caps uppercase text-on-surface-variant">
+          <span className="font-label text-label-caps uppercase text-on-surface-variant">
             Fuso horário
           </span>
           <input
@@ -231,7 +238,7 @@ export default function SettingsPage() {
         <h2 className="font-display text-headline-md text-on-surface">Segurança</h2>
 
         <label className="flex flex-col gap-1">
-          <span className="font-label-caps text-label-caps uppercase text-on-surface-variant">Nova senha</span>
+          <span className="font-label text-label-caps uppercase text-on-surface-variant">Nova senha</span>
           <input
             type="password"
             value={newPassword}
@@ -243,7 +250,7 @@ export default function SettingsPage() {
         </label>
 
         <label className="flex flex-col gap-1">
-          <span className="font-label-caps text-label-caps uppercase text-on-surface-variant">
+          <span className="font-label text-label-caps uppercase text-on-surface-variant">
             Confirmar nova senha
           </span>
           <input
@@ -255,6 +262,7 @@ export default function SettingsPage() {
           />
         </label>
 
+        {passwordHint && <p className="font-body-sm text-body-sm text-on-surface-variant">{passwordHint}</p>}
         {passwordError && <p className="font-body-sm text-body-sm text-error">{passwordError}</p>}
         {passwordChanged && <p className="font-body-sm text-body-sm text-tertiary">Senha alterada com sucesso!</p>}
 
@@ -335,6 +343,15 @@ export default function SettingsPage() {
               onPointerUp={() => stopHold(true)}
               onPointerLeave={() => stopHold(true)}
               onPointerCancel={() => stopHold(true)}
+              // P1 do /impeccable critique (18/08/2026): só ponteiro deixava o botão inoperável
+              // pra quem navega só por teclado — Enter/Espaço focados não faziam nada. `repeat`
+              // ignorado pra não reiniciar a contagem a cada auto-repeat do SO enquanto segura.
+              onKeyDown={(e) => {
+                if ((e.key === " " || e.key === "Enter") && !e.repeat) startHold();
+              }}
+              onKeyUp={(e) => {
+                if (e.key === " " || e.key === "Enter") stopHold(true);
+              }}
               className="relative overflow-hidden select-none"
             >
               {holdProgress > 0 && (

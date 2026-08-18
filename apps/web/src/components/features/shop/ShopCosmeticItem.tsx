@@ -27,7 +27,7 @@ export function ShopCosmeticItem({ item, disabled, pending, onPurchase }: ShopCo
       <Icon name="styler" filled className="text-4xl text-primary" />
       <p className="font-body-md text-body-md font-bold text-on-surface">{item.name}</p>
       {item.locked ? (
-        <span className="font-label-caps text-label-caps text-outline uppercase">
+        <span className="font-label text-label-caps text-outline uppercase">
           Nível {item.requires_level}
         </span>
       ) : (
@@ -43,7 +43,7 @@ export function ShopCosmeticItem({ item, disabled, pending, onPurchase }: ShopCo
           {/* Botão desabilitado sozinho não deixa claro que é "sem gemas" — achado ao vivo no
               mobile, mesmo componente espelhado aqui. */}
           {disabled && !pending && (
-            <span className="font-label-caps text-label-caps text-error">Gemas insuficientes</span>
+            <span className="font-label text-label-caps text-error">Gemas insuficientes</span>
           )}
         </>
       )}

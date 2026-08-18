@@ -15,7 +15,7 @@ export function ReviewProgressFooter({ reviewed, total, onPublish, publishing }:
     <div className="sticky bottom-0 border-t-2 border-outline-variant bg-surface-bright px-lg py-md flex items-center gap-md">
       <div className="flex-1">
         <ProgressBar value={reviewed} max={total || 1} variant="thin" tone="primary" />
-        <span className="font-label-caps text-label-caps text-on-surface-variant">
+        <span className="font-label text-label-caps text-on-surface-variant">
           {reviewed}/{total} perguntas revisadas
         </span>
       </div>

@@ -21,7 +21,7 @@ export function LeagueZoneBanner({ kind }: { kind: ZoneKind }) {
   return (
     <div
       className={cn(
-        "flex items-center gap-xs px-md py-1 font-label-caps text-label-caps uppercase",
+        "flex items-center gap-xs px-md py-1 font-label text-label-caps uppercase",
         config.className,
       )}
     >

@@ -73,10 +73,10 @@ export function SummaryPanel({
 
         <div className="text-left">
           <div className="flex justify-between mb-1">
-            <span className="font-label-caps text-label-caps uppercase text-on-surface-variant">
+            <span className="font-label text-label-caps uppercase text-on-surface-variant">
               Progresso do módulo
             </span>
-            <span className="font-label-caps text-label-caps text-on-surface-variant">
+            <span className="font-label text-label-caps text-on-surface-variant">
               {moduleProgressPercent}%
             </span>
           </div>

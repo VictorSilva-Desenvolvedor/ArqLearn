@@ -14,10 +14,10 @@ export function UserDirectoryTable({ entries }: { entries: DirectoryEntry[] }) {
       <table className="w-full text-left">
         <thead className="bg-surface-gray">
           <tr>
-            <th className="px-md py-sm font-label-caps text-label-caps text-on-surface-variant">Nome</th>
-            <th className="px-md py-sm font-label-caps text-label-caps text-on-surface-variant">Papel</th>
-            <th className="px-md py-sm font-label-caps text-label-caps text-on-surface-variant">Detalhe</th>
-            <th className="px-md py-sm font-label-caps text-label-caps text-on-surface-variant">Ação</th>
+            <th className="px-md py-sm font-label text-label-caps text-on-surface-variant">Nome</th>
+            <th className="px-md py-sm font-label text-label-caps text-on-surface-variant">Papel</th>
+            <th className="px-md py-sm font-label text-label-caps text-on-surface-variant">Detalhe</th>
+            <th className="px-md py-sm font-label text-label-caps text-on-surface-variant">Ação</th>
           </tr>
         </thead>
         <tbody>

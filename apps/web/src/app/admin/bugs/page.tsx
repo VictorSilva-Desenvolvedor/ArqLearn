@@ -20,7 +20,7 @@ const typeTabs: { value: BugReportType | "all"; label: string }[] = [
 ];
 
 function pillClass(active: boolean): string {
-  return `font-label-caps text-label-caps uppercase px-md py-sm rounded-full border-2 transition-colors ${
+  return `font-label text-label-caps uppercase px-md py-sm rounded-full border-2 transition-colors ${
     active
       ? "border-primary bg-primary text-on-primary"
       : "border-outline-variant text-on-surface-variant hover:bg-surface-container"
@@ -84,16 +84,30 @@ export default function AdminBugsPage() {
       </div>
 
       <div className="flex flex-col gap-sm">
-        <div className="flex gap-sm">
+        <div className="flex gap-sm" role="tablist" aria-label="Filtrar por status">
           {statusTabs.map((t) => (
-            <button key={t.value} type="button" onClick={() => setStatusTab(t.value)} className={pillClass(statusTab === t.value)}>
+            <button
+              key={t.value}
+              type="button"
+              role="tab"
+              aria-selected={statusTab === t.value}
+              onClick={() => setStatusTab(t.value)}
+              className={pillClass(statusTab === t.value)}
+            >
               {t.label}
             </button>
           ))}
         </div>
-        <div className="flex gap-sm">
+        <div className="flex gap-sm" role="tablist" aria-label="Filtrar por tipo">
           {typeTabs.map((t) => (
-            <button key={t.value} type="button" onClick={() => setTypeTab(t.value)} className={pillClass(typeTab === t.value)}>
+            <button
+              key={t.value}
+              type="button"
+              role="tab"
+              aria-selected={typeTab === t.value}
+              onClick={() => setTypeTab(t.value)}
+              className={pillClass(typeTab === t.value)}
+            >
               {t.label}
             </button>
           ))}

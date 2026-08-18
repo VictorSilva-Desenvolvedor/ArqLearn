@@ -25,7 +25,7 @@ export function EngagementBarChart({ data }: EngagementBarChartProps) {
         {data.map((point) => (
           <span
             key={point.day}
-            className="flex-1 text-center font-label-caps text-label-caps text-on-surface-variant"
+            className="flex-1 text-center font-label text-label-caps text-on-surface-variant"
           >
             {point.day}
           </span>

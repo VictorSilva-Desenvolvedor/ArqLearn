@@ -17,7 +17,7 @@ export function SummaryHeader({ title, eyebrow = "Resumo Inteligente" }: Summary
       <div className="flex items-center gap-sm max-w-2xl mx-auto">
         <IconButton icon={<Icon name="arrow_back" />} label="Voltar" onClick={() => router.back()} />
         <div>
-          <p className="font-label-caps text-label-caps uppercase text-on-surface-variant">{eyebrow}</p>
+          <p className="font-label text-label-caps uppercase text-on-surface-variant">{eyebrow}</p>
           <h1 className="font-display text-question-lg text-on-surface font-bold">{title}</h1>
         </div>
       </div>

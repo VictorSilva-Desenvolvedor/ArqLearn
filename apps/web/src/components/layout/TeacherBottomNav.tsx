@@ -11,9 +11,10 @@ export function TeacherBottomNav() {
         icon={<Icon name="dashboard" />}
         activeIcon={<Icon name="dashboard" filled />}
       />
-      <div className="flex flex-col items-center justify-center px-4 py-1 text-outline opacity-60">
+      <div className="flex flex-col items-center justify-center px-4 py-1 text-outline opacity-60" aria-disabled="true">
         <Icon name="groups" className="mb-1 text-2xl" />
-        <span className="font-label-caps text-label-caps">Turmas</span>
+        <span className="font-label text-label-caps">Turmas</span>
+        <span className="font-label text-label-caps">Em breve</span>
       </div>
       <NavLink
         href="/revisao/upload-bim-intro"

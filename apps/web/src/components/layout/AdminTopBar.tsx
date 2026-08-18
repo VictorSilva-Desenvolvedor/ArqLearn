@@ -15,7 +15,7 @@ export function AdminTopBar() {
         <Link href="/admin" className="flex items-center gap-xs">
           <Icon name="architecture" filled className="text-primary text-display-lg font-bold" />
           <h1 className="font-display text-display-lg font-bold text-primary">ArqLearn</h1>
-          <span className="ml-xs font-label-caps text-label-caps uppercase text-on-error-container bg-error-container px-2 py-1 rounded">
+          <span className="ml-xs font-label text-label-caps uppercase text-on-error-container bg-error-container px-2 py-1 rounded">
             Admin
           </span>
         </Link>
