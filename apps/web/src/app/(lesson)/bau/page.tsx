@@ -142,7 +142,7 @@ export default function DailyChestPage() {
             </h1>
             <p className="font-body-md text-body-md text-on-surface-variant mt-2">{copy.unavailable}</p>
           </div>
-          {error && <p className="font-body-sm text-body-sm text-error-red">{error}</p>}
+          {error && <p className="font-body-sm text-body-sm text-error">{error}</p>}
           {claimed && gamification.is_vip && (
             <Button variant="gamification" fullWidth onClick={handleReset} disabled={resetting} icon={<Icon name="replay" />}>
               {resetting ? "Resetando…" : "Resetar Baú (VIP)"}
@@ -195,7 +195,7 @@ export default function DailyChestPage() {
                 Abra pra revelar sua recompensa.
               </p>
             </div>
-            {error && <p className="font-body-sm text-body-sm text-error-red">{error}</p>}
+            {error && <p className="font-body-sm text-body-sm text-error">{error}</p>}
             <Button
               variant="primary"
               fullWidth

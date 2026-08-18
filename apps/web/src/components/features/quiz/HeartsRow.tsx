@@ -16,7 +16,7 @@ export function HeartsRow({ hearts }: HeartsRowProps) {
           key={i}
           name="favorite"
           filled={i < hearts}
-          className={i < hearts ? "text-secondary text-xl" : "text-outline-variant text-xl"}
+          className={i < hearts ? "text-error-red text-xl" : "text-outline-variant text-xl"}
         />
       ))}
     </div>

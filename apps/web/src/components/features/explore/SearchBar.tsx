@@ -14,6 +14,7 @@ export function SearchBar({ value, onChange }: SearchBarProps) {
         value={value}
         onChange={(e) => onChange(e.target.value)}
         placeholder="Pesquisar trilhas, tópicos ou materiais..."
+        aria-label="Pesquisar trilhas, tópicos ou materiais"
         className="flex-1 bg-transparent outline-none font-body-lg text-body-lg text-on-surface placeholder:text-on-surface-variant"
       />
     </div>

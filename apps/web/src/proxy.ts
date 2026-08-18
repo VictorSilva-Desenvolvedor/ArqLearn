@@ -44,6 +44,15 @@ export async function proxy(request: NextRequest) {
     return supabaseResponse;
   }
 
+  // Link de redefinição de senha chega com o token de recuperação num fragmento de URL
+  // (#access_token=...&type=recovery) que o servidor NUNCA vê (fragmento não é enviado em
+  // requisição HTTP) — só o cliente Supabase no browser consegue processar. Se o Proxy tratasse
+  // esta rota como protegida, redirecionaria pra /login antes do JS do cliente rodar, matando o
+  // fluxo inteiro. Mesma exceção de /login: sem gate aqui, o cliente decide.
+  if (pathname === "/redefinir-senha") {
+    return supabaseResponse;
+  }
+
   if (!isAuthenticated) {
     const redirect = NextResponse.redirect(new URL("/login", request.url));
     return withRefreshedCookies(redirect, supabaseResponse);

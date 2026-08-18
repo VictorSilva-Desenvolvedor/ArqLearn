@@ -39,9 +39,9 @@ colors:
   on-error: "#ffffff"
   error-container: "#ffdad6"
   on-error-container: "#93000a"
+  error-red: "#b00020"
   background: "#f8f9ff"
   on-background: "#121c2a"
-  muted-text: "#6b7280"
 typography:
   display:
     fontFamily: "Hanken Grotesk, sans-serif"
@@ -138,9 +138,19 @@ since that specific failure (4.5:1 text contrast) was confirmed as the same toke
 both. Don't silently reconcile the outline-variant gap by copying one value over the other — audit
 mobile's border contrast first.
 
+**`--color-error-red` vs. `--color-error` (reconciled 18/08/2026, `/impeccable audit` P2)**:
+two reds existed for overlapping jobs — `error-red` is now exclusively the "hearts/lives" icon
+color (`TopAppBar`, `HeartsRow`, `SummaryPanel`, `NoHeartsDialog`, `HeartsCountdown`,
+`NotificationItem`); `error` is exclusively form/API validation messages (fixed on `bau/page.tsx`
+and `vip/page.tsx`, which had drifted onto `error-red`). Losing a life and failing to validate a
+form are different concepts that only coincided by sharing a red hue — don't merge them back.
+`--color-muted-text` was removed in the same pass: defined but never consumed anywhere in
+`apps/web/src` (every "muted" text in the app already used `--color-on-surface-variant`).
+
 ### Named Rules
 **The One Job Per Color Rule.** Blue is structural/navigational, orange is exclusively gamification
-reward, green is exclusively success/validation.
+reward, green is exclusively success/validation, and within red specifically: `error-red` = lives,
+`error` = validation.
 
 ## Typography
 
@@ -243,6 +253,14 @@ border of its own — never a generic Tailwind shadow utility added to a resting
   regression from the focus-ring fix above shipping without it. `Card.tsx` now calls
   `e.currentTarget.click()` on Enter/Space, routing through whatever `onClick` the consumer already
   passes instead of duplicating click logic.
+
+### Active-Row Pattern (Rankings)
+`LeagueRankRow.tsx` marks the viewer's own row with `border-l-4 border-l-primary` +
+`bg-primary-fixed` — flagged by the `/impeccable` detector as a generic "side-tab" tell, but
+verified 18/08/2026 as semantic (it's the only way to spot your own row in a scrolling ranking
+list), not decorative. Formalized here rather than removed; don't strip it chasing the detector's
+default "no side-tab" preference — it's earning its place. `apps/mobile`'s equivalent uses the
+same pattern.
 
 ## Do's and Don'ts
 
