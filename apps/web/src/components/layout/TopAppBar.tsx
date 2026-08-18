@@ -92,11 +92,17 @@ export function TopAppBar() {
           <IconButton icon={<Icon name="logout" />} label="Sair" onClick={logout} />
         </div>
       </div>
-      <div className="sm:hidden flex justify-center py-1 border-t border-outline-variant bg-surface-gray">
-        <ThemeSelector />
-      </div>
-      <div className="md:hidden flex justify-around items-center bg-surface-gray py-2 border-t border-outline-variant">
-        {stats}
+      {/* Faixa única (era 2 blocos empilhados, cada um com seu próprio border-t/bg) — mesmo achado
+          já corrigido em apps/mobile/TopAppBar.tsx (/impeccable layout, 2026-08-17): em telas
+          estreitas (<640px) as duas faixas apareciam juntas, cada uma com sua própria borda,
+          lendo como mais chrome do que o conteúdo pedia. sm:hidden aqui porque o seletor de tema
+          já reaparece inline no header a partir de sm (`hidden sm:block` acima); stats continuam
+          md:hidden porque só saem do header a partir de md. */}
+      <div className="md:hidden flex flex-col items-center gap-1 bg-surface-gray py-2 border-t border-outline-variant">
+        <div className="sm:hidden">
+          <ThemeSelector />
+        </div>
+        <div className="flex justify-around items-center w-full">{stats}</div>
       </div>
       <NoHeartsDialog open={heartsDialogOpen} onOpenChange={setHeartsDialogOpen} />
       <StreakDialog open={streakDialogOpen} onOpenChange={setStreakDialogOpen} />
