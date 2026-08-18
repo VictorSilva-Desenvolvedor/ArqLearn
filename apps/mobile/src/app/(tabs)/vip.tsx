@@ -176,7 +176,9 @@ export default function VipScreen() {
 const styles = StyleSheet.create({
   screen: {
     flex: 1,
-    backgroundColor: colors.background,
+    // Transparente de propósito (a pedido do usuário): deixa o fundo animado
+    // (AnimatedBlueprintBackground, montado em app/_layout.tsx) aparecer atrás.
+    backgroundColor: "transparent",
   },
   content: {
     padding: spacing.md,

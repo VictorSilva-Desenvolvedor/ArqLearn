@@ -15,6 +15,10 @@ export default function TabsLayout() {
           borderTopColor: colors.outlineVariant,
           borderTopWidth: 2,
         },
+        // Transparente de propósito (a pedido do usuário): sem isso o container de cena do
+        // bottom-tabs pinta um fundo opaco por baixo das 5 telas (que já viraram transparentes)
+        // e o fundo animado (AnimatedBlueprintBackground, montado em app/_layout.tsx) não aparece.
+        sceneStyle: { backgroundColor: "transparent" },
       }}
     >
       <Tabs.Screen

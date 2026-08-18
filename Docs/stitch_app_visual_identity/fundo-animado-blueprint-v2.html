@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8"/>
+<meta content="width=device-width,initial-scale=1.0" name="viewport"/>
+<style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    html, body {
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      background: #f8f9ff;
+    }
+
+    .bg-wrap {
+      position: fixed;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      pointer-events: none;
+      background-color: #F8F9FF;
+      background-image:
+        linear-gradient(to right, rgba(46,92,138,0.1) 1px, transparent 1px),
+        linear-gradient(to bottom, rgba(46,92,138,0.1) 1px, transparent 1px);
+      background-size: 40px 40px;
+    }
+
+    .falling-item {
+      position: absolute;
+      top: -60px;
+      width: 28px;
+      height: 28px;
+      opacity: 0;
+      animation-name: fall-path;
+      animation-timing-function: linear;
+      animation-iteration-count: infinite;
+    }
+
+    .falling-item svg {
+      width: 100%;
+      height: 100%;
+      display: block;
+    }
+
+    .item-blue   { color: #2E5C8A; }
+    .item-orange { color: #C77B3B; }
+
+    /* Trajetórias aleatórias: cada uma desloca o item lateralmente de forma diferente
+       enquanto ele cai, para não parecer uma queda em linha reta */
+    @keyframes fall-path-a {
+      0%   { transform: translate(0, -60px) rotate(0deg);    opacity: 0; }
+      8%   { opacity: 0.6; }
+      30%  { transform: translate(40px, 28vh) rotate(90deg); }
+      60%  { transform: translate(-25px, 60vh) rotate(200deg); }
+      92%  { opacity: 0.6; }
+      100% { transform: translate(15px, 112vh) rotate(360deg); opacity: 0; }
+    }
+    @keyframes fall-path-b {
+      0%   { transform: translate(0, -60px) rotate(0deg);     opacity: 0; }
+      8%   { opacity: 0.55; }
+      35%  { transform: translate(-45px, 32vh) rotate(-110deg); }
+      65%  { transform: translate(30px, 68vh) rotate(-240deg); }
+      92%  { opacity: 0.55; }
+      100% { transform: translate(-20px, 112vh) rotate(-360deg); opacity: 0; }
+    }
+    @keyframes fall-path-c {
+      0%   { transform: translate(0, -60px) rotate(0deg);   opacity: 0; }
+      8%   { opacity: 0.5; }
+      40%  { transform: translate(20px, 40vh) rotate(60deg); }
+      70%  { transform: translate(-40px, 75vh) rotate(150deg); }
+      92%  { opacity: 0.5; }
+      100% { transform: translate(35px, 112vh) rotate(300deg); opacity: 0; }
+    }
+</style>
+</head>
+<body>
+<div class="bg-wrap" id="bg-wrap">
+<svg style="position:absolute; width:0; height:0;">
+<defs>
+<symbol id="icon-compass" viewBox="0 0 24 24">
+<circle cx="12" cy="12" fill="none" r="10" stroke="currentColor" stroke-dasharray="2 2" stroke-width="1.5"></circle>
+<path d="M12 4v16M4 12h16" stroke="currentColor" stroke-width="1"></path>
+<circle cx="12" cy="12" fill="currentColor" r="1.5"></circle>
+</symbol>
+<symbol id="icon-ruler" viewBox="0 0 24 24">
+<rect fill="none" height="8" rx="1" stroke="currentColor" stroke-width="1.5" width="20" x="2" y="8"></rect>
+<path d="M6 8v4M10 8v2M14 8v4M18 8v2" stroke="currentColor" stroke-width="1"></path>
+</symbol>
+<symbol id="icon-square" viewBox="0 0 24 24">
+<path d="M4 4v16h16L4 4z" fill="none" stroke="currentColor" stroke-width="1.5"></path>
+<path d="M6 18h12M6 6v12" stroke="currentColor" stroke-dasharray="1 1" stroke-width="0.5"></path>
+</symbol>
+<symbol id="icon-house" viewBox="0 0 24 24">
+<path d="M3 10l9-7 9 7v11H3V10z" fill="none" stroke="currentColor" stroke-width="1.5"></path>
+<path d="M9 21v-6h6v6" fill="none" stroke="currentColor" stroke-width="1.5"></path>
+</symbol>
+<symbol id="icon-triangle" viewBox="0 0 24 24">
+<path d="M2 20 L22 20 L2 2 Z" fill="none" stroke="currentColor" stroke-width="1.5"></path>
+</symbol>
+<symbol id="icon-diamond" viewBox="0 0 24 24">
+<path d="M12 2 L21 12 L12 22 L3 12 Z" fill="none" stroke="currentColor" stroke-width="1.5"></path>
+</symbol>
+</defs>
+</svg>
+</div>
+
+<script>
+  (function () {
+    var wrap = document.getElementById("bg-wrap");
+    var icons = ["icon-compass", "icon-ruler", "icon-square", "icon-house", "icon-triangle", "icon-diamond"];
+    var colors = ["item-blue", "item-orange"];
+    var paths = ["fall-path-a", "fall-path-b", "fall-path-c"];
+    var totalItems = 18;
+
+    for (var i = 0; i < totalItems; i++) {
+      var icon = icons[Math.floor(Math.random() * icons.length)];
+      var colorClass = colors[Math.floor(Math.random() * colors.length)];
+      var path = paths[Math.floor(Math.random() * paths.length)];
+      var size = 18 + Math.random() * 20;
+      var leftPercent = Math.random() * 96;
+      var duration = 6 + Math.random() * 6;
+      var delay = -1 * Math.random() * 12;
+
+      var el = document.createElement("div");
+      el.className = "falling-item " + colorClass;
+      el.style.left = leftPercent + "%";
+      el.style.width = size + "px";
+      el.style.height = size + "px";
+      el.style.animationName = path;
+      el.style.animationDuration = duration + "s";
+      el.style.animationDelay = delay + "s";
+
+      el.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><use href="#' + icon + '"></use></svg>';
+
+      wrap.appendChild(el);
+    }
+  })();
+</script>
+</body>
+</html>

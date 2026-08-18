@@ -3,7 +3,7 @@ import { HankenGrotesk_600SemiBold, HankenGrotesk_700Bold } from "@expo-google-f
 import { Inter_400Regular, Inter_700Bold } from "@expo-google-fonts/inter";
 import { JetBrainsMono_500Medium, JetBrainsMono_700Bold } from "@expo-google-fonts/jetbrains-mono";
 import { useFonts } from "expo-font";
-import { Stack } from "expo-router";
+import { DefaultTheme, Stack, ThemeProvider as NavigationThemeProvider } from "expo-router";
 import * as SplashScreen from "expo-splash-screen";
 import { StatusBar } from "expo-status-bar";
 import { SafeAreaProvider } from "react-native-safe-area-context";
@@ -12,12 +12,23 @@ import { ThemeProvider } from "@/contexts/ThemeContext";
 import { ToastProvider } from "@/contexts/ToastContext";
 import { Toast } from "@/components/ui/Toast";
 import { LoadingBlueprint } from "@/components/ui/LoadingBlueprint";
+import { AnimatedBlueprintBackground } from "@/components/layout/AnimatedBlueprintBackground";
 import { LevelUpCelebration } from "@/components/features/gamification/LevelUpCelebration";
 import { StreakAtRiskPrompt } from "@/components/features/gamification/StreakAtRiskPrompt";
 import { usePushNotifications } from "@/hooks/usePushNotifications";
-import { colors } from "@/theme/tokens";
 
 SplashScreen.preventAutoHideAsync();
+
+// O NavigationContainer interno do expo-router pinta o próprio tema padrão do React Navigation
+// (colors.background = rgb(242,242,242)) numa camada abaixo de cada tela, ANTES de
+// contentStyle/Stack.Screen entrarem em jogo — Stack.screenOptions.contentStyle="transparent"
+// (ver RootNavigator) sozinho não bastava, o cinza padrão continuava aparecendo atrás do fundo
+// animado (AnimatedBlueprintBackground). Sobrescreve só esse campo do tema; tema custom
+// necessário só por causa disso, não por dark mode (o app não tem um ainda).
+const navigationTheme: typeof DefaultTheme = {
+  ...DefaultTheme,
+  colors: { ...DefaultTheme.colors, background: "transparent" },
+};
 
 // Fica dentro do AuthProvider (junto de StreakAtRiskPrompt/LevelUpCelebration) porque
 // usePushNotifications precisa do usuário logado pra registrar o token — não dá pra chamar o
@@ -47,7 +58,12 @@ function RootNavigator() {
   const isLoggedIn = Boolean(auth.user);
 
   return (
-    <Stack screenOptions={{ headerShown: false, contentStyle: { backgroundColor: colors.background } }}>
+    // contentStyle transparente de propósito (a pedido do usuário, fundo animado — ver
+    // AnimatedBlueprintBackground abaixo): só login.tsx e as 5 abas de (tabs) tornaram seu
+    // próprio fundo transparente pra deixá-lo aparecer; toda tela de sessão/quiz/lição continua
+    // pintando seu próprio backgroundColor opaco (não tocadas), então não fica exposta por
+    // engano — decisão deliberada de não distrair em telas de foco.
+    <Stack screenOptions={{ headerShown: false, contentStyle: { backgroundColor: "transparent" } }}>
       <Stack.Protected guard={isLoggedIn}>
         <Stack.Screen name="(tabs)" />
         {/* expo-router só reconhece o nome exato da rota folha aqui (sem _layout.tsx próprio
@@ -94,19 +110,22 @@ export default function RootLayout() {
   }
 
   return (
-    <SafeAreaProvider>
-      <AuthProvider>
-        <ThemeProvider>
-          <ToastProvider>
-            <StatusBar style="dark" />
-            <RootNavigator />
-            <Toast />
-            <LevelUpCelebration />
-            <StreakAtRiskPrompt />
-            <PushNotificationsBootstrap />
-          </ToastProvider>
-        </ThemeProvider>
-      </AuthProvider>
-    </SafeAreaProvider>
+    <NavigationThemeProvider value={navigationTheme}>
+      <SafeAreaProvider>
+        <AuthProvider>
+          <ThemeProvider>
+            <ToastProvider>
+              <StatusBar style="dark" />
+              <AnimatedBlueprintBackground />
+              <RootNavigator />
+              <Toast />
+              <LevelUpCelebration />
+              <StreakAtRiskPrompt />
+              <PushNotificationsBootstrap />
+            </ToastProvider>
+          </ThemeProvider>
+        </AuthProvider>
+      </SafeAreaProvider>
+    </NavigationThemeProvider>
   );
 }
