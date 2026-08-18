@@ -6,8 +6,9 @@ import { useAuth } from "@/hooks/useAuth";
 import { colors, type } from "@/theme/tokens";
 
 // Mesmo intervalo do backend (TDD §5.4) — só usado aqui pra desenhar a barra de progresso (o
-// "quanto falta" vem de verdade de hearts_next_at, isto é só a escala visual da barra).
-const HEARTS_REGEN_INTERVAL_SECONDS = 3 * 60 * 60;
+// "quanto falta" vem de verdade de hearts_next_at, isto é só a escala visual da barra). Era 3h
+// até 18/08/2026, a pedido do usuário (36min por vida = 3h pra encher do zero, não mais 15h).
+const HEARTS_REGEN_INTERVAL_SECONDS = 36 * 60;
 
 // Espelha apps/web/src/components/features/gamification/HeartsCountdown.tsx.
 export function HeartsCountdown() {

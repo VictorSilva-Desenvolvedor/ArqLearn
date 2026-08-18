@@ -73,7 +73,7 @@ export function NoHeartsDialog({ open, onOpenChange }: NoHeartsDialogProps) {
           <Text style={[type.bodyMd, styles.description]}>
             {blocked
               ? "Suas vidas se regeneram com o tempo — volte em breve ou restaure agora com suas gemas para continuar praticando."
-              : "Uma vida a cada 3 horas, até o teto de 5 — ou restaure na hora com suas gemas."}
+              : "Uma vida a cada 36 minutos, até o teto de 5 — ou restaure na hora com suas gemas."}
           </Text>
         </View>
         <HeartsCountdown />

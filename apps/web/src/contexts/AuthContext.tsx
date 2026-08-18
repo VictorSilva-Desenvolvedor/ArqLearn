@@ -18,9 +18,9 @@ import type { GamificationProfile, User } from "@/types/api";
 
 // TDD §5.4 — mesmo intervalo/teto do backend, usado aqui só como stand-in de mock (nunca no
 // componente que consome useAuth(); ver regra em Docs/CLAUDE.md sobre XP/vidas nunca calculados
-// no cliente fora da camada de mock).
+// no cliente fora da camada de mock). 36min por vida (era 3h até 18/08/2026).
 const HEARTS_MAX = 5;
-const HEARTS_REGEN_INTERVAL_MS = 3 * 60 * 60 * 1000;
+const HEARTS_REGEN_INTERVAL_MS = 36 * 60 * 1000;
 
 interface MeResponse {
   user: User;
