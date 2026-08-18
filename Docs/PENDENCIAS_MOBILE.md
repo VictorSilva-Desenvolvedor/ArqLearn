@@ -918,3 +918,65 @@ tracks/lessons via `useEffect`).
 2. Depois de existir, re-verificar ao vivo se `LoadingBlueprint` de fato respeita "Remover
    animações" nesse fluxo — o teste desta sessão não fechou com confirmação clara (usuário não
    conseguiu isolar se a preferência do sistema estava realmente sendo lida a tempo do reload).
+
+### 22. Fases 1–3 do "O que fazer a seguir" de `PENDENCIAS_TESTE_DEVICE.md` fechadas (17/08/2026)
+
+Usuário pediu pra rodar, em sequência, as 3 primeiras fases de um plano derivado do menu do
+`/impeccable` (decisões de design pendentes → qualidade técnica → pull-to-refresh), resolvendo
+sozinho toda decisão em aberto com base no sistema já implementado, sem parar pra perguntar a cada
+uma. Escopo desta demanda: só `apps/mobile` (usuário confirmou explicitamente "só o app por
+enquanto") — a paridade com `apps/web` (regra permanente, ver item #9) **ainda não foi replicada**
+e fica registrada como dívida pra uma próxima demanda.
+
+**1. `/impeccable shape` — formato do `Toggle`:** decidido manter o switch próprio da marca (já
+idêntico nas duas plataformas, tokens compartilhados, dois consumidores reais em produção) em vez
+de trocar por `Switch` nativo por plataforma — nada quebrado, nenhum problema real que a troca
+resolveria. Documentado em `apps/mobile/DESIGN.md` (Components → Toggle).
+
+**2. `/impeccable document` — lock de orientação:** decidido manter `"orientation": "portrait"`
+em `app.json` — nenhuma tela do app tem composição landscape desenhada (quiz, Learning Map, os
+bands do `TopAppBar`), e o iPad já tem seu próprio tratamento (coluna centralizada `maxWidth: 448`)
+sem precisar de paisagem. Documentado em `apps/mobile/DESIGN.md` (Layout).
+
+**3. `/impeccable audit` focado em `--color-outline-variant`:** contraste medido em ~1.6:1 contra
+`surfaceBright`/`surfaceGray` (mínimo WCAG 1.4.11 é 3:1) — abaixo do mínimo, confirmando a suspeita
+registrada no item #6 de `PENDENCIAS_TESTE_DEVICE.md`. Resolvido replicando o valor exato já
+publicado no `apps/web` (`#c2c7d0` → `#7f8894`) em vez de derivar um tom novo, já que os tokens de
+superfície (`surfaceBright`/`surfaceGray`) são idênticos nas duas plataformas — o mesmo valor mede
+3.4:1/3.3:1 aqui também. `apps/mobile/src/theme/tokens.ts` e `DESIGN.md` atualizados.
+
+**4. `/impeccable layout` no `TopAppBar`:** as duas faixas utilitárias (seletor de tema, pílulas de
+streak/vidas/gemas) — antes duas `View`s empilhadas, cada uma com seu próprio fundo/borda — viraram
+uma faixa única (uma borda, um fundo, `gap: spacing.xs` entre as duas linhas). Mesmos 6 alvos de
+toque, mesmo tamanho, uma borda repetida a menos.
+
+**5. `/impeccable optimize` no `ThemeSelector`:** `ScrollView` com `.map()` manual trocado por
+`SectionList` (seções = "Trilhas em destaque" + um grupo por semestre com tema) — o catálogo já
+passa de ~50 entradas; `SectionList` recicla linhas fora da área visível do Modal (`maxHeight: 420`)
+em vez de montar todas de uma vez. Zero mudança visual (mesmo agrupamento, mesmos estilos).
+
+**6. Pull-to-refresh na Home (pendência #21 fechada):** `RefreshControl` adicionado ao `ScrollView`
+da Home, reaproveitando a mesma lógica de busca (`loadMap`/`loadChests`, extraídas do
+`useEffect` original em vez de duplicadas) em vez de zerar `units`/baús e reacionar o
+`LoadingBlueprint` de tela cheia — o spinner nativo do `RefreshControl` já é o indicador de
+carregamento do gesto de puxar. **Pendência real do item #21 segue aberta**: ainda falta
+re-verificar ao vivo, num device de verdade, se `LoadingBlueprint` respeita "Remover animações"
+nesse fluxo especificamente — não testável nesta sessão (sem device conectado nem credenciais de
+login disponíveis, ver limitação abaixo).
+
+**Verificação:** `tsc --noEmit` limpo, `npx expo export --platform web` limpo (bundle gerado sem
+erro). **Teste de UI ao vivo não foi possível nesta sessão** — mesma limitação já registrada nos
+itens #16/#19 (sem credenciais da conta de teste disponíveis); `expo start --web` chegou a rodar e
+foi verificado via Playwright headless, mas parou na tela de login (sem sessão), então só a tela de
+login em si foi confirmada renderizando sem erro novo de console (só o warning `collapsable`
+pré-existente do `react-native-svg` no alvo web, já documentado no item #15, não relacionado a esta
+mudança). `TopAppBar`/`ThemeSelector` (que exigem sessão autenticada pra aparecer na Home) ficam
+pendentes de confirmação visual ao vivo na próxima sessão com credenciais disponíveis.
+
+**Pendências que seguem em aberto, fora do escopo desta demanda:**
+- Espelhar as 6 mudanças acima em `apps/web` (regra permanente de paridade, item #9).
+- Confirmar visualmente ao vivo (device ou `expo start --web` com login) a faixa única do
+  `TopAppBar`, o `SectionList` do `ThemeSelector` e o gesto de pull-to-refresh.
+- Re-verificar `LoadingBlueprint`/"Remover animações" no fluxo de pull-to-refresh (pendência #21).
+- As Fases 4–6 do plano original (retomar checklist de teste em device, cobertura iOS/iPad,
+  fechamento do ciclo) — ver `Docs/PENDENCIAS_TESTE_DEVICE.md` pro checklist consolidado.

@@ -10,8 +10,34 @@
 > - `expo-dev-client` já é dependência do projeto (`apps/mobile/package.json`).
 > - O celular de teste (Android, modo de navegação por 3 botões) já tem o dev client instalado —
 >   basta rodar `npx expo start --dev-client` (de dentro de `apps/mobile` ou via
->   `npm exec --workspace=apps/mobile -- expo start --dev-client`) e o app deve reconectar sozinho
->   se estiver na mesma rede Wi-Fi; senão, digitar `exp://<IP-desta-máquina>:8081` no dev client.
+>   `npm exec --workspace=apps/mobile -- expo start --dev-client`).
+> - **O app instalado é o dev client, não o app final nem a Expo Go da loja.** Abrir o ícone sozinho
+>   não conecta em nada automaticamente na primeira vez — cai na tela própria do dev client
+>   (`DevLauncherActivity`, confirmado via `adb logcat`), com um campo "Enter URL manually". **EAS
+>   Update (OTA) não tem efeito nenhum nesse app** — só builds standalone (perfil `preview`/
+>   `production` sem dev client) leem o canal de update; publicar OTA pra testar no dev client é
+>   inútil, não gera erro, só não faz nada visível.
+> - **Conexão via Wi-Fi/LAN não foi confiável nesta sessão** (firewall com regra liberada pro
+>   Node.js, mesma rede confirmada, e mesmo assim zero pacote chegou no Metro — causa não
+>   identificada). **Caminho que funcionou: USB.** Ativar "Depuração USB" nas Opções do
+>   desenvolvedor, autorizar o popup no celular ao plugar o cabo, depois:
+>   `adb reverse tcp:8081 tcp:8081` (usa o `adb` de `platform-tools` do Android SDK; nesta máquina
+>   não estava no PATH, caminho completo em
+>   `%LOCALAPPDATA%\Android\Sdk\platform-tools\adb.exe`) — digitar `localhost:8081` no campo do dev
+>   client. Confirmar que o bundle chegou pelo log do Metro ("Android Bundled ... node_modules
+>   expo-router\entry.js"), não só pela UI do celular.
+> - **`EXPO_PUBLIC_API_BASE_URL` em `.env.local` aponta pra `http://localhost:8080`** — isso é o
+>   `localhost` **do celular**, não desta máquina; só funciona se `services/monolith` estiver
+>   rodando aqui **e** com `adb reverse tcp:8080 tcp:8080` também configurado. Sem isso, o app
+>   conecta no Metro (bundle carrega) mas fica travado em "conectando"/loading pra sempre, tentando
+>   falar com uma porta 8080 que não existe no celular — sintoma fácil de confundir com crash.
+>   Caminho mais rápido pra testar sem subir o backend local: `EXPO_PUBLIC_API_BASE_URL=https://arqlearn.onrender.com
+>   npx expo start --dev-client` (sobrescreve o valor do `.env.local`, que não é sobrescrito no
+>   arquivo em si).
+> - `@expo/ngrok` já é devDependency do projeto (`apps/mobile/package.json`) — necessário pra
+>   `expo start --dev-client --tunnel` (alternativa ao USB se a rede Wi-Fi algum dia funcionar).
+>   **Rodar sem `EXPO_TOKEN` no ambiente** — com o token presente (`.env.local` exporta ele por
+>   padrão), o comando falha com `Cannot use ngrok with a robot user`.
 > - Playwright já testado funcionando nesta máquina (binários do Chromium em cache local) — útil
 >   pra tirar screenshot real do web (`npx playwright` funciona via `npx --yes -p playwright node
 >   script.mjs`, já que o pacote não está instalado como dependência do projeto).
@@ -88,27 +114,32 @@ pedir print de tela na próxima sessão antes de mexer em qualquer coisa.**
 
 Itens que dependem de decisão de design ou de outro tipo de ambiente, não de mais teste manual:
 
-1. **Densidade do `TopAppBar`** (mobile) — 6 alvos de toque em 3 linhas antes do mapa. Adiado
-   desde o `/impeccable critique` original por precisar de decisão de layout + visualização.
-   Comando sugerido: `/impeccable layout`.
-2. **`ThemeSelector` sem virtualização de lista** — `ScrollView` com ~50 itens, `FlatList`/
-   `SectionList` seria mais correto se o catálogo crescer. `/impeccable optimize`.
-3. **Formato do `Toggle`** — visual de switch estilo iOS nas duas plataformas; decisão de design
-   em aberto (aceitar como estilo próprio da marca, documentar no DESIGN.md, ou trocar por
-   `Switch` nativo por plataforma). `/impeccable shape`.
-4. **Lock de orientação (`app.json`, `"orientation": "portrait"`)** não documentado — decidir se é
-   intencional e registrar o motivo, ou permitir paisagem no iPad. `/impeccable document`.
+1. ✅ **Densidade do `TopAppBar`** (mobile) — resolvido 17/08/2026 (`/impeccable layout`, ver
+   `PENDENCIAS_MOBILE.md` #22): as duas faixas utilitárias viraram uma só, sem borda duplicada.
+   **Falta**: confirmar visualmente ao vivo (sem credenciais de login disponíveis na sessão que
+   fez a mudança).
+2. ✅ **`ThemeSelector` sem virtualização de lista** — resolvido 17/08/2026 (`/impeccable
+   optimize`, `PENDENCIAS_MOBILE.md` #22): `ScrollView` trocado por `SectionList`.
+3. ✅ **Formato do `Toggle`** — resolvido 17/08/2026 (`/impeccable shape`, `PENDENCIAS_MOBILE.md`
+   #22): mantido como estilo próprio da marca, documentado em `apps/mobile/DESIGN.md`.
+4. ✅ **Lock de orientação** — resolvido 17/08/2026 (`/impeccable document`, `PENDENCIAS_MOBILE.md`
+   #22): confirmado intencional (nenhuma tela tem composição landscape), motivo registrado em
+   `apps/mobile/DESIGN.md`.
 5. **Gesto preditivo de voltar do Android** — só testável em modo de navegação por gestos; o
    device de teste usa modo de 3 botões. Já validado que o botão voltar normal funciona
    (`PENDENCIAS_MOBILE.md` #20); falta o teste real do gesto em si.
-6. **`--color-outline-variant` (borda)** foi escurecido só no web (achado de contraste WCAG AA,
-   `/impeccable audit`) — mobile usa o mesmo valor original (`#c2c7d0`) e nunca foi auditado pra
-   contraste de borda. Rodar `/impeccable audit` focado nisso antes de decidir se replica o fix.
+6. ✅ **`--color-outline-variant` (borda)** — resolvido 17/08/2026 (`/impeccable audit` focado
+   nisso, `PENDENCIAS_MOBILE.md` #22): media ~1.6:1, abaixo do mínimo 3:1 — replicado o fix já
+   validado no web (`#c2c7d0` → `#7f8894`).
 7. **iOS e iPad** — nada testado (sem Mac/dispositivo Apple nesta sessão). Todo achado de
    `/impeccable audit` referente a `ios.md`/adaptividade em tablet continua só verificado por
    leitura de código, nunca ao vivo.
-8. **Pull-to-refresh ausente na Home** (achado nesta sessão, `PENDENCIAS_MOBILE.md` #21) — depois
-   de implementar, re-verificar se `LoadingBlueprint` respeita "Remover animações" no reload real.
+8. 🔧 **Pull-to-refresh ausente na Home** — implementado 17/08/2026 (`PENDENCIAS_MOBILE.md` #22).
+   **Falta**: re-verificar ao vivo se `LoadingBlueprint` respeita "Remover animações" no reload
+   real (não testável sem device/credenciais na sessão que implementou) — mesma pendência #2 do
+   achado original (`PENDENCIAS_MOBILE.md` #21).
+9. **Espelhar no `apps/web`** as 6 mudanças do item #22 acima (regra permanente de paridade,
+   `PENDENCIAS_MOBILE.md` #9) — ainda não feito, fora do escopo da demanda que fechou 1-4/6/8.
 
 ## Referências
 

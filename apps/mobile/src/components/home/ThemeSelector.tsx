@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
+import { Pressable, SectionList, StyleSheet, Text, View } from "react-native";
 import { Icon } from "@/components/ui/Icon";
 import { Modal } from "@/components/ui/Modal";
 import { useTheme } from "@/hooks/useTheme";
@@ -10,6 +10,15 @@ const featured = themeCatalog.filter((t) => t.semester === undefined);
 const bySemester = Array.from({ length: 10 }, (_, i) => i + 1)
   .map((semester) => ({ semester, themes: themeCatalog.filter((t) => t.semester === semester) }))
   .filter((group) => group.themes.length > 0);
+
+// SectionList em vez de ScrollView+map manual (/impeccable optimize, 2026-08-17): o catálogo de
+// temas já passa de ~50 entradas (7 em destaque + 10 semestres) — ScrollView monta todas as linhas
+// de uma vez, mesmo as fora da área visível do Modal (maxHeight 420); SectionList recicla linhas
+// fora de tela e escala se o catálogo crescer, sem mudar o agrupamento visual por semestre.
+const sections = [
+  { title: "Trilhas em destaque", data: featured },
+  ...bySemester.map(({ semester, themes }) => ({ title: `${semester}º Semestre`, data: themes })),
+];
 
 // Espelha apps/web/src/components/layout/ThemeSelector.tsx — dropdown vira Modal com lista
 // rolável (RN não tem menu suspenso nativo equivalente). Escolha do tema persiste via
@@ -41,21 +50,17 @@ export function ThemeSelector() {
 
       <Modal open={open} onOpenChange={setOpen}>
         <Text style={[type.headlineMd, styles.modalTitle]}>Escolher tema</Text>
-        <ScrollView style={styles.list} showsVerticalScrollIndicator={false}>
-          <ThemeGroupLabel label="Trilhas em destaque" />
-          {featured.map((entry) => (
-            <ThemeRow key={entry.topic} entry={entry} active={entry.topic === theme.topic} onSelect={select} />
-          ))}
-
-          {bySemester.map(({ semester, themes }) => (
-            <View key={semester}>
-              <ThemeGroupLabel label={`${semester}º Semestre`} />
-              {themes.map((entry) => (
-                <ThemeRow key={entry.topic} entry={entry} active={entry.topic === theme.topic} onSelect={select} />
-              ))}
-            </View>
-          ))}
-        </ScrollView>
+        <SectionList
+          style={styles.list}
+          showsVerticalScrollIndicator={false}
+          sections={sections}
+          keyExtractor={(entry) => entry.topic}
+          renderSectionHeader={({ section }) => <ThemeGroupLabel label={section.title} />}
+          renderItem={({ item }) => (
+            <ThemeRow entry={item} active={item.topic === theme.topic} onSelect={select} />
+          )}
+          stickySectionHeadersEnabled={false}
+        />
       </Modal>
     </>
   );

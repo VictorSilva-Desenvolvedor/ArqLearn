@@ -166,9 +166,12 @@ progress" state — it reads as trust and focus, not decoration.
   dim to the card/path only (`UnitSection.tsx`) — the badge itself is never dimmed now. **Rule**: a
   color-token fix isn't verified until you check every real call site's *rendered* state, not just
   the component's default state.
-- **Outline Variant** (`#c2c7d0`, unchanged): default 1px border on unselected cards and inputs —
-  not yet audited for contrast on mobile (`apps/web`'s equivalent border token *was* darkened after
-  failing 3:1 non-text contrast; don't assume mobile passes just because it wasn't flagged yet).
+- **Outline Variant** (`#7f8894`, darkened from `#c2c7d0` on 2026-08-17 — `/impeccable audit`
+  focused on this exact gap: mobile's original value measured ~1.6:1 against `surface-bright`/
+  `surface-gray`, well under the WCAG 1.4.11 minimum of 3:1 for non-text UI-component contrast.
+  Replicated `apps/web`'s already-shipped fix for the identical token rather than deriving a new
+  tone — the two platforms share the exact same `surface-bright`/`surface-gray` hex values, so the
+  same fix measures 3.4:1 / 3.3:1 here too): default 1px border on unselected cards and inputs.
 
 ### Named Rules
 **The One Job Per Color Rule.** Blue is structural/navigational, orange is exclusively gamification
@@ -211,6 +214,20 @@ missed) constrains to `maxWidth: 448` and centers itself, keeping the path reada
 instead of stretching edge to edge. Spacing groups by relationship, not by uniform rhythm: a question and its
 diagram sit at `xs` (8px), while answer cards below are separated by `md` (16px) — tighter spacing
 signals "these belong together."
+
+**`TopAppBar` density (fixed 2026-08-17, `/impeccable layout`):** the header used to stack the
+theme selector and the streak/hearts/gems pills in two separately bordered/backgrounded rows below
+the brand row — three bordered bands and 6 touch targets before the map, flagged by the original
+critique as more chrome than the content needed. The two utility rows now share a single band (one
+top border, one background, `xs` gap between the two lines) instead of each carrying its own
+border/padding cycle — same 6 targets, same sizes, one less repeated border.
+
+**Orientation lock (`app.json`, `"orientation": "portrait"`):** intentional, not a scaffold
+default left untouched. Every screen in this system — quiz session, the Learning Map's fixed
+`maxWidth: 448` column, `TopAppBar`'s stacked bands above — is built and verified only in portrait;
+no landscape composition exists for any of them today. iPad already gets its own accommodation
+(the `maxWidth: 448` centered column, not a stretched phone layout) without needing landscape.
+Revisit only alongside a deliberate tablet-landscape design pass, not as a standalone toggle.
 
 ## Elevation & Depth
 
@@ -288,6 +305,19 @@ callout bubble ("Continuar lição") uses a `primary` border/text/arrow to match
 previously rendered in `secondary` (orange), which read as a gamification reward and broke the One
 Job Per Color Rule on the screen's single most-looked-at element — see `/impeccable critique` snapshot
 `.impeccable/critique/2026-08-17T17-18-37Z__apps-mobile-src-app-tabs-index-tsx.md`.
+
+### Toggle
+**Decided 2026-08-17 (`/impeccable shape`):** kept as the system's own brand-owned switch, not
+swapped for a platform-native `Switch`. It was already implemented identically on both platforms —
+a 44×24 capsule track (`primary` fill when checked, `outline-variant` when off) with a sliding
+20px thumb — sharing the same tokens and behavior as `apps/web`'s equivalent, with zero reported
+issues and two live production consumers (Notifications, Configurações). Replacing it with each
+platform's native switch would trade a working, tokenized, cross-platform-consistent control for
+two divergent native widgets, for no problem it would actually solve — the brief (a coherent
+shared visual system, per this file's North Star) outweighs "use the native control" as a default
+in this specific case. Not wired through RN's native `disabled` prop for the same
+`ScrollView`-trap reason as `Button` (see Do's and Don'ts) — block happens in `onPress`,
+`accessibilityState.disabled` still set.
 
 ### Inputs / Fields
 No dedicated mobile input component observed beyond form fields inside settings/upload flows;

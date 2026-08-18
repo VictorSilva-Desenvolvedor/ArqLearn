@@ -10,7 +10,7 @@ import { NoHeartsDialog } from "@/components/features/gamification/NoHeartsDialo
 import { StreakDialog } from "@/components/features/gamification/StreakDialog";
 import { useAuth } from "@/hooks/useAuth";
 import { xpParaProximoNivel } from "@/lib/gamification/level";
-import { colors, type } from "@/theme/tokens";
+import { colors, spacing, type } from "@/theme/tokens";
 import { ThemeSelector } from "./ThemeSelector";
 
 // Espelha apps/web/src/components/layout/TopAppBar.tsx — lá o streak/hearts do header abrem
@@ -52,15 +52,17 @@ export function TopAppBar() {
           </Pressable>
         </View>
       </View>
-      <View style={styles.themeRow}>
-        {/* content: mesmo maxWidth 448/center que index.tsx e LearningMap.tsx já aplicam ao
-            corpo da Home — sem isso, no iPad (ios.supportsTablet: true) o header ficava mais
-            largo que o conteúdo abaixo dele (achado de /impeccable audit, 2026-08-17). */}
+      {/* Faixa única (era 2 blocos empilhados, cada um com seu próprio fundo/borda) — mesmos 6
+          alvos de toque (seletor de tema + streak/vidas/gemas), só sem a borda/padding duplicados
+          entre eles (achado de /impeccable layout, 2026-08-17: 3 linhas com borda antes do mapa
+          liam como mais chrome do que o conteúdo pedia). content: mesmo maxWidth 448/center que
+          index.tsx e LearningMap.tsx já aplicam ao corpo da Home — sem isso, no iPad
+          (ios.supportsTablet: true) o header ficava mais largo que o conteúdo abaixo dele
+          (achado de /impeccable audit, 2026-08-17). */}
+      <View style={styles.utilityBand}>
         <View style={styles.content}>
           <ThemeSelector />
         </View>
-      </View>
-      <View style={styles.statsRow}>
         <View style={[styles.statsRowInner, styles.content]}>
           {/* hitSlop: a pílula em si (ícone 18px + statsNum) mede ~28px de altura, abaixo do
               mínimo de toque 44pt(iOS)/48dp(Android) — hitSlop estende a área de toque sem mudar
@@ -128,25 +130,19 @@ const styles = StyleSheet.create({
     color: colors.primary,
     fontWeight: "700",
   },
-  themeRow: {
-    alignItems: "center",
-    justifyContent: "center",
-    backgroundColor: colors.surfaceGray,
-    borderTopWidth: 1,
-    borderTopColor: colors.outlineVariant,
-    paddingVertical: 6,
-  },
-  statsRow: {
+  utilityBand: {
     alignItems: "center",
     backgroundColor: colors.surfaceGray,
     borderTopWidth: 1,
     borderTopColor: colors.outlineVariant,
     paddingVertical: 8,
+    gap: spacing.xs,
   },
   statsRowInner: {
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-around",
+    width: "100%",
   },
   actions: {
     flexDirection: "row",
