@@ -10,6 +10,7 @@ import { useQuizKeyboardShortcuts } from "@/components/features/quiz/useQuizKeyb
 import { getThemeByTopic } from "@/lib/api/mocks/fixtures/themes";
 import { Icon } from "@/components/ui/Icon";
 import { Button } from "@/components/ui/Button";
+import { ErrorBanner } from "@/components/ui/ErrorBanner";
 import { LoadingBlueprint } from "@/components/ui/LoadingBlueprint";
 import { useToast } from "@/hooks/useToast";
 
@@ -59,6 +60,16 @@ export default function InfiniteModeSessionPage() {
     );
   }
 
+  // P1 do /impeccable critique (18/08/2026): mesmo achado do trilhas/.../sessao/page.tsx.
+  if (infinite.sessionError) {
+    return (
+      <ErrorBanner
+        message="Não foi possível carregar o Modo Infinito. Verifique sua conexão e tente novamente."
+        onRetry={infinite.retrySession}
+      />
+    );
+  }
+
   if (infinite.loading || !infinite.question) {
     return <LoadingBlueprint variant="fullscreen" size={160} label="Carregando desafio…" />;
   }
@@ -88,6 +99,7 @@ export default function InfiniteModeSessionPage() {
         xpDailyCapReached={infinite.lastResult?.xp_daily_cap_reached ?? false}
         canConfirm={Boolean(infinite.selectedOptionId?.trim())}
         verifying={infinite.verifying}
+        verifyError={infinite.verifyError}
         onGiveUp={infinite.giveUp}
         onConfirm={infinite.verify}
         onContinue={infinite.continueNext}

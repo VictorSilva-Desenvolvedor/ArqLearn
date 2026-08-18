@@ -28,12 +28,18 @@ export function useInfiniteModeSession(topic: string) {
   const [lastResult, setLastResult] = useState<InfiniteModeAnswerResult | null>(null);
   const [notAvailable, setNotAvailable] = useState(false);
   const [levelUpTo, setLevelUpTo] = useState<number | null>(null);
+  // P1 do /impeccable critique (18/08/2026, achado equivalente corrigido primeiro no mobile): a
+  // versão anterior relançava (`throw err`) qualquer erro que não fosse TOPIC_NOT_AVAILABLE de
+  // dentro de um `.catch()` — vira uma rejeição não tratada, `loading` nunca sai de `true`.
+  const [sessionError, setSessionError] = useState(false);
+  const [sessionRetryToken, setSessionRetryToken] = useState(0);
   const questionStartRef = useRef<number>(0);
   const levelRef = useRef<number>(1);
-  const loading = sessionId === null && !notAvailable;
+  const loading = sessionId === null && !notAvailable && !sessionError;
 
   useEffect(() => {
     let cancelled = false;
+    setSessionError(false);
     startInfiniteModeSession(topic)
       .then((session) => {
         if (cancelled) return;
@@ -47,12 +53,14 @@ export function useInfiniteModeSession(topic: string) {
           setNotAvailable(true);
           return;
         }
-        throw err;
+        setSessionError(true);
       });
     return () => {
       cancelled = true;
     };
-  }, [topic]);
+  }, [topic, sessionRetryToken]);
+
+  const retrySession = useCallback(() => setSessionRetryToken((t) => t + 1), []);
 
   const selectOption = useCallback(
     (optionId: string) => {
@@ -62,9 +70,12 @@ export function useInfiniteModeSession(topic: string) {
     [revealed],
   );
 
+  const [verifyError, setVerifyError] = useState<string | null>(null);
+
   const verify = useCallback(async () => {
     if (!sessionId || !question || !selectedOptionId || verifying) return;
     setVerifying(true);
+    setVerifyError(null);
     const timeMs = Date.now() - questionStartRef.current;
     try {
       const result = await submitInfiniteModeAnswer(sessionId, {
@@ -81,6 +92,8 @@ export function useInfiniteModeSession(topic: string) {
         levelRef.current = result.level;
         setLevelUpTo(result.level);
       }
+    } catch (err) {
+      setVerifyError(err instanceof ApiError ? err.message : "Não foi possível verificar sua resposta. Tente novamente.");
     } finally {
       setVerifying(false);
     }
@@ -122,11 +135,14 @@ export function useInfiniteModeSession(topic: string) {
 
   return {
     loading,
+    sessionError,
+    retrySession,
     notAvailable,
     question,
     selectedOptionId,
     revealed,
     verifying,
+    verifyError,
     lastResult,
     questionsAnswered: lastResult?.questions_answered ?? 0,
     levelProgress: (lastResult?.questions_answered ?? 0) % LEVEL_BATCH_SIZE || (lastResult ? LEVEL_BATCH_SIZE : 0),
