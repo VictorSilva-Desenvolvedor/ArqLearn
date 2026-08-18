@@ -205,9 +205,29 @@ Itens que dependem de decisão de design ou de outro tipo de ambiente, não de m
   #104; ambos/skill: #97; docs: #101, #102). Continuação (18/08/2026): #110 (regen. de vidas),
   #112 (notificações push), #113/#114 (fundo animado), #115/#116 (`/impeccable critique`+`audit`
   completo — Lote 7 acima é a checklist de confirmação).
-- Pendências P2 registradas mas **não corrigidas** no Lote 7 (baixo risco, adiadas de propósito):
-  migração `Image`→`expo-image` no mobile (Avatar/QuestionCard/BugReportForm — adicionaria mais um
-  módulo nativo à lista de "precisa de build novo do dev client"), virtualização de listas longas
-  (`FlatList` no chat de material), recuperação de senha no mobile (precisa de deep link
-  `arqlearn://` + configuração de redirect no painel do Supabase, não implementável/verificável só
-  por código), e a divergência de IA entre `SideNav` (8 itens) e `BottomNavBar` (5 itens) no web.
+- **[RESOLVIDO 18/08/2026, PRs #118/#119]** As 4 pendências P2 que tinham ficado de fora do Lote 7
+  (migração `Image`→`expo-image`, `FlatList` no chat, recuperação de senha no mobile, `SideNav` vs
+  `BottomNavBar`) foram todas fechadas — a pedido explícito do usuário ("deixe 100%"). Ver Lote 7B
+  abaixo pro que só dá pra confirmar ao vivo nelas.
+
+### Lote 7B — confirmar o fechamento das pendências P2 (18/08/2026, PRs #118/#119)
+
+1. **Recuperação de senha (mobile)**: peça "Esqueci minha senha" em `login.tsx` com um e-mail de
+   teste real — o e-mail chega, o link abre o app (não o navegador) direto em `redefinir-senha.tsx`,
+   e a troca de senha funciona ponta a ponta? **Precisa de configuração externa antes de testar**:
+   o painel do Supabase (Authentication → URL Configuration → Redirect URLs) precisa ter
+   `arqlearn://redefinir-senha` na allowlist, senão o link do e-mail nem abre o app.
+   `Linking.createURL` já usa o scheme certo (`arqlearn`, de `app.json`), só falta essa config do
+   lado do Supabase.
+2. Confirme se o link do Supabase vem no formato `?code=` (PKCE) ou `#access_token=`/`#refresh_token=`
+   (implícito) — o código trata os dois, mas só um vai aparecer de verdade contra o projeto real; se
+   nenhum funcionar, capturar a URL exata recebida (`console.log` temporário em `tryEstablishSession`)
+   pra depurar o formato.
+3. **`expo-image`**: como é módulo nativo novo, só funciona depois de um build novo do dev client —
+   confirmar que avatares (Perfil, ranking de Liga), a imagem de referência da questão, e a
+   miniatura de print anexado em Reportar Bug continuam carregando normalmente.
+4. **`FlatList` no chat**: mande várias mensagens seguidas no chat de material — a lista rola pro
+   fim sozinha a cada mensagem nova (igual antes, com `ScrollView`)? Sem esse teste, `scrollToEnd`
+   do `FlatList` pode se comportar diferente do `ScrollView` em conteúdo de altura variável.
+5. **`SideNav` (web, desktop)**: confirmar visualmente que agora só mostra 5 itens (Home/Explorar/
+   VIP/Liga/Perfil) e que Loja/Ajuda continuam alcançáveis a partir de Perfil.
