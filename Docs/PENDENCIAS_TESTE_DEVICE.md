@@ -83,13 +83,18 @@ pedir print de tela na próxima sessão antes de mexer em qualquer coisa.**
    item (500+) nem pro refil de vidas (350) — botão desabilitado e mudo. Agora mostra "Gemas
    insuficientes" visível.
 
-### Lote 4 — mais telas (enviado, **aguardando resposta do usuário**)
-1. Baú diário/semanal (toque num card na Home) abre normal?
-2. Perfil (avatar/ícone no topo) — estatísticas aparecem certinho, sem número quebrado/`undefined`?
-3. Liga (aba embaixo) — lista de ranking rola suave, sem cortar nome/avatar?
-4. Zere as vidas numa lição (erre repetidamente) — o diálogo de "sem vidas" aparece corretamente?
-5. Modo escuro do celular, se tiver — o app deveria continuar igual (**sem dark mode implementado
-   ainda** é o resultado esperado, não um bug).
+### Lote 4 — mais telas
+1. 🔧 Baú abria normal, mas contava resposta errada como progresso — **corrigido** (PR #109): agora
+   só conta acerto. Regra também documentada em `ArqLearn_API_Specification.md` v1.20.
+2. ✅ Perfil — estatísticas (XP Total, Sequência, Máximo, Gemas) confirmadas certinhas.
+3. ❓ Liga (aba embaixo) — **não confirmado**, refazer.
+4. 🔧 Diálogo de "sem vidas" abria, mas sem mostrar quanto tempo faltava pra próxima vida na
+   prática — investigado (o componente existe, `HeartsCountdown`, só não tinha ficado claro que
+   é preciso abrir o diálogo pra ver). No processo, mudou a regra em si: regeneração de vida
+   passou de 3h/vida (15h pra encher tudo) pra 36min/vida (3h pra encher tudo) — **corrigido**
+   (PR #110), confirmado funcionando.
+5. ❓ Modo escuro do celular — **não confirmado**, refazer (esperado: app continua igual, sem
+   dark mode implementado ainda).
 
 ## Lotes ainda não escritos/enviados — continuar a partir daqui
 
