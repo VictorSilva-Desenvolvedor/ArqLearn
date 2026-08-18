@@ -16,7 +16,7 @@ const faqEntries: FaqEntry[] = [
     icon: "hearts",
     question: "O que são as vidas?",
     answer:
-      "Cada resposta errada custa 1 vida. Sem vidas, você não consegue começar uma nova lição. Elas se regeneram sozinhas, 1 a cada 3 horas, até o teto de 5 — ou você pode restaurar todas na hora com gemas, tocando no ícone de coração no topo.",
+      "Cada resposta errada custa 1 vida. Sem vidas, você não consegue começar uma nova lição. Elas se regeneram sozinhas, 1 a cada 36 minutos, até o teto de 5 — ou você pode restaurar todas na hora com gemas, tocando no ícone de coração no topo.",
   },
   {
     icon: "streak",

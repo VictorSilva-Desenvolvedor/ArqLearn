@@ -55,7 +55,7 @@ export interface GamificationProfile {
   // Bloqueio de Ofensiva assim que o app abre, em vez de só descobrir a perda no dia seguinte.
   streak_at_risk: boolean;
   hearts_current: number; // 0-5
-  // Instante da próxima regeneração de vida (TDD §5.4, 1 vida a cada 3h) — null quando
+  // Instante da próxima regeneração de vida (TDD §5.4, 1 vida a cada 36min) — null quando
   // hearts_current já está no teto (5).
   hearts_next_at: string | null;
   gems: number;

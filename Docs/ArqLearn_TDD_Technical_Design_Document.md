@@ -18,6 +18,7 @@ Documento complementar ao SAD, ao Database Design e à API Specification do ArqL
 | 1.0 | 08/08/2026 | Equipe de Arquitetura/Engenharia | Versão inicial — preenche a lacuna apontada no CLAUDE.md |
 | 1.1 | 09/08/2026 | Equipe de Arquitetura/Engenharia | Adiciona §5.4 Vidas — Regeneração (a pedido do usuário): `hearts_current` nunca regenerava sozinho, `hearts_updated_at` existia no schema (Database Design) mas não era usado em lugar nenhum do backend |
 | 1.2 | 15/08/2026 | Equipe de Arquitetura/Engenharia | Adiciona §3.3 (multiplicador de XP do VIP) e §9 (VIP "Mestre Arquiteto" — ativação, expiração preguiçosa, extensão de cupom, baú garantido, resets), a pedido do usuário |
+| 1.3 | 18/08/2026 | Equipe de Arquitetura/Engenharia | §5.4: `HEARTS_REGEN_INTERVAL` muda de 3h por vida (15h pra encher do zero) pra 36min por vida (3h pra encher do zero), a pedido do usuário — achado confuso em teste ao vivo em device real. Regra do Baú Diário/Semanal (contar só respostas certas) também mudou na mesma sessão — documentada na API Specification v1.20 (§8.1/§8.2), não neste arquivo |
 
 ---
 
@@ -251,7 +252,8 @@ Sem job dedicado — recalculado sob demanda ("lazy", mesmo padrão de `xpHojeAp
 
 ```
 HEARTS_MAX = 5
-HEARTS_REGEN_INTERVAL = 3h
+HEARTS_REGEN_INTERVAL = 36min   # 3h pra encher do zero (36min × 5) — era 3h POR vida (15h no
+                                 # total) até 18/08/2026, a pedido do usuário
 
 função regenerarVidas(hearts_current, hearts_updated_at, agora):
   se hearts_current >= HEARTS_MAX:
@@ -267,9 +269,9 @@ função regenerarVidas(hearts_current, hearts_updated_at, agora):
     retorna (HEARTS_MAX, agora)
   senão:
     # avança o relógio só pelos ticks realmente aplicados — preserva o progresso parcial do
-    # próximo tique em vez de resetar pra "agora" (ex.: se o intervalo é 3h e o usuário volta
-    # depois de 4h20 com só 1 vida faltando, ganha 1 vida e o próximo tique já está a 1h20 de
-    # distância, não a 3h de novo)
+    # próximo tique em vez de resetar pra "agora" (ex.: se o intervalo é 36min e o usuário volta
+    # depois de 50min com só 1 vida faltando, ganha 1 vida e o próximo tique já está a 14min de
+    # distância, não a 36min de novo)
     retorna (novo, hearts_updated_at + ticks * HEARTS_REGEN_INTERVAL)
 ```
 

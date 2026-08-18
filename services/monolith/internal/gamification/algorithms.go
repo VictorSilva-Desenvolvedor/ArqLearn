@@ -220,11 +220,14 @@ func StreakEmRisco(streakCurrent int, streakLastActiveDate, hojeLocal string) bo
 	return streakCurrent > 0 && streakLastActiveDate != hojeLocal
 }
 
-// HeartsMax e HeartsRegenInterval implementam TDD §5.4: uma vida regenera a cada 3h até o teto
-// de 5, calculado de forma preguiçosa (sem job) sempre que hearts_current/hearts_updated_at são
-// lidos — ver RegenerarVidas e LoadHeartsWithRegen.
+// HeartsMax e HeartsRegenInterval implementam TDD §5.4: uma vida regenera a cada 36min até o
+// teto de 5 — ou seja, encher do zero leva 3h no total (36min × 5) — calculado de forma
+// preguiçosa (sem job) sempre que hearts_current/hearts_updated_at são lidos — ver
+// RegenerarVidas e LoadHeartsWithRegen. Era 3h POR vida (15h pra encher do zero) até 18/08/2026,
+// a pedido do usuário — achado confuso em teste ao vivo em device real (ver
+// Docs/PENDENCIAS_TESTE_DEVICE.md).
 const HeartsMax = 5
-const HeartsRegenInterval = 3 * time.Hour
+const HeartsRegenInterval = 36 * time.Minute
 
 // RegenerarVidas implementa TDD §5.4. heartsUpdatedAt é o instante da última mudança no contador
 // (perda ou regeneração, nunca "última vez que o endpoint rodou"). Devolve o novo total de vidas
