@@ -14,9 +14,18 @@ import { Toast } from "@/components/ui/Toast";
 import { LoadingBlueprint } from "@/components/ui/LoadingBlueprint";
 import { LevelUpCelebration } from "@/components/features/gamification/LevelUpCelebration";
 import { StreakAtRiskPrompt } from "@/components/features/gamification/StreakAtRiskPrompt";
+import { usePushNotifications } from "@/hooks/usePushNotifications";
 import { colors } from "@/theme/tokens";
 
 SplashScreen.preventAutoHideAsync();
+
+// Fica dentro do AuthProvider (junto de StreakAtRiskPrompt/LevelUpCelebration) porque
+// usePushNotifications precisa do usuário logado pra registrar o token — não dá pra chamar o
+// hook direto em RootLayout, que fica fora do provider na árvore.
+function PushNotificationsBootstrap() {
+  usePushNotifications();
+  return null;
+}
 
 // Sem proxy/middleware server-side no RN (não há SSR) — este é o equivalente client-side de
 // apps/web/src/proxy.ts. Usa `<Stack.Protected guard={...}>` (expo-router, guarda declarativa de
@@ -94,6 +103,7 @@ export default function RootLayout() {
             <Toast />
             <LevelUpCelebration />
             <StreakAtRiskPrompt />
+            <PushNotificationsBootstrap />
           </ToastProvider>
         </ThemeProvider>
       </AuthProvider>
