@@ -43,6 +43,10 @@ export function Button({
       onPress={() => !disabled && onPress?.()}
       accessibilityRole="button"
       accessibilityState={{ disabled }}
+      // Achado do /impeccable audit (18/08/2026): size="sm" renderiza ~36dp de altura (padding 8
+      // + texto bodySm), abaixo do mínimo de 48dp — hitSlop fecha a lacuna sem mudar a aparência
+      // visual do botão pequeno, mesma técnica de IconButton.tsx/Toggle.tsx.
+      hitSlop={size === "sm" ? { top: 6, bottom: 6, left: 6, right: 6 } : undefined}
       style={fullWidth ? styles.fullWidth : undefined}
     >
       {({ pressed }) => (

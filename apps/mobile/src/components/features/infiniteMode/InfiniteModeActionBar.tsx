@@ -1,4 +1,5 @@
 import { StyleSheet, Text, View } from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Button } from "@/components/ui/Button";
 import { Icon } from "@/components/ui/Icon";
 import { LoadingBlueprint } from "@/components/ui/LoadingBlueprint";
@@ -9,6 +10,7 @@ interface InfiniteModeActionBarProps {
   xpDailyCapReached: boolean;
   canConfirm: boolean;
   verifying?: boolean;
+  verifyError?: string | null;
   onGiveUp: () => void;
   onConfirm: () => void;
   onContinue: () => void;
@@ -21,12 +23,16 @@ export function InfiniteModeActionBar({
   xpDailyCapReached,
   canConfirm,
   verifying = false,
+  verifyError,
   onGiveUp,
   onConfirm,
   onContinue,
 }: InfiniteModeActionBarProps) {
+  // P1 do /impeccable audit (18/08/2026): mesmo achado do QuizActionBar.tsx — inset inferior do
+  // Android edge-to-edge ausente na barra ancorada no rodapé.
+  const insets = useSafeAreaInsets();
   return (
-    <View style={styles.bar}>
+    <View style={[styles.bar, { paddingBottom: spacing.md + insets.bottom }]}>
       {revealed && xpDailyCapReached && (
         <View style={styles.xpCapRow}>
           <Icon name="bolt" size={16} color={colors.secondary} />
@@ -34,6 +40,11 @@ export function InfiniteModeActionBar({
             Você atingiu o limite diário de XP — o XP extra de hoje não conta.
           </Text>
         </View>
+      )}
+      {!revealed && verifyError && (
+        <Text accessibilityLiveRegion="polite" style={[type.bodySm, styles.verifyError]}>
+          {verifyError}
+        </Text>
       )}
       <View style={styles.footer}>
         {revealed ? (
@@ -77,6 +88,10 @@ const styles = StyleSheet.create({
   xpCapText: {
     flex: 1,
     color: colors.secondary,
+  },
+  verifyError: {
+    color: colors.error,
+    marginBottom: spacing.sm,
   },
   footer: {
     flexDirection: "row",

@@ -58,7 +58,12 @@ export default function LigaScreen() {
       <TopAppBar />
       <ScrollView contentContainerStyle={styles.content}>
         <View style={styles.header}>
-          <Pressable onPress={() => openTiersDialog(undefined)} style={styles.badge}>
+          <Pressable
+            onPress={() => openTiersDialog(undefined)}
+            style={styles.badge}
+            accessibilityRole="button"
+            accessibilityLabel="Ver todas as ligas"
+          >
             <Icon name={LEAGUE_TIER_ICONS[tier]} size={44} color={colors.secondary} />
           </Pressable>
           <Text style={[type.displayLg, styles.title]}>

@@ -1,6 +1,6 @@
 import { useContext, useState } from "react";
 import * as Linking from "expo-linking";
-import { KeyboardAvoidingView, Platform, StyleSheet, Text, TextInput, View } from "react-native";
+import { KeyboardAvoidingView, Platform, Pressable, StyleSheet, Text, TextInput, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Button } from "@/components/ui/Button";
 import { Icon } from "@/components/ui/Icon";
@@ -94,13 +94,18 @@ export default function LoginScreen() {
           <Button fullWidth onPress={handleSubmit}>
             {submitting ? "Entrando..." : "Entrar"}
           </Button>
-          <Text
-            style={[type.bodySm, styles.forgotPassword]}
+          <Pressable
             onPress={resetSubmitting ? undefined : handleForgotPassword}
             accessibilityRole="button"
+            // Achado do /impeccable audit (18/08/2026): texto puro sem hitSlop fica bem abaixo
+            // dos 48dp mínimos — hitSlop (Text não aceita a prop, daí o Pressable) + paddingVertical
+            // no texto fecham a lacuna.
+            hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
           >
-            {resetSubmitting ? "Enviando…" : "Esqueci minha senha"}
-          </Text>
+            <Text style={[type.bodySm, styles.forgotPassword]}>
+              {resetSubmitting ? "Enviando…" : "Esqueci minha senha"}
+            </Text>
+          </Pressable>
           {resetMessage && (
             <Text style={[type.bodySm, styles.resetMessage]}>{resetMessage}</Text>
           )}
@@ -160,6 +165,7 @@ const styles = StyleSheet.create({
   forgotPassword: {
     color: colors.primary,
     textAlign: "center",
+    paddingVertical: 10,
   },
   resetMessage: {
     color: colors.onSurfaceVariant,

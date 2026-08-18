@@ -64,7 +64,10 @@ export function QuestionCard({
             style={styles.image}
             contentFit="cover"
             cachePolicy="memory-disk"
-            accessibilityLabel={`Diagrama de referência da questão: ${prompt}`}
+            // P2 do /impeccable critique (18/08/2026): antes repetia o prompt literalmente —
+            // quem usa TalkBack ouvia a mesma frase duas vezes sem informação nova sobre o
+            // diagrama em si. Mesmo achado corrigido no QuestionCard.tsx do web.
+            accessibilityLabel="Diagrama de referência visual da questão"
           />
           <View style={styles.imageCaption}>
             <Text style={[type.labelCaps, styles.imageCaptionText]}>FIG. 1: ELEVAÇÃO</Text>

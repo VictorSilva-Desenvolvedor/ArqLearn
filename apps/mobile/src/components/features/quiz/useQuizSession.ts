@@ -22,22 +22,33 @@ export function useQuizSession(trackId: string, lessonId: string) {
   const [deepExplanation, setDeepExplanation] = useState<string | null>(null);
   const [explainLoading, setExplainLoading] = useState(false);
   const [explainError, setExplainError] = useState<string | null>(null);
+  // P1 do /impeccable critique (18/08/2026): sem isto, uma falha de rede ao iniciar a sessão
+  // deixava `loading` true pra sempre — spinner infinito, sem retry, sem saída in-app.
+  const [sessionError, setSessionError] = useState(false);
+  const [sessionRetryToken, setSessionRetryToken] = useState(0);
   const questionStartRef = useRef<number>(0);
-  const loading = session === null;
+  const loading = session === null && !sessionError;
 
   useEffect(() => {
     let cancelled = false;
-    startLessonSession(lessonId, gamification.hearts_current).then((startedSession) => {
-      if (cancelled) return;
-      setSession(startedSession);
-      setHearts(startedSession.hearts_available);
-      questionStartRef.current = Date.now();
-    });
+    setSessionError(false);
+    startLessonSession(lessonId, gamification.hearts_current)
+      .then((startedSession) => {
+        if (cancelled) return;
+        setSession(startedSession);
+        setHearts(startedSession.hearts_available);
+        questionStartRef.current = Date.now();
+      })
+      .catch(() => {
+        if (!cancelled) setSessionError(true);
+      });
     return () => {
       cancelled = true;
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [lessonId]);
+  }, [lessonId, sessionRetryToken]);
+
+  const retrySession = useCallback(() => setSessionRetryToken((t) => t + 1), []);
 
   const currentQuestion: SessionQuestion | null = session?.questions[currentIndex] ?? null;
   const totalQuestions = session?.questions.length ?? 0;
@@ -50,9 +61,12 @@ export function useQuizSession(trackId: string, lessonId: string) {
     [revealed],
   );
 
+  const [verifyError, setVerifyError] = useState<string | null>(null);
+
   const verify = useCallback(async () => {
     if (!session || !currentQuestion || !selectedOptionId || verifying) return;
     setVerifying(true);
+    setVerifyError(null);
     const timeMs = Date.now() - questionStartRef.current;
     try {
       const result = await submitAnswer(lessonId, {
@@ -74,6 +88,10 @@ export function useQuizSession(trackId: string, lessonId: string) {
         xp_today: gamification.xp_today + result.xp_ganho,
         streak_current: result.streak_atual,
       });
+    } catch (err) {
+      // P1 do /impeccable critique (18/08/2026): antes disso, uma falha aqui era totalmente
+      // silenciosa na ação mais executada do app — spinner some, nada acontece, sem retry.
+      setVerifyError(err instanceof ApiError ? err.message : "Não foi possível verificar sua resposta. Tente novamente.");
     } finally {
       setVerifying(false);
     }
@@ -150,12 +168,15 @@ export function useQuizSession(trackId: string, lessonId: string) {
 
   return {
     loading,
+    sessionError,
+    retrySession,
     currentQuestion,
     currentIndex,
     totalQuestions,
     selectedOptionId,
     revealed,
     verifying,
+    verifyError,
     lastResult,
     hearts,
     gems: gamification.gems,

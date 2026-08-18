@@ -1,27 +1,33 @@
 import { useState } from "react";
 import { StyleSheet, TextInput, View } from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Icon } from "@/components/ui/Icon";
 import { IconButton } from "@/components/ui/IconButton";
 import { colors, radius, spacing, type } from "@/theme/tokens";
 
 interface ChatInputBarProps {
-  onSend: (message: string) => void;
+  // Retorna (ou resolve para) `false` em caso de falha — o rascunho só é limpo em caso de
+  // sucesso (mesmo achado do ChatInputBar.tsx do web).
+  onSend: (message: string) => void | boolean | Promise<void | boolean>;
   disabled?: boolean;
 }
 
 // Espelha apps/web/src/components/features/materialChat/ChatInputBar.tsx.
 export function ChatInputBar({ onSend, disabled }: ChatInputBarProps) {
   const [value, setValue] = useState("");
+  // P1 do /impeccable audit (18/08/2026): mesmo achado do QuizActionBar.tsx — barra ancorada no
+  // rodapé sem o inset inferior do Android edge-to-edge.
+  const insets = useSafeAreaInsets();
 
-  const submit = () => {
+  const submit = async () => {
     const trimmed = value.trim();
     if (!trimmed || disabled) return;
-    onSend(trimmed);
-    setValue("");
+    const result = await onSend(trimmed);
+    if (result !== false) setValue("");
   };
 
   return (
-    <View style={styles.bar}>
+    <View style={[styles.bar, { paddingBottom: spacing.sm + insets.bottom }]}>
       <View style={styles.inputRow}>
         <TextInput
           value={value}
