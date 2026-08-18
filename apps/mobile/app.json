@@ -32,7 +32,8 @@
       "expo-secure-store",
       "expo-document-picker",
       "expo-sharing",
-      "expo-notifications"
+      "expo-notifications",
+      "expo-image"
     ],
     "extra": {
       "router": {},

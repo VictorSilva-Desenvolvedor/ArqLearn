@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState } from "react";
 import { getUploadSummary, listChatHistory, sendChatMessage } from "@/lib/api/resources/materials";
+import { ApiError } from "@/lib/api/http";
 import type { ChatSourceRef } from "@/types/api";
 
 export interface ViewMessage {
@@ -17,6 +18,7 @@ export function useMaterialChat(uploadId: string) {
   const [title, setTitle] = useState("Material");
   const [messages, setMessages] = useState<ViewMessage[]>([]);
   const [sending, setSending] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     let cancelled = false;
@@ -32,13 +34,14 @@ export function useMaterialChat(uploadId: string) {
     };
   }, [uploadId]);
 
-  // Sem try/catch de erro no envio — fiel ao web (mesmo padrão de useQuizSession.verify/
-  // useInfiniteModeSession.verify, que também só têm try/finally).
+  // P2 do /impeccable critique (18/08/2026, achado equivalente ao do web): sem catch, uma falha
+  // aqui deixava a mensagem do usuário "presa" no histórico sem nenhuma explicação.
   const sendMessage = useCallback(
     async (text: string) => {
       const userMessage: ViewMessage = { id: `local-${Date.now()}`, role: "user", message: text };
       setMessages((current) => [...current, userMessage]);
       setSending(true);
+      setError(null);
       try {
         const answer = await sendChatMessage(uploadId, text);
         setMessages((current) => [
@@ -51,6 +54,8 @@ export function useMaterialChat(uploadId: string) {
             sourceRef: answer.source_ref,
           },
         ]);
+      } catch (err) {
+        setError(err instanceof ApiError ? err.message : "Não foi possível enviar sua mensagem. Tente novamente.");
       } finally {
         setSending(false);
       }
@@ -58,5 +63,5 @@ export function useMaterialChat(uploadId: string) {
     [uploadId],
   );
 
-  return { title, messages, sending, sendMessage };
+  return { title, messages, sending, error, sendMessage };
 }

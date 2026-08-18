@@ -85,6 +85,13 @@ function RootNavigator() {
       <Stack.Protected guard={!isLoggedIn}>
         <Stack.Screen name="login" />
       </Stack.Protected>
+      {/* Fora dos dois grupos guardados de propósito: um link de recuperação de senha pode
+          chegar com o app deslogado OU logado (outra conta), e o setSession() dentro da própria
+          tela muda `isLoggedIn` no meio do fluxo — se estivesse dentro de um Stack.Protected, o
+          guard trocaria de tela sozinho assim que a sessão de recuperação populasse `user`, antes
+          da pessoa terminar de digitar a senha nova (mesma classe de corrida documentada acima
+          pro guard normal). Ver apps/mobile/src/app/redefinir-senha.tsx. */}
+      <Stack.Screen name="redefinir-senha" />
     </Stack>
   );
 }
