@@ -260,8 +260,10 @@ func ProximaVidaEm(heartsCurrent int, heartsUpdatedAt time.Time) *time.Time {
 	return &next
 }
 
-// ChestQuestionsRequired é quantas perguntas respondidas no dia local (lição OU Modo Infinito,
-// contagem acumulada — a pedido do usuário) liberam o Baú Diário pra abrir.
+// ChestQuestionsRequired é quantas respostas CERTAS no dia local (lição OU Modo Infinito, contagem
+// acumulada) liberam o Baú Diário pra abrir. Antes de 18/08/2026 contava toda resposta (certa ou
+// errada); mudou a pedido do usuário após achado em teste ao vivo em device real (ver
+// Docs/PENDENCIAS_TESTE_DEVICE.md).
 const ChestQuestionsRequired = 10
 
 // QuestoesHojeAposReset aplica o mesmo reset preguiçoso de XPHojeAposReset (TDD §3.2) pro contador

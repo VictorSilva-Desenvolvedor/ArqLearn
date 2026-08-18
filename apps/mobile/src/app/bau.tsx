@@ -36,12 +36,12 @@ const CHEST_COPY: Record<ChestType, { eyebrow: string; titulo: string; unavailab
   diario: {
     eyebrow: "Baú Diário",
     titulo: "Você ganhou um Baú de Projeto!",
-    unavailable: "Responda mais perguntas hoje pra liberar seu próximo Baú Diário.",
+    unavailable: "Acerte mais perguntas hoje pra liberar seu próximo Baú Diário.",
   },
   semanal: {
     eyebrow: "Baú Semanal",
     titulo: "Você ganhou um Baú Semanal!",
-    unavailable: "Responda mais perguntas nos próximos dias pra liberar seu próximo Baú Semanal — o ciclo só reinicia quando 7 dias se passarem.",
+    unavailable: "Acerte mais perguntas nos próximos dias pra liberar seu próximo Baú Semanal — o ciclo só reinicia quando 7 dias se passarem.",
   },
 };
 
