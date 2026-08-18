@@ -35,7 +35,10 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center gap-lg px-md py-section bg-background">
+    // Transparente de propósito (a pedido do usuário): deixa o fundo animado
+    // (AnimatedBlueprintBackground, montado em app/layout.tsx) aparecer atrás — mesmo tratamento
+    // de apps/mobile/src/app/login.tsx.
+    <div className="min-h-screen flex flex-col items-center justify-center gap-lg px-md py-section">
       <div className="flex items-center gap-xs">
         <Icon name="architecture" filled className="text-primary text-display-lg" />
         <h1 className="font-display text-display-lg font-bold text-primary">ArqLearn</h1>
