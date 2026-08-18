@@ -4,6 +4,7 @@ import { Hanken_Grotesk, Inter, JetBrains_Mono } from "next/font/google";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { ThemeProvider } from "@/contexts/ThemeContext";
 import { ToastProvider } from "@/contexts/ToastContext";
+import { AnimatedBlueprintBackground } from "@/components/layout/AnimatedBlueprintBackground";
 import { LevelUpCelebration } from "@/components/features/gamification/LevelUpCelebration";
 import { StreakAtRiskPrompt } from "@/components/features/gamification/StreakAtRiskPrompt";
 import { Toast } from "@/components/ui/Toast";
@@ -62,6 +63,7 @@ export default async function RootLayout({ children }: LayoutProps<"/">) {
         />
       </head>
       <body className="min-h-full flex flex-col">
+        <AnimatedBlueprintBackground />
         <ToastProvider>
           <AuthProvider initialAccountId={initialAccountId} initialMe={initialMe}>
             <ThemeProvider initialTopic={initialTopic}>{children}</ThemeProvider>

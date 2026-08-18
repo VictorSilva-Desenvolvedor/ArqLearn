@@ -216,6 +216,102 @@ body {
   animation: pulse-soft 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
 }
 
+/*
+ * Fundo animado "Blueprint" (ícones de arquitetura caindo sobre a grade técnica, a pedido do
+ * usuário — Docs/stitch_app_visual_identity/fundo-animado-blueprint-v2.html) — montado uma vez
+ * em app/layout.tsx por components/layout/AnimatedBlueprintBackground.tsx, atrás de todo o
+ * conteúdo. Três trajetos (a/b/c) com pontos de passagem distintos pra não parecer uma queda em
+ * linha reta; espelhado em RN via Animated (ver apps/mobile/.../AnimatedBlueprintBackground.tsx,
+ * mesmo motivo do LoadingBlueprint — CSS keyframes não existem lá).
+ */
+.falling-blueprint-item {
+  position: absolute;
+  top: -60px;
+  opacity: 0;
+  animation-timing-function: linear;
+  animation-iteration-count: infinite;
+}
+.falling-blueprint-item svg {
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+.falling-path-a {
+  animation-name: fall-path-a;
+}
+.falling-path-b {
+  animation-name: fall-path-b;
+}
+.falling-path-c {
+  animation-name: fall-path-c;
+}
+@keyframes fall-path-a {
+  0% {
+    transform: translate(0, -60px) rotate(0deg);
+    opacity: 0;
+  }
+  8% {
+    opacity: 0.6;
+  }
+  30% {
+    transform: translate(40px, 28vh) rotate(90deg);
+  }
+  60% {
+    transform: translate(-25px, 60vh) rotate(200deg);
+  }
+  92% {
+    opacity: 0.6;
+  }
+  100% {
+    transform: translate(15px, 112vh) rotate(360deg);
+    opacity: 0;
+  }
+}
+@keyframes fall-path-b {
+  0% {
+    transform: translate(0, -60px) rotate(0deg);
+    opacity: 0;
+  }
+  8% {
+    opacity: 0.55;
+  }
+  35% {
+    transform: translate(-45px, 32vh) rotate(-110deg);
+  }
+  65% {
+    transform: translate(30px, 68vh) rotate(-240deg);
+  }
+  92% {
+    opacity: 0.55;
+  }
+  100% {
+    transform: translate(-20px, 112vh) rotate(-360deg);
+    opacity: 0;
+  }
+}
+@keyframes fall-path-c {
+  0% {
+    transform: translate(0, -60px) rotate(0deg);
+    opacity: 0;
+  }
+  8% {
+    opacity: 0.5;
+  }
+  40% {
+    transform: translate(20px, 40vh) rotate(60deg);
+  }
+  70% {
+    transform: translate(-40px, 75vh) rotate(150deg);
+  }
+  92% {
+    opacity: 0.5;
+  }
+  100% {
+    transform: translate(35px, 112vh) rotate(300deg);
+    opacity: 0;
+  }
+}
+
 /* Respeita a preferência do sistema por menos movimento (spec §4 e §8) — reduz toda animação/
    transição/scroll suave a essencialmente instantâneo, em vez de simplesmente removê-las (o que
    quebraria estados que dependem de uma transição terminar, como o :focus-visible em alguns
