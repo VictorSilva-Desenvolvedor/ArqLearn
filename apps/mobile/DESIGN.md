@@ -17,7 +17,7 @@ colors:
   inverse-surface: "#27313f"
   inverse-on-surface: "#eaf1ff"
   outline: "#626b76"
-  outline-variant: "#c2c7d0"
+  outline-variant: "#7f8894"
   surface-tint: "#34618f"
   primary: "#0e4471"
   on-primary: "#ffffff"

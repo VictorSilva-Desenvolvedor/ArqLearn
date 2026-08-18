@@ -1,4 +1,5 @@
 import { Pressable, StyleSheet, Text, View } from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Button } from "@/components/ui/Button";
 import { Icon } from "@/components/ui/Icon";
 import { LoadingBlueprint } from "@/components/ui/LoadingBlueprint";
@@ -11,6 +12,7 @@ interface QuizActionBarProps {
   xpDailyCapReached: boolean;
   canVerify: boolean;
   verifying?: boolean;
+  verifyError?: string | null;
   onSkip: () => void;
   onVerify: () => void;
   onContinue: () => void;
@@ -30,6 +32,7 @@ export function QuizActionBar({
   xpDailyCapReached,
   canVerify,
   verifying = false,
+  verifyError,
   onSkip,
   onVerify,
   onContinue,
@@ -38,8 +41,13 @@ export function QuizActionBar({
   explainError,
   onExplainMore,
 }: QuizActionBarProps) {
+  // P1 do /impeccable audit (18/08/2026): a barra ancorada no rodapé é a mais tocada do app
+  // inteiro (Verificar/Continuar) e nenhuma tela aplicava o inset inferior do Android
+  // edge-to-edge (SDK 57 não tem mais opt-out) — o botão primário desenhava sob a barra de
+  // navegação do sistema.
+  const insets = useSafeAreaInsets();
   return (
-    <View style={styles.bar}>
+    <View style={[styles.bar, { paddingBottom: insets.bottom }]}>
       {revealed && (
         <Text
           style={[
@@ -81,6 +89,14 @@ export function QuizActionBar({
             Você atingiu o limite diário de XP — continue praticando, mas o XP extra de hoje não conta.
           </Text>
         </View>
+      )}
+      {!revealed && verifyError && (
+        <Text
+          accessibilityLiveRegion="polite"
+          style={[type.bodySm, styles.explainError, styles.verifyError]}
+        >
+          {verifyError}
+        </Text>
       )}
       <View style={styles.footer}>
         {revealed ? (
@@ -144,6 +160,10 @@ const styles = StyleSheet.create({
   },
   explainError: {
     color: colors.error,
+  },
+  verifyError: {
+    paddingHorizontal: spacing.md,
+    paddingTop: spacing.xs,
   },
   xpCapRow: {
     flexDirection: "row",

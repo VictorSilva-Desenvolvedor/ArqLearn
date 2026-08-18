@@ -6,6 +6,7 @@ import { QuestionCard } from "@/components/features/quiz/QuestionCard";
 import { QuizActionBar } from "@/components/features/quiz/QuizActionBar";
 import { QuizHeader } from "@/components/features/quiz/QuizHeader";
 import { useQuizSession } from "@/components/features/quiz/useQuizSession";
+import { ErrorBanner } from "@/components/ui/ErrorBanner";
 import { LoadingBlueprint } from "@/components/ui/LoadingBlueprint";
 import { colors, type } from "@/theme/tokens";
 
@@ -16,6 +17,19 @@ export default function LessonSessionScreen() {
   const quiz = useQuizSession(trackId, lessonId);
   // Vidas zeraram após responder — a lição para aqui, igual ao clique num nó sem vidas na Home.
   const noHeartsOpen = quiz.revealed && quiz.noHearts;
+
+  // P1 do /impeccable critique (18/08/2026): antes disso, uma falha ao iniciar a sessão deixava
+  // `loading` true pra sempre — spinner infinito, sem retry, sem saída in-app.
+  if (quiz.sessionError) {
+    return (
+      <SafeAreaView style={styles.screen} edges={["top"]}>
+        <ErrorBanner
+          message="Não foi possível carregar esta lição. Verifique sua conexão e tente novamente."
+          onRetry={quiz.retrySession}
+        />
+      </SafeAreaView>
+    );
+  }
 
   if (quiz.loading || !quiz.currentQuestion) {
     return <LoadingBlueprint variant="fullscreen" size={160} label="Carregando lição…" />;
@@ -52,6 +66,7 @@ export default function LessonSessionScreen() {
           xpDailyCapReached={quiz.lastResult?.xp_daily_cap_reached ?? false}
           canVerify={Boolean(quiz.selectedOptionId?.trim())}
           verifying={quiz.verifying}
+          verifyError={quiz.verifyError}
           onSkip={quiz.skip}
           onVerify={quiz.verify}
           onContinue={quiz.continueNext}

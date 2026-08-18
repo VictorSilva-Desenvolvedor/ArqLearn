@@ -35,9 +35,10 @@ export function useMaterialChat(uploadId: string) {
   }, [uploadId]);
 
   // P2 do /impeccable critique (18/08/2026, achado equivalente ao do web): sem catch, uma falha
-  // aqui deixava a mensagem do usuário "presa" no histórico sem nenhuma explicação.
+  // aqui deixava a mensagem do usuário "presa" no histórico sem nenhuma explicação. Retorna
+  // `false` em caso de falha pra `ChatInputBar` saber que não deve limpar o rascunho digitado.
   const sendMessage = useCallback(
-    async (text: string) => {
+    async (text: string): Promise<boolean> => {
       const userMessage: ViewMessage = { id: `local-${Date.now()}`, role: "user", message: text };
       setMessages((current) => [...current, userMessage]);
       setSending(true);
@@ -54,8 +55,11 @@ export function useMaterialChat(uploadId: string) {
             sourceRef: answer.source_ref,
           },
         ]);
+        return true;
       } catch (err) {
         setError(err instanceof ApiError ? err.message : "Não foi possível enviar sua mensagem. Tente novamente.");
+        setMessages((current) => current.filter((m) => m.id !== userMessage.id));
+        return false;
       } finally {
         setSending(false);
       }

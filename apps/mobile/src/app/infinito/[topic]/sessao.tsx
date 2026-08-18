@@ -8,6 +8,7 @@ import { InfiniteModeActionBar } from "@/components/features/infiniteMode/Infini
 import { InfiniteModeHeader } from "@/components/features/infiniteMode/InfiniteModeHeader";
 import { useInfiniteModeSession } from "@/components/features/infiniteMode/useInfiniteModeSession";
 import { QuestionCard } from "@/components/features/quiz/QuestionCard";
+import { ErrorBanner } from "@/components/ui/ErrorBanner";
 import { LoadingBlueprint } from "@/components/ui/LoadingBlueprint";
 import { useToast } from "@/hooks/useToast";
 import { getThemeByTopic } from "@/lib/api/mocks/fixtures/themes";
@@ -45,6 +46,18 @@ export default function InfiniteModeSessionScreen() {
     );
   }
 
+  // P1 do /impeccable critique (18/08/2026): mesmo achado do trilhas/.../sessao.tsx.
+  if (infinite.sessionError) {
+    return (
+      <SafeAreaView style={styles.screen} edges={["top"]}>
+        <ErrorBanner
+          message="Não foi possível carregar o Modo Infinito. Verifique sua conexão e tente novamente."
+          onRetry={infinite.retrySession}
+        />
+      </SafeAreaView>
+    );
+  }
+
   if (infinite.loading || !infinite.question) {
     return <LoadingBlueprint variant="fullscreen" size={160} label="Carregando desafio…" />;
   }
@@ -76,6 +89,7 @@ export default function InfiniteModeSessionScreen() {
         xpDailyCapReached={infinite.lastResult?.xp_daily_cap_reached ?? false}
         canConfirm={Boolean(infinite.selectedOptionId?.trim())}
         verifying={infinite.verifying}
+        verifyError={infinite.verifyError}
         onGiveUp={infinite.giveUp}
         onConfirm={infinite.verify}
         onContinue={infinite.continueNext}

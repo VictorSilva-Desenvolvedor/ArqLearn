@@ -40,6 +40,14 @@ export default function ConfiguracoesScreen() {
   const [passwordError, setPasswordError] = useState<string | null>(null);
   const [passwordChanged, setPasswordChanged] = useState(false);
   const passwordValid = newPassword.length >= MIN_PASSWORD_LENGTH && newPassword === confirmPassword;
+  // Achado equivalente ao já corrigido no web (apps/web/.../perfil/configuracoes/page.tsx e
+  // redefinir-senha/page.tsx): o botão só ficava desabilitado sem explicar por quê.
+  const passwordHint =
+    newPassword.length > 0 && newPassword.length < MIN_PASSWORD_LENGTH
+      ? `A senha precisa ter pelo menos ${MIN_PASSWORD_LENGTH} caracteres.`
+      : confirmPassword.length > 0 && newPassword !== confirmPassword
+        ? "As senhas não coincidem."
+        : null;
 
   const [exporting, setExporting] = useState(false);
 
@@ -276,6 +284,7 @@ export default function ConfiguracoesScreen() {
             />
           </View>
 
+          {passwordHint && <Text style={[type.bodySm, styles.passwordHint]}>{passwordHint}</Text>}
           {passwordError && <Text style={[type.bodySm, styles.passwordError]}>{passwordError}</Text>}
           {passwordChanged && <Text style={[type.bodySm, styles.passwordSuccess]}>Senha alterada com sucesso!</Text>}
 
@@ -406,6 +415,9 @@ const styles = StyleSheet.create({
     color: colors.onSurface,
   },
   cardCaption: {
+    color: colors.onSurfaceVariant,
+  },
+  passwordHint: {
     color: colors.onSurfaceVariant,
   },
   passwordError: {
