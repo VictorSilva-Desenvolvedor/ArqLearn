@@ -35,6 +35,10 @@ export function useInfiniteModeSession(topic: string) {
   const [sessionRetryToken, setSessionRetryToken] = useState(0);
   const questionStartRef = useRef<number>(0);
   const levelRef = useRef<number>(1);
+  // Chave estável por tentativa de resposta (API Spec §2.6, v1.22) — mesmo padrão de
+  // useQuizSession.ts: reaproveitada em retries de `verify()`, renovada só ao avançar de
+  // pergunta (continueNext) ou ao (re)carregar a sessão.
+  const idempotencyKeyRef = useRef<string | null>(null);
   const loading = sessionId === null && !notAvailable && !sessionError;
 
   useEffect(() => {
@@ -46,6 +50,7 @@ export function useInfiniteModeSession(topic: string) {
         setSessionId(session.session_id);
         setQuestion(session.question);
         questionStartRef.current = Date.now();
+        idempotencyKeyRef.current = null;
       })
       .catch((err) => {
         if (cancelled) return;
@@ -77,12 +82,19 @@ export function useInfiniteModeSession(topic: string) {
     setVerifying(true);
     setVerifyError(null);
     const timeMs = Date.now() - questionStartRef.current;
+    if (!idempotencyKeyRef.current) {
+      idempotencyKeyRef.current = crypto.randomUUID();
+    }
     try {
-      const result = await submitInfiniteModeAnswer(sessionId, {
-        question_id: question.id,
-        answer: selectedOptionId,
-        time_ms: timeMs,
-      });
+      const result = await submitInfiniteModeAnswer(
+        sessionId,
+        {
+          question_id: question.id,
+          answer: selectedOptionId,
+          time_ms: timeMs,
+        },
+        idempotencyKeyRef.current,
+      );
       setLastResult(result);
       setRevealed(true);
       if (result.xp_ganho > 0) {
@@ -131,6 +143,7 @@ export function useInfiniteModeSession(topic: string) {
     setRevealed(false);
     setLastResult(null);
     questionStartRef.current = Date.now();
+    idempotencyKeyRef.current = null;
   }, [lastResult, finishAndGoToSummary]);
 
   return {
