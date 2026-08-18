@@ -3,7 +3,7 @@
 
 Modelo de dados detalhado: esquema relacional, documentos, vetores, cache e estratégias de persistência.
 
-Versão 1.17 | Agosto de 2026
+Versão 1.18 | Agosto de 2026
 Documento complementar ao SAD e ao TDD do ArqLearn v1.0
 
 > **Sobre esta versão:** versão em Markdown, mantida como fonte da verdade a partir de agora (ver
@@ -32,6 +32,7 @@ Documento complementar ao SAD e ao TDD do ArqLearn v1.0
 | 1.15 | 09/08/2026 | Equipe de Engenharia / Dados | Adiciona 15 contadores vitalícios a `user_gamification` (migrations/0006, a pedido do usuário) — nenhum contador cumulativo existia antes, só saldos atuais (xp_total/gems), que não servem pra checar limiar tipo "responda 100 perguntas ao todo". `achievements` (schema inalterado desde v1.0) passa a ser gravada de verdade pela primeira vez — catálogo completo em `internal/gamification/achievements.go` |
 | 1.16 | 15/08/2026 | Equipe de Engenharia / Dados | VIP "Mestre Arquiteto" (migrations/0011, a pedido do usuário) — adiciona `is_vip`/`vip_expires_at` e contadores de reset de baú a `user_gamification`, e a tabela `vip_coupons` (ativação por cupom de 10 dígitos; assinatura recorrente tem schema pronto porém desabilitada, ver API Spec §8.3). **Nota:** as colunas de `migrations/0009_daily_chest`/`0010_weekly_chest` (Baú Diário/Semanal) ainda não estavam documentadas aqui antes desta entrada — divergência pré-existente entre código e este documento, sinalizada e não resolvida retroativamente nesta mudança (fora do escopo desta demanda) |
 | 1.17 | 18/08/2026 | Equipe de Engenharia / Dados | Adiciona a tabela `user_push_tokens` (§3.2 DDL, §3.3 dicionário, migrations/0012, a pedido do usuário) — infraestrutura de push notification real (API Spec §9 v1.21); um usuário pode ter várias linhas (vários devices), `token` é `UNIQUE` |
+| 1.18 | 18/08/2026 | Equipe de Engenharia / Dados | Adiciona a tabela `answer_submissions` (§3.2 DDL, §3.3 dicionário, migrations/0013) — achado em `/impeccable critique`: `POST .../answers` (lição e Modo Infinito) não tinham nenhuma proteção contra reprocessamento em retry, diferente de `purchases`. Mesmo padrão de `idempotency_key UNIQUE`, mas guardando o corpo da resposta 200 (`response` JSONB) pra devolver no replay, já que os efeitos colaterais (XP/vidas/streak/baú/conquista) precisam ser vistos como já processados, não como conflito (API Spec §6/§6.1/§2.6 v1.22) |
 
 ---
 
@@ -272,6 +273,24 @@ CREATE TABLE purchases (
   purchased_at TIMESTAMPTZ NOT NULL DEFAULT now()
 );
 
+-- Idempotência de POST /v1/lessons/{lesson_id}/answers e
+-- POST /v1/infinite-mode/sessions/{session_id}/answers (migrations/0013, v1.22) — mesmo espírito
+-- de purchases.idempotency_key acima, mas guarda o corpo da resposta 200 inteiro (`response`) pra
+-- devolver o mesmo resultado num replay, em vez de só bloquear a repetição: os dois endpoints têm
+-- efeitos colaterais (XP/vidas/streak/baú/conquista) que precisam ser vistos como já processados
+-- pelo cliente, não como um erro de conflito.
+CREATE TABLE answer_submissions (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  user_id UUID NOT NULL REFERENCES users(id),
+  session_id TEXT NOT NULL,   -- practice_sessions._id ou infinite_mode_sessions._id (Mongo) — sem FK, banco diferente
+  question_id TEXT NOT NULL,  -- questions._id (Mongo) — sem FK, banco diferente
+  idempotency_key VARCHAR(64) NOT NULL UNIQUE,
+  response JSONB NOT NULL,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+
+CREATE INDEX idx_answer_submissions_user ON answer_submissions(user_id);
+
 CREATE TABLE gamification_events (
   id BIGSERIAL,
   user_id UUID NOT NULL REFERENCES users(id),
@@ -301,6 +320,7 @@ CREATE INDEX idx_gamevents_user_time ON gamification_events(user_id, created_at 
 | `purchases` | `idempotency_key` (UNIQUE) | Garante que retries de compra não gerem cobrança duplicada de gemas. |
 | `vip_coupons` | `code` (UNIQUE) | Cupons VIP de 10 dígitos numéricos; `redeemed_by IS NULL` distingue disponível de já resgatado — não há coluna booleana solta pra isso, evitando os dois campos divergirem. |
 | `user_push_tokens` | `token` (UNIQUE) | Token de push Expo por device; `UNIQUE` é no token, não no `user_id` — um usuário tem 1 linha por device (múltiplos devices = múltiplas linhas), e um device que troca de conta atualiza a linha existente em vez de acumular token órfão. |
+| `answer_submissions` | `idempotency_key` (UNIQUE) | Garante que retries de submissão de resposta (lição ou Modo Infinito) não concedam XP/vidas/streak/baú/conquista em dobro — `response` guarda o corpo 200 original pra devolver no replay. |
 
 *Tabela 2 — Dicionário de dados das tabelas relacionais principais.*
 

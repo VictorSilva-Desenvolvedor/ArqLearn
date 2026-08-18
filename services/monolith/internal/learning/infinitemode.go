@@ -173,9 +173,27 @@ func handleInfiniteModeAnswer(pool *pgxpool.Pool, mongoDB *mongo.Database, gemin
 		}
 		sessionID := r.PathValue("session_id")
 
+		// Idempotency-Key (API Spec §2.6) — mesmo achado/mesmo fix de internal/learning/answers.go:
+		// sem isto, um retry de rede concedia XP/baú/conquista de novo pra mesma resposta.
+		idempotencyKey := r.Header.Get("Idempotency-Key")
+		if idempotencyKey == "" {
+			apierror.Write(w, http.StatusBadRequest, "IDEMPOTENCY_KEY_REQUIRED", "Cabeçalho Idempotency-Key é obrigatório.")
+			return
+		}
+
 		var req infiniteModeAnswerRequest
 		if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 			apierror.Write(w, http.StatusUnprocessableEntity, "VALIDATION_ERROR", "Corpo da requisição inválido.")
+			return
+		}
+
+		if cachedResponse, err := lookupCachedAnswer(r, pool, idempotencyKey, userID); err != nil {
+			apierror.Write(w, http.StatusInternalServerError, "INTERNAL_ERROR", "Falha ao verificar idempotência.")
+			return
+		} else if cachedResponse != nil {
+			w.Header().Set("Content-Type", "application/json")
+			w.WriteHeader(http.StatusOK)
+			_, _ = w.Write(cachedResponse)
 			return
 		}
 
@@ -243,20 +261,6 @@ func handleInfiniteModeAnswer(pool *pgxpool.Pool, mongoDB *mongo.Database, gemin
 		newLevel := gamification.Nivel(newXPTotal)
 
 		hojeLocalDate, _ := time.Parse("2006-01-02", hojeLocal)
-		if _, err := pool.Exec(r.Context(), `
-			UPDATE user_gamification
-			SET xp_total = $1, xp_today = $2, xp_today_date = $3, level = $4,
-			    chest_questions_today = $5, chest_questions_date = $6,
-			    chest_weekly_questions = $7, chest_weekly_cycle_start = $8
-			WHERE user_id = $9
-		`, newXPTotal, newXPToday, hojeLocalDate, newLevel, chestQuestionsToday, hojeLocalDate,
-			chestWeeklyQuestions, chestWeeklyCycleStartDate, userID); err != nil {
-			apierror.Write(w, http.StatusInternalServerError, "INTERNAL_ERROR", "Falha ao atualizar gamificação.")
-			return
-		}
-		if err := gamification.AddWeeklyXP(r.Context(), pool, userID, xpResult.XPConcedido); err != nil {
-			log.Printf("aviso: falha ao somar XP semanal de liga no Modo Infinito (user_id=%s): %v", userID, err)
-		}
 
 		lessonIDs, err := lessonIDsForTopic(r.Context(), mongoDB, sess.Topic)
 		if err != nil {
@@ -315,6 +319,50 @@ func handleInfiniteModeAnswer(pool *pgxpool.Pool, mongoDB *mongo.Database, gemin
 		if nextQuestion != nil {
 			resp["next_question"] = toWireQuestion(*nextQuestion)
 		}
+		respJSON, err := json.Marshal(resp)
+		if err != nil {
+			apierror.Write(w, http.StatusInternalServerError, "INTERNAL_ERROR", "Falha ao montar resposta.")
+			return
+		}
+
+		// UPDATE + registro da idempotency key na mesma transação — mesmo padrão de
+		// internal/learning/answers.go (achado equivalente, mesmo fix).
+		tx, err := pool.Begin(r.Context())
+		if err != nil {
+			apierror.Write(w, http.StatusInternalServerError, "INTERNAL_ERROR", "Falha ao atualizar gamificação.")
+			return
+		}
+		defer tx.Rollback(r.Context())
+
+		if _, err := tx.Exec(r.Context(), `
+			UPDATE user_gamification
+			SET xp_total = $1, xp_today = $2, xp_today_date = $3, level = $4,
+			    chest_questions_today = $5, chest_questions_date = $6,
+			    chest_weekly_questions = $7, chest_weekly_cycle_start = $8
+			WHERE user_id = $9
+		`, newXPTotal, newXPToday, hojeLocalDate, newLevel, chestQuestionsToday, hojeLocalDate,
+			chestWeeklyQuestions, chestWeeklyCycleStartDate, userID); err != nil {
+			apierror.Write(w, http.StatusInternalServerError, "INTERNAL_ERROR", "Falha ao atualizar gamificação.")
+			return
+		}
+
+		if _, err := tx.Exec(r.Context(), `
+			INSERT INTO answer_submissions (id, user_id, session_id, question_id, idempotency_key, response)
+			VALUES ($1, $2, $3, $4, $5, $6)
+		`, uuid.New(), userID, sessionID, req.QuestionID, idempotencyKey, respJSON); err != nil {
+			apierror.Write(w, http.StatusInternalServerError, "INTERNAL_ERROR", "Falha ao registrar idempotência.")
+			return
+		}
+
+		if err := tx.Commit(r.Context()); err != nil {
+			apierror.Write(w, http.StatusInternalServerError, "INTERNAL_ERROR", "Falha ao atualizar gamificação.")
+			return
+		}
+
+		if err := gamification.AddWeeklyXP(r.Context(), pool, userID, xpResult.XPConcedido); err != nil {
+			log.Printf("aviso: falha ao somar XP semanal de liga no Modo Infinito (user_id=%s): %v", userID, err)
+		}
+
 		writeJSON(w, http.StatusOK, resp)
 	}
 }

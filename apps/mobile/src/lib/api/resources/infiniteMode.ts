@@ -24,13 +24,16 @@ export interface InfiniteModeAnswerPayload {
   time_ms: number;
 }
 
+// idempotencyKey (API Spec §2.6/§6, v1.22) — mesmo motivo/padrão de submitAnswer em resources/lessons.ts.
 export async function submitInfiniteModeAnswer(
   sessionId: string,
   payload: InfiniteModeAnswerPayload,
+  idempotencyKey: string,
 ): Promise<InfiniteModeAnswerResult> {
   if (isResourceReal("infinite-mode")) {
     return apiFetch<InfiniteModeAnswerResult>(`/v1/infinite-mode/sessions/${sessionId}/answers`, {
       method: "POST",
+      headers: { "Idempotency-Key": idempotencyKey },
       body: JSON.stringify(payload),
     });
   }

@@ -28,6 +28,10 @@ export function useQuizSession(trackId: string, lessonId: string) {
   const [sessionError, setSessionError] = useState(false);
   const [sessionRetryToken, setSessionRetryToken] = useState(0);
   const questionStartRef = useRef<number>(0);
+  // Chave estável por tentativa de resposta (API Spec §2.6, v1.22) — mesma chave em retries de
+  // `verify()` pra mesma pergunta (backend devolve o resultado cacheado em vez de reprocessar);
+  // renovada só ao avançar de pergunta (goToNextOrFinish) ou ao (re)carregar a sessão.
+  const idempotencyKeyRef = useRef<string | null>(null);
   const loading = session === null && !sessionError;
 
   useEffect(() => {
@@ -39,6 +43,7 @@ export function useQuizSession(trackId: string, lessonId: string) {
         setSession(startedSession);
         setHearts(startedSession.hearts_available);
         questionStartRef.current = Date.now();
+        idempotencyKeyRef.current = null;
       })
       .catch(() => {
         if (!cancelled) setSessionError(true);
@@ -69,13 +74,20 @@ export function useQuizSession(trackId: string, lessonId: string) {
     setVerifying(true);
     setVerifyError(null);
     const timeMs = Date.now() - questionStartRef.current;
+    if (!idempotencyKeyRef.current) {
+      idempotencyKeyRef.current = crypto.randomUUID();
+    }
     try {
-      const result = await submitAnswer(lessonId, {
-        session_id: session.session_id,
-        question_id: currentQuestion.id,
-        answer: selectedOptionId,
-        time_ms: timeMs,
-      });
+      const result = await submitAnswer(
+        lessonId,
+        {
+          session_id: session.session_id,
+          question_id: currentQuestion.id,
+          answer: selectedOptionId,
+          time_ms: timeMs,
+        },
+        idempotencyKeyRef.current,
+      );
 
       setLastResult(result);
       setRevealed(true);
@@ -149,6 +161,7 @@ export function useQuizSession(trackId: string, lessonId: string) {
     setDeepExplanation(null);
     setExplainError(null);
     questionStartRef.current = Date.now();
+    idempotencyKeyRef.current = null;
   }, [
     session,
     currentIndex,

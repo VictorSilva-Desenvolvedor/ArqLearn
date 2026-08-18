@@ -44,13 +44,18 @@ export interface SubmitAnswerPayload {
   time_ms: number;
 }
 
+// idempotencyKey (API Spec §2.6/§6, v1.22) — sem isto, um retry de rede reprocessava a resposta
+// inteira (XP, vidas, streak, baú, conquista contados de novo); mesmo padrão de purchaseShopItem
+// em resources/gamification.ts.
 export async function submitAnswer(
   lessonId: string,
   payload: SubmitAnswerPayload,
+  idempotencyKey: string,
 ): Promise<AnswerResult> {
   if (isResourceReal("lessons")) {
     return apiFetch<AnswerResult>(`/v1/lessons/${lessonId}/answers`, {
       method: "POST",
+      headers: { "Idempotency-Key": idempotencyKey },
       body: JSON.stringify(payload),
     });
   }

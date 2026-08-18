@@ -3,7 +3,7 @@
 
 Especificação de referência dos endpoints REST expostos pelo API Gateway.
 
-Versão 1.21 | Agosto de 2026
+Versão 1.22 | Agosto de 2026
 Documento complementar ao SAD e ao TDD do ArqLearn v1.0
 
 > **Sobre esta versão:** versão em Markdown, mantida como fonte da verdade a partir de agora (ver
@@ -36,6 +36,7 @@ Documento complementar ao SAD e ao TDD do ArqLearn v1.0
 | 1.19 | 15/08/2026 | Equipe de Engenharia | §8.2 (novo): Baú Semanal — a pedido do usuário, 1 abertura por ciclo rolante de 7 dias ao responder 50 perguntas dentro do ciclo (mesma contagem lição + Modo Infinito do Baú Diário). Ciclo só reseta quando 7 dias se passam desde o início do ciclo vigente — abrir antes disso não adianta o reset (decisão explícita do usuário). `GET /v1/gamification/weekly-chest` (status) e `POST .../weekly-chest/open` (sorteia 60% gemas 5-15 / 40% item — recompensa maior que o Baú Diário, reflete o esforço extra) são endpoints novos |
 | 1.20 | 18/08/2026 | Equipe de Engenharia | §8.1/§8.2: Baú Diário e Semanal passam a contar só respostas **certas** ("acertar N perguntas"), não mais toda resposta certa ou errada — reverte a decisão da v1.18/v1.19 a pedido do usuário, após achado em teste ao vivo em device real (confuso contar erro como progresso). Nenhum contrato/campo mudou, só a regra de quando `chest_questions_today`/`chest_weekly_questions` incrementam |
 | 1.21 | 18/08/2026 | Equipe de Engenharia | §9 (novo): `POST /v1/notifications/push-token` — registra/atualiza o token de push Expo do device atual, a pedido do usuário (infraestrutura de push notification real, antes só a preferência `push_enabled` existia sem nada consumi-la). Primeiro gatilho real: streak em risco, via `cmd/notify-streak-risk` (operacional, sem scheduler nesta fase, mesmo padrão de `cmd/close-league-week`) |
+| 1.22 | 18/08/2026 | Equipe de Engenharia | §6: `POST /v1/lessons/{lesson_id}/answers` passa a exigir o cabeçalho `Idempotency-Key` (mesmo padrão de `POST /v1/gamification/shop/purchase`, §2.6/§8) — achado em `/impeccable critique`: sem isto, um retry de rede reprocessava a resposta inteira (XP, vidas, streak, baú e conquistas contados de novo). Novo erro `IDEMPOTENCY_KEY_REQUIRED` (400). §2.6: nota sobre a janela de 24h mencionada ali não ser de fato implementada em nenhum dos dois endpoints hoje (chave sem expiração) — divergência sinalizada, não corrigida nesta versão |
 
 ---
 
@@ -105,9 +106,16 @@ cabeçalho `Retry-After`.
 
 ### 2.6 Idempotência
 
-Operações POST sensíveis a duplicação (ex.: compra na loja, confirmação de upload) aceitam o cabeçalho
-`Idempotency-Key`; requisições repetidas com a mesma chave em até 24h retornam a resposta original sem
-reprocessar.
+Operações POST sensíveis a duplicação (compra na loja, submissão de resposta de exercício) **exigem**
+o cabeçalho `Idempotency-Key` (ausente = `400 IDEMPOTENCY_KEY_REQUIRED`); requisições repetidas com a
+mesma chave retornam a resposta original sem reprocessar.
+
+> **Nota (v1.22):** a menção a "em até 24h" acima descreve o comportamento pretendido, não o
+> implementado — nem `purchases.idempotency_key` (compra) nem `answer_submissions.idempotency_key`
+> (resposta) têm expiração real hoje; a chave é válida indefinidamente em ambos. Divergência
+> conhecida, sinalizada e não corrigida nesta versão (ver `Docs/CLAUDE.md` sobre não resolver
+> divergência código/doc silenciosamente) — expiração real de chave fica como pendência futura se
+> o volume de tráfego algum dia justificar limpar a tabela.
 
 ## 3. Modelos de Dados Comuns
 
@@ -283,7 +291,7 @@ v1.0, mas nunca havia um código para "a lição em si não existe", encontrado 
 endpoint. Formato `options[].{id,label}` fechado na v1.5 — ver nota abaixo.)*
 
 **`POST /v1/lessons/{lesson_id}/answers`** — Submete a resposta de uma pergunta dentro de uma sessão
-ativa.
+ativa. Requer cabeçalho `Idempotency-Key` *(v1.22 — ver §2.6)*.
 
 ```json
 // Request body
@@ -313,7 +321,7 @@ ativa.
 > guardado como string simples em `questions.options` (Database Design §4.3) — o id é derivado da
 > posição só na hora de montar a resposta da API, nunca persistido.
 
-Erros: `404 SESSION_NOT_FOUND` · `410 SESSION_EXPIRED`
+Erros: `400 IDEMPOTENCY_KEY_REQUIRED` · `404 SESSION_NOT_FOUND` · `410 SESSION_EXPIRED`
 
 **`POST /v1/lessons/{lesson_id}/questions/{question_id}/explain`** *(v1.6)* — "Explique melhor": aprofunda,
 sob demanda, a explicação curta já devolvida por `POST .../answers` (Persona Prompt §5, "Se o usuário
@@ -372,7 +380,7 @@ como base para o painel do professor.
 ```
 
 **`POST /v1/infinite-mode/sessions/{session_id}/answers`** — Submete a resposta atual e retorna a
-próxima questão do modo infinito.
+próxima questão do modo infinito. Requer cabeçalho `Idempotency-Key` *(v1.22 — ver §2.6)*.
 
 ```json
 // Request body
@@ -397,6 +405,8 @@ de sessão nesse caso. Campo `xp_daily_cap_reached` adicionado na v1.2, mesmo co
 N" sem duplicar a conta — todo tópico ganha esse número, mas só `"maquetes"` de fato gera lição nova a
 cada nível (ver decisão acima). `daily_chest_available`/`daily_chest_questions` *(v1.18)* — ver §8.1
 Baú Diário; Modo Infinito soma pro mesmo contador acumulado do dia que lição usa.
+
+Erros: `400 IDEMPOTENCY_KEY_REQUIRED` *(v1.22)*.
 
 **`POST /v1/infinite-mode/sessions/{session_id}/end`** — Encerra a sessão manualmente (botão "Desistir"
 na UX) e retorna o resumo final.

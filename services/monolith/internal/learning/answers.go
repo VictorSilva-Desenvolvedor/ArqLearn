@@ -6,6 +6,8 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/google/uuid"
+	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
 	"go.mongodb.org/mongo-driver/v2/bson"
 	"go.mongodb.org/mongo-driver/v2/mongo"
@@ -57,9 +59,31 @@ func handleSubmitAnswer(pool *pgxpool.Pool, mongoDB *mongo.Database) http.Handle
 		}
 		lessonID := r.PathValue("lesson_id")
 
+		// Idempotency-Key (API Spec §2.6) — mesmo padrão de handleShopPurchase
+		// (internal/gamification/gamification.go): sem isto, um retry de rede reprocessava a
+		// resposta inteira (XP, vidas, streak, baú e conquistas contados de novo), já que nada
+		// aqui protegia contra duplicidade antes desta mudança.
+		idempotencyKey := r.Header.Get("Idempotency-Key")
+		if idempotencyKey == "" {
+			apierror.Write(w, http.StatusBadRequest, "IDEMPOTENCY_KEY_REQUIRED", "Cabeçalho Idempotency-Key é obrigatório.")
+			return
+		}
+
 		var req answerRequest
 		if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 			apierror.Write(w, http.StatusUnprocessableEntity, "VALIDATION_ERROR", "Corpo da requisição inválido.")
+			return
+		}
+
+		// Confere ANTES de qualquer efeito colateral — se a chave já foi usada, devolve a mesma
+		// resposta gravada da primeira vez em vez de reprocessar.
+		if cachedResponse, err := lookupCachedAnswer(r, pool, idempotencyKey, userID); err != nil {
+			apierror.Write(w, http.StatusInternalServerError, "INTERNAL_ERROR", "Falha ao verificar idempotência.")
+			return
+		} else if cachedResponse != nil {
+			w.Header().Set("Content-Type", "application/json")
+			w.WriteHeader(http.StatusOK)
+			_, _ = w.Write(cachedResponse)
 			return
 		}
 
@@ -194,7 +218,38 @@ func handleSubmitAnswer(pool *pgxpool.Pool, mongoDB *mongo.Database) http.Handle
 			streakLastActiveParam = d
 		}
 
-		_, err = pool.Exec(r.Context(), `
+		// Resposta final montada aqui — nada do que falta calcular (Mongo/conquistas abaixo)
+		// altera estes campos, então já dá pra gravar como o payload cacheado da idempotency key.
+		chestClaimedToday := dateOrEmpty(chestClaimedDate) == hojeLocal
+		dailyChestAvailable := chestQuestionsToday >= gamification.ChestQuestionsRequired && !chestClaimedToday
+		responseBody := map[string]any{
+			"correct":               correct,
+			"xp_ganho":              xpResult.XPConcedido,
+			"xp_daily_cap_reached":  xpResult.DailyCapReached,
+			"vidas_restantes":       newHearts,
+			"streak_atual":          streak.Current,
+			"explicacao":            q.Explanation,
+			"daily_chest_available": dailyChestAvailable,
+			"daily_chest_questions": chestQuestionsToday,
+		}
+		responseJSON, err := json.Marshal(responseBody)
+		if err != nil {
+			apierror.Write(w, http.StatusInternalServerError, "INTERNAL_ERROR", "Falha ao montar resposta.")
+			return
+		}
+
+		// UPDATE + registro da idempotency key na MESMA transação (mesmo padrão de
+		// handleShopPurchase) — a constraint UNIQUE em answer_submissions.idempotency_key é a
+		// última linha de defesa contra uma corrida de dois retries concorrentes com a mesma
+		// chave, além da checagem prévia já feita acima.
+		tx, err := pool.Begin(r.Context())
+		if err != nil {
+			apierror.Write(w, http.StatusInternalServerError, "INTERNAL_ERROR", "Falha ao atualizar gamificação.")
+			return
+		}
+		defer tx.Rollback(r.Context())
+
+		_, err = tx.Exec(r.Context(), `
 			UPDATE user_gamification
 			SET xp_total = $1, xp_today = $2, xp_today_date = $3, level = $4,
 			    hearts_current = $5, hearts_updated_at = $6, streak_current = $7, streak_best = $8,
@@ -207,6 +262,20 @@ func handleSubmitAnswer(pool *pgxpool.Pool, mongoDB *mongo.Database) http.Handle
 			chestQuestionsToday, hojeLocalDate,
 			chestWeeklyQuestions, chestWeeklyCycleStartDate, userID)
 		if err != nil {
+			apierror.Write(w, http.StatusInternalServerError, "INTERNAL_ERROR", "Falha ao atualizar gamificação.")
+			return
+		}
+
+		_, err = tx.Exec(r.Context(), `
+			INSERT INTO answer_submissions (id, user_id, session_id, question_id, idempotency_key, response)
+			VALUES ($1, $2, $3, $4, $5, $6)
+		`, uuid.New(), userID, req.SessionID, req.QuestionID, idempotencyKey, responseJSON)
+		if err != nil {
+			apierror.Write(w, http.StatusInternalServerError, "INTERNAL_ERROR", "Falha ao registrar idempotência.")
+			return
+		}
+
+		if err := tx.Commit(r.Context()); err != nil {
 			apierror.Write(w, http.StatusInternalServerError, "INTERNAL_ERROR", "Falha ao atualizar gamificação.")
 			return
 		}
@@ -305,20 +374,24 @@ func handleSubmitAnswer(pool *pgxpool.Pool, mongoDB *mongo.Database) http.Handle
 			log.Printf("aviso: falha ao avaliar conquistas (user_id=%s): %v", userID, err)
 		}
 
-		chestClaimedToday := dateOrEmpty(chestClaimedDate) == hojeLocal
-		dailyChestAvailable := chestQuestionsToday >= gamification.ChestQuestionsRequired && !chestClaimedToday
-
-		writeJSON(w, http.StatusOK, map[string]any{
-			"correct":               correct,
-			"xp_ganho":              xpResult.XPConcedido,
-			"xp_daily_cap_reached":  xpResult.DailyCapReached,
-			"vidas_restantes":       newHearts,
-			"streak_atual":          streak.Current,
-			"explicacao":            q.Explanation,
-			"daily_chest_available": dailyChestAvailable,
-			"daily_chest_questions": chestQuestionsToday,
-		})
+		writeJSON(w, http.StatusOK, responseBody)
 	}
+}
+
+// lookupCachedAnswer confere se idempotencyKey já foi processada por userID; devolve o corpo da
+// resposta original (nil, nil se a chave é nova) sem tocar em nenhum efeito colateral.
+func lookupCachedAnswer(r *http.Request, pool *pgxpool.Pool, idempotencyKey, userID string) ([]byte, error) {
+	var response []byte
+	err := pool.QueryRow(r.Context(), `
+		SELECT response FROM answer_submissions WHERE idempotency_key = $1 AND user_id = $2
+	`, idempotencyKey, userID).Scan(&response)
+	if err == pgx.ErrNoRows {
+		return nil, nil
+	}
+	if err != nil {
+		return nil, err
+	}
+	return response, nil
 }
 
 func dateOrEmpty(t *time.Time) string {

@@ -231,3 +231,22 @@ Itens que dependem de decisão de design ou de outro tipo de ambiente, não de m
    do `FlatList` pode se comportar diferente do `ScrollView` em conteúdo de altura variável.
 5. **`SideNav` (web, desktop)**: confirmar visualmente que agora só mostra 5 itens (Home/Explorar/
    VIP/Liga/Perfil) e que Loja/Ajuda continuam alcançáveis a partir de Perfil.
+
+### Lote 8 — `Idempotency-Key` em `submitAnswer`/`submitInfiniteModeAnswer` (18/08/2026)
+
+Backend passou a exigir o cabeçalho `Idempotency-Key` nas duas rotas de resposta (lição e Modo
+Infinito) e cacheia o resultado por chave em `answer_submissions` — um retry de rede com a mesma
+chave devolve o mesmo resultado em vez de conceder XP/vidas/streak/baú/conquista em dobro (API
+Spec §2.6/§6, v1.22). Cliente (mobile + web) gera a chave por tentativa de pergunta e reaproveita
+em retries de `verify()`, renovando só ao avançar de pergunta.
+
+1. **Fluxo normal**: responda perguntas em Trilhas e no Modo Infinito normalmente (mobile e web) —
+   sem diferença perceptível nenhuma deveria aparecer; é o caso feliz que precisa continuar
+   idêntico a antes.
+2. **Retry de verdade**: mais difícil de forçar sem interceptar a rede (ex.: modo avião ligado no
+   meio do toque em "Verificar", ou DevTools → Network → Offline no web) — responda, force a
+   chamada a falhar uma vez, tente de novo com a mesma pergunta ainda selecionada. XP/vidas/streak
+   devem mudar só uma vez, mesmo que a chamada tenha sido tentada duas vezes.
+3. Sem teste ao vivo desta rodada (backend ainda não implantado no Render até este PR ser
+   mergeado e a próxima implantação rodar) — mesmo aviso já dado pras mudanças de baú/vidas
+   anteriores nesta sessão.
