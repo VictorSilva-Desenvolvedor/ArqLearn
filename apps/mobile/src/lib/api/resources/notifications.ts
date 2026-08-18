@@ -29,3 +29,14 @@ export async function updateNotificationPreferences(
   }
   return mockDelay(prefs, 200);
 }
+
+// API Spec §9 v1.21 — registra/atualiza o token de push Expo do device atual. Sem mock: sem
+// backend real não tem quem consumir o token mesmo (o gatilho de streak em risco só existe no
+// backend), então em modo mock isso é um no-op silencioso em vez de fingir sucesso.
+export async function registerPushToken(token: string, platform: "ios" | "android"): Promise<void> {
+  if (!isResourceReal("notifications")) return;
+  await apiFetch<{ registered: boolean }>("/v1/notifications/push-token", {
+    method: "POST",
+    body: JSON.stringify({ token, platform }),
+  });
+}

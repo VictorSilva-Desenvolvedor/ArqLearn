@@ -3,7 +3,7 @@
 
 Especificação de referência dos endpoints REST expostos pelo API Gateway.
 
-Versão 1.19 | Agosto de 2026
+Versão 1.21 | Agosto de 2026
 Documento complementar ao SAD e ao TDD do ArqLearn v1.0
 
 > **Sobre esta versão:** versão em Markdown, mantida como fonte da verdade a partir de agora (ver
@@ -35,6 +35,7 @@ Documento complementar ao SAD e ao TDD do ArqLearn v1.0
 | 1.18 | 15/08/2026 | Equipe de Engenharia | §8.1 (novo): Baú Diário — a pedido do usuário, 1 abertura por dia local ao responder 10 perguntas no dia (lição + Modo Infinito somados). `GET /v1/gamification/daily-chest` (status) e `POST .../daily-chest/open` (sorteia 75% gemas 1-5 / 25% item consumível grátis — Bloqueio de Ofensiva ou Recarga de Vidas) são endpoints novos. §6/§6.1: `POST .../answers` (lição e Modo Infinito) ganham `daily_chest_available`/`daily_chest_questions` na resposta |
 | 1.19 | 15/08/2026 | Equipe de Engenharia | §8.2 (novo): Baú Semanal — a pedido do usuário, 1 abertura por ciclo rolante de 7 dias ao responder 50 perguntas dentro do ciclo (mesma contagem lição + Modo Infinito do Baú Diário). Ciclo só reseta quando 7 dias se passam desde o início do ciclo vigente — abrir antes disso não adianta o reset (decisão explícita do usuário). `GET /v1/gamification/weekly-chest` (status) e `POST .../weekly-chest/open` (sorteia 60% gemas 5-15 / 40% item — recompensa maior que o Baú Diário, reflete o esforço extra) são endpoints novos |
 | 1.20 | 18/08/2026 | Equipe de Engenharia | §8.1/§8.2: Baú Diário e Semanal passam a contar só respostas **certas** ("acertar N perguntas"), não mais toda resposta certa ou errada — reverte a decisão da v1.18/v1.19 a pedido do usuário, após achado em teste ao vivo em device real (confuso contar erro como progresso). Nenhum contrato/campo mudou, só a regra de quando `chest_questions_today`/`chest_weekly_questions` incrementam |
+| 1.21 | 18/08/2026 | Equipe de Engenharia | §9 (novo): `POST /v1/notifications/push-token` — registra/atualiza o token de push Expo do device atual, a pedido do usuário (infraestrutura de push notification real, antes só a preferência `push_enabled` existia sem nada consumi-la). Primeiro gatilho real: streak em risco, via `cmd/notify-streak-risk` (operacional, sem scheduler nesta fase, mesmo padrão de `cmd/close-league-week`) |
 
 ---
 
@@ -844,12 +845,12 @@ pros dois casos, pra não confirmar a existência de um código a quem não tem 
 
 ## 9. Notifications Service
 
-> **v1.11 — os dois endpoints abaixo são reais** (implementados contra a coleção `notifications`,
-> MongoDB, nova — nenhum schema existia antes — e as colunas `push_enabled`/`email_enabled` de
-> `users`, Postgres). `GET /v1/notifications` legitimamente devolve lista vazia hoje: nenhum
-> gatilho (streak em risco, promoção de liga etc.) escreve nessa coleção ainda — depende de jobs
-> agendados que não existem, mesmo motivo de `cmd/worker` não consumir fila real (ver
-> `Docs/CLAUDE.md`). Ver `Docs/PENDENCIAS_WEB_REAL.md`.
+> **v1.11 — os três endpoints abaixo são reais** (implementados contra a coleção `notifications`,
+> MongoDB — e as colunas `push_enabled`/`email_enabled` de `users`, Postgres). Dois gatilhos
+> escrevem notificação in-app de verdade hoje: resolução de bug/sugestão reportados
+> (`bugreports.go`) e streak em risco *(v1.21)*. Outros gatilhos (promoção de liga etc.) ainda
+> dependem de jobs agendados que não existem, mesmo motivo de `cmd/worker` não consumir fila real
+> (ver `Docs/CLAUDE.md`). Ver `Docs/PENDENCIAS_WEB_REAL.md`.
 
 **`GET /v1/notifications`** — Lista notificações in-app do usuário, mais recentes primeiro.
 
@@ -866,6 +867,26 @@ pros dois casos, pra não confirmar a existência de um código a quem não tem 
 // Response 200
 { "...preferences" }
 ```
+
+**`POST /v1/notifications/push-token`** *(v1.21)* — Registra ou atualiza o token de push Expo
+(`ExponentPushToken[...]`) do device atual. `ON CONFLICT` no token, não no usuário: um mesmo
+device trocando de conta logada atualiza o `user_id` da linha existente em vez de acumular token
+órfão da conta anterior. Sem autenticação de terceiro envolvida — o Expo Push API já gerencia
+APNs/FCM pelo `projectId` do app, sem credencial própria (mesmo critério "sem cartão de crédito"
+usado pra escolher Gemini/Groq, `Docs/CLAUDE.md`).
+
+```json
+// Request body
+{ "token": string, "platform"?: "ios" | "android" }
+// Response 200
+{ "registered": true }
+```
+
+**Gatilho: streak em risco** *(v1.21)* — `cmd/notify-streak-risk` (operacional, sem scheduler
+automático nesta fase, mesmo padrão de `cmd/close-league-week` §6) varre usuários com
+`streak_current > 0` e `push_enabled = true`, aplica a expiração preguiçosa da streak (TDD §5.2/
+§5.3) antes de checar `StreakEmRisco`, e para quem está em risco: grava uma notificação in-app
+(`type: "streak_at_risk"`) e envia o push de verdade pra todos os tokens registrados do usuário.
 
 ## 10. Teacher / Analytics API
 

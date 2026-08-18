@@ -3,7 +3,7 @@
 
 Modelo de dados detalhado: esquema relacional, documentos, vetores, cache e estratégias de persistência.
 
-Versão 1.15 | Agosto de 2026
+Versão 1.17 | Agosto de 2026
 Documento complementar ao SAD e ao TDD do ArqLearn v1.0
 
 > **Sobre esta versão:** versão em Markdown, mantida como fonte da verdade a partir de agora (ver
@@ -31,6 +31,7 @@ Documento complementar ao SAD e ao TDD do ArqLearn v1.0
 | 1.14 | 09/08/2026 | Equipe de Engenharia / Dados | `bug_reports` (§4.4.5) ganha `type` (`bug \| suggestion`) e `device_model`/`device_type` (a pedido do usuário) — mesma coleção passa a cobrir sugestões de melhoria, não só bugs. Adiciona `suggestion_implemented` ao enum de `notifications.type` (§4.4.4) |
 | 1.15 | 09/08/2026 | Equipe de Engenharia / Dados | Adiciona 15 contadores vitalícios a `user_gamification` (migrations/0006, a pedido do usuário) — nenhum contador cumulativo existia antes, só saldos atuais (xp_total/gems), que não servem pra checar limiar tipo "responda 100 perguntas ao todo". `achievements` (schema inalterado desde v1.0) passa a ser gravada de verdade pela primeira vez — catálogo completo em `internal/gamification/achievements.go` |
 | 1.16 | 15/08/2026 | Equipe de Engenharia / Dados | VIP "Mestre Arquiteto" (migrations/0011, a pedido do usuário) — adiciona `is_vip`/`vip_expires_at` e contadores de reset de baú a `user_gamification`, e a tabela `vip_coupons` (ativação por cupom de 10 dígitos; assinatura recorrente tem schema pronto porém desabilitada, ver API Spec §8.3). **Nota:** as colunas de `migrations/0009_daily_chest`/`0010_weekly_chest` (Baú Diário/Semanal) ainda não estavam documentadas aqui antes desta entrada — divergência pré-existente entre código e este documento, sinalizada e não resolvida retroativamente nesta mudança (fora do escopo desta demanda) |
+| 1.17 | 18/08/2026 | Equipe de Engenharia / Dados | Adiciona a tabela `user_push_tokens` (§3.2 DDL, §3.3 dicionário, migrations/0012, a pedido do usuário) — infraestrutura de push notification real (API Spec §9 v1.21); um usuário pode ter várias linhas (vários devices), `token` é `UNIQUE` |
 
 ---
 
@@ -240,6 +241,20 @@ CREATE TABLE vip_coupons (
   created_at TIMESTAMPTZ NOT NULL DEFAULT now()
 );
 
+-- Tokens de push notification real (migrations/0012, v1.17, a pedido do usuário) — API Spec §9
+-- v1.21. Um usuário pode ter várias linhas (vários devices); token é UNIQUE, não user_id: um
+-- device trocando de conta atualiza a linha existente em vez de acumular token órfão. id sem
+-- DEFAULT — gerado em Go via uuid.NewString(), mesmo padrão do resto do pacote notifications
+-- (não gen_random_uuid() do Postgres).
+CREATE TABLE user_push_tokens (
+  id UUID PRIMARY KEY,
+  user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  token TEXT NOT NULL UNIQUE,
+  platform TEXT,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+CREATE INDEX idx_user_push_tokens_user ON user_push_tokens(user_id);
+
 CREATE TABLE shop_items (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   name VARCHAR(80) NOT NULL,
@@ -285,6 +300,7 @@ CREATE INDEX idx_gamevents_user_time ON gamification_events(user_id, created_at 
 | `gamification_events` | `id` (PK), particionada por mês | Log append-only de eventos, usado para auditoria e Analytics; particionamento mensal facilita expurgo por retenção. |
 | `purchases` | `idempotency_key` (UNIQUE) | Garante que retries de compra não gerem cobrança duplicada de gemas. |
 | `vip_coupons` | `code` (UNIQUE) | Cupons VIP de 10 dígitos numéricos; `redeemed_by IS NULL` distingue disponível de já resgatado — não há coluna booleana solta pra isso, evitando os dois campos divergirem. |
+| `user_push_tokens` | `token` (UNIQUE) | Token de push Expo por device; `UNIQUE` é no token, não no `user_id` — um usuário tem 1 linha por device (múltiplos devices = múltiplas linhas), e um device que troca de conta atualiza a linha existente em vez de acumular token órfão. |
 
 *Tabela 2 — Dicionário de dados das tabelas relacionais principais.*
 
