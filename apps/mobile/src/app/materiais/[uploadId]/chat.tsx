@@ -1,10 +1,10 @@
 import { useEffect, useRef } from "react";
 import { useLocalSearchParams } from "expo-router";
-import { KeyboardAvoidingView, Platform, ScrollView, StyleSheet, Text } from "react-native";
+import { FlatList, KeyboardAvoidingView, Platform, StyleSheet, Text } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { ChatInputBar } from "@/components/features/materialChat/ChatInputBar";
 import { ChatMessageBubble } from "@/components/features/materialChat/ChatMessageBubble";
-import { useMaterialChat } from "@/components/features/materialChat/useMaterialChat";
+import { useMaterialChat, type ViewMessage } from "@/components/features/materialChat/useMaterialChat";
 import { SummaryHeader } from "@/components/features/materialSummary/SummaryHeader";
 import { colors, spacing, type } from "@/theme/tokens";
 
@@ -13,11 +13,14 @@ import { colors, spacing, type } from "@/theme/tokens";
 // mínima de plataforma pra a barra de envio não ficar escondida atrás do teclado em RN.
 export default function MaterialChatScreen() {
   const { uploadId } = useLocalSearchParams<{ uploadId: string }>();
-  const { title, messages, sending, sendMessage } = useMaterialChat(uploadId);
-  const scrollRef = useRef<ScrollView>(null);
+  const { title, messages, sending, error, sendMessage } = useMaterialChat(uploadId);
+  // FlatList em vez de ScrollView+map (achado de /impeccable audit, 18/08/2026): uma conversa não
+  // tem teto natural de tamanho como as outras listas do app — só essa precisava de virtualização
+  // de verdade.
+  const listRef = useRef<FlatList<ViewMessage>>(null);
 
   useEffect(() => {
-    scrollRef.current?.scrollToEnd({ animated: true });
+    listRef.current?.scrollToEnd({ animated: true });
   }, [messages, sending]);
 
   return (
@@ -28,22 +31,37 @@ export default function MaterialChatScreen() {
         keyboardVerticalOffset={Platform.OS === "ios" ? 88 : 0}
       >
         <SummaryHeader title={title} eyebrow="Chat sobre o Material" />
-        <ScrollView ref={scrollRef} style={styles.body} contentContainerStyle={styles.bodyContent}>
-          {messages.map((m) => (
+        <FlatList
+          ref={listRef}
+          style={styles.body}
+          contentContainerStyle={styles.bodyContent}
+          data={messages}
+          keyExtractor={(m) => m.id}
+          renderItem={({ item }) => (
             <ChatMessageBubble
-              key={m.id}
-              role={m.role}
-              message={m.message}
-              sourceExcerpt={m.sourceExcerpt}
-              sourceRef={m.sourceRef}
+              role={item.role}
+              message={item.message}
+              sourceExcerpt={item.sourceExcerpt}
+              sourceRef={item.sourceRef}
             />
-          ))}
-          {sending && (
-            <Text accessibilityLiveRegion="polite" style={[type.bodySm, styles.typing]}>
-              Arq está digitando…
-            </Text>
           )}
-        </ScrollView>
+          accessibilityRole="list"
+          accessibilityLabel="Conversa com a Arq"
+          ListFooterComponent={
+            <>
+              {sending && (
+                <Text accessibilityLiveRegion="polite" style={[type.bodySm, styles.typing]}>
+                  Arq está digitando…
+                </Text>
+              )}
+              {error && (
+                <Text accessibilityLiveRegion="polite" style={[type.bodySm, styles.error]}>
+                  {error}
+                </Text>
+              )}
+            </>
+          }
+        />
         <ChatInputBar onSend={sendMessage} disabled={sending} />
       </KeyboardAvoidingView>
     </SafeAreaView>
@@ -69,5 +87,10 @@ const styles = StyleSheet.create({
   typing: {
     alignSelf: "flex-start",
     color: colors.onSurfaceVariant,
+  },
+  error: {
+    alignSelf: "flex-start",
+    color: colors.error,
+    marginTop: spacing.xs,
   },
 });

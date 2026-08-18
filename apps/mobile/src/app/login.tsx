@@ -1,9 +1,11 @@
 import { useContext, useState } from "react";
+import * as Linking from "expo-linking";
 import { KeyboardAvoidingView, Platform, StyleSheet, Text, TextInput, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Button } from "@/components/ui/Button";
 import { Icon } from "@/components/ui/Icon";
 import { AuthContext } from "@/contexts/AuthContext";
+import { createSupabaseClient } from "@/lib/supabase/client";
 import { colors, type } from "@/theme/tokens";
 
 export default function LoginScreen() {
@@ -12,6 +14,9 @@ export default function LoginScreen() {
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
+  // P2 do /impeccable critique (18/08/2026): sem caminho de recuperação de senha no mobile.
+  const [resetSubmitting, setResetSubmitting] = useState(false);
+  const [resetMessage, setResetMessage] = useState<string | null>(null);
 
   const handleSubmit = async () => {
     setError(null);
@@ -32,6 +37,20 @@ export default function LoginScreen() {
     // (guard ainda fechado), já que `user` só é setado depois que GET /v1/users/me resolver.
     // `submitting` fica true até lá de propósito, pra não reabrir o formulário clicável por uma
     // fração de segundo antes do redirect automático — a tela desmonta durante essa espera.
+  };
+
+  const handleForgotPassword = async () => {
+    if (!email) {
+      setResetMessage("Digite seu e-mail no campo acima primeiro.");
+      return;
+    }
+    setResetSubmitting(true);
+    setResetMessage(null);
+    await createSupabaseClient().auth.resetPasswordForEmail(email, {
+      redirectTo: Linking.createURL("redefinir-senha"),
+    });
+    setResetSubmitting(false);
+    setResetMessage("Se esse e-mail tiver uma conta, enviamos um link pra redefinir a senha.");
   };
 
   return (
@@ -75,6 +94,16 @@ export default function LoginScreen() {
           <Button fullWidth onPress={handleSubmit}>
             {submitting ? "Entrando..." : "Entrar"}
           </Button>
+          <Text
+            style={[type.bodySm, styles.forgotPassword]}
+            onPress={resetSubmitting ? undefined : handleForgotPassword}
+            accessibilityRole="button"
+          >
+            {resetSubmitting ? "Enviando…" : "Esqueci minha senha"}
+          </Text>
+          {resetMessage && (
+            <Text style={[type.bodySm, styles.resetMessage]}>{resetMessage}</Text>
+          )}
         </View>
       </KeyboardAvoidingView>
     </SafeAreaView>
@@ -127,5 +156,13 @@ const styles = StyleSheet.create({
   },
   error: {
     color: colors.error,
+  },
+  forgotPassword: {
+    color: colors.primary,
+    textAlign: "center",
+  },
+  resetMessage: {
+    color: colors.onSurfaceVariant,
+    textAlign: "center",
   },
 });

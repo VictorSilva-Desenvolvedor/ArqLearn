@@ -1,4 +1,5 @@
-import { Image, StyleSheet, Text, View } from "react-native";
+import { Image } from "expo-image";
+import { StyleSheet, Text, View } from "react-native";
 import { colors } from "@/theme/tokens";
 
 interface AvatarProps {
@@ -20,7 +21,14 @@ export function Avatar({ src, name, size = 32, vip = false }: AvatarProps) {
   const borderStyle = vip ? styles.baseVip : styles.base;
 
   if (src) {
-    return <Image source={{ uri: src }} style={[borderStyle, dimensions]} accessibilityLabel={name} />;
+    return (
+      <Image
+        source={{ uri: src }}
+        style={[borderStyle, dimensions]}
+        accessibilityLabel={name}
+        cachePolicy="memory-disk"
+      />
+    );
   }
 
   return (

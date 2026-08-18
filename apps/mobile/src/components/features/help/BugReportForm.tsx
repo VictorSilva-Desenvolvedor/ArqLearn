@@ -1,7 +1,8 @@
 import { useState } from "react";
 import * as DocumentPicker from "expo-document-picker";
 import * as FileSystem from "expo-file-system/legacy";
-import { Image, Pressable, StyleSheet, Text, TextInput, View } from "react-native";
+import { Image } from "expo-image";
+import { Pressable, StyleSheet, Text, TextInput, View } from "react-native";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
 import { Icon } from "@/components/ui/Icon";

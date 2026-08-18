@@ -1,5 +1,6 @@
 import { useEffect } from "react";
-import { AccessibilityInfo, Image, StyleSheet, Text, View } from "react-native";
+import { Image } from "expo-image";
+import { AccessibilityInfo, StyleSheet, Text, View } from "react-native";
 import { Badge, type BadgeTone } from "@/components/ui/Badge";
 import { colors, radius, spacing, type } from "@/theme/tokens";
 import type { QuestionDifficulty, QuestionOption, QuestionType } from "@/types/api";
@@ -58,7 +59,13 @@ export function QuestionCard({
       </View>
       {imageUrl && (
         <View style={styles.imageWrap}>
-          <Image source={{ uri: imageUrl }} style={styles.image} resizeMode="cover" />
+          <Image
+            source={{ uri: imageUrl }}
+            style={styles.image}
+            contentFit="cover"
+            cachePolicy="memory-disk"
+            accessibilityLabel={`Diagrama de referência da questão: ${prompt}`}
+          />
           <View style={styles.imageCaption}>
             <Text style={[type.labelCaps, styles.imageCaptionText]}>FIG. 1: ELEVAÇÃO</Text>
           </View>
