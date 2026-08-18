@@ -10,8 +10,34 @@
 > - `expo-dev-client` já é dependência do projeto (`apps/mobile/package.json`).
 > - O celular de teste (Android, modo de navegação por 3 botões) já tem o dev client instalado —
 >   basta rodar `npx expo start --dev-client` (de dentro de `apps/mobile` ou via
->   `npm exec --workspace=apps/mobile -- expo start --dev-client`) e o app deve reconectar sozinho
->   se estiver na mesma rede Wi-Fi; senão, digitar `exp://<IP-desta-máquina>:8081` no dev client.
+>   `npm exec --workspace=apps/mobile -- expo start --dev-client`).
+> - **O app instalado é o dev client, não o app final nem a Expo Go da loja.** Abrir o ícone sozinho
+>   não conecta em nada automaticamente na primeira vez — cai na tela própria do dev client
+>   (`DevLauncherActivity`, confirmado via `adb logcat`), com um campo "Enter URL manually". **EAS
+>   Update (OTA) não tem efeito nenhum nesse app** — só builds standalone (perfil `preview`/
+>   `production` sem dev client) leem o canal de update; publicar OTA pra testar no dev client é
+>   inútil, não gera erro, só não faz nada visível.
+> - **Conexão via Wi-Fi/LAN não foi confiável nesta sessão** (firewall com regra liberada pro
+>   Node.js, mesma rede confirmada, e mesmo assim zero pacote chegou no Metro — causa não
+>   identificada). **Caminho que funcionou: USB.** Ativar "Depuração USB" nas Opções do
+>   desenvolvedor, autorizar o popup no celular ao plugar o cabo, depois:
+>   `adb reverse tcp:8081 tcp:8081` (usa o `adb` de `platform-tools` do Android SDK; nesta máquina
+>   não estava no PATH, caminho completo em
+>   `%LOCALAPPDATA%\Android\Sdk\platform-tools\adb.exe`) — digitar `localhost:8081` no campo do dev
+>   client. Confirmar que o bundle chegou pelo log do Metro ("Android Bundled ... node_modules
+>   expo-router\entry.js"), não só pela UI do celular.
+> - **`EXPO_PUBLIC_API_BASE_URL` em `.env.local` aponta pra `http://localhost:8080`** — isso é o
+>   `localhost` **do celular**, não desta máquina; só funciona se `services/monolith` estiver
+>   rodando aqui **e** com `adb reverse tcp:8080 tcp:8080` também configurado. Sem isso, o app
+>   conecta no Metro (bundle carrega) mas fica travado em "conectando"/loading pra sempre, tentando
+>   falar com uma porta 8080 que não existe no celular — sintoma fácil de confundir com crash.
+>   Caminho mais rápido pra testar sem subir o backend local: `EXPO_PUBLIC_API_BASE_URL=https://arqlearn.onrender.com
+>   npx expo start --dev-client` (sobrescreve o valor do `.env.local`, que não é sobrescrito no
+>   arquivo em si).
+> - `@expo/ngrok` já é devDependency do projeto (`apps/mobile/package.json`) — necessário pra
+>   `expo start --dev-client --tunnel` (alternativa ao USB se a rede Wi-Fi algum dia funcionar).
+>   **Rodar sem `EXPO_TOKEN` no ambiente** — com o token presente (`.env.local` exporta ele por
+>   padrão), o comando falha com `Cannot use ngrok with a robot user`.
 > - Playwright já testado funcionando nesta máquina (binários do Chromium em cache local) — útil
 >   pra tirar screenshot real do web (`npx playwright` funciona via `npx --yes -p playwright node
 >   script.mjs`, já que o pacote não está instalado como dependência do projeto).
