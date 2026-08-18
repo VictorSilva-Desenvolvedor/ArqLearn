@@ -139,7 +139,14 @@ Itens que dependem de decisão de design ou de outro tipo de ambiente, não de m
    real (não testável sem device/credenciais na sessão que implementou) — mesma pendência #2 do
    achado original (`PENDENCIAS_MOBILE.md` #21).
 9. **Espelhar no `apps/web`** as 6 mudanças do item #22 acima (regra permanente de paridade,
-   `PENDENCIAS_MOBILE.md` #9) — ainda não feito, fora do escopo da demanda que fechou 1-4/6/8.
+   `PENDENCIAS_MOBILE.md` #9) — avaliado 18/08/2026 (PR #107): das 6, só o `TopAppBar` se aplicava
+   de verdade ao web (mesmo achado de 2 faixas empilhadas com borda duplicada em telas <640px,
+   corrigido do mesmo jeito). As outras 5 não têm equivalente real no web: `ThemeSelector` já usa
+   scroll nativo do navegador via Radix (sem o problema de performance do RN), `outline-variant` já
+   tinha o valor correto no web desde antes (o mobile que copiou de lá), pull-to-refresh e lock de
+   orientação são conceitos mobile-only, e `Toggle` já é o mesmo componente/estilo nas duas
+   plataformas. **Falta**: confirmar visualmente ao vivo a faixa única do `TopAppBar` no web (sem
+   credenciais de teste disponíveis nesta sessão, mesma limitação do lado mobile).
 
 ## Referências
 
