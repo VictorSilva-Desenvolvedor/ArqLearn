@@ -24,7 +24,7 @@ export function AchievementBadge({ entry, unlocked, unlockedAt }: AchievementBad
       className={cn(
         "w-16 h-16 rounded-xl flex items-center justify-center rotate-45",
         unlocked
-          ? "bg-secondary text-on-secondary shadow-sm"
+          ? "bg-secondary text-on-secondary"
           : "bg-surface-gray text-outline border-2 border-dashed border-outline-variant",
       )}
     >
@@ -52,7 +52,7 @@ export function AchievementBadge({ entry, unlocked, unlockedAt }: AchievementBad
         </button>
         <Modal open={open} onOpenChange={setOpen}>
           <div className="flex flex-col items-center text-center gap-md">
-            <div className="w-20 h-20 rounded-xl bg-secondary text-on-secondary shadow-sm flex items-center justify-center rotate-45">
+            <div className="w-20 h-20 rounded-xl bg-secondary text-on-secondary flex items-center justify-center rotate-45">
               <Icon name={entry.icon} filled className="text-3xl -rotate-45" />
             </div>
             <div>

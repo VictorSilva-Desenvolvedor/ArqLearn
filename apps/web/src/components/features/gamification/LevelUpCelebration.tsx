@@ -25,7 +25,7 @@ export function LevelUpCelebration() {
   return (
     <Modal open={justLeveledUpTo !== null} onOpenChange={(open) => !open && dismissLevelUp()}>
       <div className="flex flex-col items-center text-center gap-md">
-        <div className="w-24 h-24 rounded-full bg-secondary text-on-secondary flex items-center justify-center shadow-sm">
+        <div className="w-24 h-24 rounded-full bg-secondary text-on-secondary flex items-center justify-center">
           <Icon name="military_tech" filled className="text-5xl" />
         </div>
         <div>

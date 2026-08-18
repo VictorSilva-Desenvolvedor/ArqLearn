@@ -65,6 +65,7 @@ export function BugReportCard({ report, pending, onResolve }: BugReportCardProps
         <img
           src={report.screenshot_base64}
           alt={`Print anexado ao relato de ${report.reporter_name ?? "usuário"}`}
+          loading="lazy"
           className="max-h-64 w-auto rounded-lg border-2 border-outline-variant object-contain self-start"
         />
       )}

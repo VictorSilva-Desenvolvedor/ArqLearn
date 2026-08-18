@@ -267,7 +267,7 @@ export function AuthProvider({
   // Supabase não reconhece, por exemplo), isso força a ida pro login em vez de deixar
   // useAuth() explodindo pra sempre numa página que nunca vai ter usuário.
   useEffect(() => {
-    if (isResolved && !baseUser && pathname !== "/login") {
+    if (isResolved && !baseUser && pathname !== "/login" && pathname !== "/redefinir-senha") {
       // eslint-disable-next-line @next/next/no-location-assign-relative-destination -- deliberado, ver comentário acima
       window.location.href = "/login";
     }
@@ -305,7 +305,7 @@ export function AuthProvider({
   );
 
   // /login nunca tem usuário mesmo resolvido — não faz sentido segurar ela atrás do loading.
-  const shouldWait = !isResolved && pathname !== "/login";
+  const shouldWait = !isResolved && pathname !== "/login" && pathname !== "/redefinir-senha";
 
   return (
     <AuthContext.Provider value={value}>

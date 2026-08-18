@@ -51,8 +51,8 @@ export function QuestionCard({
       {imageUrl && (
         <div className="w-full h-48 md:h-64 rounded-xl overflow-hidden border-2 border-outline-variant bg-surface-gray relative">
           {/* eslint-disable-next-line @next/next/no-img-element -- imagem vem de URL externa arbitrária do conteúdo gerado, sem domínio fixo pra configurar em next.config */}
-          <img src={imageUrl} alt="" className="w-full h-full object-cover" />
-          <div className="absolute bottom-2 right-2 bg-surface-bright/90 px-2 py-1 rounded font-label-caps text-[10px] text-outline border border-outline-variant">
+          <img src={imageUrl} alt={`Diagrama de referência da questão: ${prompt}`} className="w-full h-full object-cover" />
+          <div className="absolute bottom-2 right-2 bg-surface-bright/90 px-2 py-1 rounded font-label-caps text-label-caps text-outline border border-outline-variant">
             FIG. 1: ELEVAÇÃO
           </div>
         </div>

@@ -3,7 +3,7 @@ import { NavLink } from "./NavLink";
 
 export function TeacherBottomNav() {
   return (
-    <nav className="fixed bottom-0 left-0 w-full z-40 flex justify-around items-center px-md pb-2 pt-xs bg-surface-container-lowest rounded-t-xl border-t-2 border-outline-variant shadow-md md:hidden">
+    <nav className="fixed bottom-0 left-0 w-full z-40 flex justify-around items-center px-md pb-2 pt-xs bg-surface-container-lowest rounded-t-xl border-t-2 border-outline-variant md:hidden">
       <NavLink
         href="/painel"
         label="Painel"

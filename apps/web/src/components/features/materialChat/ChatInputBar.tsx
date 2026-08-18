@@ -30,6 +30,7 @@ export function ChatInputBar({ onSend, disabled }: ChatInputBarProps) {
             if (e.key === "Enter") submit();
           }}
           placeholder="Pergunte algo sobre o material..."
+          aria-label="Pergunte algo sobre o material"
           disabled={disabled}
           className="flex-1 bg-transparent outline-none py-sm font-body-lg text-body-lg text-on-surface placeholder:text-on-surface-variant"
         />

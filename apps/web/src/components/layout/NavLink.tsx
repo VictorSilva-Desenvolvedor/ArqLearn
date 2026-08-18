@@ -25,6 +25,7 @@ export function NavLink({ href, icon, activeIcon, label, variant, tone = "defaul
     return (
       <Link
         href={href}
+        aria-current={isActive ? "page" : undefined}
         className={cn(
           "flex flex-col items-center justify-center px-4 py-1 rounded-xl transition-all active:scale-90",
           isGold
@@ -45,6 +46,7 @@ export function NavLink({ href, icon, activeIcon, label, variant, tone = "defaul
   return (
     <Link
       href={href}
+      aria-current={isActive ? "page" : undefined}
       className={cn(
         "flex items-center gap-sm rounded-lg px-md py-sm font-body-lg text-body-lg transition-colors",
         isGold

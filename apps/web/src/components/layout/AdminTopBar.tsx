@@ -10,7 +10,7 @@ export function AdminTopBar() {
   const { user, logout } = useAuth();
 
   return (
-    <header className="sticky top-0 z-40 bg-surface-bright/90 backdrop-blur-md border-b-2 border-outline-variant shadow-sm w-full">
+    <header className="sticky top-0 z-40 bg-surface-bright/90 backdrop-blur-md border-b-2 border-outline-variant w-full">
       <div className="flex justify-between items-center px-lg py-md w-full max-w-container-max mx-auto">
         <Link href="/admin" className="flex items-center gap-xs">
           <Icon name="architecture" filled className="text-primary text-display-lg font-bold" />

@@ -32,7 +32,7 @@ export function LeagueHeader({ league, currentUserId }: { league: League; curren
         <button
           type="button"
           onClick={() => openDialog(undefined)}
-          className="w-24 h-24 mb-sm rounded-full border-4 border-outline-variant bg-secondary-container flex items-center justify-center shadow-sm"
+          className="w-24 h-24 mb-sm rounded-full border-4 border-outline-variant bg-secondary-container flex items-center justify-center"
         >
           <Icon name={LEAGUE_TIER_ICONS[tier]} filled className="text-secondary text-5xl" />
         </button>

@@ -113,12 +113,14 @@ export function LeagueTiersDialog({ open, onOpenChange, currentUserId, ownLeague
             <button
               key={tier}
               type="button"
+              aria-pressed={active}
+              aria-label={LEAGUE_TIER_LABELS[tier]}
               onClick={() => {
                 setSelectedTier(tier);
                 setSelectedDivision(tier === ownTier ? ownLeague.division : 1);
               }}
               className={cn(
-                "w-9 h-9 rounded-full flex items-center justify-center shrink-0",
+                "w-11 h-11 rounded-full flex items-center justify-center shrink-0",
                 active ? "bg-primary text-on-primary" : "bg-surface-gray text-on-surface-variant",
               )}
             >
@@ -134,6 +136,7 @@ export function LeagueTiersDialog({ open, onOpenChange, currentUserId, ownLeague
           <button
             key={division}
             type="button"
+            aria-pressed={selectedDivision === division}
             onClick={() => setSelectedDivision(division)}
             className={cn(
               "flex-1 py-2 rounded-full font-label-caps text-label-caps text-center transition-colors",

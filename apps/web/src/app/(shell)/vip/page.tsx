@@ -131,7 +131,7 @@ export default function VipPage() {
             placeholder="0000000000"
             className="border-2 border-outline-variant bg-surface rounded-md px-md py-sm text-body-lg text-on-surface tracking-widest"
           />
-          {error && <p className="font-body-sm text-body-sm text-error-red">{error}</p>}
+          {error && <p className="font-body-sm text-body-sm text-error">{error}</p>}
           <Button
             variant="primary"
             fullWidth
@@ -155,7 +155,11 @@ export default function VipPage() {
             Assinar — Em breve
           </Button>
           <p className="font-body-sm text-body-sm text-on-surface-variant">
-            Assinatura por cartão ainda não está disponível. Use um cupom por enquanto.
+            Assinatura por cartão ainda não está disponível.{" "}
+            <a href="/ajuda" className="text-primary hover:underline">
+              Fale com a gente em Ajuda
+            </a>{" "}
+            pra saber como conseguir um cupom.
           </p>
         </Card>
       )}

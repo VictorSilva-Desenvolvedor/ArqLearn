@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import { useParams } from "next/navigation";
 import { getUploadSummary, listChatHistory, sendChatMessage } from "@/lib/api/resources/materials";
+import { ApiError } from "@/lib/api/http";
 import { SummaryHeader } from "@/components/features/materialSummary/SummaryHeader";
 import { ChatMessageBubble } from "@/components/features/materialChat/ChatMessageBubble";
 import { ChatInputBar } from "@/components/features/materialChat/ChatInputBar";
@@ -21,6 +22,7 @@ export default function MaterialChatPage() {
   const [title, setTitle] = useState("Material");
   const [messages, setMessages] = useState<ViewMessage[]>([]);
   const [sending, setSending] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   const bottomRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -38,6 +40,7 @@ export default function MaterialChatPage() {
     const userMessage: ViewMessage = { id: `local-${Date.now()}`, role: "user", message: text };
     setMessages((current) => [...current, userMessage]);
     setSending(true);
+    setError(null);
     try {
       const answer = await sendChatMessage(uploadId, text);
       setMessages((current) => [
@@ -50,6 +53,10 @@ export default function MaterialChatPage() {
           sourceRef: answer.source_ref,
         },
       ]);
+    } catch (err) {
+      // P2 do /impeccable critique (18/08/2026): antes disso, uma falha aqui deixava a mensagem
+      // do usuário "presa" no histórico sem nenhuma explicação nem forma de tentar de novo.
+      setError(err instanceof ApiError ? err.message : "Não foi possível enviar sua mensagem. Tente novamente.");
     } finally {
       setSending(false);
     }
@@ -58,7 +65,12 @@ export default function MaterialChatPage() {
   return (
     <>
       <SummaryHeader title={title} eyebrow="Chat sobre o Material" />
-      <div className="max-w-2xl mx-auto w-full px-md py-lg flex flex-col gap-md flex-1">
+      <div
+        role="log"
+        aria-live="polite"
+        aria-label="Conversa com a Arq"
+        className="max-w-2xl mx-auto w-full px-md py-lg flex flex-col gap-md flex-1"
+      >
         {messages.map((m) => (
           <ChatMessageBubble
             key={m.id}
@@ -69,7 +81,14 @@ export default function MaterialChatPage() {
           />
         ))}
         {sending && (
-          <p className="font-body-sm text-body-sm text-on-surface-variant self-start">Arq está digitando…</p>
+          <p role="status" className="font-body-sm text-body-sm text-on-surface-variant self-start">
+            Arq está digitando…
+          </p>
+        )}
+        {error && (
+          <p role="alert" className="font-body-sm text-body-sm text-error self-start">
+            {error}
+          </p>
         )}
         <div ref={bottomRef} />
       </div>

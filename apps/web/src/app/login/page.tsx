@@ -2,6 +2,7 @@
 
 import { useContext, useState, type FormEvent } from "react";
 import { AuthContext } from "@/contexts/AuthContext";
+import { createClient } from "@/lib/supabase/client";
 import { Icon } from "@/components/ui/Icon";
 import { Button } from "@/components/ui/Button";
 
@@ -11,6 +12,10 @@ export default function LoginPage() {
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
+  // P1 do /impeccable critique (18/08/2026): não existia NENHUM caminho de recuperação de
+  // senha — usuário que esquecesse a senha ficava trancado fora da conta pra sempre.
+  const [resetSubmitting, setResetSubmitting] = useState(false);
+  const [resetMessage, setResetMessage] = useState<string | null>(null);
 
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -32,6 +37,22 @@ export default function LoginPage() {
     // deixando useAuth() (TopAppBar etc.) explodir num user ainda null. Descoberto ao vivo — o
     // AuthProvider.initialMe corrigia só o primeiro carregamento, não o login em si.
     window.location.href = result.landingPath;
+  };
+
+  const handleForgotPassword = async () => {
+    if (!email) {
+      setResetMessage("Digite seu e-mail no campo acima primeiro.");
+      return;
+    }
+    setResetSubmitting(true);
+    setResetMessage(null);
+    // Não diferencia "e-mail existe" de "não existe" na mensagem — evita confirmar pra quem
+    // está testando e-mails alheios se uma conta existe ou não.
+    await createClient().auth.resetPasswordForEmail(email, {
+      redirectTo: `${window.location.origin}/redefinir-senha`,
+    });
+    setResetSubmitting(false);
+    setResetMessage("Se esse e-mail tiver uma conta, enviamos um link pra redefinir a senha.");
   };
 
   return (
@@ -73,6 +94,19 @@ export default function LoginPage() {
         <Button type="submit" fullWidth disabled={submitting}>
           {submitting ? "Entrando..." : "Entrar"}
         </Button>
+        <button
+          type="button"
+          onClick={handleForgotPassword}
+          disabled={resetSubmitting}
+          className="font-body-sm text-body-sm text-primary hover:underline self-center disabled:opacity-50"
+        >
+          {resetSubmitting ? "Enviando…" : "Esqueci minha senha"}
+        </button>
+        {resetMessage && (
+          <p role="status" className="font-body-sm text-body-sm text-on-surface-variant text-center">
+            {resetMessage}
+          </p>
+        )}
       </form>
     </div>
   );

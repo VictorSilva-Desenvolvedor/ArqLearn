@@ -57,7 +57,7 @@ export function TopAppBar() {
   );
 
   return (
-    <header className="sticky top-0 z-40 bg-surface-bright/90 backdrop-blur-md border-b-2 border-outline-variant shadow-sm w-full">
+    <header className="sticky top-0 z-40 bg-surface-bright/90 backdrop-blur-md border-b-2 border-outline-variant w-full">
       <div className="flex justify-between items-center px-lg py-md w-full max-w-container-max mx-auto">
         <Link href="/" className="flex items-center gap-xs">
           <Icon name="architecture" filled className="text-primary text-display-lg font-bold" />
@@ -72,7 +72,7 @@ export function TopAppBar() {
           </div>
           <Link
             href="/notificacoes"
-            className="hidden md:inline-flex items-center justify-center w-10 h-10 rounded-full hover:bg-surface-gray transition-colors text-on-surface-variant"
+            className="hidden md:inline-flex items-center justify-center w-11 h-11 rounded-full hover:bg-surface-gray transition-colors text-on-surface-variant"
             aria-label="Notificações"
           >
             <Icon name="notifications" />
@@ -83,7 +83,7 @@ export function TopAppBar() {
           >
             <span className="flex items-baseline gap-1 whitespace-nowrap">
               <span className="font-label-caps text-label-caps text-primary uppercase">Nível {gamification.level}</span>
-              <span className="font-label-caps text-[10px] text-on-surface-variant normal-case">
+              <span className="font-label-caps text-label-caps text-on-surface-variant normal-case">
                 · {xpFaltam} XP p/ próx.
               </span>
             </span>
@@ -102,7 +102,21 @@ export function TopAppBar() {
         <div className="sm:hidden">
           <ThemeSelector />
         </div>
-        <div className="flex justify-around items-center w-full">{stats}</div>
+        <div className="flex justify-around items-center w-full">
+          {stats}
+          <div className="w-px h-4 bg-outline-variant" />
+          {/* P0 do /impeccable critique (18/08/2026): o sino de notificações só existia
+              `hidden md:inline-flex` — em telas <768px não havia NENHUM caminho até
+              /notificacoes (nem no BottomNavBar, nem no menu do Perfil). Esta é a única faixa
+              sempre visível abaixo de md, então a entrada mobile vive aqui. */}
+          <Link
+            href="/notificacoes"
+            aria-label="Notificações"
+            className="flex items-center justify-center w-8 h-8 rounded-full hover:bg-surface-container-lowest transition-colors text-on-surface-variant"
+          >
+            <Icon name="notifications" />
+          </Link>
+        </div>
       </div>
       <NoHeartsDialog open={heartsDialogOpen} onOpenChange={setHeartsDialogOpen} />
       <StreakDialog open={streakDialogOpen} onOpenChange={setStreakDialogOpen} />

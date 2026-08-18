@@ -69,12 +69,17 @@
   --color-on-error: #ffffff;
   --color-error-container: #ffdad6;
   --color-on-error-container: #93000a;
+  /* Papel reconciliado em 18/08/2026 (/impeccable audit P2): exclusivo do ícone de coração/vida
+     em todo o app (TopAppBar, HeartsRow, SummaryPanel, NoHeartsDialog, HeartsCountdown,
+     NotificationItem) — nunca mais usado em mensagem de erro de formulário, que usa --color-error
+     (bau/page.tsx e vip/page.tsx foram corrigidos pra isso). Token separado de --color-error
+     porque "vida perdida" e "erro de validação" são conceitos diferentes que só coincidiam em
+     tom de vermelho por acaso. */
   --color-error-red: #b00020;
 
-  /* Cores — fundo e texto muted */
+  /* Cores — fundo */
   --color-background: #f8f9ff;
   --color-on-background: #121c2a;
-  --color-muted-text: #6b7280;
 
   /* Tipografia — famílias */
   --font-display: "Hanken Grotesk", sans-serif;
