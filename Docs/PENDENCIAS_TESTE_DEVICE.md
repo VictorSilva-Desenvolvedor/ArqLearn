@@ -115,6 +115,48 @@ pedir print de tela na próxima sessão antes de mexer em qualquer coisa.**
 5. Teste com o tamanho de fonte do sistema aumentado (Ajustes > Acessibilidade > Tamanho da
    fonte) — textos cortam ou sobrepõem em algum lugar?
 
+### Lote 7 — confirmar correções do `/impeccable critique`+`audit` (18/08/2026)
+
+Rodada completa de `/impeccable critique` + `/impeccable audit` (dual-agent, web e mobile) gerou
+14 achados corrigidos em código só nesta sessão (PRs #115 web, #116 mobile) — nenhum foi testado
+ao vivo ainda, porque não há device/browser autenticado disponível neste ambiente. Confirmar:
+
+**Mobile — TalkBack real, fim a fim (Configurações → Zona de risco → Excluir conta):**
+1. Ative o TalkBack e tente excluir a conta — o app agora mostra um botão comum (não mais o
+   "segure 10s") quando o leitor de tela está ativo? Ele funciona por toque duplo?
+2. Toque em itens de lista (Notificações, Perfil → menu, ranking de Liga, Materiais enviados,
+   cards de estatística no resumo de lição) — TalkBack anuncia algo coerente agora (nome + estado),
+   em vez de fragmentos soltos ou silêncio?
+3. Suba de nível (ou force via XP) — a celebração de nível continua na tela até você mesmo fechar,
+   em vez de sumir sozinha em 1.5s?
+4. Aumente a fonte do sistema (Ajustes > Acessibilidade) — a frase de confirmação de exclusão de
+   conta e os textos dos formulários (Login, Configurações, Reportar Bug) ainda cabem?
+5. Confirme que `Nome`/`Fuso horário`/`Nova senha`/campo de busca agora são anunciados pelo
+   TalkBack com um rótulo, não só "caixa de edição em branco".
+
+**Mobile — layout/insets:**
+6. Abra uma lição (sessão de quiz), o Modo Infinito, a tela de conquista, o resumo de lição, o Baú
+   e o chat de material — o cabeçalho de cada uma fica visível abaixo da status bar/notch agora
+   (não mais colado no topo)? Testar num device com notch/câmera-furo se possível.
+7. `Toggle` (Notificações, Configurações) e os seletores de liga/divisão em "Todas as Ligas" —
+   ficaram mais fáceis de acertar com o dedo?
+8. Gesto de voltar preditivo (Android, modo de navegação por gestos) em todas as telas empilhadas,
+   inclusive saindo de dentro de uma sessão de quiz.
+9. Teclado do sistema no chat de material e no login — o campo de digitação/senha fica coberto
+   pelo teclado em algum ponto?
+10. Role a tela de quiz com o fundo animado (`AnimatedBlueprintBackground`) rodando atrás — nota
+    algum travamento/perda de frame num device de gama média/baixa?
+
+**Web — confirmar visualmente:**
+11. `/login` numa tela <768px — o sino de notificações aparece na faixa inferior agora?
+12. Peça "Esqueci minha senha" em `/login` com um e-mail real de teste — o link chega, abre
+    `/redefinir-senha`, e a troca de senha funciona ponta a ponta? (Depende de configuração de
+    redirect no painel do Supabase — não verificável só por código.)
+13. Confirme com DevTools/axe o contraste de `--color-error-red` sobre `--color-error-container`
+    (usado no ícone dentro do `NoHeartsDialog`).
+14. `prefers-reduced-motion` ativado no SO — nenhum elemento (fundo animado, Toast, Modal, spinner)
+    fica "preso" no meio de uma transição?
+
 ## O que fazer a seguir (fora do checklist de teste manual)
 
 Itens que dependem de decisão de design ou de outro tipo de ambiente, não de mais teste manual:
@@ -160,4 +202,12 @@ Itens que dependem de decisão de design ou de outro tipo de ambiente, não de m
 - `.impeccable/critique/` e `.impeccable/audit/` — relatórios completos das rodadas de
   critique/audit que geraram a maior parte do backlog acima.
 - PRs desta sessão, em ordem: #93–#104 (mobile: #93, #96, #99, #100, #103; web: #94, #95, #98,
-  #104; ambos/skill: #97; docs: #101, #102).
+  #104; ambos/skill: #97; docs: #101, #102). Continuação (18/08/2026): #110 (regen. de vidas),
+  #112 (notificações push), #113/#114 (fundo animado), #115/#116 (`/impeccable critique`+`audit`
+  completo — Lote 7 acima é a checklist de confirmação).
+- Pendências P2 registradas mas **não corrigidas** no Lote 7 (baixo risco, adiadas de propósito):
+  migração `Image`→`expo-image` no mobile (Avatar/QuestionCard/BugReportForm — adicionaria mais um
+  módulo nativo à lista de "precisa de build novo do dev client"), virtualização de listas longas
+  (`FlatList` no chat de material), recuperação de senha no mobile (precisa de deep link
+  `arqlearn://` + configuração de redirect no painel do Supabase, não implementável/verificável só
+  por código), e a divergência de IA entre `SideNav` (8 itens) e `BottomNavBar` (5 itens) no web.
