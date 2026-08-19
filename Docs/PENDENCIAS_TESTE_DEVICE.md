@@ -101,14 +101,19 @@ pedir print de tela na próxima sessão antes de mexer em qualquer coisa.**
 ### Lote 5 — sugestão (fluxo de estudo completo)
 1. ✅ Lição inteira (10 perguntas) até "Lição Concluída!" — **confirmado 19/08/2026**, XP/precisão/
    sequência batendo com o respondido.
-2. Erre uma pergunta de propósito e toque em "Explique melhor" — a explicação do Groq aparece?
-3. Teste o Modo Infinito (Explorar → card de Modo Infinito, ou aba direta) — perguntas carregam,
-   XP acumula até o teto diário?
-4. Notificações (sino no header) — a tela abre e lista algo (ou empty state correto)?
-5. VIP (`/vip`) — a tela de paywall/resgate de cupom abre sem erro?
+2. ❓ Erre uma pergunta de propósito e toque em "Explique melhor" — a explicação do Groq aparece?
+   **"Verificar" (submissão de resposta) achou e fechou um bug real de verdade nesta rodada — ver
+   `PENDENCIAS_MOBILE.md` #23 — mas "Explique melhor" especificamente ainda não foi reconfirmado
+   depois do fix.**
+3. ✅ Modo Infinito — **confirmado 19/08/2026**, perguntas carregam e XP acumula.
+4. ✅ Notificações (sino no header) — **confirmado 19/08/2026**.
+5. VIP (`/vip`) — tela abre sem erro, **confirmado**; resgate de cupom não testado com um código
+   válido de 10 dígitos ainda (usuário testou com um código curto de propósito, botão
+   corretamente desabilitado — não é bug).
 
 ### Lote 6 — sugestão (edge cases)
-1. Gire o celular pra paisagem (se possível) — o app trava, estica estranho, ou ignora a rotação?
+1. ✅ Girar pra paisagem — **confirmado 19/08/2026**: ignora a rotação, continua em portrait
+   (comportamento esperado, decisão documentada em `apps/mobile/DESIGN.md`).
 2. Minimize o app no meio de uma lição e volte — o progresso continua de onde parou?
 3. Desligue o wifi no meio de uma ação (ex.: comprando na loja) — dá erro tratado ou trava?
 4. Nome de tema/trilha muito comprido (se existir algum) — quebra o layout do `ThemeSelector`?
