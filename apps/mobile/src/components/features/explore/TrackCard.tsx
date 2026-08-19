@@ -37,10 +37,10 @@ export function TrackCard({ track, difficulty, durationMinutes, icon, isSelected
           </View>
         )}
         <Icon name={icon} size={28} color={colors.primary} />
-        {/* numberOfLines: sem isso, títulos de tamanhos diferentes faziam os cards da mesma linha
-            da grade (explorar.tsx, 2 colunas) ficarem com alturas visivelmente diferentes — RN
-            não estica os itens de uma linha pra bater a mesma altura como o CSS Grid faria
-            (achado ao vivo). */}
+        {/* numberOfLines sozinho só limita o MÁXIMO — um título de 1 linha ainda deixava esse
+            card mais baixo que um vizinho de 2 linhas na mesma grade (achado ao vivo,
+            19/08/2026: cards de tamanhos visivelmente diferentes). minHeight no estilo reserva o
+            espaço de 2 linhas sempre, mesmo pra título curto. */}
         <Text style={[type.questionSm, styles.title]} numberOfLines={2}>
           {track.title}
         </Text>
@@ -82,6 +82,9 @@ const createStyles = (colors: ColorTokens) =>
     title: {
       color: colors.onSurface,
       fontWeight: "700",
+      // 2 × questionSm.lineHeight (24px, ver theme/tokens.ts) — reserva o espaço de 2 linhas
+      // sempre, pra um título de 1 linha não deixar o card mais baixo que o vizinho na grade.
+      minHeight: 48,
     },
     meta: {
       flexDirection: "row",
