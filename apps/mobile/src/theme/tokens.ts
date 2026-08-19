@@ -105,7 +105,14 @@ export const darkColors = {
   inverseSurface: lightColors.surfaceContainerHighest,
   inverseOnSurface: lightColors.onSurface,
   outline: "#949ca8",
-  outlineVariant: "#5e6978",
+  // Corrigido 2026-08-19 (/impeccable audit): #5e6978 media só 1.99:1 contra surfaceBright e
+  // 2.76:1 contra surfaceGray — as duas superfícies reais onde essa borda aparece (cards/inputs,
+  // ver Elevation & Depth), ambas abaixo do mínimo AA de 3:1 (WCAG 1.4.11). O valor original só
+  // tinha sido verificado contra surface/background (3.16:1, passava), não contra as superfícies
+  // de fato usadas — mesmo padrão de falha já corrigido duas vezes no tema claro (ver outline
+  // acima e o histórico deste mesmo token). Novo valor, mesmo tom mais claro: 3.30:1 contra
+  // surfaceBright, 4.56:1 contra surfaceGray, 5.24:1 contra surface.
+  outlineVariant: "#828d9c",
   surfaceTint: "#a4caea",
   surfaceVariant: "#344051",
   surfaceGray: "#22252b",

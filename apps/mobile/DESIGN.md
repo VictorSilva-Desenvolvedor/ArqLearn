@@ -206,9 +206,19 @@ specifically for components that must look the same regardless of theme. `scrim`
 theme-invariant (a modal overlay is conventionally a fixed dark neutral, not something that flips
 light in dark mode).
 
-**Not visually confirmed on a real device** — this was built and contrast-verified computationally
-in a session without a connected device; see `Docs/PENDENCIAS_TESTE_DEVICE.md` for the live-testing
-checklist this needs before it's considered fully done.
+**`/impeccable audit` re-verification (2026-08-19)**: independently re-ran the contrast check
+against every `onX`-over-`X` text pair and every `outline`/`outlineVariant` border pair — one real
+gap found and fixed. `outlineVariant` had only been checked against `surface`/`background`
+(3.16:1, passed); it hadn't been checked against `surfaceBright`/`surfaceGray`, the two surfaces
+where this border token is actually used for cards/inputs (see Elevation & Depth) — those measured
+1.99:1 and 2.76:1, both failing the WCAG 1.4.11 minimum of 3:1. New value `#828d9c` (was `#5e6978`)
+measures 3.30:1 / 4.56:1 respectively. Every other pair (23 text pairs, 4 other border pairs)
+passed on first check. No leftover static-`colors` imports or hardcoded hex literals found outside
+`tokens.ts` — the migration to `useColors()` is complete across all ~88 components.
+
+**Still not visually confirmed on a real device** — verification above is computational/static
+(contrast math + source review), not a rendered screenshot; see `Docs/PENDENCIAS_TESTE_DEVICE.md`
+(Lote 9) for the live-testing checklist this needs before it's considered fully done.
 
 ## Typography
 
