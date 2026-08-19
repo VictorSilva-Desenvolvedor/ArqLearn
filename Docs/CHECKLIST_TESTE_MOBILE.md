@@ -54,13 +54,13 @@
 
 ### Lote 5 — fluxo de estudo completo
 - [x] Lição inteira (10 perguntas) até "Lição Concluída!" — XP/precisão/sequência batem. **Confirmado 19/08/2026.**
-- [ ] Errar de propósito e tocar "Explique melhor" — explicação do Groq aparece.
-- [ ] Modo Infinito — perguntas carregam, XP acumula até o teto diário.
-- [ ] Notificações (sino) — abre e lista algo (ou empty state correto).
-- [ ] VIP (`/vip`) — paywall/resgate de cupom abre sem erro.
+- [ ] Errar de propósito e tocar "Explique melhor" — explicação do Groq aparece. **Bug real achado e corrigido no "Verificar" desta rodada (idempotência), "Explique melhor" em si ainda não reconfirmado.**
+- [x] Modo Infinito — perguntas carregam, XP acumula até o teto diário. **Confirmado 19/08/2026.**
+- [x] Notificações (sino) — abre e lista algo (ou empty state correto). **Confirmado 19/08/2026.**
+- [x] VIP (`/vip`) — tela abre sem erro. **Confirmado 19/08/2026** (resgate de cupom com código válido de 10 dígitos ainda não testado).
 
 ### Lote 6 — edge cases
-- [ ] Girar pra paisagem — trava, estica, ou ignora (lembrete: orientação travada em portrait por decisão registrada em `apps/mobile/DESIGN.md`).
+- [x] Girar pra paisagem — ignora a rotação (esperado, orientação travada em portrait por decisão registrada em `apps/mobile/DESIGN.md`). **Confirmado 19/08/2026.**
 - [ ] Minimizar o app no meio de uma lição e voltar — progresso continua de onde parou.
 - [ ] Desligar wifi no meio de uma compra — erro tratado ou trava.
 - [ ] Nome de tema/trilha muito comprido — quebra o `ThemeSelector`.
