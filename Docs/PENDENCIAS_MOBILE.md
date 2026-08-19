@@ -980,3 +980,60 @@ pendentes de confirmação visual ao vivo na próxima sessão com credenciais di
 - Re-verificar `LoadingBlueprint`/"Remover animações" no fluxo de pull-to-refresh (pendência #21).
 - As Fases 4–6 do plano original (retomar checklist de teste em device, cobertura iOS/iPad,
   fechamento do ciclo) — ver `Docs/PENDENCIAS_TESTE_DEVICE.md` pro checklist consolidado.
+
+### 23. Teste ao vivo no Redmi 13 (Lote 5) achou 4 problemas reais (19/08/2026)
+
+Retomando o checklist consolidado (`CHECKLIST_TESTE_MOBILE.md`) com device real conectado via USB
+(`adb reverse`, ver setup em `PENDENCIAS_TESTE_DEVICE.md`), o usuário reportou 4 achados ao testar
+o fluxo de estudo (Lote 5). Todos investigados e corrigidos nesta sessão:
+
+1. **Banco de produção 3 migrations atrasado** — causa raiz do "falha ao verificar idempotência"
+   no "Verificar" do quiz. `schema_migrations` estava em `version=10` (depois descoberto
+   `version=11, dirty=true` após uma tentativa de `migrate up` falhar com segurança — transacional,
+   não alterou nada). Investigação (`SELECT` direto via script Go descartável, nunca commitado)
+   confirmou que a migration 0011 (VIP) já tinha rodado por completo em algum momento anterior
+   (colunas + `vip_coupons` presentes), só o registro de controle ficou "dirty"; 0012
+   (`user_push_tokens`) e 0013 (`answer_submissions`) nunca rodaram. Corrigido: `migrate force 11`
+   (marca como limpo, já que o SQL da 0011 já estava todo aplicado) + `migrate up` (aplica 0012 e
+   0013 de verdade). Confirmado via `SELECT` que as duas tabelas existem agora. **Não é bug de
+   código** — é a primeira vez que essas 3 migrations (VIP #92, push notifications #112,
+   idempotency-key #109/#110/#123/#124) rodam contra o banco real desde que foram commitadas.
+2. **Sombra torta nos botões laranja no tema escuro** — `Button.tsx`'s variante `gamification`
+   usava `colors.secondary` como cor da borda inferior (efeito "prensável"), assumindo que é
+   sempre mais escura que `colors.secondaryContainer` (o fundo). Verdade no tema claro; o Material
+   3 **inverte** essa relação no tema escuro (`secondary` #eabc8f é mais claro que
+   `secondaryContainer` #8a4c0f) — a borda virava uma faixa clara sobre fundo escuro em vez de
+   sombra. Corrigido com um token novo, `secondaryContainerBorder` (mesmo valor de `secondary` no
+   claro, `#562f09` — genuinamente mais escuro que `secondaryContainer` — no escuro).
+3. **Corrida real no `Idempotency-Key`** — descoberta ao vivo depois da correção #1: um retry
+   (causado pelo achado #4 abaixo) com a mesma chave batia na UNIQUE constraint de
+   `answer_submissions.idempotency_key`/`purchases.idempotency_key` e devolvia um 500 pro
+   "perdedor" da corrida mesmo a ação já tendo sido concedida pelo "vencedor" — usuário via erro
+   numa ação que na verdade deu certo. Corrigido em `answers.go` e `infinitemode.go`: ao capturar
+   `pgconn.PgError` código `23505` (unique_violation) no INSERT, a transação perdedora (já
+   `Rollback`ada, sem risco de XP em dobro) busca e devolve a resposta cacheada da vencedora em vez
+   de um erro. **Pendência relacionada não corrigida**: o mesmo padrão existe em
+   `gamification.go` (compra na Loja, `purchases.idempotency_key`) mas a estrutura de cache lá é
+   diferente (não guarda a resposta serializada) — não replicado o fix sem poder testar ao vivo.
+4. **`apiFetch` sem timeout** — causa provável do "carrega e não faz nada" que levou ao achado #3:
+   o Wi-Fi do device de teste trocou de rede bem no momento do teste (confirmado via
+   `adb logcat`, `NetBusNetworkMonitor` mostrando `onCapabilitiesChanged` na hora exata), e
+   `fetch()` sem timeout trava pra sempre numa falha de rede assim, sem erro nem retry possível.
+   Adicionado `AbortController` com 20s de timeout em `apps/mobile/src/lib/api/http.ts` — espelhado
+   em `apps/web/src/lib/api/http.ts` (mesmo padrão, nunca tinha timeout nos dois lados).
+
+**Não é bug** (confirmado, não precisou de correção): tela de resgate de cupom VIP com o botão
+desabilitado — usuário digitou "5555" (4 dígitos) no campo que exige 10; validação funcionando
+como esperado. Orientação não girar pra paisagem — comportamento intencional documentado em
+`apps/mobile/DESIGN.md`.
+
+**Pedido do usuário, ainda não implementado**: um botão dentro do app pra alternar entre tema
+claro/escuro manualmente, com claro como padrão — hoje só existe `"automatic"` (segue o sistema)
+em `app.json`, sem toggle in-app. Decisão de produto que reverte parte do que o PR #125 fez;
+precisa de discussão de escopo antes de implementar (ex.: persistir a escolha em `AsyncStorage`,
+decidir se ainda respeita "automatic" como uma terceira opção ou só claro/escuro).
+
+Verificação: `tsc --noEmit` (mobile e web), `go build`/`vet`/`test` limpos. Migrations aplicadas e
+confirmadas via consulta direta. Fix da corrida de idempotência e do timeout **não foram testados
+ao vivo ainda** (a sessão que corrigiu não teve tempo de reconectar o device antes de encerrar) —
+fica pendente confirmar na próxima rodada de teste.

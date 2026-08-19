@@ -99,8 +99,8 @@ pedir print de tela na próxima sessão antes de mexer em qualquer coisa.**
 ## Lotes ainda não escritos/enviados — continuar a partir daqui
 
 ### Lote 5 — sugestão (fluxo de estudo completo)
-1. Complete uma lição inteira (10 perguntas) até "Lição Concluída!" — XP/precisão/sequência batem
-   com o que você respondeu?
+1. ✅ Lição inteira (10 perguntas) até "Lição Concluída!" — **confirmado 19/08/2026**, XP/precisão/
+   sequência batendo com o respondido.
 2. Erre uma pergunta de propósito e toque em "Explique melhor" — a explicação do Groq aparece?
 3. Teste o Modo Infinito (Explorar → card de Modo Infinito, ou aba direta) — perguntas carregam,
    XP acumula até o teto diário?

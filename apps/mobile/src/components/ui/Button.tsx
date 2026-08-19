@@ -76,10 +76,13 @@ function variantStyle(variant: ButtonVariant, colors: ColorTokens) {
     case "primary":
       return { backgroundColor: colors.primary, borderWidth: 2, borderColor: colors.primary };
     case "gamification":
+      // secondaryContainerBorder (não `secondary`) de propósito: `secondary` é mais claro que
+      // `secondaryContainer` no tema escuro (Material 3 inverte a relação), o que quebrava o
+      // efeito de sombra/"prensável" — ver o token em tokens.ts pro achado completo.
       return {
         backgroundColor: colors.secondaryContainer,
         borderBottomWidth: 4,
-        borderBottomColor: colors.secondary,
+        borderBottomColor: colors.secondaryContainerBorder,
       };
     case "ghost":
       return { backgroundColor: "transparent", borderWidth: 2, borderColor: colors.primary };
