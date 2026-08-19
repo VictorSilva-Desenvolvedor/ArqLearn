@@ -139,18 +139,16 @@ device (Redmi 13) — usuário confirmou "funcionou 100%".
 5. ✅ `Nome`/`Fuso horário`/`Nova senha`/campo de busca são anunciados pelo TalkBack com rótulo.
 
 **Mobile — layout/insets:**
-6. Abra uma lição (sessão de quiz), o Modo Infinito, a tela de conquista, o resumo de lição, o Baú
-   e o chat de material — o cabeçalho de cada uma fica visível abaixo da status bar/notch agora
-   (não mais colado no topo)? Testar num device com notch/câmera-furo se possível.
-7. `Toggle` (Notificações, Configurações) e os seletores de liga/divisão em "Todas as Ligas" —
-   ficaram mais fáceis de acertar com o dedo?
+6. ✅ Cabeçalho de lição/Modo Infinito/conquista/resumo/Baú/chat visível abaixo da status bar/notch
+   — **confirmado 19/08/2026**.
+7. ✅ `Toggle` e seletores de liga/divisão — **confirmado 19/08/2026**, mais fáceis de acertar.
 8. ✅ Gesto de voltar preditivo (Android, modo de navegação por gestos) em todas as telas
    empilhadas, inclusive saindo de dentro de uma sessão de quiz — **confirmado 19/08/2026**
    (Redmi 13, trocado pra modo de navegação por gestos pra este teste).
-9. Teclado do sistema no chat de material e no login — o campo de digitação/senha fica coberto
-   pelo teclado em algum ponto?
-10. Role a tela de quiz com o fundo animado (`AnimatedBlueprintBackground`) rodando atrás — nota
-    algum travamento/perda de frame num device de gama média/baixa?
+9. ✅ Teclado do sistema não cobre o campo de digitação no chat de material nem no login —
+   **confirmado 19/08/2026**.
+10. ✅ Fundo animado (`AnimatedBlueprintBackground`) rolando a tela de quiz — **confirmado
+    19/08/2026**, sem travamento/perda de frame perceptível.
 
 **Web — confirmar visualmente:**
 11. `/login` numa tela <768px — o sino de notificações aparece na faixa inferior agora?
@@ -217,13 +215,9 @@ Itens que dependem de decisão de design ou de outro tipo de ambiente, não de m
 
 ### Lote 7B — confirmar o fechamento das pendências P2 (18/08/2026, PRs #118/#119)
 
-1. **Recuperação de senha (mobile)**: peça "Esqueci minha senha" em `login.tsx` com um e-mail de
-   teste real — o e-mail chega, o link abre o app (não o navegador) direto em `redefinir-senha.tsx`,
-   e a troca de senha funciona ponta a ponta? **Precisa de configuração externa antes de testar**:
-   o painel do Supabase (Authentication → URL Configuration → Redirect URLs) precisa ter
-   `arqlearn://redefinir-senha` na allowlist, senão o link do e-mail nem abre o app.
-   `Linking.createURL` já usa o scheme certo (`arqlearn`, de `app.json`), só falta essa config do
-   lado do Supabase.
+1. ✅ **Recuperação de senha (mobile)** — **confirmado 19/08/2026**: "Esqueci minha senha" em
+   `login.tsx` funciona ponta a ponta (e-mail chega, link abre o app direto em
+   `redefinir-senha.tsx`, troca de senha funciona).
 2. Confirme se o link do Supabase vem no formato `?code=` (PKCE) ou `#access_token=`/`#refresh_token=`
    (implícito) — o código trata os dois, mas só um vai aparecer de verdade contra o projeto real; se
    nenhum funcionar, capturar a URL exata recebida (`console.log` temporário em `tryEstablishSession`)

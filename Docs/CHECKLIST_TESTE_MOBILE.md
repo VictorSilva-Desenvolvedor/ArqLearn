@@ -22,18 +22,18 @@
 - [x] Celebração de nível fica na tela até fechar manualmente (não some sozinha em 1.5s). **Confirmado 19/08/2026.**
 - [x] Fonte do sistema aumentada — frase de exclusão de conta e formulários (Login, Configurações, Reportar Bug) não cortam. **Confirmado 19/08/2026.**
 - [x] Campos `Nome`/`Fuso horário`/`Nova senha`/busca são anunciados com rótulo pelo TalkBack. **Confirmado 19/08/2026.**
-- [ ] Cabeçalho de lição/Modo Infinito/conquista/resumo/Baú/chat fica visível abaixo da status bar/notch.
-- [ ] `Toggle` e seletores de liga/divisão ficaram mais fáceis de acertar com o dedo.
+- [x] Cabeçalho de lição/Modo Infinito/conquista/resumo/Baú/chat fica visível abaixo da status bar/notch. **Confirmado 19/08/2026.**
+- [x] `Toggle` e seletores de liga/divisão ficaram mais fáceis de acertar com o dedo. **Confirmado 19/08/2026.**
 - [x] Gesto de voltar preditivo funciona em todas as telas empilhadas, inclusive saindo de uma sessão de quiz. **Confirmado 19/08/2026.**
-- [ ] Teclado do sistema não cobre o campo de digitação no chat de material nem no login.
-- [ ] Fundo animado (`AnimatedBlueprintBackground`) não trava/perde frame durante o scroll do quiz.
+- [x] Teclado do sistema não cobre o campo de digitação no chat de material nem no login. **Confirmado 19/08/2026.**
+- [x] Fundo animado (`AnimatedBlueprintBackground`) não trava/perde frame durante o scroll do quiz. **Confirmado 19/08/2026.**
 - [ ] Web: sino de notificações aparece na faixa inferior em telas <768px.
 - [ ] Web: "Esqueci minha senha" chega, abre `/redefinir-senha`, troca funciona ponta a ponta.
 - [ ] Web: contraste de `--color-error-red` sobre `--color-error-container` (ícone do `NoHeartsDialog`).
 - [ ] Web: `prefers-reduced-motion` ativado — nada fica preso no meio de uma transição.
 
 ### PR #118/#119 — Lote 7B: pendências P2 fechadas
-- [ ] Recuperação de senha (mobile): "Esqueci minha senha" abre o app direto em `redefinir-senha.tsx` (precisa `arqlearn://redefinir-senha` na allowlist do Supabase primeiro).
+- [x] Recuperação de senha (mobile): "Esqueci minha senha" abre o app direto em `redefinir-senha.tsx`, troca de senha funciona ponta a ponta. **Confirmado 19/08/2026.**
 - [ ] Formato do link do Supabase (`?code=` vs `#access_token=`) — confirmar qual chega de verdade.
 - [ ] `expo-image`: avatares (Perfil, Liga), imagem de questão, miniatura de print no Reportar Bug carregam normal (precisa build novo do dev client — módulo nativo).
 - [ ] `FlatList` no chat de material rola pro fim sozinha a cada mensagem nova.
