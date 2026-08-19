@@ -53,7 +53,7 @@
 ## B. Testes funcionais ainda pendentes (mais antigos, nunca fechados)
 
 ### Lote 5 — fluxo de estudo completo
-- [ ] Lição inteira (10 perguntas) até "Lição Concluída!" — XP/precisão/sequência batem.
+- [x] Lição inteira (10 perguntas) até "Lição Concluída!" — XP/precisão/sequência batem. **Confirmado 19/08/2026.**
 - [ ] Errar de propósito e tocar "Explique melhor" — explicação do Groq aparece.
 - [ ] Modo Infinito — perguntas carregam, XP acumula até o teto diário.
 - [ ] Notificações (sino) — abre e lista algo (ou empty state correto).

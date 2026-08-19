@@ -3,6 +3,7 @@ package learning
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"log"
 	"math"
 	"math/rand"
@@ -10,6 +11,7 @@ import (
 	"time"
 
 	"github.com/google/uuid"
+	"github.com/jackc/pgx/v5/pgconn"
 	"github.com/jackc/pgx/v5/pgxpool"
 	"go.mongodb.org/mongo-driver/v2/bson"
 	"go.mongodb.org/mongo-driver/v2/mongo"
@@ -350,6 +352,18 @@ func handleInfiniteModeAnswer(pool *pgxpool.Pool, mongoDB *mongo.Database, gemin
 			INSERT INTO answer_submissions (id, user_id, session_id, question_id, idempotency_key, response)
 			VALUES ($1, $2, $3, $4, $5, $6)
 		`, uuid.New(), userID, sessionID, req.QuestionID, idempotencyKey, respJSON); err != nil {
+			// Mesma corrida documentada em answers.go (achado ao vivo, 19/08/2026): devolve a
+			// resposta já gravada pela requisição vencedora em vez de um 500 pra quem perdeu a
+			// corrida da UNIQUE constraint.
+			var pgErr *pgconn.PgError
+			if errors.As(err, &pgErr) && pgErr.Code == "23505" {
+				if cachedResponse, lookupErr := lookupCachedAnswer(r, pool, idempotencyKey, userID); lookupErr == nil && cachedResponse != nil {
+					w.Header().Set("Content-Type", "application/json")
+					w.WriteHeader(http.StatusOK)
+					_, _ = w.Write(cachedResponse)
+					return
+				}
+			}
 			apierror.Write(w, http.StatusInternalServerError, "INTERNAL_ERROR", "Falha ao registrar idempotência.")
 			return
 		}

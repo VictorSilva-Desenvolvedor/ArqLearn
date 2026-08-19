@@ -55,6 +55,11 @@ export const lightColors = {
   secondaryFixedDim: "#ffb780",
   onSecondaryFixed: "#2f1400",
   onSecondaryFixedVariant: "#6f3800",
+  // Mesmo valor de `secondary` no claro — só existe como token separado porque o par
+  // secondary/secondaryContainer inverte de claridade no tema escuro (ver darkColors abaixo), e
+  // o botão "gamification" (Button.tsx) precisa de uma cor sempre mais escura que
+  // secondaryContainer pro efeito de borda inferior "prensável" funcionar nos dois temas.
+  secondaryContainerBorder: "#8f4e0f",
 
   // Terciária (camada de validação: sucesso/progresso concluído)
   tertiary: "#004e10",
@@ -136,6 +141,12 @@ export const darkColors = {
   secondaryFixedDim: lightColors.secondaryFixedDim,
   onSecondaryFixed: lightColors.onSecondaryFixed,
   onSecondaryFixedVariant: lightColors.onSecondaryFixedVariant,
+  // Achado ao vivo (19/08/2026): `secondary` (#eabc8f) é mais CLARO que `secondaryContainer`
+  // (#8a4c0f) no tema escuro — o inverso do claro — então reaproveitar `secondary` como borda
+  // inferior do botão "gamification" virava uma faixa clara sobre fundo escuro em vez da sombra
+  // escura pretendida (visualmente "torto e quebrado"). Novo tom, mesma família de matiz,
+  // genuinamente mais escuro que secondaryContainer nos dois temas.
+  secondaryContainerBorder: "#562f09",
 
   tertiary: "#86ea9a",
   onTertiary: "#005211",

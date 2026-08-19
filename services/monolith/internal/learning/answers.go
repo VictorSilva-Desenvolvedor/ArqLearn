@@ -2,12 +2,14 @@ package learning
 
 import (
 	"encoding/json"
+	"errors"
 	"log"
 	"net/http"
 	"time"
 
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5"
+	"github.com/jackc/pgx/v5/pgconn"
 	"github.com/jackc/pgx/v5/pgxpool"
 	"go.mongodb.org/mongo-driver/v2/bson"
 	"go.mongodb.org/mongo-driver/v2/mongo"
@@ -271,6 +273,21 @@ func handleSubmitAnswer(pool *pgxpool.Pool, mongoDB *mongo.Database) http.Handle
 			VALUES ($1, $2, $3, $4, $5, $6)
 		`, uuid.New(), userID, req.SessionID, req.QuestionID, idempotencyKey, responseJSON)
 		if err != nil {
+			// Corrida real entre dois retries concorrentes com a mesma chave (achado ao vivo,
+			// 19/08/2026): a UNIQUE constraint pega a corrida, mas até aqui a requisição perdedora
+			// recebia um 500 mesmo tendo a mesma resposta válida já gravada pela vencedora — o
+			// usuário via erro numa ação que, na verdade, deu certo. `tx.Rollback` (deferred)
+			// descarta o UPDATE desta transação perdedora, sem risco de XP em dobro; devolvemos a
+			// resposta cacheada da vencedora em vez de um erro.
+			var pgErr *pgconn.PgError
+			if errors.As(err, &pgErr) && pgErr.Code == "23505" {
+				if cachedResponse, lookupErr := lookupCachedAnswer(r, pool, idempotencyKey, userID); lookupErr == nil && cachedResponse != nil {
+					w.Header().Set("Content-Type", "application/json")
+					w.WriteHeader(http.StatusOK)
+					_, _ = w.Write(cachedResponse)
+					return
+				}
+			}
 			apierror.Write(w, http.StatusInternalServerError, "INTERNAL_ERROR", "Falha ao registrar idempotência.")
 			return
 		}
