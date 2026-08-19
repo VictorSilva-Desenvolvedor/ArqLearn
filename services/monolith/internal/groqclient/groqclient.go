@@ -14,8 +14,16 @@ import (
 )
 
 const (
-	baseURL      = "https://api.groq.com/openai/v1/chat/completions"
-	defaultModel = "llama-3.3-70b-versatile"
+	baseURL = "https://api.groq.com/openai/v1/chat/completions"
+	// Achado ao vivo (19/08/2026): llama-3.3-70b-versatile não existe mais no catálogo da Groq
+	// pra esta conta ("model_not_found") — Groq descontinua modelo sem aviso prévio no código.
+	// Confirmado via GET /v1/models que o catálogo atual não tem nenhum Llama de chat; trocado
+	// pro melhor equivalente disponível (openai/gpt-oss-120b, modelo aberto da OpenAI hospedado
+	// na Groq) — testado ao vivo em português normal e em response_format:json_object (usado por
+	// CompleteJSON), os dois funcionando. A resposta desse modelo vem com um campo extra
+	// "reasoning" ao lado de "content" — chatMessage aqui só declara Content, então o decoder do
+	// Go já ignora o campo extra sozinho, sem precisar de mudança de código pra isso.
+	defaultModel = "openai/gpt-oss-120b"
 )
 
 type Client struct {
