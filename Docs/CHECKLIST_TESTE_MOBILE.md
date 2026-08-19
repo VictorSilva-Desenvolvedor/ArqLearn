@@ -35,19 +35,19 @@
 ### PR #118/#119 — Lote 7B: pendências P2 fechadas
 - [x] Recuperação de senha (mobile): "Esqueci minha senha" abre o app direto em `redefinir-senha.tsx`, troca de senha funciona ponta a ponta. **Confirmado 19/08/2026.**
 - [ ] Formato do link do Supabase (`?code=` vs `#access_token=`) — confirmar qual chega de verdade.
-- [ ] `expo-image`: avatares (Perfil, Liga), imagem de questão, miniatura de print no Reportar Bug carregam normal (precisa build novo do dev client — módulo nativo).
-- [ ] `FlatList` no chat de material rola pro fim sozinha a cada mensagem nova.
+- [x] `expo-image`: avatares (Perfil, Liga), imagem de questão, miniatura de print no Reportar Bug carregam normal. **Confirmado 19/08/2026.**
+- [x] `FlatList` no chat de material rola pro fim sozinha a cada mensagem nova. **Confirmado 19/08/2026.**
 - [ ] Web: `SideNav` desktop mostra só 5 itens (Home/Explorar/VIP/Liga/Perfil), Loja/Ajuda acessíveis via Perfil.
 
 ### PR #109/#110/#123/#124 — Lote 8: Idempotency-Key
-- [ ] Fluxo normal de resposta (Trilhas e Modo Infinito) continua idêntico, sem diferença perceptível.
+- [x] Fluxo normal de resposta (Trilhas e Modo Infinito) continua idêntico, sem diferença perceptível. **Confirmado 19/08/2026.**
 - [ ] Retry forçado (modo avião no meio de "Verificar", ou DevTools Offline no web) — XP/vidas/streak mudam só uma vez, não em dobro.
 
-### PR #125 — Lote 9: tema escuro
-- [ ] Modo claro do sistema — app continua idêntico a antes (nada deveria mudar).
-- [ ] Modo escuro do sistema (com o app já aberto) — troca de paleta ao vivo, sem reiniciar, nas 5 abas + sessão de lição + Modo Infinito + Loja + Baú + Liga + Perfil/subtelas + modais (Baú, Sem Vidas, conquista, tiers de liga).
-- [ ] Nenhum texto ilegível, nenhum ícone sumindo, fundo animado mantém contraste no escuro.
-- [ ] Badge/Toggle/Toast (cor "hardcoded por decisão" no DESIGN.md) — nenhum tom claro esquecido.
+### PR #125/#133 — Lote 9: tema escuro (agora com toggle manual, padrão claro)
+- [x] Modo claro por padrão ao abrir o app — nada deveria mudar. **Confirmado 19/08/2026.**
+- [x] Ligar o tema escuro (toggle manual em Configurações → Aparência) troca a paleta ao vivo, sem reiniciar, nas 5 abas + Loja + Baú + Liga + Perfil + modais. **Confirmado 19/08/2026.**
+- [ ] Fundo animado mantém contraste da grade/ícones no escuro — não verificado isoladamente ainda (nenhum problema relatado em geral, mas não citado explicitamente).
+- [x] Badge/Toggle/Toast (cor "hardcoded por decisão" no DESIGN.md) — nenhum tom claro esquecido. **Confirmado 19/08/2026.**
 - [ ] Splash screen — confirmar se "pisca" claro antes de assumir o tema escuro (esperado, não é bug) ou se incomoda.
 
 ## B. Testes funcionais ainda pendentes (mais antigos, nunca fechados)

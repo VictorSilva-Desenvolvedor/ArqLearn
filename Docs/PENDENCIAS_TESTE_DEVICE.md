@@ -222,12 +222,9 @@ Itens que dependem de decisão de design ou de outro tipo de ambiente, não de m
    (implícito) — o código trata os dois, mas só um vai aparecer de verdade contra o projeto real; se
    nenhum funcionar, capturar a URL exata recebida (`console.log` temporário em `tryEstablishSession`)
    pra depurar o formato.
-3. **`expo-image`**: como é módulo nativo novo, só funciona depois de um build novo do dev client —
-   confirmar que avatares (Perfil, ranking de Liga), a imagem de referência da questão, e a
-   miniatura de print anexado em Reportar Bug continuam carregando normalmente.
-4. **`FlatList` no chat**: mande várias mensagens seguidas no chat de material — a lista rola pro
-   fim sozinha a cada mensagem nova (igual antes, com `ScrollView`)? Sem esse teste, `scrollToEnd`
-   do `FlatList` pode se comportar diferente do `ScrollView` em conteúdo de altura variável.
+3. ✅ **`expo-image`** — **confirmado 19/08/2026** (build novo do dev client já rodando): avatares,
+   imagem de questão e miniatura de print no Reportar Bug carregando normal.
+4. ✅ **`FlatList` no chat** — **confirmado 19/08/2026**, rola pro fim sozinha a cada mensagem nova.
 5. **`SideNav` (web, desktop)**: confirmar visualmente que agora só mostra 5 itens (Home/Explorar/
    VIP/Liga/Perfil) e que Loja/Ajuda continuam alcançáveis a partir de Perfil.
 
@@ -239,9 +236,8 @@ chave devolve o mesmo resultado em vez de conceder XP/vidas/streak/baú/conquist
 Spec §2.6/§6, v1.22). Cliente (mobile + web) gera a chave por tentativa de pergunta e reaproveita
 em retries de `verify()`, renovando só ao avançar de pergunta.
 
-1. **Fluxo normal**: responda perguntas em Trilhas e no Modo Infinito normalmente (mobile e web) —
-   sem diferença perceptível nenhuma deveria aparecer; é o caso feliz que precisa continuar
-   idêntico a antes.
+1. ✅ **Fluxo normal** — **confirmado 19/08/2026** (mobile): responder perguntas em Trilhas e Modo
+   Infinito segue idêntico a antes, sem diferença perceptível.
 2. **Retry de verdade**: mais difícil de forçar sem interceptar a rede (ex.: modo avião ligado no
    meio do toque em "Verificar", ou DevTools → Network → Offline no web) — responda, force a
    chamada a falhar uma vez, tente de novo com a mesma pergunta ainda selecionada. XP/vidas/streak
@@ -270,18 +266,14 @@ borda aparece) — media 1.99:1/2.76:1 ali, abaixo do mínimo AA de 3:1. Corrigi
 hardcoded fora de `tokens.ts`). **Ainda falta confirmação visual ao vivo** — os itens 1-5 abaixo
 continuam pendentes, isto foi só verificação computacional/de código.
 
-1. Com o celular de teste em modo claro, o app deve continuar idêntico a antes (nenhuma diferença
-   visual) — é o caso que não deveria ter mudado.
-2. Force o celular pro modo escuro (ajustes do sistema) com o app aberto: toda tela precisa trocar
-   de paleta sem reiniciar o app (RN atualiza `useColorScheme()` ao vivo). Percorrer pelo menos: as
-   5 abas, uma sessão de lição, o Modo Infinito, Loja, Baú, Liga, Perfil e suas subtelas, e os
-   modais (Baú, "Sem vidas", conquista, tiers de liga) — são as áreas com mais tokens de cor únicos.
-3. Conferir especificamente: nenhum texto ilegível (cor de texto igual à do fundo por trás dela),
-   nenhum ícone "sumindo" contra o novo fundo, o fundo animado "Blueprint"
-   (`AnimatedBlueprintBackground.tsx`) mantém contraste da grade/ícones caindo no escuro.
-4. Badges/Toggle/Toast — os únicos componentes com nota própria de cor "hardcoded por decisão" no
-   `DESIGN.md` (ex.: seção Shapes/Toggle) — confirmar que não sobrou nenhum tom claro esquecido
-   ali.
+1. ✅ App abre em modo claro por padrão — **confirmado 19/08/2026** (agora via toggle manual em
+   Configurações → Aparência, PR #133, em vez de seguir o sistema — ver item extra abaixo).
+2. ✅ Ligar o tema escuro (toggle manual) troca a paleta ao vivo, sem reiniciar — **confirmado
+   19/08/2026** nas 5 abas + Loja + Baú + Liga + Perfil + modais (Sem Vidas, conquista).
+3. Fundo animado "Blueprint" no escuro — mantém contraste da grade/ícones caindo — não verificado
+   isoladamente ainda (as telas com quiz/fundo animado não foram citadas explicitamente no teste
+   do item 2, mas nenhum problema de legibilidade foi relatado em geral).
+4. ✅ Badges/Toggle/Toast no escuro — **confirmado 19/08/2026**, nenhum tom claro esquecido.
 5. Splash screen (`expo-splash-screen`) não foi tocada nesta rodada — fica fora de escopo,
    confirmar se ela "pisca" claro antes do app assumir o tema escuro (comportamento esperado do
    Expo hoje, não é bug desta mudança) ou se incomoda a ponto de valer uma correção futura.
