@@ -276,8 +276,15 @@ função regenerarVidas(hearts_current, hearts_updated_at, agora):
 ```
 
 **Perda de vida** (resposta errada, `POST /.../answers`, RF-09): `hearts_current -= 1` (nunca abaixo de
-0) e `hearts_updated_at = agora` — cada perda reinicia o relógio de regeneração a partir daquele
-instante, mesmo que a vida perdida não seja a primeira do dia.
+0). `hearts_updated_at` só avança pra `agora` se `hearts_current` estava no teto (`HEARTS_MAX`) antes
+desta perda — ou seja, nenhum ciclo de regeneração estava rodando ainda. **Mudado em 19/08/2026, a
+pedido do usuário** (era: toda perda reiniciava o relógio, mesmo com um ciclo já em andamento — achado
+injusto em teste ao vivo: faltando poucos segundos pra próxima vida, uma resposta errada jogava de
+volta pros 36 minutos inteiros). Com um ciclo já em andamento (`hearts_current < HEARTS_MAX` antes da
+perda), `hearts_updated_at` **não muda** — o tique já em progresso continua contando pra entregar a
+próxima vida no horário original, e a vida recém-perdida só se soma à fila (múltiplas perdas dentro do
+mesmo ciclo em andamento não empilham tempo extra, só reduzem `hearts_current` pelo mesmo relógio já
+rodando).
 
 **Compra de recarga completa** (`POST /v1/gamification/shop/purchase`, item categoria `hearts_refill`):
 `hearts_current = HEARTS_MAX` e `hearts_updated_at = agora` — equivalente a já estar cheio, timer não

@@ -192,10 +192,16 @@ func handleSubmitAnswer(pool *pgxpool.Pool, mongoDB *mongo.Database) http.Handle
 		newHearts := heartsCurrent
 		newHeartsUpdatedAt := heartsUpdatedAt
 		if !correct && newHearts > 0 {
+			// Só reinicia o relógio de regeneração se as vidas estavam CHEIAS (nenhum ciclo
+			// rodando antes desta perda) — mudança a pedido do usuário, achado ao vivo
+			// 19/08/2026: resetar sempre era injusto (ex.: faltavam 10s pra próxima vida, uma
+			// resposta errada jogava de volta pros 36min inteiros, mesmo o ciclo já quase
+			// terminado). Com um ciclo já em andamento, `heartsUpdatedAt` não muda — o tique já em
+			// progresso continua contando pra chegar na próxima vida no horário original.
+			if newHearts >= gamification.HeartsMax {
+				newHeartsUpdatedAt = now
+			}
 			newHearts--
-			// Cada perda reinicia o relógio de regeneração a partir deste instante (TDD §5.4),
-			// mesmo que já houvesse um tique em andamento de uma perda anterior.
-			newHeartsUpdatedAt = now
 		}
 
 		// Expira a streak (TDD §5.2/§5.3) ANTES de aplicar o incremento de hoje — sem isso, uma
