@@ -33,9 +33,19 @@ type XPResult struct {
 }
 
 // VIPXPMultiplier é o bônus de XP do VIP (a pedido do usuário: "+25% de XP") — aplicado por
-// resposta, ANTES do teto diário (DailyXPCap continua valendo 500/dia igual pra todo mundo; VIP só
-// alcança o teto mais rápido, não ganha um teto maior).
+// resposta, ANTES do teto diário.
 const VIPXPMultiplier = 1.25
+
+// VIPDailyXPCapMultiplier dobra o teto diário de XP pra VIP (a pedido do usuário, 19/08/2026 —
+// reverte a decisão original de 15/08/2026, que mantinha o mesmo teto de 500/dia pra todo mundo;
+// documentado como mudança em Docs/ArqLearn_TDD_Technical_Design_Document.md §3.2).
+const VIPDailyXPCapMultiplier = 2
+
+// VIPGemsMultiplier dobra toda gema ganha por VIP (a pedido do usuário, 19/08/2026) — Baú
+// Diário/Semanal, conquistas e recompensa de Reportar Bug. Não se aplica a compra (o usuário
+// gasta gemas, não ganha) nem ao Baú Semanal de VIP quando a recompensa sorteada é o item
+// garantido (Bloqueio de Ofensiva), que já não envolve gemas.
+const VIPGemsMultiplier = 2
 
 // CalcularXP implementa TDD §3. xpToday é o valor já lido de user_gamification.xp_today
 // (depois do reset preguiçoso — ver XPHojeAposReset) ANTES desta resposta ser contabilizada.
@@ -59,7 +69,11 @@ func CalcularXP(difficulty string, answerTimeMs int, isFirstCompletion, correct 
 		xpCalculado = int(math.Round(float64(xpCalculado) * VIPXPMultiplier))
 	}
 
-	xpDisponivelHoje := DailyXPCap - xpToday
+	dailyCap := DailyXPCap
+	if vipAtivo {
+		dailyCap = DailyXPCap * VIPDailyXPCapMultiplier
+	}
+	xpDisponivelHoje := dailyCap - xpToday
 	if xpDisponivelHoje < 0 {
 		xpDisponivelHoje = 0
 	}
@@ -229,17 +243,30 @@ func StreakEmRisco(streakCurrent int, streakLastActiveDate, hojeLocal string) bo
 const HeartsMax = 5
 const HeartsRegenInterval = 36 * time.Minute
 
+// VIPHeartsRegenFactor corta o tempo de regeneração em 70% pra VIP (a pedido do usuário,
+// 19/08/2026) — 0.3 do intervalo normal: 36min vira ~10min48s por vida.
+const VIPHeartsRegenFactor = 0.3
+
+func heartsRegenInterval(vipAtivo bool) time.Duration {
+	if vipAtivo {
+		return time.Duration(float64(HeartsRegenInterval) * VIPHeartsRegenFactor)
+	}
+	return HeartsRegenInterval
+}
+
 // RegenerarVidas implementa TDD §5.4. heartsUpdatedAt é o instante da última mudança no contador
 // (perda ou regeneração, nunca "última vez que o endpoint rodou"). Devolve o novo total de vidas
 // e o novo heartsUpdatedAt — quando nenhum tique completo se passou, devolve os valores de
-// entrada inalterados (chamador não precisa persistir nesse caso).
-func RegenerarVidas(heartsCurrent int, heartsUpdatedAt, now time.Time) (int, time.Time) {
+// entrada inalterados (chamador não precisa persistir nesse caso). vipAtivo usa
+// VIPHeartsRegenFactor em vez de HeartsRegenInterval.
+func RegenerarVidas(heartsCurrent int, heartsUpdatedAt, now time.Time, vipAtivo bool) (int, time.Time) {
 	if heartsCurrent >= HeartsMax {
 		return heartsCurrent, heartsUpdatedAt
 	}
 
+	interval := heartsRegenInterval(vipAtivo)
 	elapsed := now.Sub(heartsUpdatedAt)
-	ticks := int(elapsed / HeartsRegenInterval)
+	ticks := int(elapsed / interval)
 	if ticks <= 0 {
 		return heartsCurrent, heartsUpdatedAt
 	}
@@ -250,16 +277,17 @@ func RegenerarVidas(heartsCurrent int, heartsUpdatedAt, now time.Time) (int, tim
 	}
 	// Avança o relógio só pelos ticks realmente aplicados — preserva o progresso parcial do
 	// próximo tique em vez de resetar pra "agora" (ver TDD §5.4, exemplo do intervalo de 4h20).
-	return novo, heartsUpdatedAt.Add(time.Duration(ticks) * HeartsRegenInterval)
+	return novo, heartsUpdatedAt.Add(time.Duration(ticks) * interval)
 }
 
 // ProximaVidaEm devolve o instante da próxima regeneração, ou nil quando já está no teto — é
-// exatamente GamificationProfile.hearts_next_at (API Spec §3.2).
-func ProximaVidaEm(heartsCurrent int, heartsUpdatedAt time.Time) *time.Time {
+// exatamente GamificationProfile.hearts_next_at (API Spec §3.2). vipAtivo usa
+// VIPHeartsRegenFactor em vez de HeartsRegenInterval.
+func ProximaVidaEm(heartsCurrent int, heartsUpdatedAt time.Time, vipAtivo bool) *time.Time {
 	if heartsCurrent >= HeartsMax {
 		return nil
 	}
-	next := heartsUpdatedAt.Add(HeartsRegenInterval)
+	next := heartsUpdatedAt.Add(heartsRegenInterval(vipAtivo))
 	return &next
 }
 

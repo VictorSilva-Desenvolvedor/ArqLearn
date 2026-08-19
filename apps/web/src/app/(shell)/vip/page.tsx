@@ -21,8 +21,18 @@ const BENEFITS: { icon: string; title: string; description: string }[] = [
   },
   {
     icon: "bolt",
-    title: "+25% de XP",
-    description: "Todo XP ganho em respostas certas recebe um bônus de 25%.",
+    title: "+25% de XP e teto dobrado",
+    description: "Todo XP ganho recebe +25%, e seu limite diário de XP é o dobro do normal.",
+  },
+  {
+    icon: "favorite",
+    title: "Vidas regeneram 70% mais rápido",
+    description: "O tempo pra ganhar uma vida de volta cai de 36 pra cerca de 11 minutos.",
+  },
+  {
+    icon: "diamond",
+    title: "Gemas em dobro",
+    description: "Baú Diário, conquistas e recompensa de Reportar Bug concedem o dobro de gemas.",
   },
   {
     icon: "replay",
@@ -81,7 +91,9 @@ export default function VipPage() {
   return (
     <div className="max-w-2xl mx-auto px-lg py-section flex flex-col gap-lg">
       <div className="flex flex-col items-center text-center gap-sm">
-        <div className="w-16 h-16 rounded-full bg-secondary text-on-secondary flex items-center justify-center">
+        {/* rounded-xl (24px), não rounded-full — círculo cheio é a forma reservada pros nós do
+            mapa de lições; o resto do app usa 24px como o teto "hero" (botões). */}
+        <div className="w-16 h-16 rounded-xl bg-secondary text-on-secondary flex items-center justify-center">
           <Icon name="crown" filled className="text-4xl" />
         </div>
         <h1 className="font-display text-display-lg font-bold text-secondary">Mestre Arquiteto</h1>
@@ -151,7 +163,7 @@ export default function VipPage() {
             <span className="font-display text-display-lg font-bold text-on-surface">R$ 29,90</span>
             <span className="font-body-md text-body-md text-on-surface-variant mb-1">/ mês</span>
           </div>
-          <Button variant="primary" fullWidth disabled>
+          <Button variant="ghost" fullWidth disabled>
             Assinar — Em breve
           </Button>
           <p className="font-body-sm text-body-sm text-on-surface-variant">

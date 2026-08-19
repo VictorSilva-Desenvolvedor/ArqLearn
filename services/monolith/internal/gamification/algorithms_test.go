@@ -87,12 +87,37 @@ func TestCalcularXP_VIPAplicaMultiplicadorAntesDoTeto(t *testing.T) {
 	}
 }
 
-func TestCalcularXP_VIPNaoUltrapassaTetoDiario(t *testing.T) {
-	// 490 já ganhos hoje; hard com bônus de velocidade = 35 base, VIP eleva pra round(35*1.25)=44,
-	// mas só cabem 10 no teto de 500 — VIP não ganha um teto maior, só chega nele mais rápido.
+func TestCalcularXP_VIPTemTetoDiarioDobrado(t *testing.T) {
+	// Mudou 19/08/2026, a pedido do usuário: VIP agora tem o teto diário DOBRADO (1000, não 500)
+	// — antes o VIP só chegava no mesmo teto mais rápido, sem ganhar um teto maior; agora ganha.
+	// 490 já ganhos hoje (menos da metade do teto VIP de 1000) — hard com bônus de velocidade
+	// = 35 base, VIP eleva pra round(35*1.25)=44, cabe inteiro, sem capar.
 	r := CalcularXP("hard", 100, false, true, 490, true)
+	if r.XPConcedido != 44 {
+		t.Errorf("XPConcedido = %d, esperado 44 (teto VIP de 1000 não capou)", r.XPConcedido)
+	}
+	if r.DailyCapReached {
+		t.Error("DailyCapReached não deveria ser true — ainda longe do teto VIP de 1000")
+	}
+}
+
+func TestCalcularXP_VIPCapaNoTetoDobrado(t *testing.T) {
+	// 990 já ganhos hoje (perto do teto VIP de 1000, não do teto normal de 500) — só cabem 10.
+	r := CalcularXP("hard", 100, false, true, 990, true)
 	if r.XPConcedido != 10 {
-		t.Errorf("XPConcedido = %d, esperado 10 (capado pelo teto diário mesmo com VIP)", r.XPConcedido)
+		t.Errorf("XPConcedido = %d, esperado 10 (capado pelo teto VIP de 1000)", r.XPConcedido)
+	}
+	if !r.DailyCapReached {
+		t.Error("DailyCapReached deveria ser true")
+	}
+}
+
+func TestCalcularXP_NaoVIPUsaTetoNormal(t *testing.T) {
+	// Mesmo cenário do teste VIP acima (490 já ganhos, 44 calculado), mas sem VIP — o teto
+	// continua 500, então 490+44 ultrapassaria; só cabem 10.
+	r := CalcularXP("hard", 100, false, true, 490, false)
+	if r.XPConcedido != 10 {
+		t.Errorf("XPConcedido = %d, esperado 10 (teto normal de 500, sem VIP)", r.XPConcedido)
 	}
 	if !r.DailyCapReached {
 		t.Error("DailyCapReached deveria ser true")
@@ -175,7 +200,7 @@ func TestAtualizarStreak_NovoRecorde(t *testing.T) {
 
 func TestRegenerarVidas_JaNoTeto(t *testing.T) {
 	base := time.Date(2026, 8, 9, 12, 0, 0, 0, time.UTC)
-	novo, novoUpdatedAt := RegenerarVidas(HeartsMax, base, base.Add(100*time.Hour))
+	novo, novoUpdatedAt := RegenerarVidas(HeartsMax, base, base.Add(100*time.Hour), false)
 	if novo != HeartsMax {
 		t.Errorf("novo = %d, esperado permanecer no teto %d", novo, HeartsMax)
 	}
@@ -186,7 +211,7 @@ func TestRegenerarVidas_JaNoTeto(t *testing.T) {
 
 func TestRegenerarVidas_AindaNaoPassouUmTique(t *testing.T) {
 	base := time.Date(2026, 8, 9, 12, 0, 0, 0, time.UTC)
-	novo, novoUpdatedAt := RegenerarVidas(2, base, base.Add(35*time.Minute))
+	novo, novoUpdatedAt := RegenerarVidas(2, base, base.Add(35*time.Minute), false)
 	if novo != 2 {
 		t.Errorf("novo = %d, esperado permanecer 2 (intervalo de 36min não completou)", novo)
 	}
@@ -197,7 +222,7 @@ func TestRegenerarVidas_AindaNaoPassouUmTique(t *testing.T) {
 
 func TestRegenerarVidas_UmTiqueCompleto(t *testing.T) {
 	base := time.Date(2026, 8, 9, 12, 0, 0, 0, time.UTC)
-	novo, novoUpdatedAt := RegenerarVidas(2, base, base.Add(36*time.Minute))
+	novo, novoUpdatedAt := RegenerarVidas(2, base, base.Add(36*time.Minute), false)
 	if novo != 3 {
 		t.Errorf("novo = %d, esperado 3", novo)
 	}
@@ -212,7 +237,7 @@ func TestRegenerarVidas_PreservaProgressoParcial(t *testing.T) {
 	// "agora" — sobram 14min de progresso pro próximo tique (TDD §5.4).
 	base := time.Date(2026, 8, 9, 12, 0, 0, 0, time.UTC)
 	agora := base.Add(50 * time.Minute)
-	novo, novoUpdatedAt := RegenerarVidas(3, base, agora)
+	novo, novoUpdatedAt := RegenerarVidas(3, base, agora, false)
 	if novo != 4 {
 		t.Errorf("novo = %d, esperado 4", novo)
 	}
@@ -230,7 +255,7 @@ func TestRegenerarVidas_MultiplosTiquesCapadoNoTeto(t *testing.T) {
 	// mas o teto é 5.
 	base := time.Date(2026, 8, 9, 12, 0, 0, 0, time.UTC)
 	agora := base.Add(20 * time.Hour)
-	novo, novoUpdatedAt := RegenerarVidas(3, base, agora)
+	novo, novoUpdatedAt := RegenerarVidas(3, base, agora, false)
 	if novo != HeartsMax {
 		t.Errorf("novo = %d, esperado capar no teto %d", novo, HeartsMax)
 	}
@@ -241,20 +266,60 @@ func TestRegenerarVidas_MultiplosTiquesCapadoNoTeto(t *testing.T) {
 
 func TestProximaVidaEm_NoTeto(t *testing.T) {
 	base := time.Date(2026, 8, 9, 12, 0, 0, 0, time.UTC)
-	if got := ProximaVidaEm(HeartsMax, base); got != nil {
+	if got := ProximaVidaEm(HeartsMax, base, false); got != nil {
 		t.Errorf("esperado nil no teto, veio %v", got)
 	}
 }
 
 func TestProximaVidaEm_AbaixoDoTeto(t *testing.T) {
 	base := time.Date(2026, 8, 9, 12, 0, 0, 0, time.UTC)
-	got := ProximaVidaEm(3, base)
+	got := ProximaVidaEm(3, base, false)
 	if got == nil {
 		t.Fatal("esperado um timestamp, veio nil")
 	}
 	esperado := base.Add(HeartsRegenInterval)
 	if !got.Equal(esperado) {
 		t.Errorf("ProximaVidaEm = %v, esperado %v", got, esperado)
+	}
+}
+
+func TestRegenerarVidas_VIPRegeneraMaisRapido(t *testing.T) {
+	// VIPHeartsRegenFactor = 0.3: 36min vira ~10min48s. A pedido do usuário, 19/08/2026.
+	base := time.Date(2026, 8, 9, 12, 0, 0, 0, time.UTC)
+	intervaloVIP := time.Duration(float64(HeartsRegenInterval) * VIPHeartsRegenFactor)
+
+	// Um pouco antes do intervalo VIP: ainda não regenerou.
+	novo, novoUpdatedAt := RegenerarVidas(2, base, base.Add(intervaloVIP-time.Minute), true)
+	if novo != 2 {
+		t.Errorf("novo = %d, esperado permanecer 2 (intervalo VIP ainda não completou)", novo)
+	}
+	if !novoUpdatedAt.Equal(base) {
+		t.Errorf("updatedAt não deveria mudar antes de completar um tique VIP")
+	}
+
+	// Exatamente no intervalo VIP: regenerou, mas NÃO teria regenerado ainda com o intervalo normal.
+	novo2, novoUpdatedAt2 := RegenerarVidas(2, base, base.Add(intervaloVIP), true)
+	if novo2 != 3 {
+		t.Errorf("novo = %d, esperado 3 (1 tique VIP completo)", novo2)
+	}
+	esperado := base.Add(intervaloVIP)
+	if !novoUpdatedAt2.Equal(esperado) {
+		t.Errorf("updatedAt = %v, esperado %v", novoUpdatedAt2, esperado)
+	}
+	if intervaloVIP >= HeartsRegenInterval {
+		t.Fatal("sanity check: intervalo VIP deveria ser bem menor que o normal")
+	}
+}
+
+func TestProximaVidaEm_VIPUsaIntervaloMenor(t *testing.T) {
+	base := time.Date(2026, 8, 9, 12, 0, 0, 0, time.UTC)
+	got := ProximaVidaEm(3, base, true)
+	if got == nil {
+		t.Fatal("esperado um timestamp, veio nil")
+	}
+	esperado := base.Add(time.Duration(float64(HeartsRegenInterval) * VIPHeartsRegenFactor))
+	if !got.Equal(esperado) {
+		t.Errorf("ProximaVidaEm (VIP) = %v, esperado %v", got, esperado)
 	}
 }
 

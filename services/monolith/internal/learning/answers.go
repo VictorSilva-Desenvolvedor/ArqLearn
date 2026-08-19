@@ -138,10 +138,14 @@ func handleSubmitAnswer(pool *pgxpool.Pool, mongoDB *mongo.Database) http.Handle
 			apierror.Write(w, http.StatusInternalServerError, "INTERNAL_ERROR", "Falha ao consultar perfil.")
 			return
 		}
+		// vipAtivo movido pra antes da regeneração de vidas (era calculado só mais abaixo, pro
+		// XP) — RegenerarVidas agora também precisa saber (VIPHeartsRegenFactor).
+		vipAtivo := gamification.EhVIPAtivo(isVip, vipExpiresAt, now)
+
 		// Regenera antes de aplicar a resposta atual (TDD §5.4) — sem isso, alguém que voltou
 		// depois de horas sem vidas perderia mais uma vida indevidamente por causa de um
 		// contador desatualizado.
-		heartsCurrent, heartsUpdatedAt = gamification.RegenerarVidas(heartsCurrent, heartsUpdatedAt, now)
+		heartsCurrent, heartsUpdatedAt = gamification.RegenerarVidas(heartsCurrent, heartsUpdatedAt, now, vipAtivo)
 
 		hojeLocal := gamification.HojeLocal(timezone, now)
 		hojeLocalDate, _ := time.Parse("2006-01-02", hojeLocal)
@@ -186,7 +190,6 @@ func handleSubmitAnswer(pool *pgxpool.Pool, mongoDB *mongo.Database) http.Handle
 		isLastQuestion := len(sess.AnsweredQuestionIDs)+1 >= len(sess.QuestionIDs)
 		isFirstCompletion := isLastQuestion && (!progressExists || prevProgress.Status != "completed")
 
-		vipAtivo := gamification.EhVIPAtivo(isVip, vipExpiresAt, now)
 		xpResult := gamification.CalcularXP(q.Difficulty, req.TimeMs, isFirstCompletion, correct, xpToday, vipAtivo)
 
 		newHearts := heartsCurrent

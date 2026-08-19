@@ -470,12 +470,35 @@ resultado do cálculo, que roda em linha antes de responder (o evento `lesson.an
 para os consumidores *além* do Learning Service — Analytics, auditoria — não é o único caminho de escrita
 do XP). Isso evita depender de round-trip assíncrono dentro do plano síncrono de baixa latência (SAD §5.1).
 
-## 9. VIP "Mestre Arquiteto" *(v1.16, a pedido do usuário)*
+## 9. VIP "Mestre Arquiteto" *(v1.16, a pedido do usuário; benefícios expandidos em v1.23, 19/08/2026)*
 
-Tier de entitlement (não uma role de `users.role`) que concede: multiplicador de XP (§3.3), Baú
-Semanal garantido e resets extras de baú diário/semanal (contratos completos em
-`ArqLearn_API_Specification.md` §8.3 — não duplicados aqui). Esta seção cobre só as regras de
-negócio que não são óbvias a partir do contrato de API.
+Tier de entitlement (não uma role de `users.role`) que concede: multiplicador de XP por resposta
+(§3.3), **teto diário de XP dobrado** (`VIPDailyXPCapMultiplier = 2`, ver §3.2 — reverte a decisão
+original de manter o mesmo teto de 500/dia pra todo mundo), **regeneração de vidas 70% mais rápida**
+(`VIPHeartsRegenFactor = 0.3` sobre `HEARTS_REGEN_INTERVAL`, §5.4 — 36min vira ~10min48s por vida),
+**gemas dobradas em toda fonte** (`VIPGemsMultiplier = 2` — Baú Diário, conquistas, recompensa de
+Reportar Bug; não se aplica a compras, que debitam gemas em vez de conceder, nem ao Baú Semanal
+quando cai no item garantido abaixo, que não envolve gemas), Baú Semanal garantido e resets extras
+de baú diário/semanal (contratos completos em `ArqLearn_API_Specification.md` §8.3 — não duplicados
+aqui). Esta seção cobre só as regras de negócio que não são óbvias a partir do contrato de API.
+
+**Teto diário de XP (`VIPDailyXPCapMultiplier`):** `CalcularXP` usa `DailyXPCap * 2` (1000) como
+teto quando `vipAtivo`, em vez do `DailyXPCap` normal (500) — mudança de 19/08/2026, a pedido do
+usuário; antes disso o VIP só alcançava o mesmo teto de todo mundo mais rápido (multiplicador por
+resposta), sem um teto maior. Não confundir com o multiplicador de XP por resposta (§3.3), que
+continua existindo e é aplicado ANTES deste teto, como sempre foi.
+
+**Regeneração de vidas (`VIPHeartsRegenFactor`):** `RegenerarVidas`/`ProximaVidaEm` usam
+`HEARTS_REGEN_INTERVAL * 0.3` como intervalo efetivo quando `vipAtivo`, em vez do intervalo normal
+de 36min — encher as 5 vidas do zero leva ~54min pro VIP, contra 3h pra não-VIP. Mesma lógica de
+"ticks" e preservação de progresso parcial do §5.4 original, só com o intervalo trocado.
+
+**Gemas dobradas (`VIPGemsMultiplier`):** aplicado no ponto de concessão, não como um recálculo
+depois — cada fonte de gema (`RolarRecompensaBau` no Baú Diário, `EvaluateAndUnlock` em conquistas,
+`AwardGems` em Reportar Bug) dobra o valor sorteado/fixo ANTES de gravar no banco, quando o usuário
+está VIP ativo naquele instante. `AwardGems` devolve o valor REALMENTE creditado (já dobrado se
+VIP), não o valor originalmente pedido pelo chamador, pra mensagens ao usuário mostrarem o número
+certo.
 
 **Ativação:** dois caminhos, ambos gravam `user_gamification.is_vip`/`vip_expires_at`.
 1. **Cupom** — 10 dígitos numéricos, gerado por um admin, resgatável uma única vez.
