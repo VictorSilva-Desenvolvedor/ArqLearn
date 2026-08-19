@@ -2,14 +2,14 @@
 
 import { Icon } from "@/components/ui/Icon";
 import { DropdownMenu, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator } from "@/components/ui/DropdownMenu";
-import { themeCatalog } from "@/lib/api/mocks/fixtures/themes";
+import { themeCatalog, type ThemeDefinition } from "@/lib/api/mocks/fixtures/themes";
 import { useTheme } from "@/hooks/useTheme";
 
-const featured = themeCatalog.filter((t) => t.semester === undefined);
-const bySemester = Array.from({ length: 10 }, (_, i) => i + 1).map((semester) => ({
-  semester,
-  themes: themeCatalog.filter((t) => t.semester === semester),
-}));
+// Agrupado por disponibilidade (não mais por bimestre/semestre) — a pedido do usuário,
+// 19/08/2026: o que importa pra escolher um tema é se dá pra estudar agora ou não, não em qual
+// semestre a matéria cai. Espelha apps/mobile/src/components/home/ThemeSelector.tsx.
+const available = themeCatalog.filter((t) => t.hasContent);
+const underConstruction = themeCatalog.filter((t) => !t.hasContent);
 
 export function ThemeSelector() {
   const { theme, setTopic } = useTheme();
@@ -28,18 +28,39 @@ export function ThemeSelector() {
         </button>
       }
     >
-      <DropdownMenuLabel>Trilhas em destaque</DropdownMenuLabel>
-      {featured.map((entry) => (
+      <ThemeGroup label="Disponíveis" themes={available} activeTopic={theme.topic} onSelect={setTopic} />
+      {available.length > 0 && underConstruction.length > 0 && <DropdownMenuSeparator />}
+      <ThemeGroup label="Em construção" themes={underConstruction} activeTopic={theme.topic} onSelect={setTopic} />
+    </DropdownMenu>
+  );
+}
+
+function ThemeGroup({
+  label,
+  themes,
+  activeTopic,
+  onSelect,
+}: {
+  label: string;
+  themes: ThemeDefinition[];
+  activeTopic: string;
+  onSelect: (topic: string) => void;
+}) {
+  if (themes.length === 0) return null;
+  return (
+    <>
+      <DropdownMenuLabel>{label}</DropdownMenuLabel>
+      {themes.map((entry) => (
         <DropdownMenuItem
           key={entry.topic}
-          onSelect={() => setTopic(entry.topic)}
-          active={entry.topic === theme.topic}
+          onSelect={() => onSelect(entry.topic)}
+          active={entry.topic === activeTopic}
           disabled={!entry.hasContent}
         >
           <span className="flex items-center gap-2">
             <Icon
               name={entry.hasContent ? entry.icon : "lock"}
-              filled={entry.topic === theme.topic}
+              filled={entry.topic === activeTopic}
               className="text-base"
             />
             <span className="flex-1">{entry.label}</span>
@@ -51,38 +72,6 @@ export function ThemeSelector() {
           </span>
         </DropdownMenuItem>
       ))}
-
-      {bySemester.map(
-        ({ semester, themes }) =>
-          themes.length > 0 && (
-            <div key={semester}>
-              <DropdownMenuSeparator />
-              <DropdownMenuLabel>{semester}º Semestre</DropdownMenuLabel>
-              {themes.map((entry) => (
-                <DropdownMenuItem
-                  key={entry.topic}
-                  onSelect={() => setTopic(entry.topic)}
-                  active={entry.topic === theme.topic}
-                  disabled={!entry.hasContent}
-                >
-                  <span className="flex items-center gap-2">
-                    <Icon
-                      name={entry.hasContent ? entry.icon : "lock"}
-                      filled={entry.topic === theme.topic}
-                      className="text-base"
-                    />
-                    <span className="flex-1">{entry.label}</span>
-                    {!entry.hasContent && (
-                      <span className="font-label text-label-caps uppercase text-error shrink-0">
-                        Em construção
-                      </span>
-                    )}
-                  </span>
-                </DropdownMenuItem>
-              ))}
-            </div>
-          ),
-      )}
-    </DropdownMenu>
+    </>
   );
 }
