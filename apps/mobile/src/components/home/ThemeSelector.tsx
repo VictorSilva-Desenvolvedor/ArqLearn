@@ -8,19 +8,21 @@ import { spacing, type } from "@/theme/tokens";
 import { useColors } from "@/theme/useColors";
 import type { ColorTokens } from "@/theme/tokens";
 
-const featured = themeCatalog.filter((t) => t.semester === undefined);
-const bySemester = Array.from({ length: 10 }, (_, i) => i + 1)
-  .map((semester) => ({ semester, themes: themeCatalog.filter((t) => t.semester === semester) }))
-  .filter((group) => group.themes.length > 0);
+// Agrupado por disponibilidade (não mais por bimestre/semestre) — a pedido do usuário,
+// 19/08/2026: o que importa pra escolher um tema é se dá pra estudar agora ou não, não em qual
+// semestre a matéria cai. `hasContent` já é a mesma fonte de verdade que `ThemeRow` usa pra
+// desabilitar a linha.
+const available = themeCatalog.filter((t) => t.hasContent);
+const underConstruction = themeCatalog.filter((t) => !t.hasContent);
 
 // SectionList em vez de ScrollView+map manual (/impeccable optimize, 2026-08-17): o catálogo de
-// temas já passa de ~50 entradas (7 em destaque + 10 semestres) — ScrollView monta todas as linhas
-// de uma vez, mesmo as fora da área visível do Modal (maxHeight 420); SectionList recicla linhas
-// fora de tela e escala se o catálogo crescer, sem mudar o agrupamento visual por semestre.
+// temas já passa de ~50 entradas — ScrollView monta todas as linhas de uma vez, mesmo as fora da
+// área visível do Modal (maxHeight 420); SectionList recicla linhas fora de tela e escala se o
+// catálogo crescer.
 const sections = [
-  { title: "Trilhas em destaque", data: featured },
-  ...bySemester.map(({ semester, themes }) => ({ title: `${semester}º Semestre`, data: themes })),
-];
+  { title: "Disponíveis", data: available },
+  { title: "Em construção", data: underConstruction },
+].filter((group) => group.data.length > 0);
 
 // Espelha apps/web/src/components/layout/ThemeSelector.tsx — dropdown vira Modal com lista
 // rolável (RN não tem menu suspenso nativo equivalente). Escolha do tema persiste via
@@ -39,18 +41,23 @@ export function ThemeSelector() {
 
   return (
     <>
-      <Pressable
-        style={({ pressed }) => [styles.trigger, pressed && styles.triggerPressed]}
-        onPress={() => setOpen(true)}
-        accessibilityRole="button"
-        accessibilityLabel={`Trocar de matéria — atual: ${theme.label}`}
-      >
-        <Icon name={theme.icon} size={18} color={colors.primary} />
-        <Text style={[type.labelCaps, styles.triggerLabel]} numberOfLines={1}>
-          {theme.label}
-        </Text>
-        <Icon name="expandMore" size={18} color={colors.primary} />
-      </Pressable>
+      {/* View com alignItems:"center" de propósito: o pai (TopAppBar) não define alignItems no
+          wrapper que envolve este componente, então o padrão "stretch" do RN encostava o botão
+          (maxWidth:220) na borda esquerda em vez de centralizar (achado ao vivo, 19/08/2026). */}
+      <View style={styles.triggerWrap}>
+        <Pressable
+          style={({ pressed }) => [styles.trigger, pressed && styles.triggerPressed]}
+          onPress={() => setOpen(true)}
+          accessibilityRole="button"
+          accessibilityLabel={`Trocar de matéria — atual: ${theme.label}`}
+        >
+          <Icon name={theme.icon} size={18} color={colors.primary} />
+          <Text style={[type.labelCaps, styles.triggerLabel]} numberOfLines={1}>
+            {theme.label}
+          </Text>
+          <Icon name="expandMore" size={18} color={colors.primary} />
+        </Pressable>
+      </View>
 
       <Modal open={open} onOpenChange={setOpen}>
         <Text style={[type.headlineMd, styles.modalTitle]}>Escolher tema</Text>
@@ -110,6 +117,9 @@ function ThemeRow({
 
 const createStyles = (colors: ColorTokens) =>
   StyleSheet.create({
+    triggerWrap: {
+      alignItems: "center",
+    },
     trigger: {
       flexDirection: "row",
       alignItems: "center",
