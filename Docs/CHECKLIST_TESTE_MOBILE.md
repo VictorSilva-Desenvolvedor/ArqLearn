@@ -1,81 +1,76 @@
 # Checklist de teste em device real — mobile (`apps/mobile`)
 
-> Lista consolidada de tudo que falta testar manualmente no app mobile, pra rodar via `/loop`.
-> Ambiente/setup (credenciais, como conectar o device, EAS Update) já documentado em
-> `Docs/PENDENCIAS_TESTE_DEVICE.md` — não duplicado aqui. Risque cada item conforme for testado;
-> se algo falhar, anote o achado em `Docs/PENDENCIAS_MOBILE.md` (não aqui) e continue a lista.
+> Lista consolidada e **atualizada em 19/08/2026** — a versão anterior deste arquivo (17/08/2026)
+> ficou desatualizada pelos PRs #107–#125, que já têm seus próprios checklists dentro de
+> `Docs/PENDENCIAS_TESTE_DEVICE.md` (Lotes 5–9). Este arquivo só reagrupa tudo num lugar só pra
+> rodar via `/loop`. Setup do ambiente (credenciais, como conectar via USB/`adb reverse`, gotcha do
+> `EXPO_PUBLIC_API_BASE_URL`) está no topo de `PENDENCIAS_TESTE_DEVICE.md` — não duplicado aqui.
+> Risque cada item conforme for testado; se algo falhar, anote o achado em `PENDENCIAS_MOBILE.md`
+> (não aqui) e continue a lista.
 
-## A. Verificação do PR #106 (Toggle/orientação/contraste/TopAppBar/ThemeSelector/pull-to-refresh)
+## A. Confirmação visual — código já mudou, nunca visto rodando de verdade
 
-Ainda sem confirmação visual ao vivo — feito só por leitura de código + `tsc`/`expo export` limpos.
+### PR #106/#107 — Toggle/orientação/contraste/TopAppBar/ThemeSelector/pull-to-refresh (+ paridade web)
+- [ ] `TopAppBar` (mobile e web <640px) em faixa única, sem borda duplicada entre seletor de tema e pílulas.
+- [ ] Pull-to-refresh na Home funciona (spinner nativo, sem piscar pro skeleton fullscreen).
+- [ ] Com "Remover animações" ligado, `LoadingBlueprint` respeita a preferência no reload do pull-to-refresh.
+- [ ] `ThemeSelector` rola suave com `SectionList` (~50 itens).
 
-- [ ] `TopAppBar`: seletor de tema e pílulas de streak/vidas/gemas aparecem como uma faixa única
-      (um fundo, uma borda), sem uma borda extra separando as duas linhas.
-- [ ] Os 6 alvos de toque do `TopAppBar` continuam todos clicáveis e do mesmo tamanho de antes
-      (notificações, perfil, seletor de tema, streak, vidas, gemas).
-- [ ] Borda das cards/inputs (`--color-outline-variant`) visivelmente um pouco mais escura que
-      antes — comparar com uma versão anterior do app se possível.
-- [ ] `ThemeSelector`: abrir o modal "Escolher tema", rolar a lista até o fim (~50 itens) — deve
-      rolar suave, sem travar, mesmo agrupamento por semestre de antes.
-- [ ] Puxar a Home pra baixo (pull-to-refresh) — aparece o spinner nativo, a tela atualiza
-      (trilhas/baús), sem piscar pro skeleton de tela cheia (`LoadingBlueprint` fullscreen).
-- [ ] Com "Remover animações" ligado (Ajustes > Acessibilidade), puxar pra atualizar de novo —
-      confirmar se o comportamento do `LoadingBlueprint` respeita a preferência (pendência #21/#22
-      de `PENDENCIAS_MOBILE.md` — nunca fechou com confirmação clara antes).
-- [ ] `Toggle` (Notificações, Configurações) continua funcionando normalmente — nenhuma mudança de
-      código nele nesta rodada, só de documentação; confirmar que nada quebrou.
+### PR #115/#116 — Lote 7: `/impeccable critique`+`audit` (14 achados)
+- [ ] TalkBack: excluir conta usa botão comum (toque duplo) em vez de "segure 10s" quando o leitor de tela está ativo.
+- [ ] TalkBack anuncia nome+estado em itens de lista (Notificações, Perfil, ranking de Liga, Materiais, cards de estatística).
+- [ ] Celebração de nível fica na tela até fechar manualmente (não some sozinha em 1.5s).
+- [ ] Fonte do sistema aumentada — frase de exclusão de conta e formulários (Login, Configurações, Reportar Bug) não cortam.
+- [ ] Campos `Nome`/`Fuso horário`/`Nova senha`/busca são anunciados com rótulo pelo TalkBack.
+- [ ] Cabeçalho de lição/Modo Infinito/conquista/resumo/Baú/chat fica visível abaixo da status bar/notch.
+- [ ] `Toggle` e seletores de liga/divisão ficaram mais fáceis de acertar com o dedo.
+- [ ] Gesto de voltar preditivo funciona em todas as telas empilhadas, inclusive saindo de uma sessão de quiz.
+- [ ] Teclado do sistema não cobre o campo de digitação no chat de material nem no login.
+- [ ] Fundo animado (`AnimatedBlueprintBackground`) não trava/perde frame durante o scroll do quiz.
+- [ ] Web: sino de notificações aparece na faixa inferior em telas <768px.
+- [ ] Web: "Esqueci minha senha" chega, abre `/redefinir-senha`, troca funciona ponta a ponta.
+- [ ] Web: contraste de `--color-error-red` sobre `--color-error-container` (ícone do `NoHeartsDialog`).
+- [ ] Web: `prefers-reduced-motion` ativado — nada fica preso no meio de uma transição.
 
-## B. Lote 4 — mais telas (já enviado antes, retomar se ainda não respondido)
+### PR #118/#119 — Lote 7B: pendências P2 fechadas
+- [ ] Recuperação de senha (mobile): "Esqueci minha senha" abre o app direto em `redefinir-senha.tsx` (precisa `arqlearn://redefinir-senha` na allowlist do Supabase primeiro).
+- [ ] Formato do link do Supabase (`?code=` vs `#access_token=`) — confirmar qual chega de verdade.
+- [ ] `expo-image`: avatares (Perfil, Liga), imagem de questão, miniatura de print no Reportar Bug carregam normal (precisa build novo do dev client — módulo nativo).
+- [ ] `FlatList` no chat de material rola pro fim sozinha a cada mensagem nova.
+- [ ] Web: `SideNav` desktop mostra só 5 itens (Home/Explorar/VIP/Liga/Perfil), Loja/Ajuda acessíveis via Perfil.
 
-- [ ] Baú diário/semanal (toque num card na Home) abre normal?
-- [ ] Perfil (avatar/ícone no topo) — estatísticas aparecem certinho, sem número quebrado/`undefined`?
-- [ ] Liga (aba embaixo) — lista de ranking rola suave, sem cortar nome/avatar?
-- [ ] Zere as vidas numa lição (erre repetidamente) — o diálogo de "sem vidas" aparece corretamente?
-- [ ] Modo escuro do celular, se tiver — o app deveria continuar igual (sem dark mode implementado
-      ainda é o resultado esperado, não um bug).
+### PR #109/#110/#123/#124 — Lote 8: Idempotency-Key
+- [ ] Fluxo normal de resposta (Trilhas e Modo Infinito) continua idêntico, sem diferença perceptível.
+- [ ] Retry forçado (modo avião no meio de "Verificar", ou DevTools Offline no web) — XP/vidas/streak mudam só uma vez, não em dobro.
 
-## C. Lote 5 — fluxo de estudo completo
+### PR #125 — Lote 9: tema escuro
+- [ ] Modo claro do sistema — app continua idêntico a antes (nada deveria mudar).
+- [ ] Modo escuro do sistema (com o app já aberto) — troca de paleta ao vivo, sem reiniciar, nas 5 abas + sessão de lição + Modo Infinito + Loja + Baú + Liga + Perfil/subtelas + modais (Baú, Sem Vidas, conquista, tiers de liga).
+- [ ] Nenhum texto ilegível, nenhum ícone sumindo, fundo animado mantém contraste no escuro.
+- [ ] Badge/Toggle/Toast (cor "hardcoded por decisão" no DESIGN.md) — nenhum tom claro esquecido.
+- [ ] Splash screen — confirmar se "pisca" claro antes de assumir o tema escuro (esperado, não é bug) ou se incomoda.
 
-- [ ] Complete uma lição inteira (10 perguntas) até "Lição Concluída!" — XP/precisão/sequência
-      batem com o que você respondeu?
-- [ ] Erre uma pergunta de propósito e toque em "Explique melhor" — a explicação do Groq aparece?
-- [ ] Teste o Modo Infinito (Explorar → card de Modo Infinito, ou aba direta) — perguntas carregam,
-      XP acumula até o teto diário?
-- [ ] Notificações (sino no header) — a tela abre e lista algo (ou empty state correto)?
-- [ ] VIP (`/vip`) — a tela de paywall/resgate de cupom abre sem erro?
+## B. Testes funcionais ainda pendentes (mais antigos, nunca fechados)
 
-## D. Lote 6 — edge cases
+### Lote 5 — fluxo de estudo completo
+- [ ] Lição inteira (10 perguntas) até "Lição Concluída!" — XP/precisão/sequência batem.
+- [ ] Errar de propósito e tocar "Explique melhor" — explicação do Groq aparece.
+- [ ] Modo Infinito — perguntas carregam, XP acumula até o teto diário.
+- [ ] Notificações (sino) — abre e lista algo (ou empty state correto).
+- [ ] VIP (`/vip`) — paywall/resgate de cupom abre sem erro.
 
-- [ ] Gire o celular pra paisagem (se possível) — o app trava, estica estranho, ou ignora a rotação?
-      (lembrete: orientação está travada em `portrait` de propósito — ver `apps/mobile/DESIGN.md`)
-- [ ] Minimize o app no meio de uma lição e volte — o progresso continua de onde parou?
-- [ ] Desligue o wifi no meio de uma ação (ex.: comprando na loja) — dá erro tratado ou trava?
-- [ ] Nome de tema/trilha muito comprido (se existir algum) — quebra o layout do `ThemeSelector`?
-- [ ] Teste com o tamanho de fonte do sistema aumentado (Ajustes > Acessibilidade > Tamanho da
-      fonte) — textos cortam ou sobrepõem em algum lugar?
+### Lote 6 — edge cases
+- [ ] Girar pra paisagem — trava, estica, ou ignora (lembrete: orientação travada em portrait por decisão registrada em `apps/mobile/DESIGN.md`).
+- [ ] Minimizar o app no meio de uma lição e voltar — progresso continua de onde parou.
+- [ ] Desligar wifi no meio de uma compra — erro tratado ou trava.
+- [ ] Nome de tema/trilha muito comprido — quebra o `ThemeSelector`.
+- [ ] Fonte do sistema aumentada — textos cortam/sobrepõem.
 
-## E. Pendências específicas mais antigas
+### Outros
+- [ ] Gesto preditivo de voltar do Android — precisa device em modo de navegação por gestos (o de teste usa 3 botões).
+- [ ] iOS/iPad — nada testado ainda (sem Mac/dispositivo Apple); decisão de quando entra em escopo.
+- [ ] Diamante de checkpoint no mapa aparecendo laranja no device (código usa azul) — pedir print antes de mexer.
 
-- [ ] Gesto preditivo de voltar do Android (precisa trocar o device pra modo de navegação por
-      gestos — o botão físico normal já foi validado, `PENDENCIAS_MOBILE.md` #20).
-- [ ] Diamante de checkpoint no mapa: usuário reportou que aparece laranja no device, mas o código
-      usa azul (`colors.primary`) — pedir print de tela antes de mexer em qualquer coisa
-      (`PENDENCIAS_TESTE_DEVICE.md`, Lote 1).
-- [ ] TalkBack anuncia o nó "Continuar lição" ao tocar?
-- [ ] TalkBack anuncia valor das pílulas de sequência/vidas/gemas?
-- [ ] Alvo de toque das pílulas do header parece mais fácil de acertar (depois da mudança de faixa
-      única do item A)?
-- [ ] Baú Diário abre a partir do card na Home?
-- [ ] Perfil → Configurações abre e "Sair" funciona?
-
-## F. Cobertura de plataforma ainda não testada
-
-- [ ] iOS/iPad — nada testado até hoje (sem Mac/dispositivo Apple). Requer decisão de quando isso
-      entra em escopo (hoje só Android via APK, `PENDENCIAS_MOBILE.md` #7).
-
-## G. Depois de fechar os itens acima
-
-- [ ] Espelhar no `apps/web` as mudanças do PR #106 (Toggle/TopAppBar/ThemeSelector — regra
-      permanente de paridade, `PENDENCIAS_MOBILE.md` #9).
-- [ ] Atualizar `Docs/PENDENCIAS_MOBILE.md`/`Docs/PENDENCIAS_TESTE_DEVICE.md` riscando cada item
-      confirmado, e apagar este arquivo (ou a seção correspondente) quando tudo estiver validado.
+## C. Depois de fechar tudo acima
+- [ ] Riscar cada item confirmado em `Docs/PENDENCIAS_TESTE_DEVICE.md` (Lotes 5–9) e `Docs/PENDENCIAS_MOBILE.md`.
+- [ ] Apagar este arquivo quando o backlog acima estiver zerado.
