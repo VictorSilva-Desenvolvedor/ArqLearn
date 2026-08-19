@@ -262,6 +262,15 @@ estático — ver `apps/mobile/DESIGN.md`, seção "Dark Theme", pro racional co
 paleta. Todo par texto/fundo foi conferido por script de contraste (WCAG AA), mas **nada disso foi
 visto numa tela de verdade** — a sessão que implementou não tinha device conectado.
 
+**[RESOLVIDO 19/08/2026, PR #127]** `/impeccable audit` re-rodou a verificação de contraste
+independentemente (esta era a única superfície do app ainda sem auditoria desde a última rodada,
+#121/#122) e achou 1 gap real: `outlineVariant` do tema escuro só tinha sido checado contra
+`surface`/`background`, não contra `surfaceBright`/`surfaceGray` (as superfícies reais onde a
+borda aparece) — media 1.99:1/2.76:1 ali, abaixo do mínimo AA de 3:1. Corrigido pra `#828d9c`
+(3.30:1/4.56:1). Resto confirmado limpo (23 pares de texto, migração completa, zero cor
+hardcoded fora de `tokens.ts`). **Ainda falta confirmação visual ao vivo** — os itens 1-5 abaixo
+continuam pendentes, isto foi só verificação computacional/de código.
+
 1. Com o celular de teste em modo claro, o app deve continuar idêntico a antes (nenhuma diferença
    visual) — é o caso que não deveria ter mudado.
 2. Force o celular pro modo escuro (ajustes do sistema) com o app aberto: toda tela precisa trocar
