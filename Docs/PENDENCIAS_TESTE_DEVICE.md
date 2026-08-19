@@ -122,17 +122,16 @@ Rodada completa de `/impeccable critique` + `/impeccable audit` (dual-agent, web
 ao vivo ainda, porque não há device/browser autenticado disponível neste ambiente. Confirmar:
 
 **Mobile — TalkBack real, fim a fim (Configurações → Zona de risco → Excluir conta):**
-1. Ative o TalkBack e tente excluir a conta — o app agora mostra um botão comum (não mais o
-   "segure 10s") quando o leitor de tela está ativo? Ele funciona por toque duplo?
-2. Toque em itens de lista (Notificações, Perfil → menu, ranking de Liga, Materiais enviados,
-   cards de estatística no resumo de lição) — TalkBack anuncia algo coerente agora (nome + estado),
-   em vez de fragmentos soltos ou silêncio?
-3. Suba de nível (ou force via XP) — a celebração de nível continua na tela até você mesmo fechar,
-   em vez de sumir sozinha em 1.5s?
-4. Aumente a fonte do sistema (Ajustes > Acessibilidade) — a frase de confirmação de exclusão de
-   conta e os textos dos formulários (Login, Configurações, Reportar Bug) ainda cabem?
-5. Confirme que `Nome`/`Fuso horário`/`Nova senha`/campo de busca agora são anunciados pelo
-   TalkBack com um rótulo, não só "caixa de edição em branco".
+**[CONFIRMADO 19/08/2026]** Todos os 5 itens abaixo testados ao vivo com TalkBack real ligado no
+device (Redmi 13) — usuário confirmou "funcionou 100%".
+1. ✅ Ativar o TalkBack e tentar excluir a conta — o app mostra um botão comum (não mais o
+   "segure 10s") quando o leitor de tela está ativo, funciona por toque duplo.
+2. ✅ Itens de lista (Notificações, Perfil → menu, ranking de Liga, Materiais enviados, cards de
+   estatística no resumo de lição) — TalkBack anuncia nome + estado coerente.
+3. ✅ Celebração de nível continua na tela até fechar manualmente, não some sozinha em 1.5s.
+4. ✅ Fonte do sistema aumentada — frase de confirmação de exclusão e textos dos formulários
+   (Login, Configurações, Reportar Bug) continuam cabendo.
+5. ✅ `Nome`/`Fuso horário`/`Nova senha`/campo de busca são anunciados pelo TalkBack com rótulo.
 
 **Mobile — layout/insets:**
 6. Abra uma lição (sessão de quiz), o Modo Infinito, a tela de conquista, o resumo de lição, o Baú
@@ -140,8 +139,9 @@ ao vivo ainda, porque não há device/browser autenticado disponível neste ambi
    (não mais colado no topo)? Testar num device com notch/câmera-furo se possível.
 7. `Toggle` (Notificações, Configurações) e os seletores de liga/divisão em "Todas as Ligas" —
    ficaram mais fáceis de acertar com o dedo?
-8. Gesto de voltar preditivo (Android, modo de navegação por gestos) em todas as telas empilhadas,
-   inclusive saindo de dentro de uma sessão de quiz.
+8. ✅ Gesto de voltar preditivo (Android, modo de navegação por gestos) em todas as telas
+   empilhadas, inclusive saindo de dentro de uma sessão de quiz — **confirmado 19/08/2026**
+   (Redmi 13, trocado pra modo de navegação por gestos pra este teste).
 9. Teclado do sistema no chat de material e no login — o campo de digitação/senha fica coberto
    pelo teclado em algum ponto?
 10. Role a tela de quiz com o fundo animado (`AnimatedBlueprintBackground`) rodando atrás — nota
@@ -172,9 +172,9 @@ Itens que dependem de decisão de design ou de outro tipo de ambiente, não de m
 4. ✅ **Lock de orientação** — resolvido 17/08/2026 (`/impeccable document`, `PENDENCIAS_MOBILE.md`
    #22): confirmado intencional (nenhuma tela tem composição landscape), motivo registrado em
    `apps/mobile/DESIGN.md`.
-5. **Gesto preditivo de voltar do Android** — só testável em modo de navegação por gestos; o
-   device de teste usa modo de 3 botões. Já validado que o botão voltar normal funciona
-   (`PENDENCIAS_MOBILE.md` #20); falta o teste real do gesto em si.
+5. ✅ **Gesto preditivo de voltar do Android** — resolvido 19/08/2026: device trocado pra modo de
+   navegação por gestos e testado em telas empilhadas (inclusive saindo de sessão de quiz),
+   confirmado funcionando. Botão voltar normal já validado antes (`PENDENCIAS_MOBILE.md` #20).
 6. ✅ **`--color-outline-variant` (borda)** — resolvido 17/08/2026 (`/impeccable audit` focado
    nisso, `PENDENCIAS_MOBILE.md` #22): media ~1.6:1, abaixo do mínimo 3:1 — replicado o fix já
    validado no web (`#c2c7d0` → `#7f8894`).

@@ -17,14 +17,14 @@
 - [ ] `ThemeSelector` rola suave com `SectionList` (~50 itens).
 
 ### PR #115/#116 — Lote 7: `/impeccable critique`+`audit` (14 achados)
-- [ ] TalkBack: excluir conta usa botão comum (toque duplo) em vez de "segure 10s" quando o leitor de tela está ativo.
-- [ ] TalkBack anuncia nome+estado em itens de lista (Notificações, Perfil, ranking de Liga, Materiais, cards de estatística).
-- [ ] Celebração de nível fica na tela até fechar manualmente (não some sozinha em 1.5s).
-- [ ] Fonte do sistema aumentada — frase de exclusão de conta e formulários (Login, Configurações, Reportar Bug) não cortam.
-- [ ] Campos `Nome`/`Fuso horário`/`Nova senha`/busca são anunciados com rótulo pelo TalkBack.
+- [x] TalkBack: excluir conta usa botão comum (toque duplo) em vez de "segure 10s" quando o leitor de tela está ativo. **Confirmado 19/08/2026 no Redmi 13.**
+- [x] TalkBack anuncia nome+estado em itens de lista (Notificações, Perfil, ranking de Liga, Materiais, cards de estatística). **Confirmado 19/08/2026.**
+- [x] Celebração de nível fica na tela até fechar manualmente (não some sozinha em 1.5s). **Confirmado 19/08/2026.**
+- [x] Fonte do sistema aumentada — frase de exclusão de conta e formulários (Login, Configurações, Reportar Bug) não cortam. **Confirmado 19/08/2026.**
+- [x] Campos `Nome`/`Fuso horário`/`Nova senha`/busca são anunciados com rótulo pelo TalkBack. **Confirmado 19/08/2026.**
 - [ ] Cabeçalho de lição/Modo Infinito/conquista/resumo/Baú/chat fica visível abaixo da status bar/notch.
 - [ ] `Toggle` e seletores de liga/divisão ficaram mais fáceis de acertar com o dedo.
-- [ ] Gesto de voltar preditivo funciona em todas as telas empilhadas, inclusive saindo de uma sessão de quiz.
+- [x] Gesto de voltar preditivo funciona em todas as telas empilhadas, inclusive saindo de uma sessão de quiz. **Confirmado 19/08/2026.**
 - [ ] Teclado do sistema não cobre o campo de digitação no chat de material nem no login.
 - [ ] Fundo animado (`AnimatedBlueprintBackground`) não trava/perde frame durante o scroll do quiz.
 - [ ] Web: sino de notificações aparece na faixa inferior em telas <768px.
@@ -67,7 +67,7 @@
 - [ ] Fonte do sistema aumentada — textos cortam/sobrepõem.
 
 ### Outros
-- [ ] Gesto preditivo de voltar do Android — precisa device em modo de navegação por gestos (o de teste usa 3 botões).
+- [x] Gesto preditivo de voltar do Android. **Confirmado 19/08/2026** (device trocado pra modo de navegação por gestos).
 - [ ] iOS/iPad — nada testado ainda (sem Mac/dispositivo Apple); decisão de quando entra em escopo.
 - [ ] Diamante de checkpoint no mapa aparecendo laranja no device (código usa azul) — pedir print antes de mexer.
 
