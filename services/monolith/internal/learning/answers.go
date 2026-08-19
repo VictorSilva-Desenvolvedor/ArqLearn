@@ -268,14 +268,14 @@ func handleSubmitAnswer(pool *pgxpool.Pool, mongoDB *mongo.Database) http.Handle
 			return
 		}
 
-		_, err = tx.Exec(r.Context(), `
-			INSERT INTO answer_submissions (id, user_id, session_id, question_id, idempotency_key, response)
-			VALUES ($1, $2, $3, $4, $5, $6)
 		// string(responseJSON), não o []byte cru: o pool roda em QueryExecModeSimpleProtocol
 		// (Supavisor, ver internal/db) e o encoder de protocolo simples do pgx manda um []byte
 		// como literal bytea — Postgres rejeita isso pra uma coluna JSONB
 		// ("invalid input syntax for type json", achado ao vivo 19/08/2026). Como string, vira
 		// literal de texto, que o Postgres converte pra jsonb normalmente.
+		_, err = tx.Exec(r.Context(), `
+			INSERT INTO answer_submissions (id, user_id, session_id, question_id, idempotency_key, response)
+			VALUES ($1, $2, $3, $4, $5, $6)
 		`, uuid.New(), userID, req.SessionID, req.QuestionID, idempotencyKey, string(responseJSON))
 		if err != nil {
 			// Corrida real entre dois retries concorrentes com a mesma chave (achado ao vivo,
