@@ -11,6 +11,8 @@ import { IconButton } from "@/components/ui/IconButton";
 import { Modal } from "@/components/ui/Modal";
 import { NotificationPreferencesPanel } from "@/components/features/notifications/NotificationPreferencesPanel";
 import { ThemeSelector } from "@/components/home/ThemeSelector";
+import { Toggle } from "@/components/ui/Toggle";
+import { useAppearance } from "@/hooks/useAppearance";
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/useToast";
 import { deleteMe, exportMyData, updateMe } from "@/lib/api/resources/profile";
@@ -32,6 +34,7 @@ export default function ConfiguracoesScreen() {
   const router = useRouter();
   const { user, updateUser, logout } = useAuth();
   const { showToast } = useToast();
+  const { preference: appearance, setPreference: setAppearance } = useAppearance();
 
   const [name, setName] = useState(user.name);
   const [timezone, setTimezone] = useState(user.timezone);
@@ -252,6 +255,21 @@ export default function ConfiguracoesScreen() {
         </Card>
 
         <Card padding="lg" radius="lg" style={styles.card}>
+          <Text style={[type.headlineMd, styles.cardTitle]}>Aparência</Text>
+          <Text style={[type.bodySm, styles.cardCaption]}>
+            Tema escuro — desligado usa o tema claro, o padrão do app.
+          </Text>
+          <View style={styles.appearanceRow}>
+            <Text style={[type.bodyLg, styles.appearanceLabel]}>Tema escuro</Text>
+            <Toggle
+              checked={appearance === "dark"}
+              onChange={(checked) => setAppearance(checked ? "dark" : "light")}
+              label="Tema escuro"
+            />
+          </View>
+        </Card>
+
+        <Card padding="lg" radius="lg" style={styles.card}>
           <Text style={[type.headlineMd, styles.cardTitle]}>Trilha de estudo</Text>
           <Text style={[type.bodySm, styles.cardCaption]}>Qual assunto você está estudando agora.</Text>
           <ThemeSelector />
@@ -421,6 +439,15 @@ const createStyles = (colors: ColorTokens) =>
     },
     cardCaption: {
       color: colors.onSurfaceVariant,
+      marginBottom: spacing.sm,
+    },
+    appearanceRow: {
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "space-between",
+    },
+    appearanceLabel: {
+      color: colors.onSurface,
     },
     passwordHint: {
       color: colors.onSurfaceVariant,

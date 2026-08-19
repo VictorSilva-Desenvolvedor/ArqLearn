@@ -216,9 +216,20 @@ measures 3.30:1 / 4.56:1 respectively. Every other pair (23 text pairs, 4 other 
 passed on first check. No leftover static-`colors` imports or hardcoded hex literals found outside
 `tokens.ts` — the migration to `useColors()` is complete across all ~88 components.
 
-**Still not visually confirmed on a real device** — verification above is computational/static
-(contrast math + source review), not a rendered screenshot; see `Docs/PENDENCIAS_TESTE_DEVICE.md`
-(Lote 9) for the live-testing checklist this needs before it's considered fully done.
+**Visually confirmed on a real device (2026-08-19, Redmi 13)**: dark theme renders correctly on
+Home, matching the intended tonal-layering/border system.
+
+**Manual toggle added (2026-08-19, explicit user request)**: `"automatic"` alone (follow the
+system setting, no in-app control) wasn't what the user wanted after seeing it live — reverted to
+**light as the always-on default**, with a manual toggle in Configurações ("Aparência" card) to
+switch to dark. `app.json`'s `userInterfaceStyle` stays `"automatic"` (that's what lets the app
+override the scheme at runtime at all); the actual default/override now lives in
+`AppearanceContext` (`apps/mobile/src/contexts/AppearanceContext.tsx`), which calls React
+Native's `Appearance.setColorScheme("light" | "dark")` — every component already reads color via
+`useColors()` → `useColorScheme()`, so this single call is the only thing that needed to change;
+no component was touched. Preference persists in AsyncStorage; defaults to light (not "follow
+system") until the user explicitly opts into dark once. `expo-status-bar`'s `style` changed from
+hardcoded `"dark"` to `"auto"` so status bar icons stay legible against either background.
 
 ## Typography
 
