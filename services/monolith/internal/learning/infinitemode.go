@@ -351,7 +351,9 @@ func handleInfiniteModeAnswer(pool *pgxpool.Pool, mongoDB *mongo.Database, gemin
 		if _, err := tx.Exec(r.Context(), `
 			INSERT INTO answer_submissions (id, user_id, session_id, question_id, idempotency_key, response)
 			VALUES ($1, $2, $3, $4, $5, $6)
-		`, uuid.New(), userID, sessionID, req.QuestionID, idempotencyKey, respJSON); err != nil {
+		// string(respJSON): mesmo achado de answers.go — []byte cru vira bytea em
+		// QueryExecModeSimpleProtocol, rejeitado por uma coluna JSONB.
+		`, uuid.New(), userID, sessionID, req.QuestionID, idempotencyKey, string(respJSON)); err != nil {
 			// Mesma corrida documentada em answers.go (achado ao vivo, 19/08/2026): devolve a
 			// resposta já gravada pela requisição vencedora em vez de um 500 pra quem perdeu a
 			// corrida da UNIQUE constraint.
