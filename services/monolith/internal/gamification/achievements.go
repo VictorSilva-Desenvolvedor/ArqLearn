@@ -3,6 +3,7 @@ package gamification
 import (
 	"context"
 	"fmt"
+	"time"
 
 	"github.com/jackc/pgx/v5/pgxpool"
 )
@@ -167,6 +168,22 @@ func EvaluateAndUnlock(ctx context.Context, pool *pgxpool.Pool, userID string, c
 	}
 	if err := rows.Err(); err != nil {
 		return nil, err
+	}
+
+	if totalGems > 0 {
+		// VIPGemsMultiplier (a pedido do usuário, 19/08/2026): dobra gemas de recompensa de
+		// conquista. Consulta extra pontual — só quando há gema pra conceder, não em toda
+		// avaliação de conquista (a maioria não desbloqueia nada).
+		var isVip bool
+		var vipExpiresAt *time.Time
+		if err := pool.QueryRow(ctx,
+			`SELECT is_vip, vip_expires_at FROM user_gamification WHERE user_id = $1`, userID,
+		).Scan(&isVip, &vipExpiresAt); err != nil {
+			return newlyUnlocked, err
+		}
+		if EhVIPAtivo(isVip, vipExpiresAt, time.Now().UTC()) {
+			totalGems *= VIPGemsMultiplier
+		}
 	}
 
 	if totalXP > 0 || totalGems > 0 {

@@ -356,8 +356,7 @@ func handleResolveBugReport(pool *pgxpool.Pool, mongoDB *mongo.Database) http.Ha
 			return
 		}
 
-		gemsReward := gemsRewardFor(report.Type)
-		newGemsTotal, err := gamification.AwardGems(r.Context(), pool, report.UserID, gemsReward)
+		gemsReward, newGemsTotal, err := gamification.AwardGems(r.Context(), pool, report.UserID, gemsRewardFor(report.Type))
 		if err != nil {
 			// Estado parcial (relato já "fixed" no Mongo, gemas não creditadas no Postgres) —
 			// sinalizado alto e claro em vez de escondido; corrigir manualmente é mais simples

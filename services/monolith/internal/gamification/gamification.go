@@ -70,14 +70,17 @@ type gamificationMeResponse struct {
 // delas enxergar um contador desatualizado. heartsNextAt vem nil quando já está no teto (5).
 func LoadHeartsWithRegen(ctx context.Context, pool *pgxpool.Pool, userID string) (heartsCurrent int, heartsNextAt *time.Time, err error) {
 	var updatedAt time.Time
+	var isVip bool
+	var vipExpiresAt *time.Time
 	if err = pool.QueryRow(ctx,
-		`SELECT hearts_current, hearts_updated_at FROM user_gamification WHERE user_id = $1`, userID,
-	).Scan(&heartsCurrent, &updatedAt); err != nil {
+		`SELECT hearts_current, hearts_updated_at, is_vip, vip_expires_at FROM user_gamification WHERE user_id = $1`, userID,
+	).Scan(&heartsCurrent, &updatedAt, &isVip, &vipExpiresAt); err != nil {
 		return 0, nil, err
 	}
 
 	now := time.Now().UTC()
-	novo, novoUpdatedAt := RegenerarVidas(heartsCurrent, updatedAt, now)
+	vipAtivo := EhVIPAtivo(isVip, vipExpiresAt, now)
+	novo, novoUpdatedAt := RegenerarVidas(heartsCurrent, updatedAt, now, vipAtivo)
 	if novo != heartsCurrent || !novoUpdatedAt.Equal(updatedAt) {
 		if _, err = pool.Exec(ctx,
 			`UPDATE user_gamification SET hearts_current = $1, hearts_updated_at = $2 WHERE user_id = $3`,
@@ -87,7 +90,7 @@ func LoadHeartsWithRegen(ctx context.Context, pool *pgxpool.Pool, userID string)
 		}
 	}
 
-	return novo, ProximaVidaEm(novo, novoUpdatedAt), nil
+	return novo, ProximaVidaEm(novo, novoUpdatedAt, vipAtivo), nil
 }
 
 // StreakSnapshot é o retorno de LoadStreakWithExpiration — já reflete a expiração aplicada (se
@@ -865,15 +868,27 @@ func handleShopPurchase(pool *pgxpool.Pool) http.HandlerFunc {
 }
 
 // AwardGems credita gems ao usuário (não é uma compra — não debita nada de ninguém). Usado hoje só
-// pelo pacote bugreports (POST /v1/bug-reports/{id}/resolve, API Spec §14): 5 gemas de agradecimento
-// a quem reportou um bug marcado como corrigido.
-func AwardGems(ctx context.Context, pool *pgxpool.Pool, userID string, amount int) (int, error) {
-	var newTotal int
-	err := pool.QueryRow(ctx,
+// pelo pacote bugreports (POST /v1/bug-reports/{id}/resolve, API Spec §14): gemas de agradecimento
+// a quem reportou um bug/sugestão marcado como corrigido/implementada. Aplica VIPGemsMultiplier
+// internamente (a pedido do usuário, 19/08/2026) — devolve o valor REALMENTE creditado (dobrado
+// se VIP), não o `amount` pedido, pra quem chama poder mostrar o número certo ao usuário.
+func AwardGems(ctx context.Context, pool *pgxpool.Pool, userID string, amount int) (awarded int, newTotal int, err error) {
+	var isVip bool
+	var vipExpiresAt *time.Time
+	if err = pool.QueryRow(ctx,
+		`SELECT is_vip, vip_expires_at FROM user_gamification WHERE user_id = $1`, userID,
+	).Scan(&isVip, &vipExpiresAt); err != nil {
+		return 0, 0, err
+	}
+	awarded = amount
+	if EhVIPAtivo(isVip, vipExpiresAt, time.Now().UTC()) {
+		awarded *= VIPGemsMultiplier
+	}
+	err = pool.QueryRow(ctx,
 		`UPDATE user_gamification SET gems = gems + $1 WHERE user_id = $2 RETURNING gems`,
-		amount, userID,
+		awarded, userID,
 	).Scan(&newTotal)
-	return newTotal, err
+	return awarded, newTotal, err
 }
 
 // --- Baú Diário (a pedido do usuário) ---
@@ -985,7 +1000,21 @@ func handleOpenDailyChest(pool *pgxpool.Pool) http.HandlerFunc {
 		hojeLocal := HojeLocal(timezone, time.Now())
 		hojeLocalDate, _ := time.Parse("2006-01-02", hojeLocal)
 
+		var isVip bool
+		var vipExpiresAt *time.Time
+		if err := pool.QueryRow(r.Context(),
+			`SELECT is_vip, vip_expires_at FROM user_gamification WHERE user_id = $1`, userID,
+		).Scan(&isVip, &vipExpiresAt); err != nil {
+			apierror.Write(w, http.StatusInternalServerError, "INTERNAL_ERROR", "Falha ao consultar perfil VIP.")
+			return
+		}
+		vipAtivo := EhVIPAtivo(isVip, vipExpiresAt, time.Now().UTC())
+
 		reward := RolarRecompensaBau(rand.Float64(), rand.Float64())
+		// VIPGemsMultiplier (a pedido do usuário, 19/08/2026): dobra gemas do Baú Diário pra VIP.
+		if vipAtivo && reward.Type == ChestRewardGems {
+			reward.GemsAmount *= VIPGemsMultiplier
+		}
 
 		tx, err := pool.Begin(r.Context())
 		if err != nil {

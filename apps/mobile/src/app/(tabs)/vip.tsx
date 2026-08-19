@@ -29,8 +29,18 @@ const BENEFITS: { icon: IconName; title: string; description: string }[] = [
   },
   {
     icon: "bolt",
-    title: "+25% de XP",
-    description: "Todo XP ganho em respostas certas recebe um bônus de 25%.",
+    title: "+25% de XP e teto dobrado",
+    description: "Todo XP ganho recebe +25%, e seu limite diário de XP é o dobro do normal.",
+  },
+  {
+    icon: "hearts",
+    title: "Vidas regeneram 70% mais rápido",
+    description: "O tempo pra ganhar uma vida de volta cai de 36 pra cerca de 11 minutos.",
+  },
+  {
+    icon: "gems",
+    title: "Gemas em dobro",
+    description: "Baú Diário, conquistas e recompensa de Reportar Bug concedem o dobro de gemas.",
   },
   {
     icon: "replay",
@@ -121,9 +131,18 @@ export default function VipScreen() {
         <View style={styles.benefitsGrid}>
           {BENEFITS.map((benefit) => (
             <Card key={benefit.title} padding="md" style={styles.benefitCard}>
-              <Icon name={benefit.icon} size={32} color={colors.secondary} />
-              <Text style={[typeTokens.questionSm, styles.benefitTitle]}>{benefit.title}</Text>
-              <Text style={[typeTokens.bodySm, styles.benefitDescription]}>{benefit.description}</Text>
+              <View style={styles.benefitIconBadge}>
+                <Icon name={benefit.icon} size={22} color={colors.secondary} />
+              </View>
+              {/* numberOfLines + minHeight: mesmo achado do TrackCard (Explorar) — sem reservar o
+                  espaço máximo, cards com texto de tamanho diferente ficavam com alturas
+                  visivelmente diferentes na mesma grade. */}
+              <Text style={[typeTokens.questionSm, styles.benefitTitle]} numberOfLines={2}>
+                {benefit.title}
+              </Text>
+              <Text style={[typeTokens.bodySm, styles.benefitDescription]} numberOfLines={3}>
+                {benefit.description}
+              </Text>
             </Card>
           ))}
         </View>
@@ -165,7 +184,7 @@ export default function VipScreen() {
               <Text style={[typeTokens.displayLg, styles.price]}>R$ 29,90</Text>
               <Text style={[typeTokens.bodyMd, styles.pricePeriod]}>/ mês</Text>
             </View>
-            <Button variant="primary" fullWidth disabled>
+            <Button variant="ghost" fullWidth disabled>
               Assinar — Em breve
             </Button>
             <Text style={[typeTokens.bodySm, styles.subscribeNote]}>
@@ -198,7 +217,9 @@ const createStyles = (colors: ColorTokens) =>
     crownBadge: {
       width: 72,
       height: 72,
-      borderRadius: radius.full,
+      // radius.xl (24px), não full — círculo cheio é a forma reservada pros nós do mapa de
+      // lições (Shapes, DESIGN.md); o resto do app usa 24px como o teto "hero" (botões).
+      borderRadius: radius.xl,
       backgroundColor: colors.secondary,
       alignItems: "center",
       justifyContent: "center",
@@ -236,11 +257,24 @@ const createStyles = (colors: ColorTokens) =>
       paddingHorizontal: spacing.xs / 2,
       gap: 4,
     },
+    benefitIconBadge: {
+      width: 40,
+      height: 40,
+      borderRadius: radius.md,
+      backgroundColor: colors.secondaryFixed,
+      alignItems: "center",
+      justifyContent: "center",
+      marginBottom: 4,
+    },
     benefitTitle: {
       color: colors.onSurface,
+      // 2 × questionSm.lineHeight (24px) — reserva 2 linhas sempre, mesmo achado do TrackCard.
+      minHeight: 48,
     },
     benefitDescription: {
       color: colors.onSurfaceVariant,
+      // 3 × bodySm.lineHeight (20px) — reserva 3 linhas sempre.
+      minHeight: 60,
     },
     redeemCard: {
       gap: spacing.xs,
