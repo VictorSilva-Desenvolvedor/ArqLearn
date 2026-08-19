@@ -1021,6 +1021,18 @@ o fluxo de estudo (Lote 5). Todos investigados e corrigidos nesta sessão:
    `fetch()` sem timeout trava pra sempre numa falha de rede assim, sem erro nem retry possível.
    Adicionado `AbortController` com 20s de timeout em `apps/mobile/src/lib/api/http.ts` — espelhado
    em `apps/web/src/lib/api/http.ts` (mesmo padrão, nunca tinha timeout nos dois lados).
+5. **[CAUSA RAIZ DE VERDADE, achada depois do fix #3 não resolver]** "Falha ao registrar
+   idempotência" persistia mesmo numa pergunta nova (sem corrida possível — chave nova, nunca
+   usada). Reproduzido isolado (script Go descartável, nunca commitado, `pgxpool` com o mesmo
+   `QueryExecModeSimpleProtocol` do pool real): passar `responseJSON`/`respJSON` como `[]byte` cru
+   pro parâmetro de uma coluna `JSONB` sob protocolo simples do Postgres (exigido pelo pooler
+   Supavisor, ver `internal/db`) falha com `invalid input syntax for type json` — o encoder de
+   protocolo simples do pgx serializa `[]byte` como literal `bytea`, que o Postgres não aceita
+   direto numa coluna `jsonb`. Confirmado ao vivo: `string(responseJSON)` funciona (vira literal de
+   texto, que o Postgres converte pra jsonb normalmente). Este é o **primeiro INSERT parametrizado
+   de JSONB do projeto** — nenhum outro `json.Marshal` no código alimenta uma coluna de banco
+   (conferido: os demais são corpo de requisição HTTP de saída, não parâmetro SQL), então não é um
+   padrão recorrente em outro lugar. Corrigido em `answers.go` e `infinitemode.go`.
 
 **Não é bug** (confirmado, não precisou de correção): tela de resgate de cupom VIP com o botão
 desabilitado — usuário digitou "5555" (4 dígitos) no campo que exige 10; validação funcionando
