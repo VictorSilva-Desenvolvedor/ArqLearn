@@ -7,6 +7,7 @@ import { DefaultTheme, Stack, ThemeProvider as NavigationThemeProvider } from "e
 import * as SplashScreen from "expo-splash-screen";
 import { StatusBar } from "expo-status-bar";
 import { SafeAreaProvider } from "react-native-safe-area-context";
+import { AppearanceProvider } from "@/contexts/AppearanceContext";
 import { AuthContext, AuthProvider } from "@/contexts/AuthContext";
 import { ThemeProvider } from "@/contexts/ThemeContext";
 import { ToastProvider } from "@/contexts/ToastContext";
@@ -119,19 +120,24 @@ export default function RootLayout() {
   return (
     <NavigationThemeProvider value={navigationTheme}>
       <SafeAreaProvider>
-        <AuthProvider>
-          <ThemeProvider>
-            <ToastProvider>
-              <StatusBar style="dark" />
-              <AnimatedBlueprintBackground />
-              <RootNavigator />
-              <Toast />
-              <LevelUpCelebration />
-              <StreakAtRiskPrompt />
-              <PushNotificationsBootstrap />
-            </ToastProvider>
-          </ThemeProvider>
-        </AuthProvider>
+        <AppearanceProvider>
+          <AuthProvider>
+            <ThemeProvider>
+              <ToastProvider>
+                {/* "auto": expo-status-bar acompanha o esquema de cor ativo (useColorScheme(),
+                    que já reflete a preferência manual via Appearance.setColorScheme em
+                    AppearanceContext) — ícones escuros no tema claro, claros no escuro. */}
+                <StatusBar style="auto" />
+                <AnimatedBlueprintBackground />
+                <RootNavigator />
+                <Toast />
+                <LevelUpCelebration />
+                <StreakAtRiskPrompt />
+                <PushNotificationsBootstrap />
+              </ToastProvider>
+            </ThemeProvider>
+          </AuthProvider>
+        </AppearanceProvider>
       </SafeAreaProvider>
     </NavigationThemeProvider>
   );

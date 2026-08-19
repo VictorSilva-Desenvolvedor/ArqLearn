@@ -1039,11 +1039,13 @@ desabilitado — usuário digitou "5555" (4 dígitos) no campo que exige 10; val
 como esperado. Orientação não girar pra paisagem — comportamento intencional documentado em
 `apps/mobile/DESIGN.md`.
 
-**Pedido do usuário, ainda não implementado**: um botão dentro do app pra alternar entre tema
-claro/escuro manualmente, com claro como padrão — hoje só existe `"automatic"` (segue o sistema)
-em `app.json`, sem toggle in-app. Decisão de produto que reverte parte do que o PR #125 fez;
-precisa de discussão de escopo antes de implementar (ex.: persistir a escolha em `AsyncStorage`,
-decidir se ainda respeita "automatic" como uma terceira opção ou só claro/escuro).
+**[RESOLVIDO 19/08/2026]** Pedido do usuário: botão dentro do app pra alternar entre tema
+claro/escuro manualmente, com claro como padrão (reverte parte do que o PR #125 fez, que só
+seguia o sistema, sem controle in-app). Implementado: `AppearanceContext` novo, chama
+`Appearance.setColorScheme()` do React Native (nenhum componente precisou mudar, todos já leem
+cor via `useColors()`), persiste em `AsyncStorage`, default light até o usuário optar por escuro.
+Toggle em Perfil → Configurações → card "Aparência". Ver `apps/mobile/DESIGN.md`, seção "Dark
+Theme", pro detalhe completo.
 
 Verificação: `tsc --noEmit` (mobile e web), `go build`/`vet`/`test` limpos. Migrations aplicadas e
 confirmadas via consulta direta. Fix da corrida de idempotência e do timeout **não foram testados
