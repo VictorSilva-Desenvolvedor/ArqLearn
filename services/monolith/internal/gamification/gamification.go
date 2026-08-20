@@ -277,6 +277,13 @@ func rankDivision(rank int) int {
 	return division
 }
 
+// RankFromTierDivision expõe rankFromTierDivision pra fora do pacote — usado por
+// cmd/seed-league-bots pra resolver user_gamification.current_tier a partir do nome da liga
+// (ex.: "bronze") e da divisão (1, 2 ou 3) de cada jogador bot.
+func RankFromTierDivision(tierNameArg string, division int) (int, bool) {
+	return rankFromTierDivision(tierNameArg, division)
+}
+
 // rankFromTierDivision é o inverso de tierName/rankDivision — usado por GET
 // .../league?tier=X&division=N pra navegar o ranking de uma liga/divisão específica.
 func rankFromTierDivision(tierNameArg string, division int) (int, bool) {
