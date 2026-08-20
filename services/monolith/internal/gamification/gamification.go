@@ -386,6 +386,23 @@ func AddWeeklyXP(ctx context.Context, pool *pgxpool.Pool, userID string, xp int)
 	return err
 }
 
+// AdjustWeeklyXP soma um delta (positivo ou negativo) ao league_members.xp_this_week do usuário na
+// liga da semana atual, criando a matrícula se ainda não existir (ensureLeagueMembership) — mesmo
+// padrão de AddWeeklyXP, mas aceitando delta negativo. Usado por cmd/simulate-bot-activity pra
+// oscilar o XP dos jogadores bot pra cima e pra baixo (a pedido do usuário, 20/08/2026); AddWeeklyXP
+// continua intocada pro fluxo real de resposta correta, que só soma XP ganho de verdade. Nunca deixa
+// xp_this_week ir abaixo de 0 (GREATEST no SQL) — XP negativo não faz sentido nem pra bot.
+func AdjustWeeklyXP(ctx context.Context, pool *pgxpool.Pool, userID string, delta int) error {
+	leagueID, err := ensureLeagueMembership(ctx, pool, userID)
+	if err != nil {
+		return err
+	}
+	_, err = pool.Exec(ctx,
+		`UPDATE league_members SET xp_this_week = GREATEST(0, xp_this_week + $1) WHERE league_id = $2 AND user_id = $3`,
+		delta, leagueID, userID)
+	return err
+}
+
 type leagueRankingEntry struct {
 	UserID     string `json:"user_id"`
 	Name       string `json:"name"`

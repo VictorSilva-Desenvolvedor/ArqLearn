@@ -1,14 +1,12 @@
-// Command simulate-bot-activity concede XP semanal aleatório aos jogadores bot (users.is_bot =
-// true, criados por cmd/seed-league-bots), simulando atividade contínua ao longo da semana — sem
-// isso, o placar da Liga travaria estático no valor do seed e um usuário real ultrapassaria todo
-// mundo de uma vez só. Reaproveita gamification.AddWeeklyXP, a mesma função do fluxo real de
-// resposta correta — os bots entram no fechamento semanal (cmd/close-league-week) e
-// promovem/rebaixam de divisão exatamente como um jogador real.
+// Command simulate-bot-activity aplica uma variação diária de XP aos jogadores bot (users.is_bot =
+// true, criados por cmd/seed-league-bots): cada bot recebe um delta aleatório entre -50 e +50 no
+// league_members.xp_this_week da semana corrente (a pedido do usuário, 20/08/2026). Sem isso, o
+// placar da Liga travaria estático no valor do seed e um usuário real ultrapassaria todo mundo de
+// uma vez só. Reaproveita gamification.AdjustWeeklyXP — os bots entram no fechamento semanal
+// (cmd/close-league-week) e promovem/rebaixam de divisão exatamente como um jogador real.
 //
-// Sem scheduler nesta fase bootstrap (mesmo racional de cmd/close-league-week) — rodar manualmente
-// ou agendar via cron externo algumas vezes por dia.
-//
-// Uso:
+// Pensado pra rodar uma vez por dia — ver .github/workflows/simulate-bot-activity.yml (cron
+// diário). Também pode ser rodado manualmente:
 //
 //	DATABASE_URL=... go run ./cmd/simulate-bot-activity
 package main
@@ -25,9 +23,9 @@ import (
 	"arqlearn/monolith/internal/gamification"
 )
 
-// activityChance: nem todo bot ganha XP a cada rodada — dá variação de ritmo entre eles em vez de
-// todos subirem o mesmo tanto toda vez que o comando roda.
-const activityChance = 0.6
+// xpDeltaRange: delta diário sorteado em [-xpDeltaRange, +xpDeltaRange] — pedido do usuário
+// (20/08/2026): "diferença de 50 xp positivo e 50 xp negativo".
+const xpDeltaRange = 50
 
 func main() {
 	_ = godotenv.Load()
@@ -57,18 +55,15 @@ func main() {
 		log.Fatalf("falha ao listar bots: %v", err)
 	}
 
-	active := 0
+	updated := 0
 	for _, id := range botIDs {
-		if rand.Float64() > activityChance {
+		delta := rand.Intn(2*xpDeltaRange+1) - xpDeltaRange // -50..+50
+		if err := gamification.AdjustWeeklyXP(ctx, pool, id, delta); err != nil {
+			log.Printf("aviso: falha ao ajustar XP do bot %s: %v", id, err)
 			continue
 		}
-		xp := 5 + rand.Intn(36) // 5..40
-		if err := gamification.AddWeeklyXP(ctx, pool, id, xp); err != nil {
-			log.Printf("aviso: falha ao dar XP ao bot %s: %v", id, err)
-			continue
-		}
-		active++
+		updated++
 	}
 
-	log.Printf("concluído: %d/%d bots ganharam XP nesta rodada.", active, len(botIDs))
+	log.Printf("concluído: %d/%d bots tiveram o xp_this_week ajustado (delta diário -%d..+%d).", updated, len(botIDs), xpDeltaRange, xpDeltaRange)
 }
