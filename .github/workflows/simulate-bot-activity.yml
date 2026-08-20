@@ -1,0 +1,31 @@
+name: Simulate bot activity
+
+# Roda cmd/simulate-bot-activity uma vez por dia — aplica um delta aleatório de -50..+50 XP no
+# league_members.xp_this_week de cada jogador bot (criados por cmd/seed-league-bots, ver
+# services/monolith/internal/gamification/gamification.go#AdjustWeeklyXP), pra Liga não travar num
+# placar estático (pedido do usuário, 20/08/2026). Precisa do secret DATABASE_URL (a mesma connection
+# string de produção usada pelas migrations) cadastrado em Settings → Secrets and variables →
+# Actions do repositório.
+on:
+  schedule:
+    - cron: "0 9 * * *" # 09:00 UTC (06:00 America/Sao_Paulo) todo dia
+  workflow_dispatch: {} # permite disparar manualmente pela aba Actions, sem esperar o cron
+
+jobs:
+  simulate:
+    name: services/monolith — simulate-bot-activity
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: services/monolith
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-go@v5
+        with:
+          go-version-file: services/monolith/go.mod
+
+      - name: go run ./cmd/simulate-bot-activity
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+        run: go run ./cmd/simulate-bot-activity
