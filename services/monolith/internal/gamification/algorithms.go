@@ -50,21 +50,33 @@ const VIPGemsMultiplier = 2
 // CalcularXP implementa TDD §3. xpToday é o valor já lido de user_gamification.xp_today
 // (depois do reset preguiçoso — ver XPHojeAposReset) ANTES desta resposta ser contabilizada.
 // vipAtivo aplica VIPXPMultiplier (ver EhVIPAtivo) antes do teto diário.
-func CalcularXP(difficulty string, answerTimeMs int, isFirstCompletion, correct bool, xpToday int, vipAtivo bool) XPResult {
+// ComboBonusMax é o teto do bônus de combo (TDD §3.0.1) — igual ao valor máximo que o Duolingo
+// concede por sequência de acertos (Anatomia do Duolingo §9.5), preservado na tradução porque não
+// há razão de domínio pra mudar esse número específico.
+const ComboBonusMax = 5
+
+func CalcularXP(difficulty string, comboMaximo int, isLastQuestion, isFirstCompletion, correct bool, xpToday int, vipAtivo bool) XPResult {
 	if !correct {
 		return XPResult{}
 	}
 
 	base := basePorDificuldade[difficulty]
-	bonusVelocidade := 0
-	if answerTimeMs < limiarVelocidadeMs[difficulty] {
-		bonusVelocidade = 5
+	// bonusCombo (TDD §3.0.1, v1.4) substitui o antigo bonus_velocidade — concedido uma única vez,
+	// na última pergunta da sessão, sobre o PICO de acertos consecutivos (comboMaximo), não por
+	// resposta individual respondida rápido. Achado do porte de gamificação: premiar velocidade
+	// cria incentivo a responder apressado num domínio que exige raciocínio cuidadoso.
+	bonusCombo := 0
+	if isLastQuestion {
+		bonusCombo = comboMaximo
+		if bonusCombo > ComboBonusMax {
+			bonusCombo = ComboBonusMax
+		}
 	}
 	bonusPrimeiraConclusao := 0
 	if isFirstCompletion {
 		bonusPrimeiraConclusao = 10
 	}
-	xpCalculado := base + bonusVelocidade + bonusPrimeiraConclusao
+	xpCalculado := base + bonusCombo + bonusPrimeiraConclusao
 	if vipAtivo {
 		xpCalculado = int(math.Round(float64(xpCalculado) * VIPXPMultiplier))
 	}

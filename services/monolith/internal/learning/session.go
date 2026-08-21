@@ -83,7 +83,9 @@ func (q questionAnswerKey) correctOptionID() string {
 	return ""
 }
 
-// practiceSession espelha a coleção "practice_sessions" (Database Design §4.4.1).
+// practiceSession espelha a coleção "practice_sessions" (Database Design §4.4.1). ComboAtual/
+// ComboMaximo (TDD §3.0.1, v1.4): estado do bônus de combo — vive na sessão, não em
+// user_gamification, porque zera a cada lição nova, nunca persiste entre sessões diferentes.
 type practiceSession struct {
 	ID                  string    `bson:"_id"`
 	UserID              string    `bson:"user_id"`
@@ -91,6 +93,8 @@ type practiceSession struct {
 	QuestionIDs         []string  `bson:"question_ids"`
 	AnsweredQuestionIDs []string  `bson:"answered_question_ids"`
 	HeartsAtStart       int       `bson:"hearts_at_start"`
+	ComboAtual          int       `bson:"combo_atual"`
+	ComboMaximo         int       `bson:"combo_maximo"`
 	CreatedAt           time.Time `bson:"created_at"`
 	ExpiresAt           time.Time `bson:"expires_at"`
 }
