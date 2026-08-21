@@ -73,6 +73,10 @@ export interface GamificationProfile {
   // VIP "Mestre Arquiteto" — já reflete a expiração (nunca true com vip_expires_at no passado).
   is_vip: boolean;
   vip_expires_at: string | null;
+  // XP Boost (TDD §3.3) — mesmo par de is_vip/vip_expires_at, mas xp_boost_active_until=null
+  // sempre significa "sem boost ativo" (nunca "vitalício").
+  xp_boost_active: boolean;
+  xp_boost_active_until: string | null;
 }
 
 export type AchievementType = string;
@@ -317,7 +321,7 @@ export interface DailyChestStatus {
   claimed_today: boolean;
 }
 
-export type ChestRewardType = "gems" | "streak_freeze" | "hearts_refill";
+export type ChestRewardType = "gems" | "streak_freeze" | "hearts_refill" | "xp_boost";
 
 export interface ChestOpenResult {
   reward_type: ChestRewardType;
@@ -325,6 +329,8 @@ export interface ChestOpenResult {
   gems_earned?: number;
   // Saldo total de gemas após a abertura (não é quanto foi ganho, ver gems_earned).
   gems: number;
+  // Só preenchido quando reward_type === "xp_boost" (TDD §3.3).
+  xp_boost_active_until?: string;
 }
 
 // --- Baú Semanal (v1.19) — mesmo formato de ChestOpenResult na abertura, ver

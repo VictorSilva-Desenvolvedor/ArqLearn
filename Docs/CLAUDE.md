@@ -282,9 +282,12 @@ divergir do que está descrito aqui, atualize esta seção — não deixe o mapa
 
 ## Regras de negócio críticas (não reimplementar de memória — usar como estão no TDD)
 
-- **XP**: calculado por `calcularXP` (TDD §3) — base por dificuldade + bônus de velocidade + bônus de
-  primeira conclusão, sujeito a um **limite diário de XP** (`DAILY_XP_CAP`, TDD §3.2) que zera o ganho
-  sem bloquear a prática. Nunca é definido pelo cliente/frontend — o cliente só exibe `xp_ganho` e
+- **XP**: calculado por `calcularXP` (TDD §3) — base por dificuldade + bônus de combo (não mais
+  bônus de velocidade, trocado na v1.4) + bônus de primeira conclusão, sujeito a um **limite diário
+  de XP** (`DAILY_XP_CAP`, TDD §3.2) que zera o ganho sem bloquear a prática. VIP aplica um
+  multiplicador sempre-ativo (`VIPXPMultiplier`); XP Boost (TDD §3.3) é um multiplicador temporário
+  de curta duração concedido via recompensa de baú — os dois se combinam num único arredondamento,
+  nunca sequencialmente. Nunca é definido pelo cliente/frontend — o cliente só exibe `xp_ganho` e
   `daily_cap_reached` retornados pela API.
 - **Nível**: curva de dificuldade progressiva intencional (`nivel(xp_total)`, TDD §3.1) — cada nível
   exige mais XP que o anterior; não trocar por uma curva linear.
