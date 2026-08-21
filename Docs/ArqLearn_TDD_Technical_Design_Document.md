@@ -1,7 +1,7 @@
 # DOCUMENTO TÉCNICO DE DESIGN (TDD)
 ## ArqLearn — Algoritmos de Negócio, Contratos de Evento e Fluxos de Sequência
 
-Versão 1.6 | Agosto de 2026
+Versão 1.7 | Agosto de 2026
 Documento complementar ao SAD, ao Database Design e à API Specification do ArqLearn v1.0
 
 > **Nota de nomenclatura:** existe também um `ArqLearn_Documento_Tecnico_Design.docx` na pasta `Docs/`,
@@ -22,6 +22,7 @@ Documento complementar ao SAD, ao Database Design e à API Specification do ArqL
 | 1.4 | 20/08/2026 | Equipe de Arquitetura/Engenharia | §3: `bonus_velocidade` (por resposta rápida) substituído por `bonus_combo` (pela maior sequência de acertos consecutivos da sessão, concedido uma única vez na última pergunta) — achado do porte de gamificação (`Docs/ArqLearn_Backlog_Gamificacao_Atelie.md`): premiar velocidade cria incentivo a responder apressado num domínio que exige raciocínio cuidadoso (norma, dimensionamento). Novo §3.0.1 documenta o estado de combo em `practice_sessions` |
 | 1.5 | 21/08/2026 | Equipe de Arquitetura/Engenharia | Novo §10 (Dificuldade Adaptativa) — habilidade do usuário por tópico, modelo logístico de 1 parâmetro (tipo Rasch/IRT simplificado) usado pelo Modo Infinito, implementado antecipadamente e fora da ordem original de `Docs/ArqLearn_Backlog_Gamificacao_Atelie.md` (decisão explícita do usuário). §10 (Glossário) renumerado para §11 |
 | 1.6 | 21/08/2026 | Equipe de Arquitetura/Engenharia | Novo §11 (Personalização de Notificações) — bandit de template (Thompson Sampling, Beta-Bernoulli) pro gatilho de streak em risco, implementado antecipadamente e fora da ordem original de `Docs/ArqLearn_Backlog_Gamificacao_Atelie.md` (mesmo precedente do §10). Corrige um gap que a própria §5.2 já pedia (job rodando de hora em hora, filtrando pela janela horária local) e nunca tinha sido construído. §11 (Glossário) renumerado para §12 |
+| 1.7 | 21/08/2026 | Equipe de Arquitetura/Engenharia | Novo §5.5 — teto escalonado de bloqueios de ofensiva (RS-03, fecha gap já documentado no backlog) e reparo de streak / grace window de 3 dias (RS-08, mecânica nova inspirada no Duolingo), ambos implementados antecipadamente e fora da ordem original do backlog (mesmo precedente de §10/§11). §5.3 ganha nota de implementação corrigindo a descrição de "job horário" pra "avaliação preguiçosa em dois pontos" (achado ao implementar o reparo — o gap não tinha sido percebido antes por não ter consequência visível até agora) |
 
 ---
 
@@ -269,6 +270,16 @@ para cada user com streak_last_active_date != ontem_local(user.timezone) e strea
     registra gamification_events(event_type='streak_reset')
 ```
 
+> **Nota de implementação real (não muda o resultado, só o mecanismo):** a fase bootstrap não tem
+> scheduler horário pra isso (mesma decisão de §5.4/§9.2) — `AplicarExpiracaoStreak`
+> (`internal/gamification/algorithms.go`) implementa exatamente esta regra, mas avaliada de forma
+> **preguiçosa** (lazy), na hora em que a gamificação do usuário é lida ou escrita, não num cron à
+> meia-noite. Isso acontece em DOIS pontos independentes do código, cada um com sua própria
+> leitura/escrita — `LoadStreakWithExpiration` (`GET /v1/gamification/me`, `GET /v1/users/me`) e
+> `handleSubmitAnswer` (`POST /v1/lessons/{lesson_id}/answers`) — não um caminho único
+> compartilhado. Os dois eventos acima (`streak_freeze_consumed`/`streak_reset`) são emitidos nos
+> dois pontos, não só num deles — ver §5.5 sobre por que isso importa pro reparo de streak.
+
 ### 5.4 Vidas — Regeneração
 
 > Agrupada aqui por conveniência de numeração (não renumerar §6–§9, referenciados por número em vários
@@ -324,6 +335,75 @@ importa até a próxima perda.
 `hearts_updated_at + HEARTS_REGEN_INTERVAL` quando `hearts_current < HEARTS_MAX`, ou `null` quando já
 está no teto — o cliente calcula a contagem regressiva localmente a partir desse timestamp fixo, sem
 precisar saber o valor do intervalo nem repetir a lógica de regeneração.
+
+### 5.5 Teto escalonado de freezes (RS-03) e reparo de streak (RS-08)
+
+Duas proteções adicionadas a pedido do usuário, seguindo pesquisa sobre a mecânica de sequência do
+Duolingo (Streak Freeze escalonado, grace window de restauração), com corte deliberado de escopo:
+sem customização de horário de início de dia (o fuso IANA por usuário já resolve o problema real,
+ver §5.1) e sem Friend Streak/streak social (nenhum subsistema social existe no projeto — adiado
+pra Fase 4 do backlog de gamificação, por privacidade/menores).
+
+**Teto de freezes (RS-03):**
+
+```
+CapDeFreezes(streak_best):
+  se streak_best >= 100: retorna 5
+  senão: retorna 2
+```
+
+Computado na hora em cada ponto de escrita de `streak_freezes_available` (compra na loja,
+baú diário, baú semanal — `internal/gamification/gamification.go`), nunca cacheado. Compra na loja
+**rejeita** (`409 STREAK_FREEZE_CAP_REACHED`) antes de debitar gemas quando já no teto — checado
+duas vezes (fora e dentro da transação) pra fechar uma corrida entre duas compras quase
+simultâneas sem cobrar gemas por um freeze que não seria creditado. Recompensa de baú (grátis) só
+**deixa de incrementar** quando no teto (não rejeita, não existe "recompensa recusada" pro
+usuário) — usando `CASE WHEN atual < teto THEN atual+1 ELSE atual END`, nunca `LEAST(teto,
+atual+1)`, que rebaixaria destrutivamente quem já tinha mais freezes que o teto atual (ex.: comprou
+10 antes desta mudança). Sem migração de dados — grandfathering é automático, o teto só se aplica a
+partir do próximo incremento de cada usuário.
+
+**Nota conhecida:** o Baú Semanal do VIP dá freeze garantido sem sorteio (§9). Com o teto, um VIP
+já no teto recebe um "garantido" que não credita nada (resposta ainda diz `reward_type:
+"streak_freeze"`, contagem não sobe) — comportamento aceito, não corrigido com substituição de
+recompensa (fora de proporção nesta entrega).
+
+**Reparo de streak (RS-08 — mecânica nova, não um gap de algo já planejado no backlog):**
+
+Quando a expiração zera `streak_current` (§5.3) **sem** freeze disponível pra evitar
+automaticamente, o valor perdido e um prazo de 3 dias ficam guardados
+(`streak_repair_value`/`streak_repair_deadline`, Database Design §3.2). Se a próxima lição
+concluída (`isFirstCompletion`, §5.1) acontecer dentro do prazo, a streak é restaurada (valor
+perdido + 1, pelo dia de hoje) em vez de reiniciar do zero; fora do prazo, reinicia normalmente. É
+gratuito e automático — sem endpoint, sem confirmação — mesma filosofia lazy de todo o resto desta
+seção. Freeze continua sendo a proteção proativa/paga; reparo é uma segunda chance única de
+"bem-vindo de volta", não um mecanismo concorrente.
+
+```
+PrepararReparoStreak(streak_perdido, hoje_local):
+  retorna (streak_perdido, hoje_local + 3 dias)
+
+AplicarReparoStreak(prev, repair_value, repair_deadline, hoje_local):
+  se hoje_local > repair_deadline:
+    retorna (prev, reparado=false)   # janela vencida — caller cai pro incremento normal (reinicia em 1)
+  senão:
+    novo = repair_value + 1
+    retorna (StreakState{Current: novo, Best: max(prev.Best, novo), LastActiveDate: hoje_local}, reparado=true)
+```
+
+**Preparado nos dois pontos de expiração** (`LoadStreakWithExpiration` e `handleSubmitAnswer`, ver
+nota em §5.3) — sem isso, um usuário que abre o app (GET) depois da streak já ter estourado teria a
+streak zerada sem nenhum registro de reparo, já que GET não sabe preparar reparo se só o handler de
+resposta soubesse. **Exceção:** se a expiração e a primeira conclusão do dia acontecem na MESMA
+requisição (usuário volta e already completa uma lição, sem GET prévio detectando o gap), nenhum
+reparo é preparado — o usuário já está reiniciando a streak em 1 pelo caminho normal, e deixar um
+reparo pendente sobrando permitiria um salto indevido de streak numa conclusão futura, ignorando o
+progresso orgânico feito nesse meio tempo. Prioridade freeze-antes-de-reparo é automática pela
+própria construção (reparo só é preparado no branch onde `AplicarExpiracaoStreak` já decidiu que
+não havia freeze). Reparo pendente nunca reclamado fica inerte nas colunas indefinidamente, sem job
+de limpeza — mesma tolerância a estado obsoleto de `RegenerarVidas`/`XPHojeAposReset` acima.
+Restauração bem-sucedida emite `gamification_events(event_type='streak_repaired')` e gera uma
+notificação in-app (`GET /v1/notifications`, tipo `streak_repaired`, sem push).
 
 ## 6. Ligas Semanais — Fechamento
 

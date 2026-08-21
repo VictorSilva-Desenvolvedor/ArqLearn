@@ -3,6 +3,7 @@ package learning
 import (
 	"encoding/json"
 	"errors"
+	"fmt"
 	"log"
 	"net/http"
 	"time"
@@ -18,6 +19,7 @@ import (
 	"arqlearn/monolith/internal/apierror"
 	"arqlearn/monolith/internal/authmiddleware"
 	"arqlearn/monolith/internal/gamification"
+	"arqlearn/monolith/internal/notifications"
 )
 
 type answerRequest struct {
@@ -131,17 +133,21 @@ func handleSubmitAnswer(pool *pgxpool.Pool, mongoDB *mongo.Database) http.Handle
 		var heartsUpdatedAt time.Time
 		var isVip bool
 		var vipExpiresAt *time.Time
+		var streakRepairValue *int
+		var streakRepairDeadline *time.Time
 		err = pool.QueryRow(r.Context(), `
 			SELECT u.timezone, g.xp_total, g.xp_today, g.xp_today_date, g.hearts_current, g.hearts_updated_at,
 			       g.streak_current, g.streak_best, g.streak_last_active_date, g.streak_freezes_available,
 			       g.chest_questions_today, g.chest_questions_date, g.chest_claimed_date,
-			       g.chest_weekly_questions, g.chest_weekly_cycle_start, g.is_vip, g.vip_expires_at
+			       g.chest_weekly_questions, g.chest_weekly_cycle_start, g.is_vip, g.vip_expires_at,
+			       g.streak_repair_value, g.streak_repair_deadline
 			FROM users u JOIN user_gamification g ON g.user_id = u.id
 			WHERE u.id = $1
 		`, userID).Scan(&timezone, &xpTotal, &xpToday, &xpTodayDate, &heartsCurrent, &heartsUpdatedAt,
 			&streakCurrent, &streakBest, &streakLastActiveDate, &streakFreezesAvailable,
 			&chestQuestionsToday, &chestQuestionsDate, &chestClaimedDate,
-			&chestWeeklyQuestions, &chestWeeklyCycleStart, &isVip, &vipExpiresAt)
+			&chestWeeklyQuestions, &chestWeeklyCycleStart, &isVip, &vipExpiresAt,
+			&streakRepairValue, &streakRepairDeadline)
 		if err != nil {
 			apierror.Write(w, http.StatusInternalServerError, "INTERNAL_ERROR", "Falha ao consultar perfil.")
 			return
@@ -231,13 +237,43 @@ func handleSubmitAnswer(pool *pgxpool.Pool, mongoDB *mongo.Database) http.Handle
 		// Expira a streak (TDD §5.2/§5.3) ANTES de aplicar o incremento de hoje — sem isso, uma
 		// streak_current desatualizada (ex.: 5 dias sem praticar) só seria incrementada em vez de
 		// zerada primeiro, mesmo padrão de RegenerarVidas acima pras vidas.
+		streakBeforeExpiry := streakCurrent
+		freezesBeforeExpiry := streakFreezesAvailable
 		var novaLastActiveStr string
-		streakCurrent, novaLastActiveStr, streakFreezesAvailable, _ = gamification.AplicarExpiracaoStreak(
+		var expirou bool
+		streakCurrent, novaLastActiveStr, streakFreezesAvailable, expirou = gamification.AplicarExpiracaoStreak(
 			streakCurrent, dateOrEmpty(streakLastActiveDate), streakFreezesAvailable, hojeLocal)
 
+		// Reparo de streak (RS-08, TDD §5.5): só prepara reparo se a streak expirou SEM que o
+		// usuário já esteja retomando a prática agora mesmo (isFirstCompletion nesta mesma
+		// requisição) — nesse caso ele já reinicia a streak em 1 pelo caminho normal logo abaixo,
+		// sem necessidade de um reparo pendente (evitaria um salto indevido de streak numa
+		// conclusão futura, ignorando o progresso orgânico feito nesse meio tempo).
+		streakJustReset := expirou && streakBeforeExpiry > 0
+		freezeJustConsumed := !expirou && streakFreezesAvailable < freezesBeforeExpiry
+		if streakJustReset && !isFirstCompletion {
+			rv, rd := gamification.PrepararReparoStreak(streakBeforeExpiry, hojeLocal)
+			deadline, _ := time.Parse("2006-01-02", rd)
+			streakRepairValue = &rv
+			streakRepairDeadline = &deadline
+		}
+
 		streak := gamification.StreakState{Current: streakCurrent, Best: streakBest, LastActiveDate: novaLastActiveStr}
+		var streakRepaired bool
 		if isFirstCompletion {
-			streak = gamification.AtualizarStreak(streak, hojeLocal)
+			if streakRepairValue != nil && streakRepairDeadline != nil {
+				deadlineStr := streakRepairDeadline.Format("2006-01-02")
+				if novoStreak, reparado := gamification.AplicarReparoStreak(streak, *streakRepairValue, deadlineStr, hojeLocal); reparado {
+					streak = novoStreak
+					streakRepaired = true
+				} else {
+					streak = gamification.AtualizarStreak(streak, hojeLocal)
+				}
+				streakRepairValue = nil
+				streakRepairDeadline = nil
+			} else {
+				streak = gamification.AtualizarStreak(streak, hojeLocal)
+			}
 		}
 
 		newXPTotal := xpTotal + xpResult.XPConcedido
@@ -287,12 +323,14 @@ func handleSubmitAnswer(pool *pgxpool.Pool, mongoDB *mongo.Database) http.Handle
 			    hearts_current = $5, hearts_updated_at = $6, streak_current = $7, streak_best = $8,
 			    streak_last_active_date = $9, streak_freezes_available = $10,
 			    chest_questions_today = $11, chest_questions_date = $12,
-			    chest_weekly_questions = $13, chest_weekly_cycle_start = $14
-			WHERE user_id = $15
+			    chest_weekly_questions = $13, chest_weekly_cycle_start = $14,
+			    streak_repair_value = $15, streak_repair_deadline = $16
+			WHERE user_id = $17
 		`, newXPTotal, newXPToday, hojeLocalDate, newLevel, newHearts, newHeartsUpdatedAt,
 			streak.Current, streak.Best, streakLastActiveParam, streakFreezesAvailable,
 			chestQuestionsToday, hojeLocalDate,
-			chestWeeklyQuestions, chestWeeklyCycleStartDate, userID)
+			chestWeeklyQuestions, chestWeeklyCycleStartDate,
+			streakRepairValue, streakRepairDeadline, userID)
 		if err != nil {
 			apierror.Write(w, http.StatusInternalServerError, "INTERNAL_ERROR", "Falha ao atualizar gamificação.")
 			return
@@ -453,6 +491,21 @@ func handleSubmitAnswer(pool *pgxpool.Pool, mongoDB *mongo.Database) http.Handle
 			gamification.RecordEvent(r.Context(), pool, userID, gamification.EventSessaoConcluida, gamification.IntPtr(len(sess.QuestionIDs)), map[string]any{
 				"lesson_id": lessonID, "session_id": sess.ID, "wrong_count": wrongCount,
 			})
+		}
+
+		// Telemetria de streak (RS-08, TDD §5.5) — mesmo bloco best-effort acima. streakJustReset/
+		// freezeJustConsumed refletem o que AplicarExpiracaoStreak decidiu nesta requisição;
+		// streakRepaired reflete o que AplicarReparoStreak decidiu no bloco isFirstCompletion.
+		if streakJustReset {
+			gamification.RecordEvent(r.Context(), pool, userID, gamification.EventStreakReset, gamification.IntPtr(streakBeforeExpiry), map[string]any{"lesson_id": lessonID})
+		} else if freezeJustConsumed {
+			gamification.RecordEvent(r.Context(), pool, userID, gamification.EventStreakFreezeConsumed, nil, map[string]any{"lesson_id": lessonID})
+		}
+		if streakRepaired {
+			gamification.RecordEvent(r.Context(), pool, userID, gamification.EventStreakRepaired, gamification.IntPtr(streak.Current), map[string]any{"lesson_id": lessonID})
+			if err := notifications.Create(r.Context(), mongoDB, userID, "streak_repaired", fmt.Sprintf("Sua sequência de %d dias foi restaurada! Continue praticando pra mantê-la viva.", streak.Current)); err != nil {
+				log.Printf("aviso: falha ao registrar notificação de reparo de streak (user_id=%s): %v", userID, err)
+			}
 		}
 
 		writeJSON(w, http.StatusOK, responseBody)
