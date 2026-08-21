@@ -295,6 +295,9 @@ divergir do que está descrito aqui, atualize esta seção — não deixe o mapa
 - **Geração de perguntas pela IA**: segue estritamente o system prompt em
   `ArqLearn_IA_Persona_System_Prompt.md` — especialmente a exigência de `source_ref` e o campo
   `confidence`, que determina se a pergunta vai para revisão humana antes de publicar.
+- **Notificações**: gatilho de streak em risco escolhe a mensagem por bandit de Thompson Sampling
+  (TDD §11) — não trocar o algoritmo sem atualizar o TDD; respeita janela horária local, cooldown
+  de 3 dias por template e teto de 2 notificações/dia (`RX-05`).
 - **Autenticação**: cadastro/login/OAuth são Supabase Auth, chamado direto pelo cliente — o monólito
   nunca recebe senha, nunca emite token, só valida o JWT recebido (ver API Spec §4, Database Design §3.2
   para o trigger que cria o perfil de domínio). Não reintroduzir um fluxo de auth próprio.

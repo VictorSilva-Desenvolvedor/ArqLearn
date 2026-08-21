@@ -3,7 +3,7 @@
 
 Especificação de referência dos endpoints REST expostos pelo API Gateway.
 
-Versão 1.24 | Agosto de 2026
+Versão 1.25 | Agosto de 2026
 Documento complementar ao SAD e ao TDD do ArqLearn v1.0
 
 > **Sobre esta versão:** versão em Markdown, mantida como fonte da verdade a partir de agora (ver
@@ -39,6 +39,7 @@ Documento complementar ao SAD e ao TDD do ArqLearn v1.0
 | 1.22 | 18/08/2026 | Equipe de Engenharia | §6: `POST /v1/lessons/{lesson_id}/answers` passa a exigir o cabeçalho `Idempotency-Key` (mesmo padrão de `POST /v1/gamification/shop/purchase`, §2.6/§8) — achado em `/impeccable critique`: sem isto, um retry de rede reprocessava a resposta inteira (XP, vidas, streak, baú e conquistas contados de novo). Novo erro `IDEMPOTENCY_KEY_REQUIRED` (400). §2.6: nota sobre a janela de 24h mencionada ali não ser de fato implementada em nenhum dos dois endpoints hoje (chave sem expiração) — divergência sinalizada, não corrigida nesta versão |
 | 1.23 | 20/08/2026 | Equipe de Engenharia | §3.2: adiciona `cosmetics` ao `GamificationProfile` (`GET /v1/gamification/me` e `GET /v1/users/me`) — inventário de posse dos itens `category='cosmetic'` da Loja (`user_cosmetics`, Database Design v1.19); achado do porte de gamificação (`Docs/ArqLearn_Backlog_Gamificacao_Atelie.md`): comprar um cosmético não deixava nenhum registro de posse antes disso |
 | 1.24 | 21/08/2026 | Equipe de Engenharia | §6.1: `POST /v1/infinite-mode/sessions` ganha campo opcional `review` (mutuamente exclusivo com `topic`) — inicia a fila de revisão do SRS ("Revisar agora", TDD §10.3) em vez de uma sessão por tópico; resposta ganha `is_review`. Novo endpoint `GET /v1/review/summary` (`due_count`) e erro `REVIEW_QUEUE_EMPTY` (§12). Implementado fora da ordem original de `Docs/ArqLearn_Backlog_Gamificacao_Atelie.md` (decisão explícita do usuário, ver adendo no próprio documento) |
+| 1.25 | 21/08/2026 | Equipe de Engenharia | §9: corrige o parágrafo do gatilho de streak em risco — `cmd/notify-decide` (substitui `cmd/notify-streak-risk`) roda de hora em hora implementando de fato a janela horária local que a TDD §5.2 já pedia, e a mensagem passa a ser escolhida entre 4 variações por um bandit de Thompson Sampling (TDD §11) em vez de um texto fixo único, respeitando cooldown de 3 dias e teto de 2 notificações/dia (`RX-05`). Sem endpoint novo — é lógica de job em segundo plano, mas o parágrafo antigo tinha virado factualmente incorreto. Implementado fora da ordem original de `Docs/ArqLearn_Backlog_Gamificacao_Atelie.md` (mesma decisão explícita do usuário da v1.24) |
 
 ---
 
@@ -886,7 +887,8 @@ pros dois casos, pra não confirmar a existência de um código a quem não tem 
 > **v1.11 — os três endpoints abaixo são reais** (implementados contra a coleção `notifications`,
 > MongoDB — e as colunas `push_enabled`/`email_enabled` de `users`, Postgres). Dois gatilhos
 > escrevem notificação in-app de verdade hoje: resolução de bug/sugestão reportados
-> (`bugreports.go`) e streak em risco *(v1.21)*. Outros gatilhos (promoção de liga etc.) ainda
+> (`bugreports.go`) e streak em risco *(v1.21, bandit de template desde v1.25 — ver abaixo)*.
+> Outros gatilhos (promoção de liga etc.) ainda
 > dependem de jobs agendados que não existem, mesmo motivo de `cmd/worker` não consumir fila real
 > (ver `Docs/CLAUDE.md`). Ver `Docs/PENDENCIAS_WEB_REAL.md`.
 
@@ -920,11 +922,17 @@ usado pra escolher Gemini/Groq, `Docs/CLAUDE.md`).
 { "registered": true }
 ```
 
-**Gatilho: streak em risco** *(v1.21)* — `cmd/notify-streak-risk` (operacional, sem scheduler
-automático nesta fase, mesmo padrão de `cmd/close-league-week` §6) varre usuários com
-`streak_current > 0` e `push_enabled = true`, aplica a expiração preguiçosa da streak (TDD §5.2/
-§5.3) antes de checar `StreakEmRisco`, e para quem está em risco: grava uma notificação in-app
-(`type: "streak_at_risk"`) e envia o push de verdade pra todos os tokens registrados do usuário.
+**Gatilho: streak em risco** *(v1.21, reformulado em v1.25 — TDD §11)* — `cmd/notify-decide`
+(substitui `cmd/notify-streak-risk`) roda de **hora em hora**
+(`.github/workflows/notify-decide.yml`), agora implementando de fato a janela horária local
+configurável que a TDD §5.2 já pedia (default 20h-22h local — só age dentro dela, não mais a
+qualquer hora). Pra cada usuário com `streak_current > 0` e `push_enabled = true`, aplica a
+expiração preguiçosa da streak (TDD §5.2/§5.3) antes de checar `StreakEmRisco`; pra quem está em
+risco, a mensagem não é mais um texto fixo único — é escolhida entre 4 variações por um bandit de
+Thompson Sampling (Beta-Bernoulli, TDD §11.2) que aprende qual funciona melhor a partir de quem
+pratica nas 24h seguintes ao envio. Respeita cooldown de 3 dias por variação e teto de 2
+notificações/dia por usuário contando todos os tipos (`RX-05`). Grava a notificação in-app
+(`type: "streak_at_risk"`) e envia o push pra todos os tokens registrados do usuário, como antes.
 
 ## 10. Teacher / Analytics API
 
