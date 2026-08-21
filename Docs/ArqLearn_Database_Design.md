@@ -3,7 +3,7 @@
 
 Modelo de dados detalhado: esquema relacional, documentos, vetores, cache e estratégias de persistência.
 
-Versão 1.23 | Agosto de 2026
+Versão 1.24 | Agosto de 2026
 Documento complementar ao SAD e ao TDD do ArqLearn v1.0
 
 > **Sobre esta versão:** versão em Markdown, mantida como fonte da verdade a partir de agora (ver
@@ -38,6 +38,7 @@ Documento complementar ao SAD e ao TDD do ArqLearn v1.0
 | 1.21 | 20/08/2026 | Equipe de Engenharia / Dados | §4.4.1: adiciona `combo_atual`/`combo_maximo` a `practice_sessions` (TDD §3.0.1) — bônus de combo substitui o antigo bônus de velocidade no cálculo de XP (achado do porte de gamificação, `Docs/ArqLearn_Backlog_Gamificacao_Atelie.md`: premiar velocidade cria incentivo a responder apressado) |
 | 1.22 | 21/08/2026 | Equipe de Engenharia / Dados | Adiciona a tabela `user_topic_skill` (§3.2 DDL, §3.3 dicionário, migrations/0017) — habilidade adaptativa por tópico (TDD §10), usada pelo Modo Infinito pra escolher a próxima pergunta perto do ponto Goldilocks pro usuário. Implementado antecipadamente e fora da ordem original de `Docs/ArqLearn_Backlog_Gamificacao_Atelie.md` (decisão explícita do usuário). §4.4.1 ganha nota sobre a nova ordenação por dificuldade da fila de sessão de lição |
 | 1.23 | 21/08/2026 | Equipe de Engenharia / Dados | §4.4: `srs_state.next_review_at` (calculado desde sempre, nunca consumido) passa a ser lido de verdade por `GET /v1/review/summary` e `POST /v1/infinite-mode/sessions` com `review: true` (TDD §10.3, "Revisar agora") — fila de revisão entre todos os tópicos já praticados. Sem tabela/coleção nova; reaproveita o campo e o índice já documentados desde a v1.1/v1.5. Implementado fora da ordem original de `Docs/ArqLearn_Backlog_Gamificacao_Atelie.md` (mesma decisão explícita do usuário da v1.22) |
+| 1.24 | 21/08/2026 | Equipe de Engenharia / Dados | Adiciona `notification_template_stats`/`notification_sends` (§3.2 DDL, §3.3 dicionário, migrations/0018) — bandit de template (TDD §11) pro gatilho de streak em risco. §4.4.4 corrigido: `streak_at_risk` agora é gatilho real (`cmd/notify-decide`, hora em hora), mensagem escolhida por Thompson Sampling em vez de texto fixo único. Implementado fora da ordem original de `Docs/ArqLearn_Backlog_Gamificacao_Atelie.md` (mesma decisão explícita do usuário das v1.22/v1.23) |
 
 ---
 
@@ -341,6 +342,38 @@ CREATE TABLE user_topic_skill (
   updated_at TIMESTAMPTZ NOT NULL DEFAULT now(),
   PRIMARY KEY (user_id, topic)
 );
+
+-- Bandit de template (migrations/0018, v1.24, TDD §11) — Thompson Sampling (Beta-Bernoulli) pra
+-- escolher qual variação de mensagem enviar em cada gatilho de notificação. successes/failures
+-- começam em (1,1) — prior uniforme — e só sobem, nunca resetam; cada recompensa avaliada (24h
+-- depois do envio, ver notification_sends abaixo) incrementa um dos dois. Seed inicial das 4
+-- variações de streak_at_risk vai na própria migration 0018 (mesmo padrão de
+-- migrations/0004_shop_items_seed) — uma variação nova é sempre uma migration própria, nunca
+-- upsert em runtime.
+CREATE TABLE notification_template_stats (
+  trigger_type VARCHAR(40) NOT NULL,
+  template_id VARCHAR(60) NOT NULL,
+  successes INTEGER NOT NULL DEFAULT 1 CHECK (successes > 0),
+  failures INTEGER NOT NULL DEFAULT 1 CHECK (failures > 0),
+  updated_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+  PRIMARY KEY (trigger_type, template_id)
+);
+
+-- Um envio real por linha (migrations/0018, v1.24, TDD §11) — usada pra três coisas: cooldown (não
+-- repetir o mesmo template pro mesmo usuário em menos de 3 dias), avaliação de recompensa 24h
+-- depois (evaluated_at/rewarded preenchidos por notifications.AvaliarRecompensasPendentes) e não
+-- mandar o mesmo trigger_type duas vezes no mesmo dia local pro mesmo usuário.
+CREATE TABLE notification_sends (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  trigger_type VARCHAR(40) NOT NULL,
+  template_id VARCHAR(60) NOT NULL,
+  sent_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+  evaluated_at TIMESTAMPTZ,
+  rewarded BOOLEAN
+);
+CREATE INDEX idx_notification_sends_user_sent ON notification_sends(user_id, sent_at DESC);
+CREATE INDEX idx_notification_sends_pending_eval ON notification_sends(evaluated_at) WHERE evaluated_at IS NULL;
 ```
 
 ### 3.3 Dicionário de Dados — Tabelas Principais
@@ -357,6 +390,8 @@ CREATE TABLE user_topic_skill (
 | `user_topic_skill` | `user_id` + `topic` (PK composta) | Habilidade adaptativa por tópico (TDD §10) — `skill_score` alimenta a seleção de pergunta do Modo Infinito perto do ponto Goldilocks pro usuário; `answers_count` decide o K-factor (provisório vs. estabelecido). `topic` sem FK (tracks vivem só no Mongo). |
 | `user_push_tokens` | `token` (UNIQUE) | Token de push Expo por device; `UNIQUE` é no token, não no `user_id` — um usuário tem 1 linha por device (múltiplos devices = múltiplas linhas), e um device que troca de conta atualiza a linha existente em vez de acumular token órfão. |
 | `answer_submissions` | `idempotency_key` (UNIQUE) | Garante que retries de submissão de resposta (lição ou Modo Infinito) não concedam XP/vidas/streak/baú/conquista em dobro — `response` guarda o corpo 200 original pra devolver no replay. |
+| `notification_template_stats` | `trigger_type` + `template_id` (PK composta) | Bandit de template (TDD §11) — `successes`/`failures` parametrizam a amostra de Thompson Sampling que escolhe qual variação de mensagem enviar; começam em `(1,1)`, nunca resetam. |
+| `notification_sends` | `id` (PK) | Histórico de envio (TDD §11) — base pra cooldown de 3 dias, avaliação de recompensa 24h depois (`evaluated_at`/`rewarded`) e teto diário por `trigger_type`. |
 
 *Tabela 2 — Dicionário de dados das tabelas relacionais principais.*
 
@@ -605,13 +640,13 @@ sessão efêmera acima, notificação não expira sozinha.
 }
 ```
 
-Nenhum código ainda insere documento nesta coleção — os gatilhos (streak em risco, promoção de
-liga etc.) dependem de jobs agendados que não existem (mesmo motivo de `cmd/worker` não consumir
-fila real, ver `Docs/CLAUDE.md`). `GET /v1/notifications` é real e funcional, só que
-legitimamente devolve lista vazia até algum gatilho passar a escrever aqui. **Exceção (v1.13):**
-`bug_fixed`/`suggestion_implemented` *(v1.14)* SÃO inseridos de verdade por
-`POST /v1/bug-reports/{id}/resolve` (§4.4.5, API Spec §14) — primeiro gatilho síncrono real desta
-coleção, sem depender de job nenhum.
+`league_promotion`/`league_demotion`/`new_challenge`/`questions_ready_for_review` ainda dependem de
+gatilhos que não existem (mesmo motivo de `cmd/worker` não consumir fila real, ver
+`Docs/CLAUDE.md`). Três tipos já são reais: `bug_fixed`/`suggestion_implemented` *(v1.13/v1.14)*
+via `POST /v1/bug-reports/{id}/resolve` (§4.4.5, API Spec §14) — síncrono, sem job — e
+`streak_at_risk` *(v1.24, TDD §11)* via `cmd/notify-decide`, rodando de hora em hora
+(`.github/workflows/notify-decide.yml`), com a mensagem escolhida entre variações por um bandit de
+template (`notification_template_stats`/`notification_sends` acima), não mais um texto fixo único.
 
 ### 4.4.5 Coleção: `bug_reports` *(v1.13, v1.14 — a pedido do usuário)*
 
