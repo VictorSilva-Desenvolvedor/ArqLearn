@@ -25,6 +25,7 @@ export interface AuthContextValue {
   streakFreezesAvailable: number;
   adjustStreakFreezes: (delta: number) => void;
   loginWithPassword: (email: string, password: string) => Promise<{ error: string | null }>;
+  signUp: (email: string, password: string) => Promise<{ error: string | null; needsEmailConfirmation: boolean }>;
   logout: () => Promise<void>;
   // Sempre true depois do primeiro efeito de sessão resolver (com ou sem usuário) — telas usam
   // isso pra decidir entre mostrar um loading e navegar pro login/app.
@@ -124,6 +125,18 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return { error: null };
   }, []);
 
+  const signUp = useCallback(async (email: string, password: string) => {
+    const supabase = createSupabaseClient();
+    const { data, error } = await supabase.auth.signUp({ email, password });
+    if (error) {
+      return { error: error.message, needsEmailConfirmation: false };
+    }
+    // Com confirmação de e-mail ligada no projeto Supabase, signUp() não devolve sessão
+    // (data.session null) — a tela de cadastro usa isso pra decidir entre esperar o
+    // onAuthStateChange (mesma sincronização do login) e mostrar um aviso pra checar o e-mail.
+    return { error: null, needsEmailConfirmation: !data.session };
+  }, []);
+
   const updateUser = useCallback((patch: Partial<User>) => {
     setUser((current) => (current ? { ...current, ...patch } : current));
   }, []);
@@ -208,6 +221,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       streakFreezesAvailable: gamification.streak_freezes_available,
       adjustStreakFreezes,
       loginWithPassword,
+      signUp,
       logout,
       isResolved,
       justLeveledUpTo,
@@ -220,6 +234,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       updateUser,
       adjustStreakFreezes,
       loginWithPassword,
+      signUp,
       logout,
       isResolved,
       justLeveledUpTo,
