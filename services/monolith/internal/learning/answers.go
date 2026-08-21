@@ -103,6 +103,14 @@ func handleSubmitAnswer(pool *pgxpool.Pool, mongoDB *mongo.Database) http.Handle
 		}
 		now := time.Now().UTC()
 		if now.After(sess.ExpiresAt) {
+			// Não existe reaper/cron pra pegar sessão expirada no instante exato do vencimento
+			// (nenhum job roda sozinho nesta fase do projeto) — este é o único ponto onde o
+			// backend de fato "descobre" que uma sessão expirou: quando o próprio usuário volta
+			// e tenta responder mais uma pergunta nela. Cobre menos casos que um reaper cobriria,
+			// mas é honesto (só emite quando há evidência real de abandono), não um substituto
+			// fabricado.
+			gamification.RecordEvent(r.Context(), pool, userID, gamification.EventSessaoAbandonada, nil,
+				map[string]any{"lesson_id": lessonID, "session_id": sess.ID, "answered_count": len(sess.AnsweredQuestionIDs)})
 			apierror.Write(w, http.StatusGone, "SESSION_EXPIRED", "Sessão expirada por inatividade.")
 			return
 		}
@@ -403,6 +411,32 @@ func handleSubmitAnswer(pool *pgxpool.Pool, mongoDB *mongo.Database) http.Handle
 			log.Printf("aviso: falha ao atualizar contadores de conquista (user_id=%s): %v", userID, err)
 		} else if _, err := gamification.EvaluateAndUnlock(r.Context(), pool, userID, counters); err != nil {
 			log.Printf("aviso: falha ao avaliar conquistas (user_id=%s): %v", userID, err)
+		}
+
+		// Eventos de telemetria (Fase 1 — Fundação, RT-02 do documento de regras): best-effort,
+		// depois de todo o resto já gravado — mesmo padrão de AddWeeklyXP/conquistas acima.
+		// item_divergente_avaliado fica de fora (não existe item divergente ainda, ver events.go).
+		gamification.RecordEvent(r.Context(), pool, userID, gamification.EventItemRespondido, nil, map[string]any{
+			"lesson_id": lessonID, "question_id": req.QuestionID, "correct": correct,
+			"difficulty": q.Difficulty, "time_ms": req.TimeMs,
+		})
+		if xpResult.XPConcedido > 0 {
+			gamification.RecordEvent(r.Context(), pool, userID, gamification.EventXPCreditado, gamification.IntPtr(xpResult.XPConcedido), map[string]any{
+				"lesson_id": lessonID, "daily_cap_reached": xpResult.DailyCapReached,
+			})
+		}
+		if newHearts < heartsCurrent {
+			gamification.RecordEvent(r.Context(), pool, userID, gamification.EventGrafiteConsumido, gamification.IntPtr(1), map[string]any{
+				"lesson_id": lessonID, "vidas_restantes": newHearts,
+			})
+			if newHearts == 0 {
+				gamification.RecordEvent(r.Context(), pool, userID, gamification.EventGrafiteEsgotado, nil, map[string]any{"lesson_id": lessonID})
+			}
+		}
+		if isLastQuestion {
+			gamification.RecordEvent(r.Context(), pool, userID, gamification.EventSessaoConcluida, gamification.IntPtr(len(sess.QuestionIDs)), map[string]any{
+				"lesson_id": lessonID, "session_id": sess.ID, "wrong_count": wrongCount,
+			})
 		}
 
 		writeJSON(w, http.StatusOK, responseBody)
