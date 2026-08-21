@@ -60,10 +60,10 @@ function RootNavigator() {
 
   return (
     // contentStyle transparente de propósito (a pedido do usuário, fundo animado — ver
-    // AnimatedBlueprintBackground abaixo): só login.tsx e as 5 abas de (tabs) tornaram seu
-    // próprio fundo transparente pra deixá-lo aparecer; toda tela de sessão/quiz/lição continua
-    // pintando seu próprio backgroundColor opaco (não tocadas), então não fica exposta por
-    // engano — decisão deliberada de não distrair em telas de foco.
+    // AnimatedBlueprintBackground abaixo): só welcome.tsx, cadastro.tsx, login.tsx e as 5 abas de
+    // (tabs) tornaram seu próprio fundo transparente pra deixá-lo aparecer; toda tela de sessão/
+    // quiz/lição continua pintando seu próprio backgroundColor opaco (não tocadas), então não
+    // fica exposta por engano — decisão deliberada de não distrair em telas de foco.
     <Stack screenOptions={{ headerShown: false, contentStyle: { backgroundColor: "transparent" } }}>
       <Stack.Protected guard={isLoggedIn}>
         <Stack.Screen name="(tabs)" />
@@ -84,7 +84,14 @@ function RootNavigator() {
         <Stack.Screen name="ajuda" />
       </Stack.Protected>
       <Stack.Protected guard={!isLoggedIn}>
+        {/* "welcome" primeiro de propósito: sem initialRouteName explícito, o Stack usa o
+            primeiro <Stack.Screen> deste grupo como rota inicial — é o que faz o primeiro
+            acesso (usuário nunca logado) cair na tela de boas-vindas em vez de direto no
+            login. Logout continua indo direto pra "/login" via router.replace explícito
+            (LogoutMenuLink.tsx, perfil/configuracoes.tsx), sem passar por aqui de novo. */}
+        <Stack.Screen name="welcome" />
         <Stack.Screen name="login" />
+        <Stack.Screen name="cadastro" />
       </Stack.Protected>
       {/* Fora dos dois grupos guardados de propósito: um link de recuperação de senha pode
           chegar com o app deslogado OU logado (outra conta), e o setSession() dentro da própria

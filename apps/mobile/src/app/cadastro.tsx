@@ -1,62 +1,58 @@
 import { useContext, useState } from "react";
-import * as Linking from "expo-linking";
 import { useRouter } from "expo-router";
 import { KeyboardAvoidingView, Platform, Pressable, StyleSheet, Text, TextInput, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Button } from "@/components/ui/Button";
 import { Icon } from "@/components/ui/Icon";
 import { AuthContext } from "@/contexts/AuthContext";
-import { createSupabaseClient } from "@/lib/supabase/client";
 import { type } from "@/theme/tokens";
 import { useColors } from "@/theme/useColors";
 import type { ColorTokens } from "@/theme/tokens";
 
-export default function LoginScreen() {
+const MIN_PASSWORD_LENGTH = 6;
+
+// Tela de criação de conta — não existia antes (só login.tsx). Alcançável a partir de
+// app/welcome.tsx ("Começar agora"); espelha a estrutura de login.tsx (mesmos campos/estilo).
+export default function CadastroScreen() {
   const router = useRouter();
   const colors = useColors();
   const styles = createStyles(colors);
   const auth = useContext(AuthContext);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
-  // P2 do /impeccable critique (18/08/2026): sem caminho de recuperação de senha no mobile.
-  const [resetSubmitting, setResetSubmitting] = useState(false);
-  const [resetMessage, setResetMessage] = useState<string | null>(null);
+  const [confirmationMessage, setConfirmationMessage] = useState<string | null>(null);
 
   const handleSubmit = async () => {
     setError(null);
+    if (password.length < MIN_PASSWORD_LENGTH) {
+      setError(`A senha precisa ter pelo menos ${MIN_PASSWORD_LENGTH} caracteres.`);
+      return;
+    }
+    if (password !== confirmPassword) {
+      setError("As senhas não coincidem.");
+      return;
+    }
+
     setSubmitting(true);
-    const result = await auth?.loginWithPassword(email, password);
+    const result = await auth?.signUp(email, password);
     if (!result || result.error) {
       setSubmitting(false);
-      // Espelha apps/web/src/app/login/page.tsx: só traduz pro texto genérico quando a
-      // Supabase de fato disse "credenciais inválidas" — qualquer outro erro (rate limit, rede,
-      // provedor fora do ar) aparece como veio.
-      const raw = result?.error ?? "";
-      setError(raw === "Invalid login credentials" || !raw ? "E-mail ou senha inválidos." : raw);
+      setError(result?.error ?? "Não foi possível criar sua conta.");
       return;
     }
-    // Sem router.replace aqui de propósito: `<Stack.Protected>` (app/_layout.tsx) reage sozinho
-    // assim que AuthContext popula `user` e navega pra fora desta tela — chamar router.replace
-    // manualmente tentaria ir pra uma rota que ainda nem existe no navigator nesse instante
-    // (guard ainda fechado), já que `user` só é setado depois que GET /v1/users/me resolver.
-    // `submitting` fica true até lá de propósito, pra não reabrir o formulário clicável por uma
-    // fração de segundo antes do redirect automático — a tela desmonta durante essa espera.
-  };
-
-  const handleForgotPassword = async () => {
-    if (!email) {
-      setResetMessage("Digite seu e-mail no campo acima primeiro.");
+    if (result.needsEmailConfirmation) {
+      // Sem sessão ainda (confirmação de e-mail exigida pelo projeto Supabase) — o guard de
+      // app/_layout.tsx não navega sozinho nesse caso, então avisa e manda pro login.
+      setSubmitting(false);
+      setConfirmationMessage("Conta criada! Verifique seu e-mail para confirmar antes de entrar.");
       return;
     }
-    setResetSubmitting(true);
-    setResetMessage(null);
-    await createSupabaseClient().auth.resetPasswordForEmail(email, {
-      redirectTo: Linking.createURL("redefinir-senha"),
-    });
-    setResetSubmitting(false);
-    setResetMessage("Se esse e-mail tiver uma conta, enviamos um link pra redefinir a senha.");
+    // Com sessão já criada, `submitting` fica true até o <Stack.Protected> (app/_layout.tsx)
+    // reagir sozinho ao AuthContext populado e navegar pra dentro do app — mesma lógica de
+    // login.tsx, sem router.replace manual aqui.
   };
 
   return (
@@ -89,38 +85,38 @@ export default function LoginScreen() {
               value={password}
               onChangeText={setPassword}
               autoCapitalize="none"
-              autoComplete="password"
+              autoComplete="password-new"
               secureTextEntry
               placeholder="••••••••"
               placeholderTextColor={colors.outline}
               accessibilityLabel="Senha"
             />
           </View>
+          <View style={styles.field}>
+            <Text style={[type.bodySm, styles.label]}>Confirmar senha</Text>
+            <TextInput
+              style={styles.input}
+              value={confirmPassword}
+              onChangeText={setConfirmPassword}
+              autoCapitalize="none"
+              autoComplete="password-new"
+              secureTextEntry
+              placeholder="••••••••"
+              placeholderTextColor={colors.outline}
+              accessibilityLabel="Confirmar senha"
+            />
+          </View>
           {error && <Text style={[type.bodySm, styles.error]}>{error}</Text>}
+          {confirmationMessage && <Text style={[type.bodySm, styles.confirmationMessage]}>{confirmationMessage}</Text>}
           <Button fullWidth onPress={handleSubmit}>
-            {submitting ? "Entrando..." : "Entrar"}
+            {submitting ? "Criando conta..." : "Criar conta"}
           </Button>
           <Pressable
-            onPress={resetSubmitting ? undefined : handleForgotPassword}
-            accessibilityRole="button"
-            // Achado do /impeccable audit (18/08/2026): texto puro sem hitSlop fica bem abaixo
-            // dos 48dp mínimos — hitSlop (Text não aceita a prop, daí o Pressable) + paddingVertical
-            // no texto fecham a lacuna.
-            hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
-          >
-            <Text style={[type.bodySm, styles.forgotPassword]}>
-              {resetSubmitting ? "Enviando…" : "Esqueci minha senha"}
-            </Text>
-          </Pressable>
-          {resetMessage && (
-            <Text style={[type.bodySm, styles.resetMessage]}>{resetMessage}</Text>
-          )}
-          <Pressable
-            onPress={() => router.push("/cadastro")}
+            onPress={() => router.push("/login")}
             accessibilityRole="button"
             hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
           >
-            <Text style={[type.bodySm, styles.forgotPassword]}>Ainda não tenho conta</Text>
+            <Text style={[type.bodySm, styles.loginLink]}>Já tenho uma conta</Text>
           </Pressable>
         </View>
       </KeyboardAvoidingView>
@@ -132,7 +128,7 @@ const createStyles = (colors: ColorTokens) =>
   StyleSheet.create({
     safeArea: {
       flex: 1,
-      // Transparente de propósito (a pedido do usuário): deixa o fundo animado
+      // Transparente de propósito (mesma convenção de login.tsx): deixa o fundo animado
       // (AnimatedBlueprintBackground, montado em app/_layout.tsx) aparecer atrás.
       backgroundColor: "transparent",
     },
@@ -176,13 +172,13 @@ const createStyles = (colors: ColorTokens) =>
     error: {
       color: colors.error,
     },
-    forgotPassword: {
+    confirmationMessage: {
+      color: colors.onSurfaceVariant,
+      textAlign: "center",
+    },
+    loginLink: {
       color: colors.primary,
       textAlign: "center",
       paddingVertical: 10,
-    },
-    resetMessage: {
-      color: colors.onSurfaceVariant,
-      textAlign: "center",
     },
   });
