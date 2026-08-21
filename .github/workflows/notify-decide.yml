@@ -1,0 +1,35 @@
+name: Notify decide
+
+# Roda cmd/notify-decide a cada hora — laço de decisão de notificação (TDD §11): avalia a
+# recompensa de envios passados (bandit de template, Thompson Sampling) e decide se manda uma
+# notificação nova pra cada candidato a streak em risco, respeitando a janela horária local
+# configurável (TDD §5.2, nunca implementada de verdade até esta mudança), o cooldown de template
+# e o teto diário (RX-05). Substitui cmd/notify-streak-risk (removido — nunca teve workflow
+# nenhum, confirmado sem uso automático). Precisa dos secrets DATABASE_URL (já cadastrado, mesma
+# connection string de produção usada pelas migrations) E MONGODB_URI (novo — precisa ser
+# cadastrado em Settings → Secrets and variables → Actions do repositório; sem ele, este workflow
+# falha na conexão com o Mongo).
+on:
+  schedule:
+    - cron: "0 * * * *" # a cada hora, no minuto 0
+  workflow_dispatch: {} # permite disparar manualmente pela aba Actions, sem esperar o cron
+
+jobs:
+  decide:
+    name: services/monolith — notify-decide
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: services/monolith
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-go@v5
+        with:
+          go-version-file: services/monolith/go.mod
+
+      - name: go run ./cmd/notify-decide
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+          MONGODB_URI: ${{ secrets.MONGODB_URI }}
+        run: go run ./cmd/notify-decide

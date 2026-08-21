@@ -499,3 +499,32 @@ Duas entregas relacionadas, mas distintas:
    tópico — fiel ao desenho original acima. Cruza todos os tópicos já praticados (não filtrado por
    tema); sem a camada de habilidade adaptativa (Goldilocks) dentro da fila — o vencimento do SRS
    já é o sinal relevante ali, ver TDD §10.3.
+
+---
+
+## Adendo (21/08/2026) — Bandit de notificação implementado fora da ordem
+
+Decisão explícita do usuário, mesmo precedente do adendo acima: implementar personalização de
+notificação agora, deliberadamente fora da ordem da Fase 2 (item "2.4 Notificações" acima, que
+ainda não foi aprovada) — não é descoberta silenciosa de divergência.
+
+**Bandit de template (Thompson Sampling, Beta-Bernoulli)** — mecanismo **novo**, não estava
+mapeado em nenhum ponto da "2.4 Notificações" original (que só previa mais gatilhos com feature
+flag por tipo, não personalização de mensagem): 4 variações de mensagem pro gatilho de streak em
+risco competem por um bandit que aprende qual leva a mais prática nas 24h seguintes ao envio.
+Documentado em `Docs/ArqLearn_TDD_Technical_Design_Document.md` §11 e
+`Docs/ArqLearn_Database_Design.md` (`notification_template_stats`/`notification_sends`,
+migrations/0018). `cmd/notify-decide` substitui `cmd/notify-streak-risk` (nunca teve scheduler
+automático — confirmado morto na prática) e passa a rodar de hora em hora via GitHub Actions,
+implementando de fato a janela horária local que a §5.2 da TDD já pedia desde a v1.1.
+
+**`RX-05` (item 3 e 9 da "2.4 Notificações" original) honrado mesmo com o resto da Fase 2 não
+aprovado:** teto de 2 notificações/dia por usuário implementado (contando todos os tipos, não só
+via bandit) e as 4 variações de mensagem escritas em tom encorajador, sem culpa/ameaça.
+
+**Fora de escopo, deliberado (não esquecido):** bandit de horário de envio aprendido por usuário
+(Send-Time Optimization) — o único gatilho real hoje tem semântica de horário não-personalizável
+(perto do fim do dia local, não o horário de estudo preferido do usuário), e o volume de eventos
+por usuário (no máximo 1/dia) é baixo demais pra um bandit de horário convergir num tempo razoável
+sem uma máquina de estado de "decide agora, dispara depois" desproporcional pro estágio atual. Ver
+TDD §11.4 para o raciocínio completo — revisitar quando o volume justificar.

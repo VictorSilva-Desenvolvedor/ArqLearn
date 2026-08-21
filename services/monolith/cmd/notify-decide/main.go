@@ -1,13 +1,13 @@
-// Command notify-streak-risk varre usuários com streak em risco (TDD §5.2/§5.3, StreakEmRisco) e
-// manda notificação in-app + push de verdade (Expo Push API) pra quem tem push_enabled e ainda
-// não praticou hoje. Não existe job scheduler rodando nesta fase (ver
-// Docs/ArqLearn_Estrategia_Bootstrap.md — sem Kubernetes), então este comando é operacional: rodar
-// manualmente ou agendar via cron externo (ex.: GitHub Actions scheduled workflow), mesmo padrão
-// de cmd/close-league-week.
+// Command notify-decide roda o laço de decisão de notificação (TDD §11) — substitui o antigo
+// cmd/notify-streak-risk (nunca tinha sido ligado a nenhum scheduler, confirmado morto na
+// prática). Por rodada: avalia a recompensa de envios passados (bandit de template) e decide, pra
+// cada candidato a streak em risco, se manda uma notificação nova — respeitando a janela horária
+// local configurável (TDD §5.2), o cooldown de template e o teto diário (RX-05). Pensado pra
+// rodar de hora em hora — ver .github/workflows/notify-decide.yml.
 //
 // Uso:
 //
-//	DATABASE_URL=... MONGODB_URI=... go run ./cmd/notify-streak-risk
+//	DATABASE_URL=... MONGODB_URI=... go run ./cmd/notify-decide
 //
 // MONGODB_DATABASE é opcional (default "arqlearn", mesmo comportamento de documentdb.Connect).
 package main
@@ -16,6 +16,7 @@ import (
 	"context"
 	"log"
 	"os"
+	"time"
 
 	"github.com/joho/godotenv"
 
@@ -43,9 +44,9 @@ func main() {
 
 	expo := expoclient.New()
 
-	log.Print("verificando streaks em risco...")
-	if err := notifications.NotifyStreaksAtRisk(ctx, pool, mongoDB, expo); err != nil {
-		log.Fatalf("falha ao notificar streaks em risco: %v", err)
+	log.Print("decidindo notificações...")
+	if err := notifications.Decide(ctx, pool, mongoDB, expo, time.Now().UTC()); err != nil {
+		log.Fatalf("falha ao decidir notificações: %v", err)
 	}
 	log.Print("concluído.")
 }

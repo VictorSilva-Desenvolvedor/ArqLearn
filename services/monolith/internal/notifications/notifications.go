@@ -1,17 +1,16 @@
-// Package notifications cobre o Notifications Service (SAD §8.7 / API Spec §9). Nenhum código
-// ainda escreve notificações de verdade (streak_at_risk, league_promotion etc. dependem de jobs
-// agendados que não existem — mesmo padrão de "sem consumidor de fila real" documentado em
-// Docs/CLAUDE.md sobre cmd/worker) — GET /v1/notifications real, mas legitimamente vazio até
-// algum gatilho passar a inserir na coleção. Preferências de canal (push/e-mail) são reais desde
-// já, independem de notificação nenhuma existir.
+// Package notifications cobre o Notifications Service (SAD §8.7 / API Spec §9). GET
+// /v1/notifications, preferências de canal (push/e-mail) e registro de push token são reais.
+// streak_at_risk é gravado de verdade por Decide (decide.go), chamado a cada hora por
+// cmd/notify-decide (TDD §11) — bandit de template (Thompson Sampling) escolhe a mensagem,
+// respeitando janela horária local, cooldown e teto diário. league_promotion e os demais tipos do
+// enum ainda dependem de gatilhos que não existem (mesmo padrão de "sem consumidor de fila real"
+// documentado em Docs/CLAUDE.md sobre cmd/worker).
 package notifications
 
 import (
 	"context"
 	"encoding/base64"
 	"encoding/json"
-	"fmt"
-	"log"
 	"net/http"
 	"strconv"
 	"time"
@@ -25,8 +24,6 @@ import (
 
 	"arqlearn/monolith/internal/apierror"
 	"arqlearn/monolith/internal/authmiddleware"
-	"arqlearn/monolith/internal/expoclient"
-	"arqlearn/monolith/internal/gamification"
 )
 
 func RegisterRoutes(mux *http.ServeMux, pool *pgxpool.Pool, mongoDB *mongo.Database, verifier *authmiddleware.Verifier) {
@@ -188,88 +185,6 @@ func handleRegisterPushToken(pool *pgxpool.Pool) http.HandlerFunc {
 
 		writeJSON(w, http.StatusOK, map[string]any{"registered": true})
 	}
-}
-
-// NotifyStreaksAtRisk varre usuários com streak ativa e notificação push habilitada, aplica a
-// mesma expiração preguiçosa de LoadStreakWithExpiration antes de checar StreakEmRisco (sem isso,
-// alguém cuja streak já devia ter expirado seria avisado de um risco que não existe mais), e pra
-// cada um em risco: grava uma notificação in-app (Create, mesmo call site que bugreports.go já
-// usa) e manda o push de verdade via Expo. Chamada por cmd/notify-streak-risk — não há
-// scheduler nesta fase (Docs/ArqLearn_Estrategia_Bootstrap.md), roda manualmente ou por cron
-// externo. Cada usuário é best-effort: uma falha (token inválido, push da Expo fora do ar) é
-// logada e não interrompe os demais, mesmo padrão de bugreports.go.
-func NotifyStreaksAtRisk(ctx context.Context, pool *pgxpool.Pool, mongoDB *mongo.Database, expo *expoclient.Client) error {
-	rows, err := pool.Query(ctx, `
-		SELECT u.id, u.timezone, g.streak_current, g.streak_last_active_date, g.streak_freezes_available
-		FROM users u JOIN user_gamification g ON g.user_id = u.id
-		WHERE g.streak_current > 0 AND u.push_enabled = true AND u.deleted_at IS NULL
-	`)
-	if err != nil {
-		return fmt.Errorf("notifications: falha ao consultar streaks ativas: %w", err)
-	}
-	defer rows.Close()
-
-	type candidate struct {
-		userID           string
-		timezone         string
-		streakCurrent    int
-		lastActiveDate   *time.Time
-		freezesAvailable int
-	}
-	var candidates []candidate
-	for rows.Next() {
-		var c candidate
-		if err := rows.Scan(&c.userID, &c.timezone, &c.streakCurrent, &c.lastActiveDate, &c.freezesAvailable); err != nil {
-			return fmt.Errorf("notifications: falha ao ler linha de streak: %w", err)
-		}
-		candidates = append(candidates, c)
-	}
-	if err := rows.Err(); err != nil {
-		return err
-	}
-
-	notified := 0
-	for _, c := range candidates {
-		lastActiveStr := ""
-		if c.lastActiveDate != nil {
-			lastActiveStr = c.lastActiveDate.Format("2006-01-02")
-		}
-		hojeLocal := gamification.HojeLocal(c.timezone, time.Now())
-		streakCurrent, _, _, _ := gamification.AplicarExpiracaoStreak(c.streakCurrent, lastActiveStr, c.freezesAvailable, hojeLocal)
-		if !gamification.StreakEmRisco(streakCurrent, lastActiveStr, hojeLocal) {
-			continue
-		}
-
-		message := fmt.Sprintf("Sua sequência de %d dias está em risco! Pratique hoje pra não perdê-la.", streakCurrent)
-		if err := Create(ctx, mongoDB, c.userID, "streak_at_risk", message); err != nil {
-			log.Printf("aviso: falha ao gravar notificação in-app de streak em risco (user_id=%s): %v", c.userID, err)
-		}
-
-		tokenRows, err := pool.Query(ctx, `SELECT token FROM user_push_tokens WHERE user_id = $1`, c.userID)
-		if err != nil {
-			log.Printf("aviso: falha ao buscar tokens de push (user_id=%s): %v", c.userID, err)
-			continue
-		}
-		var tokens []string
-		for tokenRows.Next() {
-			var token string
-			if err := tokenRows.Scan(&token); err == nil {
-				tokens = append(tokens, token)
-			}
-		}
-		tokenRows.Close()
-		if len(tokens) == 0 {
-			continue
-		}
-		if err := expo.SendPush(ctx, tokens, "Sua sequência está em risco!", message, map[string]any{"type": "streak_at_risk"}); err != nil {
-			log.Printf("aviso: falha ao enviar push de streak em risco (user_id=%s): %v", c.userID, err)
-			continue
-		}
-		notified++
-	}
-
-	log.Printf("streak em risco: %d/%d usuários com streak ativa notificados", notified, len(candidates))
-	return nil
 }
 
 // Create insere uma notificação real pro usuário — hoje só chamada pelo pacote bugreports

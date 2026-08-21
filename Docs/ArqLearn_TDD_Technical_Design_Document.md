@@ -1,7 +1,7 @@
 # DOCUMENTO TÉCNICO DE DESIGN (TDD)
 ## ArqLearn — Algoritmos de Negócio, Contratos de Evento e Fluxos de Sequência
 
-Versão 1.5 | Agosto de 2026
+Versão 1.6 | Agosto de 2026
 Documento complementar ao SAD, ao Database Design e à API Specification do ArqLearn v1.0
 
 > **Nota de nomenclatura:** existe também um `ArqLearn_Documento_Tecnico_Design.docx` na pasta `Docs/`,
@@ -21,6 +21,7 @@ Documento complementar ao SAD, ao Database Design e à API Specification do ArqL
 | 1.3 | 18/08/2026 | Equipe de Arquitetura/Engenharia | §5.4: `HEARTS_REGEN_INTERVAL` muda de 3h por vida (15h pra encher do zero) pra 36min por vida (3h pra encher do zero), a pedido do usuário — achado confuso em teste ao vivo em device real. Regra do Baú Diário/Semanal (contar só respostas certas) também mudou na mesma sessão — documentada na API Specification v1.20 (§8.1/§8.2), não neste arquivo |
 | 1.4 | 20/08/2026 | Equipe de Arquitetura/Engenharia | §3: `bonus_velocidade` (por resposta rápida) substituído por `bonus_combo` (pela maior sequência de acertos consecutivos da sessão, concedido uma única vez na última pergunta) — achado do porte de gamificação (`Docs/ArqLearn_Backlog_Gamificacao_Atelie.md`): premiar velocidade cria incentivo a responder apressado num domínio que exige raciocínio cuidadoso (norma, dimensionamento). Novo §3.0.1 documenta o estado de combo em `practice_sessions` |
 | 1.5 | 21/08/2026 | Equipe de Arquitetura/Engenharia | Novo §10 (Dificuldade Adaptativa) — habilidade do usuário por tópico, modelo logístico de 1 parâmetro (tipo Rasch/IRT simplificado) usado pelo Modo Infinito, implementado antecipadamente e fora da ordem original de `Docs/ArqLearn_Backlog_Gamificacao_Atelie.md` (decisão explícita do usuário). §10 (Glossário) renumerado para §11 |
+| 1.6 | 21/08/2026 | Equipe de Arquitetura/Engenharia | Novo §11 (Personalização de Notificações) — bandit de template (Thompson Sampling, Beta-Bernoulli) pro gatilho de streak em risco, implementado antecipadamente e fora da ordem original de `Docs/ArqLearn_Backlog_Gamificacao_Atelie.md` (mesmo precedente do §10). Corrige um gap que a própria §5.2 já pedia (job rodando de hora em hora, filtrando pela janela horária local) e nunca tinha sido construído. §11 (Glossário) renumerado para §12 |
 
 ---
 
@@ -669,7 +670,93 @@ não aplica a seleção Goldilocks acima — um item vencido aparece na fila de 
 independentemente de estar ou não no ponto ideal de dificuldade pro `skill_score` do momento, já
 que o próprio vencimento do SRS já é o sinal relevante ali.
 
-## 11. Glossário
+## 11. Personalização de Notificações (Bandit de Template) *(v1.6, 21/08/2026)*
+
+Até esta versão, o único gatilho de notificação ativo (streak em risco) mandava sempre a mesma
+mensagem hardcoded, sem variação, sem cooldown, sem teto diário — e o job que o dispara
+(`cmd/notify-decide`, antes `cmd/notify-streak-risk`) nunca esteve ligado a nenhum agendamento
+automático (rodava só manualmente). Esta seção documenta duas mudanças: um motor de personalização
+novo ("o quê" enviar) e a correção de um gap já documentado mas nunca construído ("quando" enviar).
+Implementado antecipadamente e fora da ordem original de
+`Docs/ArqLearn_Backlog_Gamificacao_Atelie.md` ("2.4 Notificações" está na Fase 2, ainda não
+aprovada) — decisão explícita do usuário, mesmo precedente da Seção 10.
+
+### 11.1 Correção: janela horária local (§5.2 já pedia isso)
+
+A §5.2 já especificava "roda a cada hora, filtrando usuários cujo horário local está numa janela
+configurável antes da meia-noite" — nunca implementado de fato (o código antigo varria todo mundo,
+a qualquer hora, só quando alguém rodava o comando manualmente). `cmd/notify-decide` agora roda de
+hora em hora via `.github/workflows/notify-decide.yml` e só age quando o horário local do usuário
+(`users.timezone`) cai dentro de uma janela configurável (`janelaInicioHoraLocal`/
+`janelaFimHoraLocal`, default 20h-22h local).
+
+### 11.2 Bandit de template — Thompson Sampling (Beta-Bernoulli)
+
+Cada variação de mensagem de um gatilho ("braço") acumula `(successes, failures)` em
+`notification_template_stats` (Database Design §3.2), começando em `(1, 1)` — prior uniforme. A
+cada decisão de envio, amostra-se `Beta(successes, failures)` de cada template elegível e escolhe-se
+o de maior amostra:
+
+```
+P(acerto) via amostra de Beta(successes_i, failures_i) pra cada template i elegível
+escolhe o template com maior amostra
+```
+
+**Amostragem de `Beta(a,b)`** — identidade exata (não aproximação), já que `successes`/`failures`
+são sempre inteiros positivos: `Gamma(k,1)` pra `k` inteiro positivo é a soma de `k` amostras
+`Exponential(1)` (`-ln(U)`, `U~Uniforme(0,1)`); `Beta(a,b) = X/(X+Y)` com `X~Gamma(a,1)`,
+`Y~Gamma(b,1)` independentes.
+
+O item (dificuldade do braço) nunca se recalibra sozinho — só a estatística de sucesso/falha do
+template se move, mesmo raciocínio de "sem Elo mútuo" da Seção 10: com ~5-20 usuários, um esquema
+que também recalibrasse o item por resposta teria dado de menos pra convergir.
+
+Thompson Sampling escolhido por nome, não substituído por uma alternativa mais simples (ex.: UCB1)
+— o usuário pediu esse algoritmo especificamente, com pseudocódigo próprio; trocar silenciosamente
+seria a divergência que este documento existe pra evitar (`Docs/CLAUDE.md`).
+
+### 11.3 Recompensa, cooldown e teto diário
+
+- **Janela de recompensa**: 24h após o envio. Sinal: houve `gamification.EventItemRespondido`
+  (evento `item_respondido`, `gamification_events`) pro usuário nesse intervalo. Erro de consulta
+  nunca é tratado como "sem atividade" — a linha fica sem avaliar (`evaluated_at` continua `NULL`)
+  e é reavaliada na rodada seguinte. Atualização é transacional (mesmo padrão de `answers.go`/
+  `vip.go`): marcar o envio como avaliado e atualizar a estatística do template acontecem juntos,
+  ou nenhum dos dois.
+- **Acoplamento a documentar**: `gamification.EventsEnabled` (kill-switch, `events.go`) desligado
+  faria `item_respondido` nunca ser gravado — toda avaliação futura leria "sem atividade" pra todo
+  mundo, envenenando o bandit silenciosamente. Se esse kill-switch for desligado algum dia, este
+  job precisa ser pausado junto.
+- **Cooldown**: um template não é reoferecido ao mesmo usuário antes de 3 dias — exclusão dura, não
+  uma curva de decaimento tipo esquecimento (aplicar SM-2/HLR à fadiga de notificação é um salto
+  conceitual maior do que vale a pena agora). Se o cooldown excluir todos os templates elegíveis
+  (histórico curto), ele é ignorado nessa rodada — melhor repetir do que não mandar nada.
+- **Teto diário** (`RX-05`, já era regra do backlog de gamificação, nunca implementada): no máximo
+  2 notificações por dia local por usuário, contando **todos os tipos** (não só as via bandit) —
+  consulta a própria coleção `notifications` inteira.
+
+### 11.4 Decisão de escopo — sem bandit de horário aprendido ainda
+
+O único gatilho real hoje (streak em risco) tem semântica de horário não-personalizável por
+natureza: o aviso só faz sentido perto do fim do dia local (é um "ainda dá tempo de praticar
+hoje"), não no horário que o usuário historicamente mais estuda. Um bandit de horário de verdade
+(aprender por usuário qual sub-janela funciona melhor) exigiria uma máquina de "decide agora,
+dispara depois" — complexidade real de estado — ou reamostrar a cada hora e só agir se a amostra
+bater com a hora atual, o que pode simplesmente não disparar em noite nenhuma por azar de
+amostragem (um bug de correção, não um trade-off aceitável). Com poucos usuários e no máximo 1
+evento por dia por pessoa, esse aprendizado convergeria devagar demais pra justificar a
+complexidade agora — mesmo raciocínio de proporcionalidade da Seção 10 sobre Elo mútuo/SRS por
+pergunta. Fica como gatilho de graduação futuro, não esquecido: revisitar quando o volume de
+usuários/gatilhos justificar.
+
+### 11.5 Relação com a fila de revisão do SRS (§10.3)
+
+Sistema independente: a fila de revisão (§10.3) decide qual PERGUNTA de lição revisar; esta seção
+decide qual MENSAGEM DE NOTIFICAÇÃO enviar e quando. Os dois reaproveitam o mesmo evento de
+telemetria (`item_respondido`) como sinal de "o usuário praticou", mas cada um o consome pro seu
+próprio propósito — não há acoplamento direto entre os dois bandits.
+
+## 12. Glossário
 
 - **SM-2**: algoritmo clássico de repetição espaçada (Wozniak, 1987), adaptado aqui para entrada
   binária correto/incorreto + tempo de resposta.
@@ -677,6 +764,9 @@ que o próprio vencimento do SRS já é o sinal relevante ali.
 - **IRT / Rasch**: Item Response Theory — família de modelos psicométricos que relacionam
   probabilidade de acerto, habilidade do respondente e dificuldade do item; ver Seção 10.2 para o
   caso simplificado (1 parâmetro) usado aqui.
+- **Beta-Bernoulli / Thompson Sampling**: par de distribuições usado pra bandit multi-armed —
+  `successes`/`failures` acumulados por braço parametrizam uma `Beta`, amostrada a cada decisão;
+  ver Seção 11.2.
 - **Zona de promoção/rebaixamento**: os 5 melhores/piores de cada grupo de liga ao fim da semana; ver
   Seção 6 e UX TDD §6.4 para a representação visual.
 
