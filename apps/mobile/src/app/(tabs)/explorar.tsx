@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { ScrollView, StyleSheet, Text, View } from "react-native";
+import { useRouter } from "expo-router";
 import { InfiniteModePromptCard } from "@/components/features/explore/InfiniteModePromptCard";
 import { SearchBar } from "@/components/features/explore/SearchBar";
 import { TrackCard } from "@/components/features/explore/TrackCard";
@@ -28,6 +29,7 @@ const POLL_INTERVAL_MS = 700;
 
 // Espelha apps/web/src/app/(shell)/explorar/page.tsx.
 export default function ExplorarScreen() {
+  const router = useRouter();
   const colors = useColors();
   const styles = createStyles(colors);
   const [query, setQuery] = useState("");
@@ -44,8 +46,11 @@ export default function ExplorarScreen() {
   }, []);
 
   const filteredTracks = useMemo(() => {
-    const matches = mockRecommendedTracks.filter((item) =>
-      item.track.title.toLowerCase().includes(query.toLowerCase()),
+    // Só trilhas disponíveis (hasContent) — "Trilhas Recomendadas" é pra estudar agora, não uma
+    // vitrine do que ainda está em construção (essa lista fica no ThemeSelector do TopAppBar).
+    const matches = mockRecommendedTracks.filter(
+      (item) =>
+        item.hasContent && item.track.title.toLowerCase().includes(query.toLowerCase()),
     );
     // Tema selecionado (ThemeSelector no TopAppBar) vem primeiro e ganha o badge "Selecionado".
     return [...matches].sort((a, b) => {
@@ -131,8 +136,12 @@ export default function ExplorarScreen() {
                   {...item}
                   isSelectedTheme={item.track.topic === theme.topic}
                   onPress={() => {
+                    // Entra de fato na trilha (Home passa a mostrar o mapa dela) — antes isso só
+                    // selecionava o tema e deixava o aluno na mesma tela de Explorar,
+                    // reproduzindo o ThemeSelector do TopAppBar sem levar a lugar nenhum.
                     setTopic(item.track.topic);
                     showToast(`Tema "${item.track.title}" selecionado`);
+                    router.push("/");
                   }}
                 />
               </View>

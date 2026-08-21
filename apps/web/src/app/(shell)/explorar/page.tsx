@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
+import { useRouter } from "next/navigation";
 import {
   listMyUploads,
   initiateUpload,
@@ -23,6 +24,7 @@ const TERMINAL_STATUSES: UploadStatus[] = ["ready_for_review", "published", "fai
 const POLL_INTERVAL_MS = 700;
 
 export default function ExplorePage() {
+  const router = useRouter();
   const [query, setQuery] = useState("");
   const [uploads, setUploads] = useState<UploadedContent[]>([]);
   const [uploadError, setUploadError] = useState<string | null>(null);
@@ -37,8 +39,11 @@ export default function ExplorePage() {
   }, []);
 
   const filteredTracks = useMemo(() => {
-    const matches = mockRecommendedTracks.filter((item) =>
-      item.track.title.toLowerCase().includes(query.toLowerCase()),
+    // Só trilhas disponíveis (hasContent) — "Trilhas Recomendadas" é pra estudar agora, não uma
+    // vitrine do que ainda está em construção (essa lista fica no ThemeSelector do TopAppBar).
+    const matches = mockRecommendedTracks.filter(
+      (item) =>
+        item.hasContent && item.track.title.toLowerCase().includes(query.toLowerCase()),
     );
     // Tema selecionado (ThemeSelector no TopAppBar) vem primeiro e ganha o badge "Selecionado".
     return [...matches].sort((a, b) => {
@@ -122,8 +127,12 @@ export default function ExplorePage() {
               {...item}
               isSelectedTheme={item.track.topic === theme.topic}
               onSelect={() => {
+                // Entra de fato na trilha (Home passa a mostrar o mapa dela) — antes isso só
+                // selecionava o tema e deixava o aluno na mesma tela de Explorar, reproduzindo o
+                // ThemeSelector do TopAppBar sem levar a lugar nenhum.
                 setTopic(item.track.topic);
                 showToast(`Tema "${item.track.title}" selecionado`, "success");
+                router.push("/");
               }}
             />
           ))}
