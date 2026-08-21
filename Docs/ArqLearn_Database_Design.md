@@ -3,7 +3,7 @@
 
 Modelo de dados detalhado: esquema relacional, documentos, vetores, cache e estratégias de persistência.
 
-Versão 1.18 | Agosto de 2026
+Versão 1.19 | Agosto de 2026
 Documento complementar ao SAD e ao TDD do ArqLearn v1.0
 
 > **Sobre esta versão:** versão em Markdown, mantida como fonte da verdade a partir de agora (ver
@@ -33,6 +33,7 @@ Documento complementar ao SAD e ao TDD do ArqLearn v1.0
 | 1.16 | 15/08/2026 | Equipe de Engenharia / Dados | VIP "Mestre Arquiteto" (migrations/0011, a pedido do usuário) — adiciona `is_vip`/`vip_expires_at` e contadores de reset de baú a `user_gamification`, e a tabela `vip_coupons` (ativação por cupom de 10 dígitos; assinatura recorrente tem schema pronto porém desabilitada, ver API Spec §8.3). **Nota:** as colunas de `migrations/0009_daily_chest`/`0010_weekly_chest` (Baú Diário/Semanal) ainda não estavam documentadas aqui antes desta entrada — divergência pré-existente entre código e este documento, sinalizada e não resolvida retroativamente nesta mudança (fora do escopo desta demanda) |
 | 1.17 | 18/08/2026 | Equipe de Engenharia / Dados | Adiciona a tabela `user_push_tokens` (§3.2 DDL, §3.3 dicionário, migrations/0012, a pedido do usuário) — infraestrutura de push notification real (API Spec §9 v1.21); um usuário pode ter várias linhas (vários devices), `token` é `UNIQUE` |
 | 1.18 | 18/08/2026 | Equipe de Engenharia / Dados | Adiciona a tabela `answer_submissions` (§3.2 DDL, §3.3 dicionário, migrations/0013) — achado em `/impeccable critique`: `POST .../answers` (lição e Modo Infinito) não tinham nenhuma proteção contra reprocessamento em retry, diferente de `purchases`. Mesmo padrão de `idempotency_key UNIQUE`, mas guardando o corpo da resposta 200 (`response` JSONB) pra devolver no replay, já que os efeitos colaterais (XP/vidas/streak/baú/conquista) precisam ser vistos como já processados, não como conflito (API Spec §6/§6.1/§2.6 v1.22) |
+| 1.19 | 20/08/2026 | Equipe de Engenharia / Dados | Adiciona a tabela `user_cosmetics` (§3.2 DDL, migrations/0015) — inventário de posse dos itens `category='cosmetic'` da Loja; achado do porte de gamificação (`Docs/ArqLearn_Backlog_Gamificacao_Atelie.md`): comprar um cosmético não tinha nenhum efeito/registro de posse antes disso |
 
 ---
 
@@ -273,6 +274,20 @@ CREATE TABLE purchases (
   purchased_at TIMESTAMPTZ NOT NULL DEFAULT now()
 );
 
+-- Inventário de posse dos itens category='cosmetic' (migrations/0015, v1.19) — antes desta
+-- tabela, comprar um cosmético só gravava a transação em `purchases` (comprovante), sem nenhum
+-- registro de "o que o usuário tem hoje" nem efeito visível (achado do porte de gamificação,
+-- Docs/ArqLearn_Backlog_Gamificacao_Atelie.md). `equipped` default true: sem tela de "trocar
+-- equipado" ainda, comprar já ativa o efeito.
+CREATE TABLE user_cosmetics (
+  user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  item_id UUID NOT NULL REFERENCES shop_items(id),
+  equipped BOOLEAN NOT NULL DEFAULT true,
+  acquired_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+  PRIMARY KEY (user_id, item_id)
+);
+CREATE INDEX idx_user_cosmetics_user_equipped ON user_cosmetics(user_id) WHERE equipped;
+
 -- Idempotência de POST /v1/lessons/{lesson_id}/answers e
 -- POST /v1/infinite-mode/sessions/{session_id}/answers (migrations/0013, v1.22) — mesmo espírito
 -- de purchases.idempotency_key acima, mas guarda o corpo da resposta 200 inteiro (`response`) pra
@@ -318,6 +333,7 @@ CREATE INDEX idx_gamevents_user_time ON gamification_events(user_id, created_at 
 | `leagues` / `league_members` | `league_id` + `user_id` (PK composta) | Recriadas semanalmente pelo job de fechamento de liga (TDD §6). |
 | `gamification_events` | `id` (PK), particionada por mês | Log append-only de eventos, usado para auditoria e Analytics; particionamento mensal facilita expurgo por retenção. |
 | `purchases` | `idempotency_key` (UNIQUE) | Garante que retries de compra não gerem cobrança duplicada de gemas. |
+| `user_cosmetics` | `user_id` + `item_id` (PK composta) | Inventário de posse dos itens `category='cosmetic'` — `purchases` já registrava a transação, mas nada marcava "o que o usuário tem hoje"; `ON CONFLICT DO NOTHING` na inserção evita duplicar linha numa recompra do mesmo item. |
 | `vip_coupons` | `code` (UNIQUE) | Cupons VIP de 10 dígitos numéricos; `redeemed_by IS NULL` distingue disponível de já resgatado — não há coluna booleana solta pra isso, evitando os dois campos divergirem. |
 | `user_push_tokens` | `token` (UNIQUE) | Token de push Expo por device; `UNIQUE` é no token, não no `user_id` — um usuário tem 1 linha por device (múltiplos devices = múltiplas linhas), e um device que troca de conta atualiza a linha existente em vez de acumular token órfão. |
 | `answer_submissions` | `idempotency_key` (UNIQUE) | Garante que retries de submissão de resposta (lição ou Modo Infinito) não concedam XP/vidas/streak/baú/conquista em dobro — `response` guarda o corpo 200 original pra devolver no replay. |
