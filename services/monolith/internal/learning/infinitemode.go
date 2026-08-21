@@ -257,7 +257,13 @@ func handleInfiniteModeAnswer(pool *pgxpool.Pool, mongoDB *mongo.Database, gemin
 		chestWeeklyCycleStartDate, _ := time.Parse("2006-01-02", chestWeeklyCycleStartStr)
 
 		vipAtivo := gamification.EhVIPAtivo(isVip, vipExpiresAt, now)
-		xpResult := gamification.CalcularXP(q.Difficulty, int(req.TimeMs), false, correct, xpToday, vipAtivo)
+		// comboMaximo=0, isLastQuestion=false: Modo Infinito é prática solta, sem conceito de
+		// "última pergunta da sessão" (não termina, só é abandonado/expira) — nunca recebe o
+		// bônus de combo (TDD §3.0.1). Antes desta mudança (v1.4) recebia o bônus de velocidade
+		// antigo por resposta rápida; perde esse bônus e não ganha um substituto — Modo Infinito
+		// é farm-friendly por natureza (repetível, sem vidas/streak em jogo), então não faz
+		// sentido também lhe dar o bônus de topo de sessão.
+		xpResult := gamification.CalcularXP(q.Difficulty, 0, false, false, correct, xpToday, vipAtivo)
 		newXPTotal := xpTotal + xpResult.XPConcedido
 		newXPToday := xpToday + xpResult.XPConcedido
 		newLevel := gamification.Nivel(newXPTotal)

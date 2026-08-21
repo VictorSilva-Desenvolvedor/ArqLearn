@@ -34,25 +34,44 @@ func TestNivel_TabelaDoTDD(t *testing.T) {
 	}
 }
 
-func TestCalcularXP_CorretoDentroDoLimiar(t *testing.T) {
-	r := CalcularXP("medium", 3000, false, true, 0, false)
-	if r.XPConcedido != 25 { // base 20 + bônus velocidade 5
-		t.Errorf("XPConcedido = %d, esperado 25", r.XPConcedido)
+func TestCalcularXP_ComBonusDeCombo(t *testing.T) {
+	// combo_maximo=3 na última pergunta -> bônus 3 (TDD §3.0.1, v1.4 — substitui o antigo bônus
+	// de velocidade).
+	r := CalcularXP("medium", 3, true, false, true, 0, false)
+	if r.XPConcedido != 23 { // base 20 + bônus combo 3
+		t.Errorf("XPConcedido = %d, esperado 23", r.XPConcedido)
 	}
 	if r.DailyCapReached {
 		t.Error("DailyCapReached não deveria ser true")
 	}
 }
 
+func TestCalcularXP_ComboSoAplicaNaUltimaPergunta(t *testing.T) {
+	// Mesmo combo_maximo de 3, mas não é a última pergunta da sessão -> sem bônus ainda (o pico
+	// só é premiado quando a sessão termina, mesmo que o combo atual já esteja alto).
+	r := CalcularXP("medium", 3, false, false, true, 0, false)
+	if r.XPConcedido != 20 { // só a base, sem bônus de combo
+		t.Errorf("XPConcedido = %d, esperado 20 (sem bônus fora da última pergunta)", r.XPConcedido)
+	}
+}
+
+func TestCalcularXP_ComboCapadoEmCinco(t *testing.T) {
+	// combo_maximo=12 (sessão longa e perfeita) -> bônus capado em ComboBonusMax (5), não 12.
+	r := CalcularXP("easy", 12, true, false, true, 0, false)
+	if r.XPConcedido != 15 { // base 10 + bônus combo capado em 5
+		t.Errorf("XPConcedido = %d, esperado 15 (bônus capado em 5)", r.XPConcedido)
+	}
+}
+
 func TestCalcularXP_PrimeiraConclusao(t *testing.T) {
-	r := CalcularXP("easy", 10000, true, true, 0, false) // fora do limiar de velocidade (5000ms)
-	if r.XPConcedido != 20 {                             // base 10 + bônus primeira conclusão 10
+	r := CalcularXP("easy", 0, true, true, true, 0, false) // sem combo, isola o bônus de primeira conclusão
+	if r.XPConcedido != 20 {                               // base 10 + bônus primeira conclusão 10
 		t.Errorf("XPConcedido = %d, esperado 20", r.XPConcedido)
 	}
 }
 
 func TestCalcularXP_Errado(t *testing.T) {
-	r := CalcularXP("hard", 1000, true, false, 0, false)
+	r := CalcularXP("hard", 5, true, true, false, 0, false)
 	if r.XPConcedido != 0 {
 		t.Errorf("XPConcedido = %d, esperado 0 (resposta errada nunca dá XP)", r.XPConcedido)
 	}
@@ -60,7 +79,7 @@ func TestCalcularXP_Errado(t *testing.T) {
 
 func TestCalcularXP_TetoDiario(t *testing.T) {
 	// 490 já ganhos hoje, resposta valeria 30 (hard, sem bônus) — só cabem 10.
-	r := CalcularXP("hard", 99999, false, true, 490, false)
+	r := CalcularXP("hard", 0, false, false, true, 490, false)
 	if r.XPConcedido != 10 {
 		t.Errorf("XPConcedido = %d, esperado 10 (teto de 500)", r.XPConcedido)
 	}
@@ -70,7 +89,7 @@ func TestCalcularXP_TetoDiario(t *testing.T) {
 }
 
 func TestCalcularXP_TetoJaEstourado(t *testing.T) {
-	r := CalcularXP("easy", 100, false, true, 500, false)
+	r := CalcularXP("easy", 0, false, false, true, 500, false)
 	if r.XPConcedido != 0 {
 		t.Errorf("XPConcedido = %d, esperado 0 (teto já no limite)", r.XPConcedido)
 	}
@@ -81,7 +100,7 @@ func TestCalcularXP_TetoJaEstourado(t *testing.T) {
 
 func TestCalcularXP_VIPAplicaMultiplicadorAntesDoTeto(t *testing.T) {
 	// medium sem bônus = 20 base; VIP: round(20 * 1.25) = 25.
-	r := CalcularXP("medium", 99999, false, true, 0, true)
+	r := CalcularXP("medium", 0, false, false, true, 0, true)
 	if r.XPConcedido != 25 {
 		t.Errorf("XPConcedido = %d, esperado 25 (base 20 * 1.25)", r.XPConcedido)
 	}
@@ -90,9 +109,9 @@ func TestCalcularXP_VIPAplicaMultiplicadorAntesDoTeto(t *testing.T) {
 func TestCalcularXP_VIPTemTetoDiarioDobrado(t *testing.T) {
 	// Mudou 19/08/2026, a pedido do usuário: VIP agora tem o teto diário DOBRADO (1000, não 500)
 	// — antes o VIP só chegava no mesmo teto mais rápido, sem ganhar um teto maior; agora ganha.
-	// 490 já ganhos hoje (menos da metade do teto VIP de 1000) — hard com bônus de velocidade
-	// = 35 base, VIP eleva pra round(35*1.25)=44, cabe inteiro, sem capar.
-	r := CalcularXP("hard", 100, false, true, 490, true)
+	// 490 já ganhos hoje (menos da metade do teto VIP de 1000) — hard com bônus de combo máximo
+	// (5) = 35 base, VIP eleva pra round(35*1.25)=44, cabe inteiro, sem capar.
+	r := CalcularXP("hard", 5, true, false, true, 490, true)
 	if r.XPConcedido != 44 {
 		t.Errorf("XPConcedido = %d, esperado 44 (teto VIP de 1000 não capou)", r.XPConcedido)
 	}
@@ -103,7 +122,7 @@ func TestCalcularXP_VIPTemTetoDiarioDobrado(t *testing.T) {
 
 func TestCalcularXP_VIPCapaNoTetoDobrado(t *testing.T) {
 	// 990 já ganhos hoje (perto do teto VIP de 1000, não do teto normal de 500) — só cabem 10.
-	r := CalcularXP("hard", 100, false, true, 990, true)
+	r := CalcularXP("hard", 5, true, false, true, 990, true)
 	if r.XPConcedido != 10 {
 		t.Errorf("XPConcedido = %d, esperado 10 (capado pelo teto VIP de 1000)", r.XPConcedido)
 	}
@@ -115,7 +134,7 @@ func TestCalcularXP_VIPCapaNoTetoDobrado(t *testing.T) {
 func TestCalcularXP_NaoVIPUsaTetoNormal(t *testing.T) {
 	// Mesmo cenário do teste VIP acima (490 já ganhos, 44 calculado), mas sem VIP — o teto
 	// continua 500, então 490+44 ultrapassaria; só cabem 10.
-	r := CalcularXP("hard", 100, false, true, 490, false)
+	r := CalcularXP("hard", 5, true, false, true, 490, false)
 	if r.XPConcedido != 10 {
 		t.Errorf("XPConcedido = %d, esperado 10 (teto normal de 500, sem VIP)", r.XPConcedido)
 	}
