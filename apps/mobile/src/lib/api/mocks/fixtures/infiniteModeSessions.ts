@@ -1,5 +1,5 @@
 import { ApiError } from "../../http";
-import { getInfiniteModeBank, type InfiniteModeQuestionEntry } from "./infiniteModeQuestions";
+import { getAllInfiniteModeEntries, getInfiniteModeBank, type InfiniteModeQuestionEntry } from "./infiniteModeQuestions";
 import { awardXp } from "./dailyXpCap";
 import { bumpMockChestQuestions, mockChestAvailable, mockChestQuestionsToday } from "./dailyChest";
 import { bumpMockWeeklyChestQuestions } from "./weeklyChest";
@@ -74,7 +74,47 @@ export function startInfiniteModeSessionMock(topic: string): InfiniteModeSession
     });
   }
 
-  return { session_id: sessionId, topic, question: first.question };
+  return { session_id: sessionId, topic, is_review: false, question: first.question };
+}
+
+// Fila de revisão do SRS (mock de "Revisar agora", TDD §10.3) — cruza todos os tópicos, mesmo
+// pool "hard" de InfiniteModeQuestionEntry, só pra ter algo plausível pra responder no modo mock
+// (sem backend real, não há SRS de verdade calculado pra saber o que está "vencido").
+export function startReviewSessionMock(): InfiniteModeSession {
+  const bank = getAllInfiniteModeEntries();
+
+  sessionCounter += 1;
+  const sessionId = `mock-review-${sessionCounter}`;
+
+  const state: MockInfiniteSessionState = {
+    topic: "",
+    bank,
+    cursor: 0,
+    questionsAnswered: 0,
+    correctCount: 0,
+    totalTimeMs: 0,
+    xpEarned: 0,
+  };
+  sessions.set(sessionId, state);
+
+  const first = nextEntry(state);
+  if (!first) {
+    throw new ApiError(404, {
+      error_code: "REVIEW_QUEUE_EMPTY",
+      message: "Nenhum item vencido pra revisar agora.",
+      trace_id: "mock-trace",
+    });
+  }
+
+  return { session_id: sessionId, topic: "", is_review: true, question: first.question };
+}
+
+// Valor fixo plausível pro card "Revisar agora" aparecer no modo mock (sem backend real não há
+// SRS calculado de verdade, então não tem como derivar isto de nenhum estado existente).
+const MOCK_REVIEW_DUE_COUNT = 4;
+
+export function getReviewSummaryMock(): { due_count: number } {
+  return { due_count: MOCK_REVIEW_DUE_COUNT };
 }
 
 function getSession(sessionId: string): MockInfiniteSessionState {

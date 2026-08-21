@@ -3,7 +3,7 @@
 
 Especificação de referência dos endpoints REST expostos pelo API Gateway.
 
-Versão 1.23 | Agosto de 2026
+Versão 1.24 | Agosto de 2026
 Documento complementar ao SAD e ao TDD do ArqLearn v1.0
 
 > **Sobre esta versão:** versão em Markdown, mantida como fonte da verdade a partir de agora (ver
@@ -38,6 +38,7 @@ Documento complementar ao SAD e ao TDD do ArqLearn v1.0
 | 1.21 | 18/08/2026 | Equipe de Engenharia | §9 (novo): `POST /v1/notifications/push-token` — registra/atualiza o token de push Expo do device atual, a pedido do usuário (infraestrutura de push notification real, antes só a preferência `push_enabled` existia sem nada consumi-la). Primeiro gatilho real: streak em risco, via `cmd/notify-streak-risk` (operacional, sem scheduler nesta fase, mesmo padrão de `cmd/close-league-week`) |
 | 1.22 | 18/08/2026 | Equipe de Engenharia | §6: `POST /v1/lessons/{lesson_id}/answers` passa a exigir o cabeçalho `Idempotency-Key` (mesmo padrão de `POST /v1/gamification/shop/purchase`, §2.6/§8) — achado em `/impeccable critique`: sem isto, um retry de rede reprocessava a resposta inteira (XP, vidas, streak, baú e conquistas contados de novo). Novo erro `IDEMPOTENCY_KEY_REQUIRED` (400). §2.6: nota sobre a janela de 24h mencionada ali não ser de fato implementada em nenhum dos dois endpoints hoje (chave sem expiração) — divergência sinalizada, não corrigida nesta versão |
 | 1.23 | 20/08/2026 | Equipe de Engenharia | §3.2: adiciona `cosmetics` ao `GamificationProfile` (`GET /v1/gamification/me` e `GET /v1/users/me`) — inventário de posse dos itens `category='cosmetic'` da Loja (`user_cosmetics`, Database Design v1.19); achado do porte de gamificação (`Docs/ArqLearn_Backlog_Gamificacao_Atelie.md`): comprar um cosmético não deixava nenhum registro de posse antes disso |
+| 1.24 | 21/08/2026 | Equipe de Engenharia | §6.1: `POST /v1/infinite-mode/sessions` ganha campo opcional `review` (mutuamente exclusivo com `topic`) — inicia a fila de revisão do SRS ("Revisar agora", TDD §10.3) em vez de uma sessão por tópico; resposta ganha `is_review`. Novo endpoint `GET /v1/review/summary` (`due_count`) e erro `REVIEW_QUEUE_EMPTY` (§12). Implementado fora da ordem original de `Docs/ArqLearn_Backlog_Gamificacao_Atelie.md` (decisão explícita do usuário, ver adendo no próprio documento) |
 
 ---
 
@@ -367,19 +368,29 @@ como base para o painel do professor.
 > carregado — gerar sem lastro num texto-fonte violaria a regra de nunca alucinar conteúdo. Endpoints
 > abaixo são reais (não são mais stub).
 
-**`POST /v1/infinite-mode/sessions`** — Inicia uma sessão de Modo Infinito para um tópico.
+**`POST /v1/infinite-mode/sessions`** — Inicia uma sessão de Modo Infinito para um tópico, ou a
+fila de revisão do SRS *(v1.24, TDD §10.3)*.
 
 ```json
-// Request body
+// Request body (tópico)
 { "topic": "string" }
+
+// Request body (revisão — TDD §10.3, mutuamente exclusivo com "topic")
+{ "review": true }
 
 // Response 201
 {
   "session_id": "uuid",
   "topic": "estruturas",
+  "is_review": false,
   "question": { "...Question", "options": ["..."] }
 }
 ```
+`review: true` monta o pool a partir das lições cujo SRS (`user_progress.srs_state.next_review_at`,
+TDD §4) já está vencido, **entre todos os tópicos** já praticados (sem filtro de `topic` — `topic`
+vem vazio na resposta e `is_review: true`). Sem seleção por habilidade adaptativa (TDD §10.2) nessa
+fila — o vencimento do SRS já é o sinal relevante. Erro `REVIEW_QUEUE_EMPTY` (404, §12) quando não
+há nada vencido no momento; ver `GET /v1/review/summary` abaixo pro cliente checar antes de tentar.
 
 **`POST /v1/infinite-mode/sessions/{session_id}/answers`** — Submete a resposta atual e retorna a
 próxima questão do modo infinito. Requer cabeçalho `Idempotency-Key` *(v1.22 — ver §2.6)*.
@@ -422,6 +433,16 @@ na UX) e retorna o resumo final.
   "xp_earned": integer,
   "avg_time_ms": integer
 }
+```
+
+**`GET /v1/review/summary`** *(v1.24, TDD §10.3)* — Quantos itens estão vencidos agora pro usuário
+autenticado, entre todos os tópicos. Cliente usa isso pra decidir se mostra o card "Revisar agora"
+**antes** de tentar `POST /v1/infinite-mode/sessions` com `review: true` — mesmo espírito de
+`daily_chest_available`/`weekly_chest_available` (§8.1/§8.2).
+
+```json
+// Response 200
+{ "due_count": integer }
 ```
 Erros: `404 SESSION_NOT_FOUND`
 
@@ -963,6 +984,7 @@ completos a detalhar no TDD quando a implementação desses três recursos come�
 | `ADMIN_REQUIRED` | 403 | Endpoint restrito a `role=admin` (ex.: gerar cupom VIP). *(v1.20)* |
 | `COUPON_INVALID` | 409 | Cupom VIP inexistente ou já resgatado. *(v1.20)* |
 | `VIP_SUBSCRIPTION_UNAVAILABLE` | 501 | Assinatura VIP por cartão ainda não integrada a um gateway de pagamento. *(v1.20)* |
+| `REVIEW_QUEUE_EMPTY` | 404 | Nenhum item vencido pra revisar agora (`POST /v1/infinite-mode/sessions` com `review: true`). *(v1.24)* |
 
 *Tabela — Catálogo consolidado de códigos de erro da API.*
 

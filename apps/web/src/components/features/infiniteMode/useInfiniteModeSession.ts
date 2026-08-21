@@ -16,9 +16,15 @@ import type { InfiniteModeAnswerResult, InfiniteModeQuestion } from "@/types/api
 // avanço dentro do nível atual, não o total histórico da sessão.
 const LEVEL_BATCH_SIZE = 20;
 
-export function useInfiniteModeSession(topic: string) {
+// { topic } é o modo por tópico de sempre; { review: true } é a fila de revisão do SRS
+// ("Revisar agora", TDD §10.3) — sem tópico único, cruza tudo que já foi praticado.
+export type InfiniteModeSessionParams = { topic: string } | { review: true };
+
+export function useInfiniteModeSession(params: InfiniteModeSessionParams) {
   const router = useRouter();
   const { updateGamification } = useAuth();
+  const isReview = "review" in params;
+  const topic = "topic" in params ? params.topic : "";
 
   const [sessionId, setSessionId] = useState<string | null>(null);
   const [question, setQuestion] = useState<InfiniteModeQuestion | null>(null);
@@ -44,7 +50,7 @@ export function useInfiniteModeSession(topic: string) {
   useEffect(() => {
     let cancelled = false;
     setSessionError(false);
-    startInfiniteModeSession(topic)
+    startInfiniteModeSession(isReview ? { review: true } : { topic })
       .then((session) => {
         if (cancelled) return;
         setSessionId(session.session_id);
@@ -54,7 +60,9 @@ export function useInfiniteModeSession(topic: string) {
       })
       .catch((err) => {
         if (cancelled) return;
-        if (err instanceof ApiError && err.error_code === "TOPIC_NOT_AVAILABLE") {
+        // REVIEW_QUEUE_EMPTY (fila de revisão vazia) reaproveita o mesmo estado "notAvailable" de
+        // TOPIC_NOT_AVAILABLE — as duas telas já tratam esse branch como "nada aqui agora".
+        if (err instanceof ApiError && (err.error_code === "TOPIC_NOT_AVAILABLE" || err.error_code === "REVIEW_QUEUE_EMPTY")) {
           setNotAvailable(true);
           return;
         }
@@ -63,7 +71,7 @@ export function useInfiniteModeSession(topic: string) {
     return () => {
       cancelled = true;
     };
-  }, [topic, sessionRetryToken]);
+  }, [isReview, topic, sessionRetryToken]);
 
   const retrySession = useCallback(() => setSessionRetryToken((t) => t + 1), []);
 
@@ -116,17 +124,21 @@ export function useInfiniteModeSession(topic: string) {
   const finishAndGoToSummary = useCallback(async () => {
     if (!sessionId) return;
     const end = await endInfiniteModeSession(sessionId);
-    const params = new URLSearchParams({
+    const summaryParams = new URLSearchParams({
       questions: String(end.questions_answered),
       correct: String(end.correct_count),
       accuracy: String(end.accuracy_rate),
       xp: String(end.xp_earned),
       avgTime: String(end.avg_time_ms),
-      topic,
       chest: String(lastResult?.daily_chest_available ?? false),
     });
-    router.push(`/infinito/${topic}/resumo?${params.toString()}`);
-  }, [sessionId, router, topic, lastResult]);
+    if (isReview) {
+      router.push(`/revisao/resumo?${summaryParams.toString()}`);
+      return;
+    }
+    summaryParams.set("topic", topic);
+    router.push(`/infinito/${topic}/resumo?${summaryParams.toString()}`);
+  }, [sessionId, router, topic, isReview, lastResult]);
 
   const giveUp = useCallback(() => {
     finishAndGoToSummary();

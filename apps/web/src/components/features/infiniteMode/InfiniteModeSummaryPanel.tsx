@@ -13,6 +13,10 @@ interface InfiniteModeSummaryPanelProps {
   xpEarned: number;
   avgTimeMs: number;
   chestAvailable?: boolean;
+  // subtitle (TDD §10.3): "Modo Infinito" por padrão; a fila de revisão do SRS ("Revisar agora")
+  // passa "Revisão" pra não chamar de "Modo Infinito" uma sessão que na verdade veio da fila de
+  // itens vencidos.
+  subtitle?: string;
 }
 
 export function InfiniteModeSummaryPanel({
@@ -22,6 +26,7 @@ export function InfiniteModeSummaryPanel({
   xpEarned,
   avgTimeMs,
   chestAvailable = false,
+  subtitle = "Modo Infinito",
 }: InfiniteModeSummaryPanelProps) {
   const router = useRouter();
   const title = accuracy >= 90 ? "Nota Máxima Alcançada!" : "Sessão Concluída!";
@@ -31,7 +36,7 @@ export function InfiniteModeSummaryPanel({
       <div className="w-full max-w-[28rem] bg-surface-bright border-2 border-outline-variant rounded-xl p-lg flex flex-col gap-lg text-center">
         <div>
           <h1 className="font-display text-display-lg font-bold text-primary">{title}</h1>
-          <p className="font-body-lg text-body-lg text-on-surface-variant mt-1">Modo Infinito</p>
+          <p className="font-body-lg text-body-lg text-on-surface-variant mt-1">{subtitle}</p>
         </div>
 
         <div className="grid grid-cols-3 gap-sm">

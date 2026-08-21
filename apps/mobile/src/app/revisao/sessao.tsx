@@ -1,5 +1,5 @@
 import { useEffect } from "react";
-import { useLocalSearchParams, useRouter } from "expo-router";
+import { useRouter } from "expo-router";
 import { ScrollView, StyleSheet, Text } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Button } from "@/components/ui/Button";
@@ -11,19 +11,19 @@ import { QuestionCard } from "@/components/features/quiz/QuestionCard";
 import { ErrorBanner } from "@/components/ui/ErrorBanner";
 import { LoadingBlueprint } from "@/components/ui/LoadingBlueprint";
 import { useToast } from "@/hooks/useToast";
-import { getThemeByTopic } from "@/lib/api/mocks/fixtures/themes";
 import { spacing, type } from "@/theme/tokens";
 import { useColors } from "@/theme/useColors";
 import type { ColorTokens } from "@/theme/tokens";
 
-// Espelha apps/web/src/app/(lesson)/infinito/[topic]/sessao/page.tsx.
-export default function InfiniteModeSessionScreen() {
+// Espelha apps/web/src/app/(lesson)/revisao/sessao/page.tsx — "Revisar agora" (TDD §10.3),
+// reaproveita o mesmo hook/loop de resposta do Modo Infinito (useInfiniteModeSession), só
+// trocando o parâmetro pra { review: true }. Sem [topic] na rota: a fila cruza todos os tópicos
+// já praticados, não é de um tema só.
+export default function ReviewSessionScreen() {
   const colors = useColors();
   const styles = createStyles(colors);
   const router = useRouter();
-  const { topic } = useLocalSearchParams<{ topic: string }>();
-  const infinite = useInfiniteModeSession({ topic });
-  const themeLabel = getThemeByTopic(topic).label;
+  const infinite = useInfiniteModeSession({ review: true });
   const { showToast } = useToast();
 
   useEffect(() => {
@@ -36,12 +36,10 @@ export default function InfiniteModeSessionScreen() {
   if (infinite.notAvailable) {
     return (
       <SafeAreaView style={styles.centerScreen} edges={["top"]}>
-        <Icon name="construction" size={48} color={colors.outline} />
-        <Text style={[type.headlineMd, styles.notAvailableTitle]}>
-          Modo Infinito de {themeLabel} ainda não está pronto
-        </Text>
+        <Icon name="taskAlt" size={48} color={colors.outline} />
+        <Text style={[type.headlineMd, styles.notAvailableTitle]}>Nada pra revisar agora</Text>
         <Text style={[type.bodyMd, styles.notAvailableCaption]}>
-          Estamos preparando as perguntas deste tema. Escolha outro tema ou tente de novo mais tarde.
+          Você está em dia com tudo que já praticou. Volte mais tarde ou pratique um tema novo.
         </Text>
         <Button variant="primary" onPress={() => router.push("/explorar")}>
           Voltar para Explorar
@@ -50,12 +48,11 @@ export default function InfiniteModeSessionScreen() {
     );
   }
 
-  // P1 do /impeccable critique (18/08/2026): mesmo achado do trilhas/.../sessao.tsx.
   if (infinite.sessionError) {
     return (
       <SafeAreaView style={styles.screen} edges={["top"]}>
         <ErrorBanner
-          message="Não foi possível carregar o Modo Infinito. Verifique sua conexão e tente novamente."
+          message="Não foi possível carregar a revisão. Verifique sua conexão e tente novamente."
           onRetry={infinite.retrySession}
         />
       </SafeAreaView>
@@ -63,13 +60,14 @@ export default function InfiniteModeSessionScreen() {
   }
 
   if (infinite.loading || !infinite.question) {
-    return <LoadingBlueprint variant="fullscreen" size={160} label="Carregando desafio…" />;
+    return <LoadingBlueprint variant="fullscreen" size={160} label="Carregando revisão…" />;
   }
 
   return (
     <SafeAreaView style={styles.screen} edges={["top"]}>
       <InfiniteModeHeader
-        topicLabel={themeLabel}
+        variant="review"
+        topicLabel=""
         current={infinite.levelProgress}
         total={infinite.levelProgressTotal}
         level={infinite.level}

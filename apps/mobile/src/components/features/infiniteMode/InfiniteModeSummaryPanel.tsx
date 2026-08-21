@@ -16,6 +16,10 @@ interface InfiniteModeSummaryPanelProps {
   xpEarned: number;
   avgTimeMs: number;
   chestAvailable?: boolean;
+  // subtitle (TDD §10.3): "Modo Infinito" por padrão; a fila de revisão do SRS ("Revisar agora")
+  // passa "Revisão" pra não chamar de "Modo Infinito" uma sessão que na verdade veio da fila de
+  // itens vencidos.
+  subtitle?: string;
 }
 
 // Espelha apps/web/src/components/features/infiniteMode/InfiniteModeSummaryPanel.tsx.
@@ -26,6 +30,7 @@ export function InfiniteModeSummaryPanel({
   xpEarned,
   avgTimeMs,
   chestAvailable = false,
+  subtitle = "Modo Infinito",
 }: InfiniteModeSummaryPanelProps) {
   const router = useRouter();
   const colors = useColors();
@@ -37,7 +42,7 @@ export function InfiniteModeSummaryPanel({
       <View style={styles.panel}>
         <View style={styles.header}>
           <Text style={[type.displayLg, styles.title]}>{title}</Text>
-          <Text style={[type.bodyLg, styles.subtitle]}>Modo Infinito</Text>
+          <Text style={[type.bodyLg, styles.subtitle]}>{subtitle}</Text>
         </View>
 
         <View style={styles.grid}>
