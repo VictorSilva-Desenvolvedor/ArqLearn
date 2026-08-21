@@ -11,6 +11,7 @@ import { ProfileMenuLink } from "@/components/features/profile/ProfileMenuLink";
 import { Avatar } from "@/components/ui/Avatar";
 import { Badge } from "@/components/ui/Badge";
 import { LogoutMenuLink } from "@/components/features/profile/LogoutMenuLink";
+import { COMPASSO_DOURADO_ID, SELO_MESTRE_ID } from "@/lib/api/mocks/fixtures/shopCatalog";
 
 const roleLabel: Record<string, string> = { teacher: "Professor", admin: "Administrador" };
 
@@ -48,6 +49,7 @@ export default async function ProfilePage() {
     getGamificationProfile(accessToken),
     getProgressSummary(accessToken),
   ]);
+  const ownedIds = new Set(gamification.cosmetics.map((c) => c.item_id));
 
   return (
     <div className="max-w-2xl mx-auto px-lg py-section flex flex-col gap-lg">
@@ -56,6 +58,8 @@ export default async function ProfilePage() {
         level={gamification.level}
         xpTotal={gamification.xp_total}
         vip={gamification.is_vip}
+        goldFrame={ownedIds.has(COMPASSO_DOURADO_ID)}
+        seloMestre={ownedIds.has(SELO_MESTRE_ID)}
       />
       <ProfileStatsGrid
         xpTotal={gamification.xp_total}

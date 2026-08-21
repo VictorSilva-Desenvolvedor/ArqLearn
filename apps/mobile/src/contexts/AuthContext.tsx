@@ -50,6 +50,7 @@ const emptyGamification: GamificationProfile = {
   hearts_next_at: null,
   gems: 0,
   league_tier: null,
+  cosmetics: [],
   is_vip: false,
   vip_expires_at: null,
 };

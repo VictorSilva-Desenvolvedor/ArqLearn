@@ -44,6 +44,42 @@ type achievementJSON struct {
 	UnlockedAt time.Time `json:"unlocked_at"`
 }
 
+// CosmeticJSON: item da loja category='cosmetic' que o usuário já possui (user_cosmetics,
+// migration 0015). Equipped sempre true por ora (ver comentário em handleShopPurchase) — o
+// campo já viaja no contrato pra não quebrar o cliente quando um toggle de equipar existir.
+// Exportado (não cosmeticJSON) porque internal/users.handleGetMe também precisa dele — mesmo
+// padrão de LoadHeartsWithRegen/LoadStreakWithExpiration/LoadLeagueTierName logo abaixo.
+type CosmeticJSON struct {
+	ItemID     string    `json:"item_id"`
+	Name       string    `json:"name"`
+	Equipped   bool      `json:"equipped"`
+	AcquiredAt time.Time `json:"acquired_at"`
+}
+
+// LoadOwnedCosmetics devolve os cosméticos que o usuário já possui (user_cosmetics join
+// shop_items), mais recentes primeiro. Chamada por GET /v1/gamification/me e GET /v1/users/me —
+// as duas rotas que hoje expõem o perfil de gamificação inteiro pro cliente.
+func LoadOwnedCosmetics(ctx context.Context, pool *pgxpool.Pool, userID string) ([]CosmeticJSON, error) {
+	rows, err := pool.Query(ctx, `
+		SELECT si.id, si.name, uc.equipped, uc.acquired_at
+		FROM user_cosmetics uc JOIN shop_items si ON si.id = uc.item_id
+		WHERE uc.user_id = $1 ORDER BY uc.acquired_at DESC
+	`, userID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	cosmetics := []CosmeticJSON{}
+	for rows.Next() {
+		var c CosmeticJSON
+		if err := rows.Scan(&c.ItemID, &c.Name, &c.Equipped, &c.AcquiredAt); err != nil {
+			return nil, err
+		}
+		cosmetics = append(cosmetics, c)
+	}
+	return cosmetics, rows.Err()
+}
+
 type gamificationMeResponse struct {
 	XPTotal                int `json:"xp_total"`
 	XPToday                int `json:"xp_today"`
@@ -60,6 +96,7 @@ type gamificationMeResponse struct {
 	Gems          int               `json:"gems"`
 	LeagueTier    *string           `json:"league_tier"`
 	Achievements  []achievementJSON `json:"achievements"`
+	Cosmetics     []CosmeticJSON    `json:"cosmetics"`
 	IsVIP         bool              `json:"is_vip"`
 	VIPExpiresAt  *time.Time        `json:"vip_expires_at"`
 }
@@ -216,6 +253,12 @@ func handleGetGamificationMe(pool *pgxpool.Pool) http.HandlerFunc {
 				return
 			}
 			resp.Achievements = append(resp.Achievements, a)
+		}
+
+		resp.Cosmetics, err = LoadOwnedCosmetics(r.Context(), pool, userID)
+		if err != nil {
+			apierror.Write(w, http.StatusInternalServerError, "INTERNAL_ERROR", "Falha ao consultar cosméticos.")
+			return
 		}
 
 		writeJSON(w, http.StatusOK, resp)
@@ -829,9 +872,19 @@ func handleShopPurchase(pool *pgxpool.Pool) http.HandlerFunc {
 			return
 		}
 
-		// Efeito de posse imediata pros itens consumíveis — cosméticos ainda não têm inventário
-		// (nenhuma tabela pra "o que o usuário possui" existe além do registro em `purchases`
-		// em si, que já serve de comprovante), fora de escopo por ora.
+		// Efeito de posse imediata: consumíveis mexem em user_gamification; cosméticos entram no
+		// inventário (user_cosmetics, migration 0015) já equipados — sem tela de "trocar
+		// equipado" ainda, então comprar = usar. ON CONFLICT DO NOTHING porque recomprar um
+		// cosmético já possuído (idempotência à parte, alguém pode clicar duas vezes rápido) não
+		// deve duplicar linha nem re-equipar o que já estava.
+		if category == "cosmetic" {
+			if _, err := tx.Exec(r.Context(),
+				`INSERT INTO user_cosmetics (user_id, item_id) VALUES ($1, $2) ON CONFLICT (user_id, item_id) DO NOTHING`,
+				userID, itemUUID); err != nil {
+				apierror.Write(w, http.StatusInternalServerError, "INTERNAL_ERROR", "Falha ao aplicar item.")
+				return
+			}
+		}
 		if category == "streak_freeze" {
 			if _, err := tx.Exec(r.Context(),
 				`UPDATE user_gamification SET streak_freezes_available = streak_freezes_available + 1 WHERE user_id = $1`,

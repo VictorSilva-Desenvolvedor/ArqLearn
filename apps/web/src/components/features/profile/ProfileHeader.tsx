@@ -12,6 +12,10 @@ interface ProfileHeaderProps {
   // VIP "Mestre Arquiteto" (a pedido do usuário): coroa ao lado do nome, nome em tom dourado e
   // selo abaixo do nível — modelado no mockup de Perfil VIP.
   vip?: boolean;
+  // Cosméticos da Loja (achado do porte de gamificação: comprar não tinha efeito visível antes
+  // disto) — independentes de VIP, cada um com seu próprio efeito.
+  goldFrame?: boolean; // Compasso Dourado: borda dourada no avatar
+  seloMestre?: boolean; // Selo de Mestre: distintivo abaixo do nível
 }
 
 // Barra de XP-do-nível existe no code.html de referência (perfil/code.html:152-157, tube fina
@@ -21,7 +25,7 @@ interface ProfileHeaderProps {
 // antes usava lib/api/mocks/fixtures/levelCurve.ts, uma curva de mock diferente (calibrada só pra
 // bater com um xp_total/level específico do fixture), que fazia essa barra ficar sempre cheia
 // com dado real (xpIntoLevel sempre > xpNeededForLevel).
-export function ProfileHeader({ name, level, xpTotal, vip = false }: ProfileHeaderProps) {
+export function ProfileHeader({ name, level, xpTotal, vip = false, goldFrame = false, seloMestre = false }: ProfileHeaderProps) {
   const currentLevelXp = xpMinimoDoNivel(level);
   const nextLevelXp = xpMinimoDoNivel(level + 1);
   const xpIntoLevel = Math.max(0, xpTotal - currentLevelXp);
@@ -29,7 +33,7 @@ export function ProfileHeader({ name, level, xpTotal, vip = false }: ProfileHead
 
   return (
     <div className="flex flex-col items-center text-center gap-sm">
-      <Avatar name={name} size={96} vip={vip} />
+      <Avatar name={name} size={96} vip={vip} goldFrame={goldFrame} />
       <div className="w-full max-w-[16rem] flex flex-col items-center gap-xs">
         <div className="flex items-center gap-xs">
           <h1 className={`font-display text-headline-md font-bold ${vip ? "text-secondary" : "text-on-surface"}`}>
@@ -41,6 +45,7 @@ export function ProfileHeader({ name, level, xpTotal, vip = false }: ProfileHead
           Nível {level} • {levelTitleFor(level)}
         </p>
         {vip && <Badge tone="gold">Mestre Arquiteto</Badge>}
+        {seloMestre && <Badge tone="tertiary">Selo de Mestre</Badge>}
         <ProgressBar
           value={xpIntoLevel}
           max={xpNeededForLevel}

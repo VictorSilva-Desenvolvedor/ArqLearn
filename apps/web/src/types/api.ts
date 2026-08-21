@@ -43,6 +43,16 @@ export type LeagueTier =
   | "diamante"
   | null;
 
+// Cosmético (category='cosmetic' na Loja) que o usuário já comprou (user_cosmetics,
+// migration 0015). equipped sempre true por ora — sem tela de "trocar equipado" ainda, comprar
+// já ativa o efeito (ver comentário em handleShopPurchase no backend).
+export interface OwnedCosmetic {
+  item_id: string;
+  name: string;
+  equipped: boolean;
+  acquired_at: string;
+}
+
 export interface GamificationProfile {
   xp_total: number;
   xp_today: number;
@@ -59,6 +69,7 @@ export interface GamificationProfile {
   hearts_next_at: string | null;
   gems: number;
   league_tier: LeagueTier;
+  cosmetics: OwnedCosmetic[];
   // VIP "Mestre Arquiteto" — já reflete a expiração (nunca true com vip_expires_at no passado).
   is_vip: boolean;
   vip_expires_at: string | null;
