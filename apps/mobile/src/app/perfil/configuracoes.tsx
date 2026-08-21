@@ -330,6 +330,16 @@ export default function ConfiguracoesScreen() {
           </View>
         </Card>
 
+        <Card padding="lg" radius="lg" style={styles.card}>
+          <Text style={[type.headlineMd, styles.cardTitle]}>Sessão</Text>
+          <Text style={[type.bodySm, styles.cardCaption]}>Sair da sua conta neste dispositivo.</Text>
+          <View style={styles.saveRow}>
+            <Button variant="ghost" onPress={handleLogoutNow}>
+              Sair da conta
+            </Button>
+          </View>
+        </Card>
+
         <Card padding="lg" radius="lg" style={[styles.card, styles.dangerCard]}>
           <Text style={[type.headlineMd, styles.dangerTitle]}>Zona de risco</Text>
           <Text style={[type.bodyMd, styles.dangerCaption]}>

@@ -94,7 +94,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       }
     }
 
-    supabase.auth.getSession().then(({ data }) => syncFromSession(data.session));
+    // .catch() defensivo (achado ao investigar tela de carregamento presa após "Limpar dados"
+    // do app em device real, 21/08/2026): se getSession() rejeitar em vez de resolver com
+    // {session: null, error} — storage nativo (Keystore/AsyncStorage) pode ficar num estado
+    // inconsistente logo depois de limpar dados, dependendo do fabricante/versão do Android —
+    // .then() sozinho nunca dispararia syncFromSession, e isResolved ficaria false pra sempre,
+    // travando o app na tela de carregamento antes mesmo do guard de rota decidir welcome/login.
+    supabase.auth
+      .getSession()
+      .then(({ data }) => syncFromSession(data.session))
+      .catch(() => syncFromSession(null));
     const {
       data: { subscription },
     } = supabase.auth.onAuthStateChange((_event, session) => {

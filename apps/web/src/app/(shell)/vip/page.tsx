@@ -91,12 +91,17 @@ export default function VipPage() {
   return (
     <div className="max-w-2xl mx-auto px-lg py-section flex flex-col gap-lg">
       <div className="flex flex-col items-center text-center gap-sm">
-        {/* rounded-xl (24px), não rounded-full — círculo cheio é a forma reservada pros nós do
-            mapa de lições; o resto do app usa 24px como o teto "hero" (botões). */}
-        <div className="w-16 h-16 rounded-xl bg-secondary text-on-secondary flex items-center justify-center">
+        {/* rounded-xl (24px), não rounded-full — círculo cheio é a forma reservada pra
+            indicadores de status/pill (Shapes, DESIGN.md); "Hero containers" usam raio grande
+            (Level 3), não círculo. Preenchimento pastel + anel (não mais bloco sólido) —
+            achado ao comparar com o tratamento "VIP" já estabelecido em Avatar/ProfileHeader
+            (borda dourada sobre fundo neutro), 21/08/2026. */}
+        <div className="w-16 h-16 rounded-xl bg-secondary-container text-on-secondary-container border-2 border-secondary flex items-center justify-center">
           <Icon name="crown" filled className="text-4xl" />
         </div>
-        <h1 className="font-display text-display-lg font-bold text-secondary">Mestre Arquiteto</h1>
+        {/* onSurface, não secondary — a cor de marca fica reservada pro badge/ícone/anel (mesmo
+            padrão de liga/ProfileHeader), não pro título "hero" inteiro. */}
+        <h1 className="font-display text-display-lg font-bold text-on-surface">Mestre Arquiteto</h1>
         <p className="font-body-lg text-body-lg text-on-surface-variant">
           Eleve sua jornada com baús garantidos, mais XP e um perfil de destaque.
         </p>

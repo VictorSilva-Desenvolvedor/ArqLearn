@@ -32,6 +32,15 @@ export function Modal({ open, onOpenChange, children, dismissible = true, radius
     <RNModal
       visible={open}
       transparent
+      // statusBarTranslucent/navigationBarTranslucent (achado ao investigar ThemeSelector não
+      // abrindo em device Android físico, 21/08/2026): o Modal nativo do RN, sem essas duas
+      // props, não renderiza de forma confiável em cima do conteúdo quando o edge-to-edge do
+      // Android está ativo — que é sempre, a partir do Expo SDK 54 (não é mais opcional, ver
+      // app.json). Sem isso, o modal ficava "aberto" no estado (visible=true) mas invisível na
+      // tela. Bug sistêmico, não específico do ThemeSelector — este componente é compartilhado
+      // por todo diálogo do app (StreakDialog, NoHeartsDialog, AllDonePrompt, etc.).
+      statusBarTranslucent
+      navigationBarTranslucent
       animationType={reduceMotion ? "none" : "fade"}
       onRequestClose={() => dismissible && onOpenChange(false)}
     >
