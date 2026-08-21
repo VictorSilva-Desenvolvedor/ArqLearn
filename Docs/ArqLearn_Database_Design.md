@@ -3,7 +3,7 @@
 
 Modelo de dados detalhado: esquema relacional, documentos, vetores, cache e estratégias de persistência.
 
-Versão 1.19 | Agosto de 2026
+Versão 1.21 | Agosto de 2026
 Documento complementar ao SAD e ao TDD do ArqLearn v1.0
 
 > **Sobre esta versão:** versão em Markdown, mantida como fonte da verdade a partir de agora (ver
@@ -34,9 +34,8 @@ Documento complementar ao SAD e ao TDD do ArqLearn v1.0
 | 1.17 | 18/08/2026 | Equipe de Engenharia / Dados | Adiciona a tabela `user_push_tokens` (§3.2 DDL, §3.3 dicionário, migrations/0012, a pedido do usuário) — infraestrutura de push notification real (API Spec §9 v1.21); um usuário pode ter várias linhas (vários devices), `token` é `UNIQUE` |
 | 1.18 | 18/08/2026 | Equipe de Engenharia / Dados | Adiciona a tabela `answer_submissions` (§3.2 DDL, §3.3 dicionário, migrations/0013) — achado em `/impeccable critique`: `POST .../answers` (lição e Modo Infinito) não tinham nenhuma proteção contra reprocessamento em retry, diferente de `purchases`. Mesmo padrão de `idempotency_key UNIQUE`, mas guardando o corpo da resposta 200 (`response` JSONB) pra devolver no replay, já que os efeitos colaterais (XP/vidas/streak/baú/conquista) precisam ser vistos como já processados, não como conflito (API Spec §6/§6.1/§2.6 v1.22) |
 | 1.19 | 20/08/2026 | Equipe de Engenharia / Dados | Adiciona a tabela `user_cosmetics` (§3.2 DDL, migrations/0015) — inventário de posse dos itens `category='cosmetic'` da Loja; achado do porte de gamificação (`Docs/ArqLearn_Backlog_Gamificacao_Atelie.md`): comprar um cosmético não tinha nenhum efeito/registro de posse antes disso |
-
-| 1.19 | 20/08/2026 | Equipe de Engenharia / Dados | §4.4.1: adiciona `combo_atual`/`combo_maximo` a `practice_sessions` (TDD §3.0.1) — bônus de combo substitui o antigo bônus de velocidade no cálculo de XP (achado do porte de gamificação, `Docs/ArqLearn_Backlog_Gamificacao_Atelie.md`: premiar velocidade cria incentivo a responder apressado). **Nota:** pode haver outra entrada 1.19 em paralelo neste changelog vinda de uma branch irmã (cosméticos/eventos) — renumerar ao integrar |
-=======
+| 1.20 | 20/08/2026 | Equipe de Engenharia / Dados | §3.4: `gamification_events` nunca recebeu nenhum `INSERT` desde a v1.0 — só tinha a partição de agosto/2026 (a de setembro quebraria em ~10 dias, achado do porte de gamificação, `Docs/ArqLearn_Backlog_Gamificacao_Atelie.md`). Migration 0016 cria set/out/nov como colchão; `cmd/ensure-event-partitions` (cron mensal) garante as próximas daqui pra frente — documentado abaixo. Tabela passa a ser escrita de verdade por `internal/gamification.RecordEvent` |
+| 1.21 | 20/08/2026 | Equipe de Engenharia / Dados | §4.4.1: adiciona `combo_atual`/`combo_maximo` a `practice_sessions` (TDD §3.0.1) — bônus de combo substitui o antigo bônus de velocidade no cálculo de XP (achado do porte de gamificação, `Docs/ArqLearn_Backlog_Gamificacao_Atelie.md`: premiar velocidade cria incentivo a responder apressado) |
 
 ---
 
@@ -349,7 +348,7 @@ CREATE INDEX idx_gamevents_user_time ON gamification_events(user_id, created_at 
   movidas para armazenamento frio (arquivamento) e removidas da instância operacional. Partições futuras
   são criadas por `cmd/ensure-event-partitions` (`.github/workflows/ensure-event-partitions.yml`, cron
   mensal, `CREATE TABLE IF NOT EXISTS` idempotente) — a tabela nasceu (v1.4/migrations/0001) só com a
-  partição do mês de criação, sem automação nenhuma até a migration 0016/v1.19.
+  partição do mês de criação, sem automação nenhuma até a migration 0016/v1.20.
 - Índice composto `(league_id, xp_this_week DESC)` em `league_members` para consultas de ranking com
   custo O(log n).
 - Índice parcial em `users(tenant_id)` filtrando `deleted_at IS NULL`, mantendo o índice compacto e
@@ -480,7 +479,7 @@ endpoints revelar a lacuna (a API Specification já citava `session_id`/`SESSION
 }
 ```
 
-`combo_atual`/`combo_maximo` *(v1.19)*: estado do bônus de combo (TDD §3.0.1) — `combo_atual` zera a
+`combo_atual`/`combo_maximo` *(v1.21)*: estado do bônus de combo (TDD §3.0.1) — `combo_atual` zera a
 cada resposta errada, `combo_maximo` guarda o pico da sessão e nunca decresce; é sobre ele que
 `calcularXP` (TDD §3) calcula o bônus, uma única vez, na última pergunta. Substitui o antigo bônus de
 velocidade por resposta individual.
