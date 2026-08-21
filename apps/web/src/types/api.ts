@@ -303,6 +303,9 @@ export interface InfiniteModeAnswerResult {
   correct: boolean;
   xp_ganho: number;
   xp_daily_cap_reached: boolean;
+  // Modo Infinito passa a contar pra sequência diária (TDD §5.1, revisado 21/08/2026 — antes
+  // não tocava streak nenhuma). API Spec v1.28.
+  streak_atual: number;
   questions_answered: number;
   correct_count: number;
   level: number;

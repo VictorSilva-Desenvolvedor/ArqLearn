@@ -3,7 +3,7 @@
 
 Especificação de referência dos endpoints REST expostos pelo API Gateway.
 
-Versão 1.27 | Agosto de 2026
+Versão 1.28 | Agosto de 2026
 Documento complementar ao SAD e ao TDD do ArqLearn v1.0
 
 > **Sobre esta versão:** versão em Markdown, mantida como fonte da verdade a partir de agora (ver
@@ -42,6 +42,7 @@ Documento complementar ao SAD e ao TDD do ArqLearn v1.0
 | 1.25 | 21/08/2026 | Equipe de Engenharia | §9: corrige o parágrafo do gatilho de streak em risco — `cmd/notify-decide` (substitui `cmd/notify-streak-risk`) roda de hora em hora implementando de fato a janela horária local que a TDD §5.2 já pedia, e a mensagem passa a ser escolhida entre 4 variações por um bandit de Thompson Sampling (TDD §11) em vez de um texto fixo único, respeitando cooldown de 3 dias e teto de 2 notificações/dia (`RX-05`). Sem endpoint novo — é lógica de job em segundo plano, mas o parágrafo antigo tinha virado factualmente incorreto. Implementado fora da ordem original de `Docs/ArqLearn_Backlog_Gamificacao_Atelie.md` (mesma decisão explícita do usuário da v1.24) |
 | 1.26 | 21/08/2026 | Equipe de Engenharia | §3.2/§8: `streak_freezes_available` passa a respeitar um teto escalonado (RS-03, TDD §5.5) — novo erro `STREAK_FREEZE_CAP_REACHED` (§12) em `POST /v1/gamification/shop/purchase`. §9: novo gatilho síncrono de reparo de streak (RS-08) — notificação `type: "streak_repaired"` quando uma sequência recém-perdida é restaurada dentro de 3 dias. Sem endpoint novo pro reparo em si (automático, dentro de `POST /v1/lessons/{lesson_id}/answers`). Implementado fora da ordem original de `Docs/ArqLearn_Backlog_Gamificacao_Atelie.md` (mesma decisão explícita do usuário das v1.22–v1.25) |
 | 1.27 | 21/08/2026 | Equipe de Engenharia | §3.2: adiciona `xp_boost_active`/`xp_boost_active_until` ao `GamificationProfile` — XP Boost, multiplicador temporário de 2x por 15min (TDD §3.3). §8.1/§8.2: `reward_type` do Baú Diário/Semanal ganha o valor `"xp_boost"` (com `xp_boost_active_until` na resposta). §6/§6.1: `POST .../answers` e `POST /v1/infinite-mode/{session_id}/answers` ganham `xp_boost_active` na resposta. Sem endpoint novo — concessão é automática via sorteio de baú. Implementado fora da ordem original de `Docs/ArqLearn_Backlog_Gamificacao_Atelie.md` (mesma decisão explícita do usuário das v1.22–v1.26) |
+| 1.28 | 21/08/2026 | Equipe de Engenharia | §6.1: `POST /v1/infinite-mode/sessions/{session_id}/answers` ganha `streak_atual` na resposta — Modo Infinito passa a contar pra sequência diária (TDD §5.1, revisado a pedido do usuário depois de um caso relatado: streak não subia porque a regra exigia terminar a lição inteira). `POST /v1/lessons/{lesson_id}/answers` (§6) mantém o campo já existente, só muda quando ele é atualizado — qualquer resposta certa, não mais só a conclusão da lição |
 
 ---
 
@@ -414,6 +415,7 @@ próxima questão do modo infinito. Requer cabeçalho `Idempotency-Key` *(v1.22 
   "xp_ganho": integer,
   "xp_daily_cap_reached": boolean,
   "xp_boost_active": boolean,
+  "streak_atual": integer,
   "questions_answered": integer,
   "correct_count": integer,
   "level": integer,
@@ -422,6 +424,9 @@ próxima questão do modo infinito. Requer cabeçalho `Idempotency-Key` *(v1.22 
   "daily_chest_questions": integer
 }
 ```
+`streak_atual` *(v1.28)* — Modo Infinito passa a contar pra sequência diária, igual a uma lição:
+qualquer resposta certa (aqui ou em `POST /v1/lessons/{lesson_id}/answers`, §6) avança a streak na
+primeira do dia local (TDD §5.1, revisado). Antes desta versão, Modo Infinito nunca tocava streak.
 `xp_boost_active` *(v1.27)* — mesmo campo/semântica de `POST /v1/lessons/{lesson_id}/answers` (§6,
 TDD §3.3); Modo Infinito recebe o boost igual à lição (mesma `CalcularXP`), mesmo continuando sem
 bônus de combo (TDD §3.0.1, farm-friendly por design). `next_question` ausente quando o banco de perguntas do tópico se esgota — cliente deve tratar como fim

@@ -22,7 +22,7 @@ export type InfiniteModeSessionParams = { topic: string } | { review: true };
 
 export function useInfiniteModeSession(params: InfiniteModeSessionParams) {
   const router = useRouter();
-  const { updateGamification } = useAuth();
+  const { gamification, updateGamification } = useAuth();
   const isReview = "review" in params;
   const topic = "topic" in params ? params.topic : "";
 
@@ -107,9 +107,15 @@ export function useInfiniteModeSession(params: InfiniteModeSessionParams) {
       );
       setLastResult(result);
       setRevealed(true);
-      if (result.xp_ganho > 0) {
-        updateGamification({});
-      }
+      // Modo Infinito agora também conta pra streak (TDD §5.1, revisado 21/08/2026 — antes não
+      // tocava streak nenhuma). xp_total/xp_today também entram aqui: o patch antes era `{}`
+      // (vazio, não atualizava nada de verdade) apesar do `if (xp_ganho > 0)` sugerir intenção
+      // de refletir o ganho — mesmo bug do useQuizSession.ts antes do fix de lá, corrigido junto.
+      updateGamification({
+        xp_total: gamification.xp_total + result.xp_ganho,
+        xp_today: gamification.xp_today + result.xp_ganho,
+        streak_current: result.streak_atual,
+      });
       if (result.level > levelRef.current) {
         levelRef.current = result.level;
         setLevelUpTo(result.level);

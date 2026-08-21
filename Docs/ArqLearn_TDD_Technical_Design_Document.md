@@ -1,7 +1,7 @@
 # DOCUMENTO TÉCNICO DE DESIGN (TDD)
 ## ArqLearn — Algoritmos de Negócio, Contratos de Evento e Fluxos de Sequência
 
-Versão 1.8 | Agosto de 2026
+Versão 1.9 | Agosto de 2026
 Documento complementar ao SAD, ao Database Design e à API Specification do ArqLearn v1.0
 
 > **Nota de nomenclatura:** existe também um `ArqLearn_Documento_Tecnico_Design.docx` na pasta `Docs/`,
@@ -24,6 +24,7 @@ Documento complementar ao SAD, ao Database Design e à API Specification do ArqL
 | 1.6 | 21/08/2026 | Equipe de Arquitetura/Engenharia | Novo §11 (Personalização de Notificações) — bandit de template (Thompson Sampling, Beta-Bernoulli) pro gatilho de streak em risco, implementado antecipadamente e fora da ordem original de `Docs/ArqLearn_Backlog_Gamificacao_Atelie.md` (mesmo precedente do §10). Corrige um gap que a própria §5.2 já pedia (job rodando de hora em hora, filtrando pela janela horária local) e nunca tinha sido construído. §11 (Glossário) renumerado para §12 |
 | 1.7 | 21/08/2026 | Equipe de Arquitetura/Engenharia | Novo §5.5 — teto escalonado de bloqueios de ofensiva (RS-03, fecha gap já documentado no backlog) e reparo de streak / grace window de 3 dias (RS-08, mecânica nova inspirada no Duolingo), ambos implementados antecipadamente e fora da ordem original do backlog (mesmo precedente de §10/§11). §5.3 ganha nota de implementação corrigindo a descrição de "job horário" pra "avaliação preguiçosa em dois pontos" (achado ao implementar o reparo — o gap não tinha sido percebido antes por não ter consequência visível até agora) |
 | 1.8 | 21/08/2026 | Equipe de Arquitetura/Engenharia | §3.3 ganha o XP Boost — multiplicador temporário de 2x por 15min, concedido via recompensa de Baú Diário/Semanal, empilhável com o multiplicador VIP num único arredondamento (mecânica nova inspirada no Duolingo, implementada antecipadamente e fora da ordem original do backlog, mesmo precedente de §5.5/§10/§11). Corrige a frase obsoleta do próprio §3.3 ("o teto diário continua 500 XP/dia para todo mundo, VIP ou não") — já falsa desde que §9 dobrou o teto pra VIP (19/08/2026), achado ao revisar este arquivo pra esta entrega |
+| 1.9 | 21/08/2026 | Equipe de Arquitetura/Engenharia | §5.1 revisado — streak avança em qualquer resposta certa (não só ao concluir a lição inteira pela primeira vez), e o Modo Infinito passa a contar também (antes não tocava streak) — decisão explícita do usuário, motivada por um caso real reportado ("respondi um item e a streak continuou em 0"). §5.5 atualizado pra refletir o novo gatilho no reparo de streak |
 
 ---
 
@@ -258,16 +259,27 @@ cron único em UTC, para respeitar "o streak só é incrementado uma vez por dia
 
 ### 5.1 Incremento (síncrono, não é job)
 
-Acontece dentro do handler de `POST /v1/lessons/{lesson_id}/answers` quando a resposta completa a
-**primeira** lição do dia local do usuário:
+**Revisão 21/08/2026 (decisão do usuário):** o gatilho deixou de ser "concluir a lição inteira pela
+primeira vez" — passa a ser **qualquer resposta certa**, em qualquer um dos dois modos de prática.
+Antes desta mudança, o incremento só acontecia em `isFirstCompletion` (última pergunta da sessão,
+primeira vez completando aquela lição) e o Modo Infinito nunca tocava streak; as duas restrições
+foram removidas.
+
+Acontece dentro do handler de `POST /v1/lessons/{lesson_id}/answers` **e** de
+`POST /v1/infinite-mode/sessions/{session_id}/answers`, sempre que a resposta é certa:
 
 ```
-se streak_last_active_date != hoje_local(user.timezone):
+se resposta correta E streak_last_active_date != hoje_local(user.timezone):
   streak_current += 1
   streak_best = max(streak_best, streak_current)
   streak_last_active_date = hoje_local(user.timezone)
   emite gamification.xp_awarded (se houver XP) e um evento interno de streak atualizado
 ```
+
+O `!=` na condição já torna o incremento **idempotente por dia**: a primeira resposta certa do dia
+local avança a streak; qualquer resposta certa seguinte no mesmo dia (na mesma lição, em outra
+lição, ou no Modo Infinito) só reconfirma o estado atual, sem incrementar de novo — não precisa de
+lock nem de contador auxiliar pra evitar streak em dobro no mesmo dia.
 
 ### 5.2 Job de risco (assíncrono, horário fixo local)
 
@@ -397,8 +409,8 @@ recompensa (fora de proporção nesta entrega).
 
 Quando a expiração zera `streak_current` (§5.3) **sem** freeze disponível pra evitar
 automaticamente, o valor perdido e um prazo de 3 dias ficam guardados
-(`streak_repair_value`/`streak_repair_deadline`, Database Design §3.2). Se a próxima lição
-concluída (`isFirstCompletion`, §5.1) acontecer dentro do prazo, a streak é restaurada (valor
+(`streak_repair_value`/`streak_repair_deadline`, Database Design §3.2). Se a próxima resposta
+certa (§5.1 — lição ou Modo Infinito) acontecer dentro do prazo, a streak é restaurada (valor
 perdido + 1, pelo dia de hoje) em vez de reiniciar do zero; fora do prazo, reinicia normalmente. É
 gratuito e automático — sem endpoint, sem confirmação — mesma filosofia lazy de todo o resto desta
 seção. Freeze continua sendo a proteção proativa/paga; reparo é uma segunda chance única de
