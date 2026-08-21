@@ -35,6 +35,14 @@ const (
 	EventXPCreditado      EventType = "xp_creditado"
 	EventGrafiteConsumido EventType = "grafite_consumido"
 	EventGrafiteEsgotado  EventType = "grafite_esgotado"
+	// EventStreakFreezeConsumed/EventStreakReset: identificadores em inglês (fora do padrão em
+	// português do resto do bloco) de propósito — os literais já são pinados pelo TDD §5.3 em
+	// inglês; um identificador Go em português apontando pra um valor em inglês seria um
+	// descompasso mais confuso do que a inconsistência de idioma em si.
+	EventStreakFreezeConsumed EventType = "streak_freeze_consumed"
+	EventStreakReset          EventType = "streak_reset"
+	// EventStreakRepaired: novo (RS-08, TDD §5.5) — fecha o par reset→reparado na mesma telemetria.
+	EventStreakRepaired EventType = "streak_repaired"
 )
 
 // RecordEvent grava uma linha em gamification_events. Best-effort e nunca bloqueia o caller —

@@ -145,15 +145,25 @@ type StreakSnapshot struct {
 // só quando algo de fato mudou, mesmo padrão de LoadHeartsWithRegen. Chamada por toda rota que lê
 // gamificação (GET /v1/gamification/me, GET /v1/users/me) e por POST .../answers antes de
 // AtualizarStreak, pra nenhuma delas incrementar um streak_current que já deveria ter expirado.
+//
+// Esta é uma das DUAS chamadas independentes de AplicarExpiracaoStreak no código (a outra é em
+// internal/learning/answers.go) — cada uma com sua própria leitura/escrita, não um caminho
+// compartilhado. Por isso o reparo de streak (RS-08, TDD §5.5) precisa ser preparado aqui também:
+// um usuário que abre o app (GET, não resposta de lição) depois da streak já ter estourado teria a
+// streak zerada por esta função sem nenhum registro de reparo, se só answers.go soubesse fazer
+// isso — GET /me é quase sempre a primeira chamada de qualquer sessão de uso.
 func LoadStreakWithExpiration(ctx context.Context, pool *pgxpool.Pool, userID string) (StreakSnapshot, error) {
 	var current, best, freezesAvailable int
 	var lastActiveDate *time.Time
 	var timezone string
+	var repairValue *int
+	var repairDeadline *time.Time
 	if err := pool.QueryRow(ctx, `
-		SELECT g.streak_current, g.streak_best, g.streak_last_active_date, g.streak_freezes_available, u.timezone
+		SELECT g.streak_current, g.streak_best, g.streak_last_active_date, g.streak_freezes_available,
+		       g.streak_repair_value, g.streak_repair_deadline, u.timezone
 		FROM user_gamification g JOIN users u ON u.id = g.user_id
 		WHERE g.user_id = $1
-	`, userID).Scan(&current, &best, &lastActiveDate, &freezesAvailable, &timezone); err != nil {
+	`, userID).Scan(&current, &best, &lastActiveDate, &freezesAvailable, &repairValue, &repairDeadline, &timezone); err != nil {
 		return StreakSnapshot{}, err
 	}
 
@@ -163,16 +173,33 @@ func LoadStreakWithExpiration(ctx context.Context, pool *pgxpool.Pool, userID st
 	}
 	hojeLocal := HojeLocal(timezone, time.Now())
 
-	novoCurrent, novaLastActiveStr, novosFreezes, _ := AplicarExpiracaoStreak(current, lastActiveStr, freezesAvailable, hojeLocal)
+	currentAntesDaExpiracao := current
+	novoCurrent, novaLastActiveStr, novosFreezes, expirou := AplicarExpiracaoStreak(current, lastActiveStr, freezesAvailable, hojeLocal)
 	if novoCurrent != current || novosFreezes != freezesAvailable || novaLastActiveStr != lastActiveStr {
 		var novaLastActiveParam any
 		if novaLastActiveStr != "" {
 			d, _ := time.Parse("2006-01-02", novaLastActiveStr)
 			novaLastActiveParam = d
 		}
+
+		var novoRepairValueParam, novoRepairDeadlineParam any
+		if repairValue != nil {
+			novoRepairValueParam, novoRepairDeadlineParam = *repairValue, *repairDeadline
+		}
+		if expirou && currentAntesDaExpiracao > 0 {
+			rv, rd := PrepararReparoStreak(currentAntesDaExpiracao, hojeLocal)
+			novoRepairValueParam = rv
+			d, _ := time.Parse("2006-01-02", rd)
+			novoRepairDeadlineParam = d
+			RecordEvent(ctx, pool, userID, EventStreakReset, &currentAntesDaExpiracao, map[string]any{"schema_version": 1})
+		} else if novosFreezes < freezesAvailable {
+			RecordEvent(ctx, pool, userID, EventStreakFreezeConsumed, nil, map[string]any{"schema_version": 1})
+		}
+
 		if _, err := pool.Exec(ctx,
-			`UPDATE user_gamification SET streak_current = $1, streak_freezes_available = $2, streak_last_active_date = $3 WHERE user_id = $4`,
-			novoCurrent, novosFreezes, novaLastActiveParam, userID,
+			`UPDATE user_gamification SET streak_current = $1, streak_freezes_available = $2, streak_last_active_date = $3,
+			   streak_repair_value = $4, streak_repair_deadline = $5 WHERE user_id = $6`,
+			novoCurrent, novosFreezes, novaLastActiveParam, novoRepairValueParam, novoRepairDeadlineParam, userID,
 		); err != nil {
 			return StreakSnapshot{}, err
 		}
@@ -851,6 +878,22 @@ func handleShopPurchase(pool *pgxpool.Pool) http.HandlerFunc {
 			return
 		}
 
+		// Teto de bloqueios de ofensiva (RS-03, TDD §5.5) — checado ANTES de debitar gemas: sem
+		// isso, o usuário pagaria por um freeze que não seria creditado.
+		if category == "streak_freeze" {
+			var streakFreezesAvailable, streakBest int
+			if err := pool.QueryRow(r.Context(),
+				`SELECT streak_freezes_available, streak_best FROM user_gamification WHERE user_id = $1`, userID,
+			).Scan(&streakFreezesAvailable, &streakBest); err != nil {
+				apierror.Write(w, http.StatusInternalServerError, "INTERNAL_ERROR", "Falha ao consultar perfil.")
+				return
+			}
+			if streakFreezesAvailable >= CapDeFreezes(streakBest) {
+				apierror.Write(w, http.StatusConflict, "STREAK_FREEZE_CAP_REACHED", "Você já está no teto de bloqueios de ofensiva.")
+				return
+			}
+		}
+
 		tx, err := pool.Begin(r.Context())
 		if err != nil {
 			apierror.Write(w, http.StatusInternalServerError, "INTERNAL_ERROR", "Falha ao iniciar compra.")
@@ -886,10 +929,26 @@ func handleShopPurchase(pool *pgxpool.Pool) http.HandlerFunc {
 			}
 		}
 		if category == "streak_freeze" {
-			if _, err := tx.Exec(r.Context(),
-				`UPDATE user_gamification SET streak_freezes_available = streak_freezes_available + 1 WHERE user_id = $1`,
-				userID); err != nil {
+			// Re-checa o teto dentro da própria transação (defesa contra corrida entre a checagem
+			// acima e este UPDATE — duas compras quase simultâneas) — 0 linhas afetadas aqui, com
+			// o Rollback deferido, desfaz também o débito de gemas já feito acima nesta mesma tx.
+			var streakBest int
+			if err := tx.QueryRow(r.Context(),
+				`SELECT streak_best FROM user_gamification WHERE user_id = $1`, userID,
+			).Scan(&streakBest); err != nil {
+				apierror.Write(w, http.StatusInternalServerError, "INTERNAL_ERROR", "Falha ao consultar perfil.")
+				return
+			}
+			tag, err := tx.Exec(r.Context(),
+				`UPDATE user_gamification SET streak_freezes_available = streak_freezes_available + 1
+				 WHERE user_id = $1 AND streak_freezes_available < $2`,
+				userID, CapDeFreezes(streakBest))
+			if err != nil {
 				apierror.Write(w, http.StatusInternalServerError, "INTERNAL_ERROR", "Falha ao aplicar item.")
+				return
+			}
+			if tag.RowsAffected() == 0 {
+				apierror.Write(w, http.StatusConflict, "STREAK_FREEZE_CAP_REACHED", "Você já está no teto de bloqueios de ofensiva.")
 				return
 			}
 		}
@@ -1079,13 +1138,15 @@ func handleOpenDailyChest(pool *pgxpool.Pool) http.HandlerFunc {
 
 		var isVip bool
 		var vipExpiresAt *time.Time
+		var streakBest int
 		if err := pool.QueryRow(r.Context(),
-			`SELECT is_vip, vip_expires_at FROM user_gamification WHERE user_id = $1`, userID,
-		).Scan(&isVip, &vipExpiresAt); err != nil {
+			`SELECT is_vip, vip_expires_at, streak_best FROM user_gamification WHERE user_id = $1`, userID,
+		).Scan(&isVip, &vipExpiresAt, &streakBest); err != nil {
 			apierror.Write(w, http.StatusInternalServerError, "INTERNAL_ERROR", "Falha ao consultar perfil VIP.")
 			return
 		}
 		vipAtivo := EhVIPAtivo(isVip, vipExpiresAt, time.Now().UTC())
+		freezeCap := CapDeFreezes(streakBest)
 
 		reward := RolarRecompensaBau(rand.Float64(), rand.Float64())
 		// VIPGemsMultiplier (a pedido do usuário, 19/08/2026): dobra gemas do Baú Diário pra VIP.
@@ -1108,9 +1169,15 @@ func handleOpenDailyChest(pool *pgxpool.Pool) http.HandlerFunc {
 				reward.GemsAmount, hojeLocalDate, userID,
 			).Scan(&newGems)
 		case ChestRewardStreakFreeze:
-			err = tx.QueryRow(r.Context(),
-				`UPDATE user_gamification SET streak_freezes_available = streak_freezes_available + 1, chest_claimed_date = $1 WHERE user_id = $2 RETURNING gems`,
-				hojeLocalDate, userID,
+			// Respeita o teto RS-03: se já está no teto, o baú credita 0 (recompensa "some" — sem
+			// substituição por outra recompensa, decisão deliberada, ver TDD §5.5), nunca reduz
+			// quem já tinha mais freezes que o teto atual (CASE WHEN, não LEAST).
+			err = tx.QueryRow(r.Context(), `
+				UPDATE user_gamification SET
+				  streak_freezes_available = CASE WHEN streak_freezes_available < $1 THEN streak_freezes_available + 1 ELSE streak_freezes_available END,
+				  chest_claimed_date = $2
+				WHERE user_id = $3 RETURNING gems`,
+				freezeCap, hojeLocalDate, userID,
 			).Scan(&newGems)
 		case ChestRewardHeartsRefill:
 			// hearts_updated_at = agora, mesmo raciocínio de handleShopPurchase (equivalente a já
@@ -1247,9 +1314,10 @@ func handleOpenWeeklyChest(pool *pgxpool.Pool) http.HandlerFunc {
 		var cycleStart *time.Time
 		var isVip bool
 		var vipExpiresAt *time.Time
+		var streakBest int
 		if err := pool.QueryRow(r.Context(),
-			`SELECT chest_weekly_cycle_start, is_vip, vip_expires_at FROM user_gamification WHERE user_id = $1`, userID,
-		).Scan(&cycleStart, &isVip, &vipExpiresAt); err != nil {
+			`SELECT chest_weekly_cycle_start, is_vip, vip_expires_at, streak_best FROM user_gamification WHERE user_id = $1`, userID,
+		).Scan(&cycleStart, &isVip, &vipExpiresAt, &streakBest); err != nil {
 			apierror.Write(w, http.StatusInternalServerError, "INTERNAL_ERROR", "Falha ao consultar ciclo semanal.")
 			return
 		}
@@ -1257,6 +1325,7 @@ func handleOpenWeeklyChest(pool *pgxpool.Pool) http.HandlerFunc {
 			apierror.Write(w, http.StatusInternalServerError, "INTERNAL_ERROR", "Ciclo semanal inconsistente.")
 			return
 		}
+		freezeCap := CapDeFreezes(streakBest)
 
 		reward := RolarRecompensaBauSemanal(rand.Float64(), rand.Float64())
 		// Benefício VIP (a pedido do usuário): Baú Semanal do VIP não é sorteado — vem sempre com
@@ -1281,9 +1350,16 @@ func handleOpenWeeklyChest(pool *pgxpool.Pool) http.HandlerFunc {
 				reward.GemsAmount, cycleStart, userID,
 			).Scan(&newGems)
 		case ChestRewardStreakFreeze:
-			err = tx.QueryRow(r.Context(),
-				`UPDATE user_gamification SET streak_freezes_available = streak_freezes_available + 1, chest_weekly_claimed_cycle_start = $1 WHERE user_id = $2 RETURNING gems`,
-				cycleStart, userID,
+			// Mesmo raciocínio do baú diário: respeita o teto RS-03 sem confiscar quem já tinha
+			// mais freezes que o teto atual (CASE WHEN, não LEAST). Pro VIP com recompensa
+			// garantida (acima), no teto isso vira um no-op silencioso — documentado no TDD §5.5,
+			// não corrigido com substituição de recompensa (fora de proporção pra esta entrega).
+			err = tx.QueryRow(r.Context(), `
+				UPDATE user_gamification SET
+				  streak_freezes_available = CASE WHEN streak_freezes_available < $1 THEN streak_freezes_available + 1 ELSE streak_freezes_available END,
+				  chest_weekly_claimed_cycle_start = $2
+				WHERE user_id = $3 RETURNING gems`,
+				freezeCap, cycleStart, userID,
 			).Scan(&newGems)
 		case ChestRewardHeartsRefill:
 			err = tx.QueryRow(r.Context(),
