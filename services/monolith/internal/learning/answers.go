@@ -246,14 +246,20 @@ func handleSubmitAnswer(pool *pgxpool.Pool, mongoDB *mongo.Database) http.Handle
 		streakCurrent, novaLastActiveStr, streakFreezesAvailable, expirou = gamification.AplicarExpiracaoStreak(
 			streakCurrent, dateOrEmpty(streakLastActiveDate), streakFreezesAvailable, hojeLocal)
 
+		// Streak avança a cada resposta CERTA, não só ao concluir a lição inteira (decisão do
+		// usuário, 21/08/2026 — revisão de RS-02: "a streak pode ser feita quando uma pergunta é
+		// acertada"). AtualizarStreak já é idempotente por dia (só incrementa 1x mesmo chamada
+		// várias vezes no mesmo hojeLocal), então não há risco de dar streak em dobro por acertar
+		// várias perguntas seguidas no mesmo dia.
+		//
 		// Reparo de streak (RS-08, TDD §5.5): só prepara reparo se a streak expirou SEM que o
-		// usuário já esteja retomando a prática agora mesmo (isFirstCompletion nesta mesma
+		// usuário já esteja retomando a prática agora mesmo (resposta certa nesta mesma
 		// requisição) — nesse caso ele já reinicia a streak em 1 pelo caminho normal logo abaixo,
 		// sem necessidade de um reparo pendente (evitaria um salto indevido de streak numa
-		// conclusão futura, ignorando o progresso orgânico feito nesse meio tempo).
+		// resposta futura, ignorando o progresso orgânico feito nesse meio tempo).
 		streakJustReset := expirou && streakBeforeExpiry > 0
 		freezeJustConsumed := !expirou && streakFreezesAvailable < freezesBeforeExpiry
-		if streakJustReset && !isFirstCompletion {
+		if streakJustReset && !correct {
 			rv, rd := gamification.PrepararReparoStreak(streakBeforeExpiry, hojeLocal)
 			deadline, _ := time.Parse("2006-01-02", rd)
 			streakRepairValue = &rv
@@ -262,7 +268,7 @@ func handleSubmitAnswer(pool *pgxpool.Pool, mongoDB *mongo.Database) http.Handle
 
 		streak := gamification.StreakState{Current: streakCurrent, Best: streakBest, LastActiveDate: novaLastActiveStr}
 		var streakRepaired bool
-		if isFirstCompletion {
+		if correct {
 			if streakRepairValue != nil && streakRepairDeadline != nil {
 				deadlineStr := streakRepairDeadline.Format("2006-01-02")
 				if novoStreak, reparado := gamification.AplicarReparoStreak(streak, *streakRepairValue, deadlineStr, hojeLocal); reparado {
