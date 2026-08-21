@@ -163,6 +163,64 @@ func NextReviewAt(now time.Time, intervalDays int) time.Time {
 	return now.AddDate(0, 0, intervalDays)
 }
 
+// DifficultyOrder ordena as 4 dificuldades de fácil pra difícil — reutilizado tanto pra reordenar
+// perguntas dentro de uma sessão de lição (session.go) quanto lições dentro de uma unidade
+// (learning.go). Única fonte das 4 chaves de dificuldade nesse sentido, ao lado de
+// basePorDificuldade/limiarVelocidadeMs acima.
+var DifficultyOrder = map[string]int{"easy": 0, "medium": 1, "hard": 2, "impossible": 3}
+
+// difficultyLogit mapeia cada dificuldade pro parâmetro "b" (dificuldade do item) da escala
+// logística usada em ProbabilidadeAcerto/AtualizarHabilidade (TDD §10) — mesma unidade de
+// skill_score, então P(acerto) = 1/(1+exp(-(skill-b))) fica direto comparável entre as duas.
+// Global (não por tópico): assume que a rubrica da IA (Persona Prompt §4.5) calibra igual em
+// todo tópico/lote de geração — sem recalibração por item (ver AtualizarHabilidade), não há como
+// detectar se essa suposição for falsa. Trade-off aceito dado o tamanho real da base de usuários
+// (ver TDD §10).
+var difficultyLogit = map[string]float64{"easy": -1.5, "medium": -0.5, "hard": 0.5, "impossible": 1.5}
+
+// SkillKProvisional/SkillKEstablished são o "K-factor" da atualização tipo Elo/IRT de 1 parâmetro
+// (TDD §10) — provisório (K maior, convergência rápida) nas primeiras SkillProvisionalThreshold
+// respostas do usuário naquele tópico, estabelecido (K menor, mais estável) depois.
+const SkillKProvisional = 0.6
+const SkillKEstablished = 0.2
+const SkillProvisionalThreshold = 10
+
+// SkillMin/SkillMax travam skill_score bem fora da faixa de difficultyLogit (±1.5) — sem isso,
+// um tópico cujo pool curado for majoritariamente "easy" deixaria a habilidade subir sem limite
+// (todo acerto em item fácil sempre gera um resíduo positivo, por menor que seja, já que nunca
+// atinge P=1 de verdade). Mesmo espírito do piso de EaseFactor em AtualizarSRS (max(1.3, ...)).
+const SkillMin = -6.0
+const SkillMax = 6.0
+
+// ProbabilidadeAcerto é a probabilidade esperada de acerto num item de determinada dificuldade,
+// dada a habilidade atual — modelo logístico de 1 parâmetro (tipo Rasch/IRT simplificado, TDD
+// §10): a dificuldade do item fica fixa (ancorada no rótulo já atribuído pela IA), só a
+// habilidade do usuário se move. Elo mútuo de verdade (item também se recalibrando por resposta)
+// foi descartado deliberadamente: com a base de usuários da fase bootstrap, cada pergunta recebe
+// respostas demais poucas pra convergir — deixaria a dificuldade do item ruidosa em vez de mais
+// precisa.
+func ProbabilidadeAcerto(skill float64, difficulty string) float64 {
+	return 1 / (1 + math.Exp(-(skill - difficultyLogit[difficulty])))
+}
+
+// AtualizarHabilidade aplica a atualização tipo Elo/IRT (TDD §10) depois de uma resposta do Modo
+// Infinito: skill sobe quando o resultado supera a probabilidade esperada, desce quando fica
+// abaixo — nunca ultrapassa SkillMin/SkillMax. respostasNoTopico é a contagem ANTES desta
+// resposta (0..9 usa K provisório, 10+ usa K estabelecido — não a contagem já incrementada).
+func AtualizarHabilidade(skillAtual float64, respostasNoTopico int, difficulty string, correct bool) float64 {
+	p := ProbabilidadeAcerto(skillAtual, difficulty)
+	resultado := 0.0
+	if correct {
+		resultado = 1.0
+	}
+	k := SkillKEstablished
+	if respostasNoTopico < SkillProvisionalThreshold {
+		k = SkillKProvisional
+	}
+	novo := skillAtual + k*(resultado-p)
+	return max(SkillMin, min(SkillMax, novo))
+}
+
 // StreakState espelha os campos de streak de user_gamification (Database Design §3.2).
 type StreakState struct {
 	Current        int

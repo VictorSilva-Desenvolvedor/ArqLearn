@@ -1,6 +1,7 @@
 package gamification
 
 import (
+	"math"
 	"testing"
 	"time"
 )
@@ -188,6 +189,93 @@ func TestAtualizarSRS_EaseFactorNuncaAbaixoDoPiso(t *testing.T) {
 	if next.EaseFactor != 1.3 {
 		t.Errorf("EaseFactor = %.2f, esperado piso de 1.3", next.EaseFactor)
 	}
+}
+
+func TestProbabilidadeAcerto(t *testing.T) {
+	casos := []struct {
+		nome       string
+		skill      float64
+		difficulty string
+		want       float64
+	}{
+		{"skill=0 contra easy (b=-1.5): P alta", 0, "easy", 1 / (1 + math.Exp(-1.5))},
+		{"skill=0 contra medium (b=-0.5): P>0.5", 0, "medium", 1 / (1 + math.Exp(-0.5))},
+		{"skill=0 contra hard (b=0.5): P<0.5", 0, "hard", 1 / (1 + math.Exp(0.5))},
+		{"skill=0 contra impossible (b=1.5): P baixa", 0, "impossible", 1 / (1 + math.Exp(1.5))},
+		{"skill exatamente na dificuldade do item: P=0.5", 0.5, "hard", 0.5},
+	}
+	for _, c := range casos {
+		t.Run(c.nome, func(t *testing.T) {
+			got := ProbabilidadeAcerto(c.skill, c.difficulty)
+			if math.Abs(got-c.want) > 1e-9 {
+				t.Errorf("ProbabilidadeAcerto(%v, %q) = %v, esperado %v", c.skill, c.difficulty, got, c.want)
+			}
+		})
+	}
+}
+
+func TestAtualizarHabilidade_DirecaoDoAjuste(t *testing.T) {
+	t.Run("acerto em item mais difícil que a habilidade atual: sobe", func(t *testing.T) {
+		got := AtualizarHabilidade(0, 20, "hard", true)
+		if got <= 0 {
+			t.Errorf("AtualizarHabilidade = %v, esperado subir acima de 0 após acerto", got)
+		}
+	})
+	t.Run("erro em item mais fácil que a habilidade atual: desce", func(t *testing.T) {
+		got := AtualizarHabilidade(0, 20, "easy", false)
+		if got >= 0 {
+			t.Errorf("AtualizarHabilidade = %v, esperado cair abaixo de 0 após erro", got)
+		}
+	})
+	t.Run("acerto exatamente no ponto de 50% (skill == dificuldade do item): ajuste = K/2", func(t *testing.T) {
+		got := AtualizarHabilidade(0.5, 20, "hard", true)
+		esperado := 0.5 + SkillKEstablished*0.5
+		if math.Abs(got-esperado) > 1e-9 {
+			t.Errorf("AtualizarHabilidade = %v, esperado %v", got, esperado)
+		}
+	})
+}
+
+func TestAtualizarHabilidade_FronteiraDoKProvisorio(t *testing.T) {
+	// respostasNoTopico é a contagem ANTES desta resposta: 9 ainda usa K provisório, 10 já usa
+	// K estabelecido.
+	t.Run("respostasNoTopico=9 usa K provisório", func(t *testing.T) {
+		got := AtualizarHabilidade(0, 9, "medium", true)
+		p := ProbabilidadeAcerto(0, "medium")
+		esperado := 0 + SkillKProvisional*(1-p)
+		if math.Abs(got-esperado) > 1e-9 {
+			t.Errorf("AtualizarHabilidade = %v, esperado %v (K provisório)", got, esperado)
+		}
+	})
+	t.Run("respostasNoTopico=10 já usa K estabelecido", func(t *testing.T) {
+		got := AtualizarHabilidade(0, 10, "medium", true)
+		p := ProbabilidadeAcerto(0, "medium")
+		esperado := 0 + SkillKEstablished*(1-p)
+		if math.Abs(got-esperado) > 1e-9 {
+			t.Errorf("AtualizarHabilidade = %v, esperado %v (K estabelecido)", got, esperado)
+		}
+	})
+}
+
+func TestAtualizarHabilidade_NuncaUltrapassaOsLimites(t *testing.T) {
+	t.Run("acertos repetidos em item fácil não ultrapassam SkillMax", func(t *testing.T) {
+		skill := 0.0
+		for i := 0; i < 10000; i++ {
+			skill = AtualizarHabilidade(skill, 100, "easy", true)
+		}
+		if skill > SkillMax {
+			t.Errorf("skill = %v, nunca deveria ultrapassar SkillMax (%v)", skill, SkillMax)
+		}
+	})
+	t.Run("erros repetidos em item difícil não ultrapassam SkillMin", func(t *testing.T) {
+		skill := 0.0
+		for i := 0; i < 10000; i++ {
+			skill = AtualizarHabilidade(skill, 100, "impossible", false)
+		}
+		if skill < SkillMin {
+			t.Errorf("skill = %v, nunca deveria ultrapassar SkillMin (%v)", skill, SkillMin)
+		}
+	})
 }
 
 func TestAtualizarStreak_DiaNovo(t *testing.T) {

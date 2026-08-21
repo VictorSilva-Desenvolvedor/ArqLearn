@@ -3,7 +3,7 @@
 
 Modelo de dados detalhado: esquema relacional, documentos, vetores, cache e estratégias de persistência.
 
-Versão 1.21 | Agosto de 2026
+Versão 1.22 | Agosto de 2026
 Documento complementar ao SAD e ao TDD do ArqLearn v1.0
 
 > **Sobre esta versão:** versão em Markdown, mantida como fonte da verdade a partir de agora (ver
@@ -36,6 +36,7 @@ Documento complementar ao SAD e ao TDD do ArqLearn v1.0
 | 1.19 | 20/08/2026 | Equipe de Engenharia / Dados | Adiciona a tabela `user_cosmetics` (§3.2 DDL, migrations/0015) — inventário de posse dos itens `category='cosmetic'` da Loja; achado do porte de gamificação (`Docs/ArqLearn_Backlog_Gamificacao_Atelie.md`): comprar um cosmético não tinha nenhum efeito/registro de posse antes disso |
 | 1.20 | 20/08/2026 | Equipe de Engenharia / Dados | §3.4: `gamification_events` nunca recebeu nenhum `INSERT` desde a v1.0 — só tinha a partição de agosto/2026 (a de setembro quebraria em ~10 dias, achado do porte de gamificação, `Docs/ArqLearn_Backlog_Gamificacao_Atelie.md`). Migration 0016 cria set/out/nov como colchão; `cmd/ensure-event-partitions` (cron mensal) garante as próximas daqui pra frente — documentado abaixo. Tabela passa a ser escrita de verdade por `internal/gamification.RecordEvent` |
 | 1.21 | 20/08/2026 | Equipe de Engenharia / Dados | §4.4.1: adiciona `combo_atual`/`combo_maximo` a `practice_sessions` (TDD §3.0.1) — bônus de combo substitui o antigo bônus de velocidade no cálculo de XP (achado do porte de gamificação, `Docs/ArqLearn_Backlog_Gamificacao_Atelie.md`: premiar velocidade cria incentivo a responder apressado) |
+| 1.22 | 21/08/2026 | Equipe de Engenharia / Dados | Adiciona a tabela `user_topic_skill` (§3.2 DDL, §3.3 dicionário, migrations/0017) — habilidade adaptativa por tópico (TDD §10), usada pelo Modo Infinito pra escolher a próxima pergunta perto do ponto Goldilocks pro usuário. Implementado antecipadamente e fora da ordem original de `Docs/ArqLearn_Backlog_Gamificacao_Atelie.md` (decisão explícita do usuário). §4.4.1 ganha nota sobre a nova ordenação por dificuldade da fila de sessão de lição |
 
 ---
 
@@ -324,6 +325,21 @@ CREATE TABLE gamification_events_2026_08
   FOR VALUES FROM ('2026-08-01') TO ('2026-09-01');
 
 CREATE INDEX idx_gamevents_user_time ON gamification_events(user_id, created_at DESC);
+
+-- Habilidade adaptativa por tópico (migrations/0017, v1.22, TDD §10) — usada pelo Modo Infinito
+-- pra escolher a próxima pergunta perto do ponto "Goldilocks" pra quem está respondendo. Uma
+-- linha por (user, topic), não por track e não global, pra não achatar proficiência de tópicos
+-- diferentes numa nota só. topic é VARCHAR livre sem FK — mesmo motivo de
+-- gamification_events.event_type acima: tracks vivem só no Mongo, não existe enum/tabela Postgres
+-- de tópicos.
+CREATE TABLE user_topic_skill (
+  user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  topic VARCHAR(80) NOT NULL,
+  skill_score DOUBLE PRECISION NOT NULL DEFAULT 0,
+  answers_count INTEGER NOT NULL DEFAULT 0 CHECK (answers_count >= 0),
+  updated_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+  PRIMARY KEY (user_id, topic)
+);
 ```
 
 ### 3.3 Dicionário de Dados — Tabelas Principais
@@ -337,6 +353,7 @@ CREATE INDEX idx_gamevents_user_time ON gamification_events(user_id, created_at 
 | `purchases` | `idempotency_key` (UNIQUE) | Garante que retries de compra não gerem cobrança duplicada de gemas. |
 | `user_cosmetics` | `user_id` + `item_id` (PK composta) | Inventário de posse dos itens `category='cosmetic'` — `purchases` já registrava a transação, mas nada marcava "o que o usuário tem hoje"; `ON CONFLICT DO NOTHING` na inserção evita duplicar linha numa recompra do mesmo item. |
 | `vip_coupons` | `code` (UNIQUE) | Cupons VIP de 10 dígitos numéricos; `redeemed_by IS NULL` distingue disponível de já resgatado — não há coluna booleana solta pra isso, evitando os dois campos divergirem. |
+| `user_topic_skill` | `user_id` + `topic` (PK composta) | Habilidade adaptativa por tópico (TDD §10) — `skill_score` alimenta a seleção de pergunta do Modo Infinito perto do ponto Goldilocks pro usuário; `answers_count` decide o K-factor (provisório vs. estabelecido). `topic` sem FK (tracks vivem só no Mongo). |
 | `user_push_tokens` | `token` (UNIQUE) | Token de push Expo por device; `UNIQUE` é no token, não no `user_id` — um usuário tem 1 linha por device (múltiplos devices = múltiplas linhas), e um device que troca de conta atualiza a linha existente em vez de acumular token órfão. |
 | `answer_submissions` | `idempotency_key` (UNIQUE) | Garante que retries de submissão de resposta (lição ou Modo Infinito) não concedam XP/vidas/streak/baú/conquista em dobro — `response` guarda o corpo 200 original pra devolver no replay. |
 
@@ -491,13 +508,19 @@ periódico (não é instantânea), o backend também checa `expires_at < now()` 
 confiar que a ausência do documento significa "nunca existiu" — ver TDD/código para o tratamento exato
 de `SESSION_NOT_FOUND` vs `SESSION_EXPIRED`.
 
-> **Simplificação assumida nesta versão:** a fila de perguntas da sessão é, por ora, todo
-> `lesson.question_ids` da lição alvo, na ordem em que estão salvos — não uma priorização por SRS
-> vencido cruzando o banco de questões inteiro. O SRS (TDD §4) segue sendo aplicado por lição em
-> `user_progress.srs_state`; uma fila verdadeiramente priorizada por pergunta exigiria SRS por
-> pergunta, não por lição — mudança de schema maior, fora do escopo desta implementação. Sinalizado
-> aqui para não silenciar a divergência com o texto do SAD RF-09 ("reintroduzindo perguntas erradas ou
-> antigas").
+> **Simplificação assumida nesta versão:** a fila de perguntas da sessão é todo
+> `lesson.question_ids` da lição alvo — não uma priorização por SRS vencido cruzando o banco de
+> questões inteiro (isso continua valendo mesmo depois da mudança de ordenação abaixo: dificuldade
+> e vencimento de SRS são dois sinais diferentes, ver TDD §10.3). O SRS (TDD §4) segue sendo
+> aplicado por lição em `user_progress.srs_state`; uma fila verdadeiramente priorizada por pergunta
+> exigiria SRS por pergunta, não por lição — mudança de schema maior, fora do escopo desta
+> implementação. Sinalizado aqui para não silenciar a divergência com o texto do SAD RF-09
+> ("reintroduzindo perguntas erradas ou antigas").
+
+*(v1.22)* Dentro desse mesmo `lesson.question_ids`, a ordem servida ao cliente passou a ser por
+dificuldade ascendente (fácil → impossível, TDD §10.1) em vez da ordem bruta salva no array — não
+é mais "na ordem em que estão salvos" como dizia esta nota antes desta versão. Continua sem
+priorização por SRS vencido, exatamente como o parágrafo acima já descrevia.
 
 ### 4.4.2 Coleção: `infinite_mode_sessions` *(v1.9)*
 

@@ -1,7 +1,7 @@
 # DOCUMENTO TÉCNICO DE DESIGN (TDD)
 ## ArqLearn — Algoritmos de Negócio, Contratos de Evento e Fluxos de Sequência
 
-Versão 1.4 | Agosto de 2026
+Versão 1.5 | Agosto de 2026
 Documento complementar ao SAD, ao Database Design e à API Specification do ArqLearn v1.0
 
 > **Nota de nomenclatura:** existe também um `ArqLearn_Documento_Tecnico_Design.docx` na pasta `Docs/`,
@@ -20,6 +20,7 @@ Documento complementar ao SAD, ao Database Design e à API Specification do ArqL
 | 1.2 | 15/08/2026 | Equipe de Arquitetura/Engenharia | Adiciona §3.3 (multiplicador de XP do VIP) e §9 (VIP "Mestre Arquiteto" — ativação, expiração preguiçosa, extensão de cupom, baú garantido, resets), a pedido do usuário |
 | 1.3 | 18/08/2026 | Equipe de Arquitetura/Engenharia | §5.4: `HEARTS_REGEN_INTERVAL` muda de 3h por vida (15h pra encher do zero) pra 36min por vida (3h pra encher do zero), a pedido do usuário — achado confuso em teste ao vivo em device real. Regra do Baú Diário/Semanal (contar só respostas certas) também mudou na mesma sessão — documentada na API Specification v1.20 (§8.1/§8.2), não neste arquivo |
 | 1.4 | 20/08/2026 | Equipe de Arquitetura/Engenharia | §3: `bonus_velocidade` (por resposta rápida) substituído por `bonus_combo` (pela maior sequência de acertos consecutivos da sessão, concedido uma única vez na última pergunta) — achado do porte de gamificação (`Docs/ArqLearn_Backlog_Gamificacao_Atelie.md`): premiar velocidade cria incentivo a responder apressado num domínio que exige raciocínio cuidadoso (norma, dimensionamento). Novo §3.0.1 documenta o estado de combo em `practice_sessions` |
+| 1.5 | 21/08/2026 | Equipe de Arquitetura/Engenharia | Novo §10 (Dificuldade Adaptativa) — habilidade do usuário por tópico, modelo logístico de 1 parâmetro (tipo Rasch/IRT simplificado) usado pelo Modo Infinito, implementado antecipadamente e fora da ordem original de `Docs/ArqLearn_Backlog_Gamificacao_Atelie.md` (decisão explícita do usuário). §10 (Glossário) renumerado para §11 |
 
 ---
 
@@ -175,7 +176,7 @@ Não há job separado porque, diferente do streak, o reset do teto não dispara 
 
 ### 3.3 VIP: Multiplicador de XP *(v1.16, a pedido do usuário)*
 
-Usuário com VIP "Mestre Arquiteto" ativo (ver §10) recebe `VIP_XP_MULTIPLIER = 1.25` (+25%) sobre o
+Usuário com VIP "Mestre Arquiteto" ativo (ver §9) recebe `VIP_XP_MULTIPLIER = 1.25` (+25%) sobre o
 XP calculado de cada resposta certa — aplicado **dentro** de `calcularXP`, **antes** do Limite
 Diário de XP (§3.2): `xp_calculado = round((base + bonus_combo + bonus_primeira_conclusao) *
 1.25)` quando VIP ativo, e só então esse valor é capado pelo `DAILY_XP_CAP` como qualquer outro.
@@ -566,11 +567,116 @@ mesmo reset preguiçoso do contador de perguntas — compara a data/ciclo salvo 
 > os comentários de código e a API Spec §8.1/§8.2 os documentam hoje. Fora do escopo desta mudança
 > (VIP), sinalizado aqui em vez de resolvido silenciosamente, conforme `Docs/CLAUDE.md`.
 
-## 10. Glossário
+## 10. Dificuldade Adaptativa (Habilidade do Usuário) *(v1.5, 21/08/2026)*
+
+Até esta versão, `question.difficulty` (`easy`/`medium`/`hard`/`impossible`, atribuído pela IA na
+geração conforme a rubrica do `Persona Prompt` §4.5) só influenciava `CalcularXP` (§3) — não
+afetava em nada a ordem ou a seleção do que é servido ao usuário. Uma sessão de lição podia abrir
+com uma pergunta "impossível" e fechar com uma "fácil"; o Modo Infinito escolhia a próxima
+pergunta por sorteio uniforme, sem olhar pra dificuldade nem pra desempenho de quem estava
+respondendo.
+
+Esta seção documenta duas mudanças aditivas, implementadas antecipadamente e fora da ordem
+original de `Docs/ArqLearn_Backlog_Gamificacao_Atelie.md` (que já continha o item "3.1
+Ateliê"/"3.2 Repetição Espaçada" para uma peça relacionada — ver §10.3) — decisão explícita do
+usuário, não descoberta silenciosa de divergência.
+
+### 10.1 Ordenação por dificuldade (sem novo estado)
+
+- **Sessão de lição** (`POST /v1/lessons/{lesson_id}/session`): a fila de perguntas, antes servida
+  na ordem bruta de `lesson.question_ids`, agora é reordenada por dificuldade ascendente (fácil →
+  médio → difícil → impossível), com desempate estável preservando a ordem original entre
+  perguntas da mesma dificuldade.
+- **Lições dentro de uma trilha** (`GET /v1/tracks/{track_id}/lessons`): `lesson.difficulty`
+  (existente desde sempre no schema, nunca consumido por nenhum código até aqui) agora também
+  ordena as lições **dentro de cada unidade** por dificuldade ascendente, com o mesmo desempate
+  estável. `unit.order` continua sendo o único controle de ordem **entre** unidades — esta mudança
+  não toca nisso, só refina a ordem dentro de uma mesma unidade.
+
+Nenhuma das duas mudanças precisa de novo campo persistido — só consome dados que já existiam.
+
+### 10.2 Habilidade adaptativa por tópico (Modo Infinito)
+
+Modelo logístico de 1 parâmetro (tipo Rasch — um caso simplificado de IRT/Item Response Theory,
+a mesma família de modelo usada em provas adaptativas tipo ENEM/TOEFL, e análoga ao motor de
+dificuldade em tempo real do Duolingo, "Birdbrain"): a dificuldade do item fica **fixa**, ancorada
+no rótulo já atribuído pela IA; só a habilidade do usuário se move a cada resposta. Um Elo mútuo de
+verdade (item também se recalibrando por resposta) foi descartado deliberadamente — na fase
+bootstrap (5-20 usuários), cada pergunta recebe respostas demais poucas pra essa recalibração
+convergir; deixaria a dificuldade do item mais ruidosa, não mais precisa.
+
+**Probabilidade de acerto esperada** — `ProbabilidadeAcerto(skill, difficulty)`:
+
+```
+P(acerto) = 1 / (1 + exp(-(skill - b)))
+```
+
+onde `b` é o parâmetro de dificuldade do item, numa escala logística comum à de `skill`:
+
+| Dificuldade | b (difficultyLogit) |
+|---|---|
+| easy | -1.5 |
+| medium | -0.5 |
+| hard | 0.5 |
+| impossible | 1.5 |
+
+**Atualização da habilidade** — `AtualizarHabilidade(skillAtual, respostasNoTopico, difficulty, correct)`:
+
+```
+p = ProbabilidadeAcerto(skillAtual, difficulty)
+resultado = 1 se correct, senão 0
+K = SkillKProvisional (0.6) se respostasNoTopico < 10, senão SkillKEstablished (0.2)
+skillNovo = clamp(skillAtual + K * (resultado - p), SkillMin=-6.0, SkillMax=6.0)
+```
+
+`respostasNoTopico` é a contagem **antes** desta resposta (0..9 usa K provisório — convergência
+rápida nas primeiras respostas do usuário naquele tópico —, 10+ usa K estabelecido, mais
+estável). O clamp em `SkillMin`/`SkillMax` (bem fora da faixa de `b`, ±1.5) evita que um tópico
+cujo pool curado seja majoritariamente "easy" deixe a habilidade subir sem limite — todo acerto
+num item fácil sempre gera um resíduo positivo, por menor que seja, já que nunca atinge P=1 de
+verdade. Mesmo espírito do piso de `ease_factor` em `AtualizarSRS` (§4.2).
+
+`skill_score` é persistido por **(usuário, tópico)**, não por track e não global — evita achatar
+proficiência de tópicos diferentes numa nota só (ex.: bom em Fundamentos, fraco em Estruturas). Ver
+Database Design §3.2 (`user_topic_skill`).
+
+**Seleção da próxima pergunta (Modo Infinito):** dentro do pool de perguntas aprovadas candidatas,
+filtra pras dificuldades cuja `ProbabilidadeAcerto` pro `skill_score` atual cai na faixa
+"Goldilocks" `[0.25, 0.85]` — nem fácil demais, nem difícil demais. Uma banda, não só as 2
+dificuldades mais próximas de 50%, porque um corte rígido demais esgotaria pool fino (tópico
+curado com poucas perguntas) mais rápido do que a seleção uniforme fazia antes desta mudança; se o
+subconjunto filtrado tiver menos de 3 candidatos, cai pro pool completo em vez de arriscar reportar
+o tópico esgotado prematuramente. Sorteio uniforme dentro do subconjunto sobrevivente.
+
+**Limitação aceita:** `difficultyLogit` é global, não por tópico — assume que a rubrica da IA
+calibra igual em todo tópico/lote de geração. Sem recalibração por item (ver acima), não há
+mecanismo pra detectar se essa suposição for falsa num tópico específico. Trade-off aceito dado o
+tamanho real da base de usuários; reavaliar se/quando a base crescer o suficiente pra sustentar
+recalibração por item (mesmo espírito de gatilho de graduação do `Estrategia_Bootstrap` §7).
+
+**Kill-switch:** `gamification.AdaptiveDifficultyEnabled` (flag de código, mesmo padrão de
+`EventsEnabled`/`VIPSubscriptionsEnabled` — sem infra de feature flag em runtime neste projeto
+ainda). Desligado, o Modo Infinito volta à seleção uniforme aleatória de antes desta mudança, sem
+afetar XP/SRS/vidas/streak.
+
+### 10.3 Relação com a fila de revisão do SRS (Ateliê/§4)
+
+O SRS (variação do SM-2, §4) já calculava `srs_state.next_review_at` a cada resposta de lição, mas
+nenhum código lia esse campo de volta — calculado e ignorado. A fila de revisão ("Revisar agora",
+que consome esse campo) é um sistema **separado** desta habilidade adaptativa: SRS já resolve
+"quando" trazer um item de volta; esta seção resolve "quão difícil" servir agora. A fila de revisão
+não aplica a seleção Goldilocks acima — um item vencido aparece na fila de revisão
+independentemente de estar ou não no ponto ideal de dificuldade pro `skill_score` do momento, já
+que o próprio vencimento do SRS já é o sinal relevante ali.
+
+## 11. Glossário
 
 - **SM-2**: algoritmo clássico de repetição espaçada (Wozniak, 1987), adaptado aqui para entrada
   binária correto/incorreto + tempo de resposta.
 - **q (qualidade)**: variável de 0 a 5 usada pelo SM-2 para decidir o próximo intervalo; ver Seção 4.1.
+- **IRT / Rasch**: Item Response Theory — família de modelos psicométricos que relacionam
+  probabilidade de acerto, habilidade do respondente e dificuldade do item; ver Seção 10.2 para o
+  caso simplificado (1 parâmetro) usado aqui.
 - **Zona de promoção/rebaixamento**: os 5 melhores/piores de cada grupo de liga ao fim da semana; ver
   Seção 6 e UX TDD §6.4 para a representação visual.
 
