@@ -438,7 +438,7 @@ O pedido foi explícito: não ignorar o que já existe, entender de verdade, e a
 | Sistema ArqLearn | O que o Duolingo faz (§ref) | O que o ArqLearn faz hoje | Veredito |
 |---|---|---|---|
 | XP — bônus dentro da sessão | **Combo**: bônus (+1 a +5) pelo **maior número de acertos consecutivos** na sessão inteira (§9.5) — prêmio por não errar ao longo de toda a sessão | **Velocidade**: bônus fixo de +5 XP por responder rápido (abaixo de um limiar de 5–17s conforme dificuldade) | **Duolingo resolve melhor.** Bônus de velocidade, num domínio onde a resposta certa exige ler enunciado normativo, avaliar cota ou comparar solução, tem risco pedagógico real: recompensa clicar rápido, não pensar direito. Combo recompensa consistência, não pressa. Isto é uma descoberta nova, não estava no backlog original. |
-| Streak — proteções escalonadas | Teto de congelamentos equipáveis sobe de 2 para **até 5** depois de marcos de streak alta (§10.3) | Regra `RS-03` já **planeja** isso (2 normal, 5 acima de 100 dias), mas o inventário não confirma que o código atual já implementa o teto escalonado — parece fixo | **Duolingo já documentado, ArqLearn ainda não confirmado como implementado.** Gap a fechar dentro da Fase 2 (Sequência), não descoberta nova de produto. |
+| Streak — proteções escalonadas | Teto de congelamentos equipáveis sobe de 2 para **até 5** depois de marcos de streak alta (§10.3) | **Implementado em 21/08/2026** (`RS-03`, `CapDeFreezes`, TDD §5.5) — 2 normal, 5 acima de `streak_best >= 100`, aplicado a cada compra/recompensa de baú. Ver adendo abaixo. | **Fechado.** |
 | Vidas — o que pune | Duolingo **abandonou** o modelo "pune erro" (Corações) por "pune uso" (Energia) — e isso é a mudança mais rejeitada da história do produto (§11.4, §25.5) | ArqLearn já pune só o erro (nunca o uso) | **ArqLearn já está à frente do Duolingo atual**, não atrás. Não portar Energia é o comportamento correto — a regra `RX-02` já protege isso. |
 | Vidas — velocidade de regeneração | Corações regeneram ~1 a cada 4–6h (§11.2) | Grafite regenera 1 a cada **36 minutos** — 6 a 10× mais rápido | **Sem veredito único** — é trade-off de produto, não bug. Mais generoso reduz atrito e frustração (bom para retenção em domínio difícil), mas também reduz o valor percebido de assinar VIP e enfraquece "vidas" como restrição real. Marcado como pergunta em aberto abaixo (a referência "decisão #4" que ficou solta no corpo do documento original é exatamente esta). |
 | Gemas/Loja — cosméticos | Efeitos de perfil comprados **aparecem e funcionam** visivelmente (§12.3, §18.1) | Cosméticos comprados ficam registrados em `purchases`, mas **não existe inventário nem "equipar"** — o item comprado não aparece em lugar nenhum | **Duolingo resolve melhor.** É um gap real, já estava listado na Fase 0, mas vale reforçar: hoje gastar gema em cosmético no ArqLearn não tem retorno visual nenhum — isso é pior que decorativo, é dinheiro/esforço do usuário sem recompensa perceptível. |
@@ -528,3 +528,38 @@ via bandit) e as 4 variações de mensagem escritas em tom encorajador, sem culp
 por usuário (no máximo 1/dia) é baixo demais pra um bandit de horário convergir num tempo razoável
 sem uma máquina de estado de "decide agora, dispara depois" desproporcional pro estágio atual. Ver
 TDD §11.4 para o raciocínio completo — revisitar quando o volume justificar.
+
+---
+
+## Adendo (21/08/2026) — Teto de freezes e reparo de streak implementados fora da ordem
+
+Decisão explícita do usuário, mesmo precedente dos dois adendos acima: implementar melhorias de
+sequência agora, deliberadamente fora da ordem da "2.1 Sequência e proteções" (Fase 2, ainda não
+aprovada) — não é descoberta silenciosa de divergência.
+
+**`RS-03` (teto escalonado de freezes)** — a linha da tabela comparativa acima já **documentava**
+essa regra como planejada, mas não confirmada como implementada; confirmado nesta entrega que
+**não existia nenhum teto** (nem fixo, nem escalonado). Fechado: `CapDeFreezes` (2 normal, 5 acima
+de `streak_best >= 100`), aplicado nos três pontos de escrita de `streak_freezes_available` (compra
+na loja — rejeita antes de debitar gemas — e recompensa de baú diário/semanal — silenciosamente não
+credita além do teto, sem substituir por outra recompensa). Grandfathering deliberado: quem já tinha
+mais freezes que o teto atual não é reduzido, só deixa de crescer além dele.
+
+**`RS-08` (reparo de streak, RS-0x novo) — mecânica nova, diferente de `RS-03`:** não havia nenhuma
+menção a "reparo"/"restaurar streak" em lugar nenhum deste documento antes desta entrega (só
+`RS-04`, pausa programada, estruturalmente diferente — agendada com antecedência, não reativa a uma
+perda já ocorrida). Inspirada na pesquisa de grace window do Duolingo, adaptada pro tamanho do
+projeto: quando a streak zera sem freeze disponível, o valor perdido fica guardado por 3 dias — a
+próxima lição concluída dentro do prazo restaura em vez de reiniciar do zero. Gratuito, automático,
+sem endpoint próprio (mesma filosofia lazy de todo o resto do sistema de streak). Documentado em
+`Docs/ArqLearn_TDD_Technical_Design_Document.md` §5.5 e `Docs/ArqLearn_Database_Design.md`
+(`streak_repair_value`/`streak_repair_deadline`, migrations/0019).
+
+**Fora de escopo, deliberado (não esquecido):** customização de horário de início do dia (o fuso
+IANA por usuário já resolve o problema real que essa customização resolveria no Duolingo, ver TDD
+§5.1) e Friend Streak/streak social (nenhum subsistema social existe no projeto — corretamente
+adiado pra Fase 4 por privacidade/menores, `RC-07`). Mais marcos de conquista de streak (Duolingo
+tem mais níveis que os 5 atuais de `streak_dias`) também ficou de fora: `tierXPRewards`/
+`tierGemsRewards` (`internal/gamification/achievements.go`) são arrays `[5]int` compartilhados
+entre TODAS as famílias de conquista, não só streak — estender uma família só exigiria reestruturar
+o sistema de conquistas inteiro, desproporcional a este pedido.

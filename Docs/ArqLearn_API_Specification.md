@@ -3,7 +3,7 @@
 
 Especificação de referência dos endpoints REST expostos pelo API Gateway.
 
-Versão 1.25 | Agosto de 2026
+Versão 1.26 | Agosto de 2026
 Documento complementar ao SAD e ao TDD do ArqLearn v1.0
 
 > **Sobre esta versão:** versão em Markdown, mantida como fonte da verdade a partir de agora (ver
@@ -40,6 +40,7 @@ Documento complementar ao SAD e ao TDD do ArqLearn v1.0
 | 1.23 | 20/08/2026 | Equipe de Engenharia | §3.2: adiciona `cosmetics` ao `GamificationProfile` (`GET /v1/gamification/me` e `GET /v1/users/me`) — inventário de posse dos itens `category='cosmetic'` da Loja (`user_cosmetics`, Database Design v1.19); achado do porte de gamificação (`Docs/ArqLearn_Backlog_Gamificacao_Atelie.md`): comprar um cosmético não deixava nenhum registro de posse antes disso |
 | 1.24 | 21/08/2026 | Equipe de Engenharia | §6.1: `POST /v1/infinite-mode/sessions` ganha campo opcional `review` (mutuamente exclusivo com `topic`) — inicia a fila de revisão do SRS ("Revisar agora", TDD §10.3) em vez de uma sessão por tópico; resposta ganha `is_review`. Novo endpoint `GET /v1/review/summary` (`due_count`) e erro `REVIEW_QUEUE_EMPTY` (§12). Implementado fora da ordem original de `Docs/ArqLearn_Backlog_Gamificacao_Atelie.md` (decisão explícita do usuário, ver adendo no próprio documento) |
 | 1.25 | 21/08/2026 | Equipe de Engenharia | §9: corrige o parágrafo do gatilho de streak em risco — `cmd/notify-decide` (substitui `cmd/notify-streak-risk`) roda de hora em hora implementando de fato a janela horária local que a TDD §5.2 já pedia, e a mensagem passa a ser escolhida entre 4 variações por um bandit de Thompson Sampling (TDD §11) em vez de um texto fixo único, respeitando cooldown de 3 dias e teto de 2 notificações/dia (`RX-05`). Sem endpoint novo — é lógica de job em segundo plano, mas o parágrafo antigo tinha virado factualmente incorreto. Implementado fora da ordem original de `Docs/ArqLearn_Backlog_Gamificacao_Atelie.md` (mesma decisão explícita do usuário da v1.24) |
+| 1.26 | 21/08/2026 | Equipe de Engenharia | §3.2/§8: `streak_freezes_available` passa a respeitar um teto escalonado (RS-03, TDD §5.5) — novo erro `STREAK_FREEZE_CAP_REACHED` (§12) em `POST /v1/gamification/shop/purchase`. §9: novo gatilho síncrono de reparo de streak (RS-08) — notificação `type: "streak_repaired"` quando uma sequência recém-perdida é restaurada dentro de 3 dias. Sem endpoint novo pro reparo em si (automático, dentro de `POST /v1/lessons/{lesson_id}/answers`). Implementado fora da ordem original de `Docs/ArqLearn_Backlog_Gamificacao_Atelie.md` (mesma decisão explícita do usuário das v1.22–v1.25) |
 
 ---
 
@@ -142,7 +143,7 @@ mesma chave retornam a resposta original sem reprocessar.
 | `level` | integer | Nível calculado a partir do `xp_total`. |
 | `streak_current` | integer | Sequência atual de dias consecutivos. Expira sozinha (TDD §5.2/§5.3) — ver nota em `GET /v1/gamification/me` abaixo. |
 | `streak_best` | integer | Recorde pessoal de streak. |
-| `streak_freezes_available` | integer | Quantos Bloqueios de Ofensiva o usuário tem em estoque — mesmo valor devolvido por `POST .../streak/freeze`. *(v1.17)* |
+| `streak_freezes_available` | integer | Quantos Bloqueios de Ofensiva o usuário tem em estoque — mesmo valor devolvido por `POST .../streak/freeze`. *(v1.17)* Sujeito a um teto escalonado (RS-03, TDD §5.5): 2 no caso normal, 5 pra quem já bateu `streak_best >= 100` — aplicado a cada compra/recompensa de baú, nunca reduz quem já tinha mais freezes que o teto atual (grandfathering). *(v1.26)* |
 | `streak_at_risk` | boolean | `true` quando a streak é positiva e o usuário ainda não praticou hoje (TDD §5.2) — sinal pro cliente oferecer usar um Bloqueio de Ofensiva proativamente ao abrir o app, em vez de só descobrir a perda no dia seguinte. *(v1.17)* |
 | `hearts_current` | integer | Vidas disponíveis (0–5). |
 | `hearts_next_at` | datetime \| null | Instante em que a próxima vida será regenerada (TDD §5.4) — `null` quando `hearts_current` já está no teto (5). Cliente calcula a contagem regressiva localmente a partir deste timestamp fixo. *(v1.12)* |
@@ -613,6 +614,13 @@ Erros: `409 QUESTION_ALREADY_REVIEWED`
 > estoque, `streak_current` zera. `streak_at_risk` é calculado ao vivo a partir do mesmo estado
 > (streak positiva + ainda sem prática hoje) — é o gatilho do cliente pra abrir o diálogo de
 > Bloqueio de Ofensiva sozinho ao carregar o app, sem esperar a pessoa procurar a tela Perfil.
+>
+> **Reparo de streak (RS-08, TDD §5.5, v1.26):** quando o estoque de freezes esgota e a streak
+> zera, o valor perdido fica guardado por 3 dias — se a próxima lição concluída
+> (`POST /v1/lessons/{lesson_id}/answers`) acontecer dentro do prazo, a streak é restaurada em vez
+> de reiniciar do zero. Automático, gratuito, sem endpoint próprio; o cliente só percebe pelo
+> `streak_atual` mais alto que o esperado na resposta de `.../answers` e por uma notificação
+> in-app (`GET /v1/notifications`, `type: "streak_repaired"`).
 
 **`GET /v1/gamification/league`** — Hierarquia de 10 ligas (pior → melhor: Madeira, Pedra,
 Bronze, Prata, Ouro, Platina, Esmeralda, Safira, Rubi, Diamante), cada uma com 3 divisões internas
@@ -686,7 +694,9 @@ Erros: `409 NO_STREAK_FREEZE_AVAILABLE`
 // Response 200
 { "gems_restantes": integer, "item": { "id", "tipo" } }
 ```
-Erros: `402 INSUFFICIENT_GEMS` · `404 ITEM_NOT_FOUND`
+Erros: `402 INSUFFICIENT_GEMS` · `404 ITEM_NOT_FOUND` · `409 STREAK_FREEZE_CAP_REACHED` (categoria
+`streak_freeze`, usuário já no teto escalonado — RS-03, TDD §5.5 — checado antes de debitar gemas,
+*v1.26*)
 
 ### 8.1 Baú Diário *(v1.18)*
 
@@ -934,6 +944,12 @@ pratica nas 24h seguintes ao envio. Respeita cooldown de 3 dias por variação e
 notificações/dia por usuário contando todos os tipos (`RX-05`). Grava a notificação in-app
 (`type: "streak_at_risk"`) e envia o push pra todos os tokens registrados do usuário, como antes.
 
+**Gatilho: reparo de streak** *(v1.26 — RS-08, TDD §5.5)* — síncrono, não passa por
+`cmd/notify-decide`: quando uma streak recém-perdida é restaurada dentro da janela de 3 dias
+(`POST /v1/lessons/{lesson_id}/answers`), grava uma notificação in-app (`type: "streak_repaired"`)
+best-effort, mesmo padrão de `bug_fixed`/`suggestion_implemented` — sem push, sem bandit de
+template envolvido.
+
 ## 10. Teacher / Analytics API
 
 **`GET /v1/teacher/classes/{class_id}/summary`** — Restrito a `role=teacher`. Retorna métricas
@@ -993,6 +1009,7 @@ completos a detalhar no TDD quando a implementação desses três recursos come�
 | `COUPON_INVALID` | 409 | Cupom VIP inexistente ou já resgatado. *(v1.20)* |
 | `VIP_SUBSCRIPTION_UNAVAILABLE` | 501 | Assinatura VIP por cartão ainda não integrada a um gateway de pagamento. *(v1.20)* |
 | `REVIEW_QUEUE_EMPTY` | 404 | Nenhum item vencido pra revisar agora (`POST /v1/infinite-mode/sessions` com `review: true`). *(v1.24)* |
+| `STREAK_FREEZE_CAP_REACHED` | 409 | Usuário já está no teto escalonado de bloqueios de ofensiva (2, ou 5 acima de `streak_best >= 100` — RS-03, TDD §5.5). *(v1.26)* |
 
 *Tabela — Catálogo consolidado de códigos de erro da API.*
 

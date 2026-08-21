@@ -481,6 +481,103 @@ func TestStreakEmRisco(t *testing.T) {
 	}
 }
 
+func TestCapDeFreezes(t *testing.T) {
+	casos := []struct {
+		nome       string
+		streakBest int
+		want       int
+	}{
+		{"streak_best zero, teto padrão", 0, StreakFreezeCapPadrao},
+		{"logo abaixo do marco, ainda teto padrão", 99, StreakFreezeCapPadrao},
+		{"exatamente no marco, já teto ampliado", 100, StreakFreezeCapMarco},
+		{"acima do marco, teto ampliado", 101, StreakFreezeCapMarco},
+	}
+	for _, c := range casos {
+		t.Run(c.nome, func(t *testing.T) {
+			if got := CapDeFreezes(c.streakBest); got != c.want {
+				t.Errorf("CapDeFreezes(%d) = %d, esperado %d", c.streakBest, got, c.want)
+			}
+		})
+	}
+}
+
+func TestPrepararReparoStreak(t *testing.T) {
+	repairValue, repairDeadline := PrepararReparoStreak(7, "2026-08-15")
+	if repairValue != 7 {
+		t.Errorf("repairValue = %d, esperado 7 (valor perdido repassado sem alteração)", repairValue)
+	}
+	if repairDeadline != "2026-08-18" {
+		t.Errorf("repairDeadline = %q, esperado 2026-08-18 (hoje + %d dias)", repairDeadline, StreakRepairJanelaDias)
+	}
+}
+
+func TestAplicarReparoStreak(t *testing.T) {
+	prev := StreakState{Current: 0, Best: 10, LastActiveDate: "2026-08-12"}
+
+	casos := []struct {
+		nome           string
+		repairValue    int
+		repairDeadline string
+		hojeLocal      string
+		wantReparado   bool
+	}{
+		{"dentro do prazo, dia 0 (mesmo dia da expiração)", 7, "2026-08-18", "2026-08-15", true},
+		{"dentro do prazo, último dia (dia 3)", 7, "2026-08-18", "2026-08-18", true},
+		{"fora do prazo (dia 4)", 7, "2026-08-18", "2026-08-19", false},
+	}
+	for _, c := range casos {
+		t.Run(c.nome, func(t *testing.T) {
+			got, reparado := AplicarReparoStreak(prev, c.repairValue, c.repairDeadline, c.hojeLocal)
+			if reparado != c.wantReparado {
+				t.Errorf("reparado = %v, esperado %v", reparado, c.wantReparado)
+			}
+			if !reparado {
+				if got != prev {
+					t.Errorf("streak vencida deveria devolver prev inalterado, veio %+v", got)
+				}
+				return
+			}
+			if got.Current != c.repairValue+1 {
+				t.Errorf("Current = %d, esperado %d (repairValue+1)", got.Current, c.repairValue+1)
+			}
+			if got.LastActiveDate != c.hojeLocal {
+				t.Errorf("LastActiveDate = %q, esperado %q", got.LastActiveDate, c.hojeLocal)
+			}
+		})
+	}
+
+	t.Run("Best sobe quando o valor reparado supera o recorde anterior", func(t *testing.T) {
+		prevBaixo := StreakState{Current: 0, Best: 3, LastActiveDate: "2026-08-12"}
+		got, reparado := AplicarReparoStreak(prevBaixo, 7, "2026-08-18", "2026-08-15")
+		if !reparado {
+			t.Fatal("esperado reparo bem-sucedido")
+		}
+		if got.Best != 8 {
+			t.Errorf("Best = %d, esperado 8 (novo recorde: repairValue+1)", got.Best)
+		}
+	})
+
+	t.Run("Best preservado quando o valor reparado não supera o recorde anterior", func(t *testing.T) {
+		got, reparado := AplicarReparoStreak(prev, 7, "2026-08-18", "2026-08-15")
+		if !reparado {
+			t.Fatal("esperado reparo bem-sucedido")
+		}
+		if got.Best != prev.Best {
+			t.Errorf("Best = %d, esperado permanecer %d", got.Best, prev.Best)
+		}
+	})
+
+	t.Run("data de prazo malformada não gera panic, devolve reparado=false", func(t *testing.T) {
+		got, reparado := AplicarReparoStreak(prev, 7, "not-a-date", "2026-08-15")
+		if reparado {
+			t.Error("esperado reparado=false com prazo malformado")
+		}
+		if got != prev {
+			t.Errorf("esperado prev inalterado com prazo malformado, veio %+v", got)
+		}
+	})
+}
+
 func TestQuestoesHojeAposReset(t *testing.T) {
 	if got := QuestoesHojeAposReset(7, "2026-08-14", "2026-08-15"); got != 0 {
 		t.Errorf("esperado reset para 0 em dia novo, veio %d", got)

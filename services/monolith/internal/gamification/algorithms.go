@@ -304,6 +304,67 @@ func StreakEmRisco(streakCurrent int, streakLastActiveDate, hojeLocal string) bo
 	return streakCurrent > 0 && streakLastActiveDate != hojeLocal
 }
 
+// CapDeFreezes implementa RS-03 (TDD §5.5): teto de bloqueios de ofensiva acumuláveis, escalonado
+// por marco de streak_best — 2 no caso normal, 5 pra quem já bateu 100 dias de melhor sequência.
+// Computado na hora em cada ponto de escrita de streak_freezes_available (compra na loja, baú
+// diário, baú semanal — ver gamification.go), nunca cacheado: é uma comparação só contra um
+// streak_best já buscado na mesma query.
+const StreakFreezeCapPadrao = 2
+const StreakFreezeCapMarco = 5
+const StreakFreezeCapMarcoStreakBest = 100
+
+func CapDeFreezes(streakBest int) int {
+	if streakBest >= StreakFreezeCapMarcoStreakBest {
+		return StreakFreezeCapMarco
+	}
+	return StreakFreezeCapPadrao
+}
+
+// StreakRepairJanelaDias (TDD §5.5, RS-08): reparo de streak é uma segunda chance gratuita e
+// automática de restaurar uma sequência recém-perdida (só quando não havia freeze disponível pra
+// evitar a perda automaticamente — ver AplicarExpiracaoStreak) — não concorre com o freeze pago,
+// é um "bem-vindo de volta" de janela curta.
+const StreakRepairJanelaDias = 3
+
+// PrepararReparoStreak é chamada no exato instante em que a expiração zera a streak
+// (AplicarExpiracaoStreak devolveu expirou=true e a streak anterior era > 0) — guarda o valor
+// perdido e o prazo (hojeLocal + StreakRepairJanelaDias) pra restaurar. O caller persiste os dois
+// valores em streak_repair_value/streak_repair_deadline.
+func PrepararReparoStreak(streakPerdido int, hojeLocal string) (repairValue int, repairDeadline string) {
+	hoje, err := time.Parse("2006-01-02", hojeLocal)
+	if err != nil {
+		return streakPerdido, hojeLocal
+	}
+	return streakPerdido, hoje.AddDate(0, 0, StreakRepairJanelaDias).Format("2006-01-02")
+}
+
+// AplicarReparoStreak é chamada em isFirstCompletion (mesmo gatilho de AtualizarStreak) quando há
+// um reparo pendente (streak_repair_deadline não vazio). Devolve um StreakState pronto (não um int
+// solto), simétrico a AtualizarStreak, pra o caller nunca esquecer de setar LastActiveDate/Best na
+// restauração: dentro do prazo, restaura o valor perdido +1 (pelo dia de hoje); fora do prazo,
+// devolve prev inalterado e reparado=false — o caller cai pro AtualizarStreak normal (começa do
+// zero, mesmo caminho de quem nunca teve reparo pendente). Em ambos os casos o caller limpa as
+// colunas de reparo (sucesso ou vencido são igualmente terminais pra esse reparo).
+func AplicarReparoStreak(prev StreakState, repairValue int, repairDeadline, hojeLocal string) (StreakState, bool) {
+	prazo, err := time.Parse("2006-01-02", repairDeadline)
+	if err != nil {
+		return prev, false
+	}
+	hoje, err := time.Parse("2006-01-02", hojeLocal)
+	if err != nil {
+		return prev, false
+	}
+	if hoje.After(prazo) {
+		return prev, false
+	}
+	current := repairValue + 1
+	best := prev.Best
+	if current > best {
+		best = current
+	}
+	return StreakState{Current: current, Best: best, LastActiveDate: hojeLocal}, true
+}
+
 // HeartsMax e HeartsRegenInterval implementam TDD §5.4: uma vida regenera a cada 36min até o
 // teto de 5 — ou seja, encher do zero leva 3h no total (36min × 5) — calculado de forma
 // preguiçosa (sem job) sempre que hearts_current/hearts_updated_at são lidos — ver
