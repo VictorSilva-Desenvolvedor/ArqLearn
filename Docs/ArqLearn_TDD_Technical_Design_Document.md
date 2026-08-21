@@ -1,7 +1,7 @@
 # DOCUMENTO TÉCNICO DE DESIGN (TDD)
 ## ArqLearn — Algoritmos de Negócio, Contratos de Evento e Fluxos de Sequência
 
-Versão 1.1 | Agosto de 2026
+Versão 1.4 | Agosto de 2026
 Documento complementar ao SAD, ao Database Design e à API Specification do ArqLearn v1.0
 
 > **Nota de nomenclatura:** existe também um `ArqLearn_Documento_Tecnico_Design.docx` na pasta `Docs/`,
@@ -19,6 +19,7 @@ Documento complementar ao SAD, ao Database Design e à API Specification do ArqL
 | 1.1 | 09/08/2026 | Equipe de Arquitetura/Engenharia | Adiciona §5.4 Vidas — Regeneração (a pedido do usuário): `hearts_current` nunca regenerava sozinho, `hearts_updated_at` existia no schema (Database Design) mas não era usado em lugar nenhum do backend |
 | 1.2 | 15/08/2026 | Equipe de Arquitetura/Engenharia | Adiciona §3.3 (multiplicador de XP do VIP) e §9 (VIP "Mestre Arquiteto" — ativação, expiração preguiçosa, extensão de cupom, baú garantido, resets), a pedido do usuário |
 | 1.3 | 18/08/2026 | Equipe de Arquitetura/Engenharia | §5.4: `HEARTS_REGEN_INTERVAL` muda de 3h por vida (15h pra encher do zero) pra 36min por vida (3h pra encher do zero), a pedido do usuário — achado confuso em teste ao vivo em device real. Regra do Baú Diário/Semanal (contar só respostas certas) também mudou na mesma sessão — documentada na API Specification v1.20 (§8.1/§8.2), não neste arquivo |
+| 1.4 | 20/08/2026 | Equipe de Arquitetura/Engenharia | §3: `bonus_velocidade` (por resposta rápida) substituído por `bonus_combo` (pela maior sequência de acertos consecutivos da sessão, concedido uma única vez na última pergunta) — achado do porte de gamificação (`Docs/ArqLearn_Backlog_Gamificacao_Atelie.md`): premiar velocidade cria incentivo a responder apressado num domínio que exige raciocínio cuidadoso (norma, dimensionamento). Novo §3.0.1 documenta o estado de combo em `practice_sessions` |
 
 ---
 
@@ -59,19 +60,24 @@ calculado pelo cliente — o app apenas exibe o `xp_ganho` retornado pela API (v
 `POST /v1/lessons/{lesson_id}/answers`).
 
 ```
-calcularXP(question, answer_time_ms, is_first_completion, correct, xp_today) =
+calcularXP(question, combo_maximo, is_last_question, is_first_completion, correct, xp_today) =
   se correct == false:
     retorna { xp_concedido: 0, daily_cap_reached: false }
-                       # errar nunca concede XP, apenas consome vida (hearts_current -= 1)
+                       # errar nunca concede XP, apenas consome vida (hearts_current -= 1) e zera
+                       # combo_atual (ver §3.0.1) — não confundir com combo_maximo, que não
+                       # decresce dentro da sessão mesmo depois de um erro
 
   base = BASE_POR_DIFICULDADE[question.difficulty]   # easy: 10, medium: 20, hard: 30, impossible: 40
-  bonus_velocidade = 5 se answer_time_ms < LIMIAR_VELOCIDADE[question.difficulty] senão 0
-                       # LIMIAR_VELOCIDADE: easy=5000ms, medium=8000ms, hard=12000ms, impossible=17000ms
+  bonus_combo = min(combo_maximo, 5) se is_last_question senão 0
+                       # concedido uma ÚNICA vez, na última pergunta da sessão — sobre o PICO de
+                       # acertos consecutivos da sessão inteira (§3.0.1), não por resposta
+                       # individual respondida rápido (ver v1.4 no changelog — substitui o antigo
+                       # bonus_velocidade)
   bonus_primeira_conclusao = 10 se is_first_completion senão 0
                        # concedido uma única vez por lição (transição para status "completed"
                        # nunca vista antes nesse user_progress), não em repetições de SRS
 
-  xp_calculado = base + bonus_velocidade + bonus_primeira_conclusao
+  xp_calculado = base + bonus_combo + bonus_primeira_conclusao
 
   # teto diário — ver §3.2
   xp_disponivel_hoje = max(0, DAILY_XP_CAP - xp_today)
@@ -83,6 +89,28 @@ calcularXP(question, answer_time_ms, is_first_completion, correct, xp_today) =
 `is_first_completion` é resolvido consultando `user_progress.status` (Database Design §4.4) **antes** da
 escrita da resposta atual — se a lição ainda não estava `completed`, e esta resposta completa a lição, o
 bônus se aplica. `xp_today` é lido de `user_gamification.xp_today` (ver §3.2) antes do cálculo.
+
+### 3.0.1 Combo (sequência de acertos)
+
+`combo_atual` e `combo_maximo` vivem em `practice_sessions` (Database Design §4.4.1), não em
+`user_gamification` — é estado **da sessão**, não da conta: zera a cada nova lição iniciada, nunca
+persiste entre sessões diferentes. A cada resposta:
+
+```
+se correct:
+  combo_atual += 1
+  combo_maximo = max(combo_maximo, combo_atual)
+senão:
+  combo_atual = 0   # combo_maximo NÃO reseta — guarda o pico da sessão até o fim
+```
+
+`is_last_question` é o mesmo booleano já usado para decidir `status = "completed"` em
+`user_progress` (`len(answered_question_ids) + 1 >= len(question_ids)`) — o bônus de combo é
+avaliado no mesmo instante, sobre o `combo_maximo` **já atualizado com a resposta corrente**.
+Motivo da mudança (v1.4): o antigo `bonus_velocidade` premiava responder rápido, o que cria
+incentivo perverso num domínio onde a resposta certa exige ler enunciado normativo, comparar
+solução ou conferir cota — response rápida não é sinal de qualidade aqui. Combo prêmia não errar
+ao longo da sessão inteira, sem pressionar o tempo de cada resposta individual.
 
 ### 3.1 Nível do usuário
 
@@ -149,7 +177,7 @@ Não há job separado porque, diferente do streak, o reset do teto não dispara 
 
 Usuário com VIP "Mestre Arquiteto" ativo (ver §10) recebe `VIP_XP_MULTIPLIER = 1.25` (+25%) sobre o
 XP calculado de cada resposta certa — aplicado **dentro** de `calcularXP`, **antes** do Limite
-Diário de XP (§3.2): `xp_calculado = round((base + bonus_velocidade + bonus_primeira_conclusao) *
+Diário de XP (§3.2): `xp_calculado = round((base + bonus_combo + bonus_primeira_conclusao) *
 1.25)` quando VIP ativo, e só então esse valor é capado pelo `DAILY_XP_CAP` como qualquer outro.
 Decisão deliberada: o teto diário continua **500 XP/dia para todo mundo**, VIP ou não — o
 multiplicador só faz o VIP alcançar esse teto mais rápido, não elevar o teto em si. Implementado em

@@ -190,7 +190,20 @@ func handleSubmitAnswer(pool *pgxpool.Pool, mongoDB *mongo.Database) http.Handle
 		isLastQuestion := len(sess.AnsweredQuestionIDs)+1 >= len(sess.QuestionIDs)
 		isFirstCompletion := isLastQuestion && (!progressExists || prevProgress.Status != "completed")
 
-		xpResult := gamification.CalcularXP(q.Difficulty, req.TimeMs, isFirstCompletion, correct, xpToday, vipAtivo)
+		// Combo (TDD §3.0.1, v1.4): comboAtual zera no erro; comboMaximo guarda o PICO da sessão
+		// e nunca decresce — é isso que CalcularXP usa pro bônus, só quando isLastQuestion.
+		comboAtual := sess.ComboAtual
+		if correct {
+			comboAtual++
+		} else {
+			comboAtual = 0
+		}
+		comboMaximo := sess.ComboMaximo
+		if comboAtual > comboMaximo {
+			comboMaximo = comboAtual
+		}
+
+		xpResult := gamification.CalcularXP(q.Difficulty, comboMaximo, isLastQuestion, isFirstCompletion, correct, xpToday, vipAtivo)
 
 		newHearts := heartsCurrent
 		newHeartsUpdatedAt := heartsUpdatedAt
@@ -371,7 +384,10 @@ func handleSubmitAnswer(pool *pgxpool.Pool, mongoDB *mongo.Database) http.Handle
 
 		_, err = mongoDB.Collection("practice_sessions").UpdateOne(r.Context(),
 			bson.M{"_id": sess.ID},
-			bson.M{"$addToSet": bson.M{"answered_question_ids": req.QuestionID}},
+			bson.M{
+				"$addToSet": bson.M{"answered_question_ids": req.QuestionID},
+				"$set":      bson.M{"combo_atual": comboAtual, "combo_maximo": comboMaximo},
+			},
 		)
 		if err != nil {
 			apierror.Write(w, http.StatusInternalServerError, "INTERNAL_ERROR", "Falha ao atualizar sessão.")

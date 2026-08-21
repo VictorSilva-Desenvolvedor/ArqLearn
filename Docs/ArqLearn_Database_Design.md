@@ -3,7 +3,7 @@
 
 Modelo de dados detalhado: esquema relacional, documentos, vetores, cache e estratégias de persistência.
 
-Versão 1.18 | Agosto de 2026
+Versão 1.19 | Agosto de 2026
 Documento complementar ao SAD e ao TDD do ArqLearn v1.0
 
 > **Sobre esta versão:** versão em Markdown, mantida como fonte da verdade a partir de agora (ver
@@ -33,6 +33,7 @@ Documento complementar ao SAD e ao TDD do ArqLearn v1.0
 | 1.16 | 15/08/2026 | Equipe de Engenharia / Dados | VIP "Mestre Arquiteto" (migrations/0011, a pedido do usuário) — adiciona `is_vip`/`vip_expires_at` e contadores de reset de baú a `user_gamification`, e a tabela `vip_coupons` (ativação por cupom de 10 dígitos; assinatura recorrente tem schema pronto porém desabilitada, ver API Spec §8.3). **Nota:** as colunas de `migrations/0009_daily_chest`/`0010_weekly_chest` (Baú Diário/Semanal) ainda não estavam documentadas aqui antes desta entrada — divergência pré-existente entre código e este documento, sinalizada e não resolvida retroativamente nesta mudança (fora do escopo desta demanda) |
 | 1.17 | 18/08/2026 | Equipe de Engenharia / Dados | Adiciona a tabela `user_push_tokens` (§3.2 DDL, §3.3 dicionário, migrations/0012, a pedido do usuário) — infraestrutura de push notification real (API Spec §9 v1.21); um usuário pode ter várias linhas (vários devices), `token` é `UNIQUE` |
 | 1.18 | 18/08/2026 | Equipe de Engenharia / Dados | Adiciona a tabela `answer_submissions` (§3.2 DDL, §3.3 dicionário, migrations/0013) — achado em `/impeccable critique`: `POST .../answers` (lição e Modo Infinito) não tinham nenhuma proteção contra reprocessamento em retry, diferente de `purchases`. Mesmo padrão de `idempotency_key UNIQUE`, mas guardando o corpo da resposta 200 (`response` JSONB) pra devolver no replay, já que os efeitos colaterais (XP/vidas/streak/baú/conquista) precisam ser vistos como já processados, não como conflito (API Spec §6/§6.1/§2.6 v1.22) |
+| 1.19 | 20/08/2026 | Equipe de Engenharia / Dados | §4.4.1: adiciona `combo_atual`/`combo_maximo` a `practice_sessions` (TDD §3.0.1) — bônus de combo substitui o antigo bônus de velocidade no cálculo de XP (achado do porte de gamificação, `Docs/ArqLearn_Backlog_Gamificacao_Atelie.md`: premiar velocidade cria incentivo a responder apressado). **Nota:** pode haver outra entrada 1.19 em paralelo neste changelog vinda de uma branch irmã (cosméticos/eventos) — renumerar ao integrar |
 
 ---
 
@@ -451,10 +452,17 @@ endpoints revelar a lacuna (a API Specification já citava `session_id`/`SESSION
   "question_ids": ["q_001", "q_002"],
   "answered_question_ids": [],
   "hearts_at_start": 5,
+  "combo_atual": 0,
+  "combo_maximo": 0,
   "created_at": "datetime",
   "expires_at": "datetime"
 }
 ```
+
+`combo_atual`/`combo_maximo` *(v1.19)*: estado do bônus de combo (TDD §3.0.1) — `combo_atual` zera a
+cada resposta errada, `combo_maximo` guarda o pico da sessão e nunca decresce; é sobre ele que
+`calcularXP` (TDD §3) calcula o bônus, uma única vez, na última pergunta. Substitui o antigo bônus de
+velocidade por resposta individual.
 
 Expira 30 minutos após `created_at` (mesmo prazo já documentado em `SESSION_EXPIRED`, API Spec §12) —
 via índice TTL do MongoDB (`expireAfterSeconds: 0` sobre `expires_at`), então sessões abandonadas se
