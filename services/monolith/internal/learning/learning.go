@@ -18,6 +18,7 @@ import (
 
 	"arqlearn/monolith/internal/apierror"
 	"arqlearn/monolith/internal/authmiddleware"
+	"arqlearn/monolith/internal/gamification"
 	"arqlearn/monolith/internal/groqclient"
 	"arqlearn/monolith/internal/questiongen"
 )
@@ -32,7 +33,7 @@ func RegisterRoutes(mux *http.ServeMux, pool *pgxpool.Pool, mongoDB *mongo.Datab
 	mux.Handle("GET /v1/progress/summary", verifier.Middleware(http.HandlerFunc(handleProgressSummary(mongoDB))))
 
 	// Modo Infinito — API Spec §6.1
-	mux.Handle("POST /v1/infinite-mode/sessions", verifier.Middleware(http.HandlerFunc(handleStartInfiniteMode(mongoDB))))
+	mux.Handle("POST /v1/infinite-mode/sessions", verifier.Middleware(http.HandlerFunc(handleStartInfiniteMode(pool, mongoDB))))
 	mux.Handle("POST /v1/infinite-mode/sessions/{session_id}/answers", verifier.Middleware(http.HandlerFunc(handleInfiniteModeAnswer(pool, mongoDB, gemini))))
 	mux.Handle("POST /v1/infinite-mode/sessions/{session_id}/end", verifier.Middleware(http.HandlerFunc(handleEndInfiniteMode(pool, mongoDB))))
 
@@ -236,22 +237,40 @@ func handleListTrackLessons(mongoDB *mongo.Database) http.HandlerFunc {
 			return
 		}
 
-		// Percorre na ordem pedagógica real (track.units), não na ordem de retorno do Mongo.
-		// Lições órfãs (existem no banco mas não estão em nenhuma unit) ficam de fora — a trilha
-		// é quem define quais lições contam, não a coleção lessons isoladamente.
-		orderedIDs := t.orderedLessonIDs()
-		items := make([]lessonListItem, 0, len(orderedIDs))
-		for i, id := range orderedIDs {
-			l, ok := byID[id]
-			if !ok {
-				continue
+		// Percorre na ordem pedagógica real (track.units, por unit.Order) — não na ordem de
+		// retorno do Mongo —, com um desempate por dificuldade ascendente DENTRO de cada unidade
+		// (TDD §10: lesson.difficulty existe desde sempre mas nunca tinha sido consumido).
+		// unit.Order continua sendo o controle do autor de conteúdo entre unidades (não mexe
+		// nisso); só dentro de uma mesma unidade a lição mais fácil passa a vir primeiro.
+		// sort.SliceStable preserva a ordem original entre lições empatadas na mesma dificuldade,
+		// preservando a intenção do autor onde a dificuldade não desempata. Lições órfãs (existem
+		// no banco mas não estão em nenhuma unit) ficam de fora — a trilha é quem define quais
+		// lições contam, não a coleção lessons isoladamente.
+		units := make([]trackUnit, len(t.Units))
+		copy(units, t.Units)
+		sort.Slice(units, func(i, j int) bool { return units[i].Order < units[j].Order })
+
+		items := make([]lessonListItem, 0, len(byID))
+		order := 0
+		for _, u := range units {
+			unitLessons := make([]lesson, 0, len(u.LessonIDs))
+			for _, id := range u.LessonIDs {
+				if l, ok := byID[id]; ok {
+					unitLessons = append(unitLessons, l)
+				}
 			}
-			l.Order = i + 1
-			status, ok := progressByLesson[l.ID]
-			if !ok {
-				status = "not_started"
+			sort.SliceStable(unitLessons, func(i, j int) bool {
+				return gamification.DifficultyOrder[unitLessons[i].Difficulty] < gamification.DifficultyOrder[unitLessons[j].Difficulty]
+			})
+			for _, l := range unitLessons {
+				order++
+				l.Order = order
+				status, ok := progressByLesson[l.ID]
+				if !ok {
+					status = "not_started"
+				}
+				items = append(items, lessonListItem{Lesson: l, ProgressStatus: status, HasQuestions: hasQuestionsByLesson[l.ID]})
 			}
-			items = append(items, lessonListItem{Lesson: l, ProgressStatus: status, HasQuestions: hasQuestionsByLesson[l.ID]})
 		}
 
 		writeJSON(w, http.StatusOK, map[string]any{"data": items})

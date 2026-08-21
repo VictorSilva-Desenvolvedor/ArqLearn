@@ -63,10 +63,39 @@ func lessonIDsForTopic(ctx context.Context, mongoDB *mongo.Database, topic strin
 	return ids, nil
 }
 
+// goldilocksMin/goldilocksMax (TDD §10) delimitam a faixa de probabilidade de acerto esperada
+// ("nem fácil demais, nem difícil demais") usada por bandByExpectedDifficulty — banda, não só as
+// 2 dificuldades mais próximas de 50%: um corte rígido demais esgota pool fino (tópico curado com
+// poucas perguntas) mais rápido do que a seleção uniforme fazia antes desta mudança.
+const goldilocksMin = 0.25
+const goldilocksMax = 0.85
+
+// minBandedCandidates: abaixo disso, bandByExpectedDifficulty devolve poucas opções demais pra
+// valer a pena restringir — pickNextQuestion cai pro pool completo em vez de arriscar esgotar o
+// tópico prematuramente.
+const minBandedCandidates = 3
+
+// bandByExpectedDifficulty filtra os candidatos pras dificuldades cuja probabilidade de acerto
+// esperada pra skillScore (gamification.ProbabilidadeAcerto, TDD §10) cai dentro da faixa
+// Goldilocks.
+func bandByExpectedDifficulty(candidates []sessionQuestion, skillScore float64) []sessionQuestion {
+	var banded []sessionQuestion
+	for _, c := range candidates {
+		p := gamification.ProbabilidadeAcerto(skillScore, c.Difficulty)
+		if p >= goldilocksMin && p <= goldilocksMax {
+			banded = append(banded, c)
+		}
+	}
+	return banded
+}
+
 // pickNextQuestion sorteia uma pergunta aprovada do pool de lessonIDs, excluindo as já mostradas
 // nesta sessão — nil (sem erro) quando o pool se esgota, que o chamador trata como fim natural da
 // sessão (API Spec §6.1: "next_question ausente quando o banco de perguntas do tópico se esgota").
-func pickNextQuestion(ctx context.Context, mongoDB *mongo.Database, lessonIDs, excludeIDs []string) (*sessionQuestion, error) {
+// skillScore (TDD §10) direciona a escolha pra perto do ponto Goldilocks quando
+// gamification.AdaptiveDifficultyEnabled estiver ligado; ignorado (seleção uniforme, como antes
+// desta mudança) quando desligado.
+func pickNextQuestion(ctx context.Context, mongoDB *mongo.Database, lessonIDs, excludeIDs []string, skillScore float64) (*sessionQuestion, error) {
 	if len(lessonIDs) == 0 {
 		return nil, nil
 	}
@@ -90,7 +119,14 @@ func pickNextQuestion(ctx context.Context, mongoDB *mongo.Database, lessonIDs, e
 	if len(candidates) == 0 {
 		return nil, nil
 	}
-	q := candidates[rand.Intn(len(candidates))]
+
+	pool := candidates
+	if gamification.AdaptiveDifficultyEnabled {
+		if banded := bandByExpectedDifficulty(candidates, skillScore); len(banded) >= minBandedCandidates {
+			pool = banded
+		}
+	}
+	q := pool[rand.Intn(len(pool))]
 	return &q, nil
 }
 
@@ -98,9 +134,9 @@ type startInfiniteModeRequest struct {
 	Topic string `json:"topic"`
 }
 
-func handleStartInfiniteMode(mongoDB *mongo.Database) http.HandlerFunc {
+func handleStartInfiniteMode(pool *pgxpool.Pool, mongoDB *mongo.Database) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		if mongoDB == nil {
+		if pool == nil || mongoDB == nil {
 			apierror.Write(w, http.StatusServiceUnavailable, "SERVICE_UNAVAILABLE", "Serviço indisponível.")
 			return
 		}
@@ -121,7 +157,14 @@ func handleStartInfiniteMode(mongoDB *mongo.Database) http.HandlerFunc {
 			apierror.Write(w, http.StatusInternalServerError, "INTERNAL_ERROR", "Falha ao consultar trilhas do tópico.")
 			return
 		}
-		question, err := pickNextQuestion(r.Context(), mongoDB, lessonIDs, nil)
+		// Best-effort (TDD §10): sem habilidade registrada ainda pro tópico, LoadTopicSkill devolve
+		// (0, 0) — skillScore=0 é o âncora neutra de ProbabilidadeAcerto, então a primeira pergunta
+		// da sessão já sai razoavelmente calibrada mesmo sem histórico.
+		skillScore, _, err := gamification.LoadTopicSkill(r.Context(), pool, userID, req.Topic)
+		if err != nil {
+			log.Printf("aviso: falha ao carregar habilidade adaptativa (user_id=%s, topic=%s): %v", userID, req.Topic, err)
+		}
+		question, err := pickNextQuestion(r.Context(), mongoDB, lessonIDs, nil, skillScore)
 		if err != nil {
 			apierror.Write(w, http.StatusInternalServerError, "INTERNAL_ERROR", "Falha ao sortear pergunta.")
 			return
@@ -270,12 +313,22 @@ func handleInfiniteModeAnswer(pool *pgxpool.Pool, mongoDB *mongo.Database, gemin
 
 		hojeLocalDate, _ := time.Parse("2006-01-02", hojeLocal)
 
+		// Habilidade adaptativa (TDD §10): atualizada ANTES de escolher a próxima pergunta, pra
+		// next_question desta mesma resposta já refletir o novo skill_score — por isso roda aqui
+		// (não "depois do tx.Commit()" como AddWeeklyXP/RecordEvent mais abaixo, que não afetam o
+		// corpo da resposta). Best-effort de qualquer forma: uma falha aqui não derruba a resposta
+		// nem impede a próxima pergunta, só mantém a seleção com o skill anterior daquela vez.
+		skillScore, err := gamification.UpdateTopicSkill(r.Context(), pool, userID, sess.Topic, q.Difficulty, correct)
+		if err != nil {
+			log.Printf("aviso: falha ao atualizar habilidade adaptativa (user_id=%s, topic=%s): %v", userID, sess.Topic, err)
+		}
+
 		lessonIDs, err := lessonIDsForTopic(r.Context(), mongoDB, sess.Topic)
 		if err != nil {
 			apierror.Write(w, http.StatusInternalServerError, "INTERNAL_ERROR", "Falha ao consultar trilhas do tópico.")
 			return
 		}
-		nextQuestion, err := pickNextQuestion(r.Context(), mongoDB, lessonIDs, sess.ShownQuestionIDs)
+		nextQuestion, err := pickNextQuestion(r.Context(), mongoDB, lessonIDs, sess.ShownQuestionIDs, skillScore)
 		if err != nil {
 			apierror.Write(w, http.StatusInternalServerError, "INTERNAL_ERROR", "Falha ao sortear próxima pergunta.")
 			return

@@ -471,3 +471,27 @@ Als 3 de menor confiança da rodada anterior + a referência solta ("decisão #4
 ---
 
 Aguardando sua aprovação (ou correção da tradução de domínio) antes de implementar qualquer sistema. Por `RG-03`, a implementação segue **um sistema por entrega**, na ordem do backlog acima.
+
+---
+
+## Adendo (21/08/2026) — Habilidade adaptativa implementada fora da ordem
+
+Decisão explícita do usuário: implementar dificuldade gradual/adaptativa agora, deliberadamente
+fora da ordem estabelecida acima (que dizia esperar a Fase 1 estar em produção e medida antes de
+decidir Fase 2+, RG-05) — não é descoberta silenciosa de divergência.
+
+Duas entregas relacionadas, mas distintas:
+
+1. **Habilidade adaptativa por tópico (esta entrega)** — mecanismo **novo**, não estava mapeado em
+   nenhuma linha da RD-01/Fase 1-4 acima: um modelo logístico de 1 parâmetro (tipo Rasch/IRT
+   simplificado, análogo ao "Birdbrain" do Duolingo) que ajusta a seleção de pergunta do Modo
+   Infinito pro ponto Goldilocks pra cada usuário, por tópico. Documentado em
+   `Docs/ArqLearn_TDD_Technical_Design_Document.md` §10 e `Docs/ArqLearn_Database_Design.md`
+   (`user_topic_skill`, migrations/0017). Também ordena perguntas de sessão de lição e lições
+   dentro de uma unidade por dificuldade ascendente (`lesson.difficulty`, existente desde sempre,
+   nunca consumido até aqui).
+2. **Fila de revisão do SRS ("Revisar agora")** — item "3.1 Ateliê"/"3.2 Repetição Espaçada" acima,
+   entrega separada (ainda não implementada nesta mudança): consome `srs_state.next_review_at`
+   (já calculado a cada resposta de lição, nunca lido de volta) via endpoint e entrada visível
+   dedicados, fiel ao desenho original acima (não misturado silenciosamente no Modo Infinito por
+   tópico).
