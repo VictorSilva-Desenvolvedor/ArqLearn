@@ -2,6 +2,7 @@ package learning
 
 import (
 	"net/http"
+	"sort"
 	"time"
 
 	"github.com/google/uuid"
@@ -168,6 +169,12 @@ func handleStartSession(pool *pgxpool.Pool, mongoDB *mongo.Database) http.Handle
 				wireQuestions = append(wireQuestions, toWireQuestion(q))
 			}
 		}
+		// Dificuldade ascendente (TDD §10) — fácil primeiro, difícil por último. SliceStable
+		// preserva a ordem relativa entre perguntas empatadas na mesma dificuldade (a ordem
+		// original de l.QuestionIDs continua desempatando).
+		sort.SliceStable(wireQuestions, func(i, j int) bool {
+			return gamification.DifficultyOrder[wireQuestions[i].Difficulty] < gamification.DifficultyOrder[wireQuestions[j].Difficulty]
+		})
 
 		now := time.Now().UTC()
 		sess := practiceSession{
