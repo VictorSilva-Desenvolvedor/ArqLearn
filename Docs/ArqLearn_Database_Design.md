@@ -3,7 +3,7 @@
 
 Modelo de dados detalhado: esquema relacional, documentos, vetores, cache e estratégias de persistência.
 
-Versão 1.18 | Agosto de 2026
+Versão 1.19 | Agosto de 2026
 Documento complementar ao SAD e ao TDD do ArqLearn v1.0
 
 > **Sobre esta versão:** versão em Markdown, mantida como fonte da verdade a partir de agora (ver
@@ -33,6 +33,7 @@ Documento complementar ao SAD e ao TDD do ArqLearn v1.0
 | 1.16 | 15/08/2026 | Equipe de Engenharia / Dados | VIP "Mestre Arquiteto" (migrations/0011, a pedido do usuário) — adiciona `is_vip`/`vip_expires_at` e contadores de reset de baú a `user_gamification`, e a tabela `vip_coupons` (ativação por cupom de 10 dígitos; assinatura recorrente tem schema pronto porém desabilitada, ver API Spec §8.3). **Nota:** as colunas de `migrations/0009_daily_chest`/`0010_weekly_chest` (Baú Diário/Semanal) ainda não estavam documentadas aqui antes desta entrada — divergência pré-existente entre código e este documento, sinalizada e não resolvida retroativamente nesta mudança (fora do escopo desta demanda) |
 | 1.17 | 18/08/2026 | Equipe de Engenharia / Dados | Adiciona a tabela `user_push_tokens` (§3.2 DDL, §3.3 dicionário, migrations/0012, a pedido do usuário) — infraestrutura de push notification real (API Spec §9 v1.21); um usuário pode ter várias linhas (vários devices), `token` é `UNIQUE` |
 | 1.18 | 18/08/2026 | Equipe de Engenharia / Dados | Adiciona a tabela `answer_submissions` (§3.2 DDL, §3.3 dicionário, migrations/0013) — achado em `/impeccable critique`: `POST .../answers` (lição e Modo Infinito) não tinham nenhuma proteção contra reprocessamento em retry, diferente de `purchases`. Mesmo padrão de `idempotency_key UNIQUE`, mas guardando o corpo da resposta 200 (`response` JSONB) pra devolver no replay, já que os efeitos colaterais (XP/vidas/streak/baú/conquista) precisam ser vistos como já processados, não como conflito (API Spec §6/§6.1/§2.6 v1.22) |
+| 1.19 | 20/08/2026 | Equipe de Engenharia / Dados | §3.4: `gamification_events` nunca recebeu nenhum `INSERT` desde a v1.0 — só tinha a partição de agosto/2026 (a de setembro quebraria em ~10 dias, achado do porte de gamificação, `Docs/ArqLearn_Backlog_Gamificacao_Atelie.md`). Migration 0016 cria set/out/nov como colchão; `cmd/ensure-event-partitions` (cron mensal) garante as próximas daqui pra frente — documentado abaixo. Tabela passa a ser escrita de verdade por `internal/gamification.RecordEvent` |
 
 ---
 
@@ -327,7 +328,10 @@ CREATE INDEX idx_gamevents_user_time ON gamification_events(user_id, created_at 
 ### 3.4 Índices e Particionamento
 
 - `gamification_events` particionada por mês (RANGE em `created_at`); partições com mais de 13 meses são
-  movidas para armazenamento frio (arquivamento) e removidas da instância operacional.
+  movidas para armazenamento frio (arquivamento) e removidas da instância operacional. Partições futuras
+  são criadas por `cmd/ensure-event-partitions` (`.github/workflows/ensure-event-partitions.yml`, cron
+  mensal, `CREATE TABLE IF NOT EXISTS` idempotente) — a tabela nasceu (v1.4/migrations/0001) só com a
+  partição do mês de criação, sem automação nenhuma até a migration 0016/v1.19.
 - Índice composto `(league_id, xp_this_week DESC)` em `league_members` para consultas de ranking com
   custo O(log n).
 - Índice parcial em `users(tenant_id)` filtrando `deleted_at IS NULL`, mantendo o índice compacto e
