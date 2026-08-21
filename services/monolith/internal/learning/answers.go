@@ -135,19 +135,20 @@ func handleSubmitAnswer(pool *pgxpool.Pool, mongoDB *mongo.Database) http.Handle
 		var vipExpiresAt *time.Time
 		var streakRepairValue *int
 		var streakRepairDeadline *time.Time
+		var xpBoostActiveUntil *time.Time
 		err = pool.QueryRow(r.Context(), `
 			SELECT u.timezone, g.xp_total, g.xp_today, g.xp_today_date, g.hearts_current, g.hearts_updated_at,
 			       g.streak_current, g.streak_best, g.streak_last_active_date, g.streak_freezes_available,
 			       g.chest_questions_today, g.chest_questions_date, g.chest_claimed_date,
 			       g.chest_weekly_questions, g.chest_weekly_cycle_start, g.is_vip, g.vip_expires_at,
-			       g.streak_repair_value, g.streak_repair_deadline
+			       g.streak_repair_value, g.streak_repair_deadline, g.xp_boost_active_until
 			FROM users u JOIN user_gamification g ON g.user_id = u.id
 			WHERE u.id = $1
 		`, userID).Scan(&timezone, &xpTotal, &xpToday, &xpTodayDate, &heartsCurrent, &heartsUpdatedAt,
 			&streakCurrent, &streakBest, &streakLastActiveDate, &streakFreezesAvailable,
 			&chestQuestionsToday, &chestQuestionsDate, &chestClaimedDate,
 			&chestWeeklyQuestions, &chestWeeklyCycleStart, &isVip, &vipExpiresAt,
-			&streakRepairValue, &streakRepairDeadline)
+			&streakRepairValue, &streakRepairDeadline, &xpBoostActiveUntil)
 		if err != nil {
 			apierror.Write(w, http.StatusInternalServerError, "INTERNAL_ERROR", "Falha ao consultar perfil.")
 			return
@@ -155,6 +156,7 @@ func handleSubmitAnswer(pool *pgxpool.Pool, mongoDB *mongo.Database) http.Handle
 		// vipAtivo movido pra antes da regeneração de vidas (era calculado só mais abaixo, pro
 		// XP) — RegenerarVidas agora também precisa saber (VIPHeartsRegenFactor).
 		vipAtivo := gamification.EhVIPAtivo(isVip, vipExpiresAt, now)
+		boostAtivo := gamification.XPBoostAtivo(xpBoostActiveUntil, now)
 
 		// Regenera antes de aplicar a resposta atual (TDD §5.4) — sem isso, alguém que voltou
 		// depois de horas sem vidas perderia mais uma vida indevidamente por causa de um
@@ -217,7 +219,7 @@ func handleSubmitAnswer(pool *pgxpool.Pool, mongoDB *mongo.Database) http.Handle
 			comboMaximo = comboAtual
 		}
 
-		xpResult := gamification.CalcularXP(q.Difficulty, comboMaximo, isLastQuestion, isFirstCompletion, correct, xpToday, vipAtivo)
+		xpResult := gamification.CalcularXP(q.Difficulty, comboMaximo, isLastQuestion, isFirstCompletion, correct, xpToday, vipAtivo, boostAtivo)
 
 		newHearts := heartsCurrent
 		newHeartsUpdatedAt := heartsUpdatedAt
@@ -294,6 +296,7 @@ func handleSubmitAnswer(pool *pgxpool.Pool, mongoDB *mongo.Database) http.Handle
 			"correct":               correct,
 			"xp_ganho":              xpResult.XPConcedido,
 			"xp_daily_cap_reached":  xpResult.DailyCapReached,
+			"xp_boost_active":       boostAtivo,
 			"vidas_restantes":       newHearts,
 			"streak_atual":          streak.Current,
 			"explicacao":            q.Explanation,

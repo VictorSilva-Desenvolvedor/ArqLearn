@@ -22,12 +22,14 @@ const REWARD_ICON: Record<ChestRewardType, string> = {
   gems: "diamond",
   streak_freeze: "ac_unit",
   hearts_refill: "favorite",
+  xp_boost: "bolt",
 };
 
 const REWARD_LABEL: Record<ChestRewardType, string> = {
   gems: "Gemas",
   streak_freeze: "Bloqueio de Ofensiva",
   hearts_refill: "Vidas Restauradas",
+  xp_boost: "XP em Dobro",
 };
 
 type ChestType = "diario" | "semanal";
@@ -109,6 +111,9 @@ export default function DailyChestPage() {
       updateGamification({
         gems: result.gems,
         ...(result.reward_type === "hearts_refill" ? { hearts_current: HEARTS_MAX } : {}),
+        ...(result.reward_type === "xp_boost"
+          ? { xp_boost_active: true, xp_boost_active_until: result.xp_boost_active_until ?? null }
+          : {}),
       });
       if (result.reward_type === "streak_freeze") {
         adjustStreakFreezes(1);

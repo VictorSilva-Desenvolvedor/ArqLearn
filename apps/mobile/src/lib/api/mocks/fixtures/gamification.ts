@@ -22,6 +22,8 @@ export const mockGamificationProfile: GamificationProfile = {
   ],
   is_vip: false,
   vip_expires_at: null,
+  xp_boost_active: false,
+  xp_boost_active_until: null,
 };
 
 export const mockAchievementUnlocks: Achievement[] = [

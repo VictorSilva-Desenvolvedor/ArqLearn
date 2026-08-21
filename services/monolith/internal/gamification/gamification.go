@@ -6,6 +6,7 @@ package gamification
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 	"log"
 	"math/rand"
 	"net/http"
@@ -99,6 +100,10 @@ type gamificationMeResponse struct {
 	Cosmetics     []CosmeticJSON    `json:"cosmetics"`
 	IsVIP         bool              `json:"is_vip"`
 	VIPExpiresAt  *time.Time        `json:"vip_expires_at"`
+	// XPBoostActive/XPBoostActiveUntil (TDD §3.3) — mesmo par de is_vip/vip_expires_at, mas
+	// XPBoostActiveUntil=nil sempre significa "sem boost ativo" (nunca "vitalício").
+	XPBoostActive      bool       `json:"xp_boost_active"`
+	XPBoostActiveUntil *time.Time `json:"xp_boost_active_until"`
 }
 
 // LoadHeartsWithRegen lê hearts_current/hearts_updated_at, aplica a regeneração preguiçosa (TDD
@@ -228,9 +233,9 @@ func handleGetGamificationMe(pool *pgxpool.Pool) http.HandlerFunc {
 		var resp gamificationMeResponse
 		var isVipRaw bool
 		err := pool.QueryRow(r.Context(), `
-			SELECT xp_total, xp_today, level, gems, is_vip, vip_expires_at
+			SELECT xp_total, xp_today, level, gems, is_vip, vip_expires_at, xp_boost_active_until
 			FROM user_gamification WHERE user_id = $1
-		`, userID).Scan(&resp.XPTotal, &resp.XPToday, &resp.Level, &resp.Gems, &isVipRaw, &resp.VIPExpiresAt)
+		`, userID).Scan(&resp.XPTotal, &resp.XPToday, &resp.Level, &resp.Gems, &isVipRaw, &resp.VIPExpiresAt, &resp.XPBoostActiveUntil)
 		if err == pgx.ErrNoRows {
 			apierror.Write(w, http.StatusNotFound, "USER_PROFILE_NOT_FOUND", "Perfil de usuário não encontrado.")
 			return
@@ -265,6 +270,7 @@ func handleGetGamificationMe(pool *pgxpool.Pool) http.HandlerFunc {
 		// IsVIP reflete o estado JÁ EXPIRADO (EhVIPAtivo), não a coluna crua is_vip — evita o
 		// cliente achar que o VIP ainda vale só porque ninguém rodou um UPDATE zerando a flag.
 		resp.IsVIP = EhVIPAtivo(isVipRaw, resp.VIPExpiresAt, time.Now().UTC())
+		resp.XPBoostActive = XPBoostAtivo(resp.XPBoostActiveUntil, time.Now().UTC())
 
 		rows, err := pool.Query(r.Context(), `SELECT type, unlocked_at FROM achievements WHERE user_id = $1 ORDER BY unlocked_at DESC`, userID)
 		if err != nil {
@@ -1139,9 +1145,10 @@ func handleOpenDailyChest(pool *pgxpool.Pool) http.HandlerFunc {
 		var isVip bool
 		var vipExpiresAt *time.Time
 		var streakBest int
+		var xpBoostActiveUntil *time.Time
 		if err := pool.QueryRow(r.Context(),
-			`SELECT is_vip, vip_expires_at, streak_best FROM user_gamification WHERE user_id = $1`, userID,
-		).Scan(&isVip, &vipExpiresAt, &streakBest); err != nil {
+			`SELECT is_vip, vip_expires_at, streak_best, xp_boost_active_until FROM user_gamification WHERE user_id = $1`, userID,
+		).Scan(&isVip, &vipExpiresAt, &streakBest, &xpBoostActiveUntil); err != nil {
 			apierror.Write(w, http.StatusInternalServerError, "INTERNAL_ERROR", "Falha ao consultar perfil VIP.")
 			return
 		}
@@ -1162,6 +1169,7 @@ func handleOpenDailyChest(pool *pgxpool.Pool) http.HandlerFunc {
 		defer func() { _ = tx.Rollback(r.Context()) }()
 
 		var newGems int
+		var newXPBoostActiveUntil time.Time
 		switch reward.Type {
 		case ChestRewardGems:
 			err = tx.QueryRow(r.Context(),
@@ -1186,6 +1194,15 @@ func handleOpenDailyChest(pool *pgxpool.Pool) http.HandlerFunc {
 				`UPDATE user_gamification SET hearts_current = $1, hearts_updated_at = now(), chest_claimed_date = $2 WHERE user_id = $3 RETURNING gems`,
 				HeartsMax, hojeLocalDate, userID,
 			).Scan(&newGems)
+		case ChestRewardXPBoost:
+			// AtivarXPBoost empilha em vez de sobrescrever (TDD §3.3) — ver algorithms.go.
+			newXPBoostActiveUntil = AtivarXPBoost(xpBoostActiveUntil, time.Now().UTC())
+			err = tx.QueryRow(r.Context(),
+				`UPDATE user_gamification SET xp_boost_active_until = $1, chest_claimed_date = $2 WHERE user_id = $3 RETURNING gems`,
+				newXPBoostActiveUntil, hojeLocalDate, userID,
+			).Scan(&newGems)
+		default:
+			err = fmt.Errorf("tipo de recompensa de baú desconhecido: %q", reward.Type)
 		}
 		if err != nil {
 			apierror.Write(w, http.StatusInternalServerError, "INTERNAL_ERROR", "Falha ao aplicar recompensa do baú.")
@@ -1203,6 +1220,9 @@ func handleOpenDailyChest(pool *pgxpool.Pool) http.HandlerFunc {
 		}
 		if reward.Type == ChestRewardGems {
 			resp["gems_earned"] = reward.GemsAmount
+		}
+		if reward.Type == ChestRewardXPBoost {
+			resp["xp_boost_active_until"] = newXPBoostActiveUntil
 		}
 		writeJSON(w, http.StatusOK, resp)
 	}
@@ -1315,9 +1335,10 @@ func handleOpenWeeklyChest(pool *pgxpool.Pool) http.HandlerFunc {
 		var isVip bool
 		var vipExpiresAt *time.Time
 		var streakBest int
+		var xpBoostActiveUntil *time.Time
 		if err := pool.QueryRow(r.Context(),
-			`SELECT chest_weekly_cycle_start, is_vip, vip_expires_at, streak_best FROM user_gamification WHERE user_id = $1`, userID,
-		).Scan(&cycleStart, &isVip, &vipExpiresAt, &streakBest); err != nil {
+			`SELECT chest_weekly_cycle_start, is_vip, vip_expires_at, streak_best, xp_boost_active_until FROM user_gamification WHERE user_id = $1`, userID,
+		).Scan(&cycleStart, &isVip, &vipExpiresAt, &streakBest, &xpBoostActiveUntil); err != nil {
 			apierror.Write(w, http.StatusInternalServerError, "INTERNAL_ERROR", "Falha ao consultar ciclo semanal.")
 			return
 		}
@@ -1343,6 +1364,7 @@ func handleOpenWeeklyChest(pool *pgxpool.Pool) http.HandlerFunc {
 		defer func() { _ = tx.Rollback(r.Context()) }()
 
 		var newGems int
+		var newXPBoostActiveUntil time.Time
 		switch reward.Type {
 		case ChestRewardGems:
 			err = tx.QueryRow(r.Context(),
@@ -1366,6 +1388,16 @@ func handleOpenWeeklyChest(pool *pgxpool.Pool) http.HandlerFunc {
 				`UPDATE user_gamification SET hearts_current = $1, hearts_updated_at = now(), chest_weekly_claimed_cycle_start = $2 WHERE user_id = $3 RETURNING gems`,
 				HeartsMax, cycleStart, userID,
 			).Scan(&newGems)
+		case ChestRewardXPBoost:
+			// AtivarXPBoost empilha em vez de sobrescrever (TDD §3.3) — ver algorithms.go. Não
+			// alcançável quando VIP está ativo (override acima já força ChestRewardStreakFreeze).
+			newXPBoostActiveUntil = AtivarXPBoost(xpBoostActiveUntil, time.Now().UTC())
+			err = tx.QueryRow(r.Context(),
+				`UPDATE user_gamification SET xp_boost_active_until = $1, chest_weekly_claimed_cycle_start = $2 WHERE user_id = $3 RETURNING gems`,
+				newXPBoostActiveUntil, cycleStart, userID,
+			).Scan(&newGems)
+		default:
+			err = fmt.Errorf("tipo de recompensa de baú desconhecido: %q", reward.Type)
 		}
 		if err != nil {
 			apierror.Write(w, http.StatusInternalServerError, "INTERNAL_ERROR", "Falha ao aplicar recompensa do baú.")
@@ -1383,6 +1415,9 @@ func handleOpenWeeklyChest(pool *pgxpool.Pool) http.HandlerFunc {
 		}
 		if reward.Type == ChestRewardGems {
 			resp["gems_earned"] = reward.GemsAmount
+		}
+		if reward.Type == ChestRewardXPBoost {
+			resp["xp_boost_active_until"] = newXPBoostActiveUntil
 		}
 		writeJSON(w, http.StatusOK, resp)
 	}

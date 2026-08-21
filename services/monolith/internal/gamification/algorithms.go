@@ -55,7 +55,7 @@ const VIPGemsMultiplier = 2
 // há razão de domínio pra mudar esse número específico.
 const ComboBonusMax = 5
 
-func CalcularXP(difficulty string, comboMaximo int, isLastQuestion, isFirstCompletion, correct bool, xpToday int, vipAtivo bool) XPResult {
+func CalcularXP(difficulty string, comboMaximo int, isLastQuestion, isFirstCompletion, correct bool, xpToday int, vipAtivo, boostAtivo bool) XPResult {
 	if !correct {
 		return XPResult{}
 	}
@@ -77,8 +77,20 @@ func CalcularXP(difficulty string, comboMaximo int, isLastQuestion, isFirstCompl
 		bonusPrimeiraConclusao = 10
 	}
 	xpCalculado := base + bonusCombo + bonusPrimeiraConclusao
+	// VIP e XP Boost combinam num único multiplicador, arredondado uma única vez (TDD §3.3) —
+	// arredondar em duas rodadas sequenciais (VIP, depois boost) produz um resultado diferente e
+	// dependente da ordem (ex.: xpCalculado=13: sequencial round(round(13*1.25)*2)=32, combinado
+	// round(13*2.5)=33). O daily cap NÃO é afetado pelo boost — boost acelera o ganho, não eleva o
+	// teto (só VIPDailyXPCapMultiplier eleva o teto, decisão independente do multiplicador de taxa).
+	multiplicador := 1.0
 	if vipAtivo {
-		xpCalculado = int(math.Round(float64(xpCalculado) * VIPXPMultiplier))
+		multiplicador *= VIPXPMultiplier
+	}
+	if boostAtivo {
+		multiplicador *= XPBoostMultiplier
+	}
+	if multiplicador != 1.0 {
+		xpCalculado = int(math.Round(float64(xpCalculado) * multiplicador))
 	}
 
 	dailyCap := DailyXPCap
@@ -445,6 +457,7 @@ const (
 	ChestRewardGems         ChestRewardType = "gems"
 	ChestRewardStreakFreeze ChestRewardType = "streak_freeze"
 	ChestRewardHeartsRefill ChestRewardType = "hearts_refill"
+	ChestRewardXPBoost      ChestRewardType = "xp_boost"
 )
 
 // ChestReward é o resultado de RolarRecompensaBau.
@@ -470,10 +483,15 @@ func RolarRecompensaBau(rollType, rollDetail float64) ChestReward {
 		}
 		return ChestReward{Type: ChestRewardGems, GemsAmount: gemsAmount}
 	}
-	if rollDetail < 0.5 {
+	// Pool de item dividido em 3 partes iguais (era 50/50 entre freeze/recarga até o XP Boost
+	// entrar no pool, TDD §3.3) — cosméticos continuam de fora, caro demais pra sair de graça.
+	if rollDetail < 1.0/3.0 {
 		return ChestReward{Type: ChestRewardStreakFreeze}
 	}
-	return ChestReward{Type: ChestRewardHeartsRefill}
+	if rollDetail < 2.0/3.0 {
+		return ChestReward{Type: ChestRewardHeartsRefill}
+	}
+	return ChestReward{Type: ChestRewardXPBoost}
 }
 
 // EhVIPAtivo decide se o VIP está em vigor agora — expiração preguiçosa (mesmo padrão de
@@ -517,6 +535,31 @@ func EstenderVIP(isVip bool, vipExpiresAt *time.Time, now time.Time, durationDay
 	}
 	novaExpiracao := base.AddDate(0, 0, durationDays)
 	return &novaExpiracao
+}
+
+// XPBoostMultiplier/XPBoostDuration (TDD §3.3): boost temporário de XP concedido via recompensa de
+// Baú Diário/Semanal (ChestRewardXPBoost) — dobra o XP concedido por 15min. Diferente do VIP
+// (assinatura sempre-ativa), é um item consumível de curta duração.
+const XPBoostMultiplier = 2.0
+const XPBoostDuration = 15 * time.Minute
+
+// XPBoostAtivo — mesma forma de EhVIPAtivo, mas sem o caso "nil = vitalício": aqui nil sempre
+// significa "sem boost ativo", nunca "boost eterno" (não há flag irmã tipo is_vip).
+func XPBoostAtivo(activeUntil *time.Time, now time.Time) bool {
+	return activeUntil != nil && now.Before(*activeUntil)
+}
+
+// AtivarXPBoost concede/estende um XP Boost — mesmo padrão de empilhamento de EstenderVIP: se já
+// há um boost em vigor, soma a duração a partir do fim do boost atual (não desperdiça o que
+// sobrava, ex.: abrir baú diário e semanal quase juntos); senão, conta a partir de agora. Sem teto
+// de empilhamento deliberado — baús já são limitados a 1/dia + 1/semana, pior caso realista é ~2
+// concessões/dia, não é vetor de abuso que justifique complexidade extra.
+func AtivarXPBoost(activeUntil *time.Time, now time.Time) time.Time {
+	base := now
+	if XPBoostAtivo(activeUntil, now) {
+		base = *activeUntil
+	}
+	return base.Add(XPBoostDuration)
 }
 
 // VIPResetsAposReset aplica o mesmo reset preguiçoso de QuestoesHojeAposReset/
@@ -580,8 +623,13 @@ func RolarRecompensaBauSemanal(rollType, rollDetail float64) ChestReward {
 		}
 		return ChestReward{Type: ChestRewardGems, GemsAmount: gemsAmount}
 	}
-	if rollDetail < 0.5 {
+	// Mesmo split de 3 partes iguais do Baú Diário (ver RolarRecompensaBau) — só o corte
+	// gemas-vs-item muda entre os dois baús, não a divisão interna do pool de item.
+	if rollDetail < 1.0/3.0 {
 		return ChestReward{Type: ChestRewardStreakFreeze}
 	}
-	return ChestReward{Type: ChestRewardHeartsRefill}
+	if rollDetail < 2.0/3.0 {
+		return ChestReward{Type: ChestRewardHeartsRefill}
+	}
+	return ChestReward{Type: ChestRewardXPBoost}
 }

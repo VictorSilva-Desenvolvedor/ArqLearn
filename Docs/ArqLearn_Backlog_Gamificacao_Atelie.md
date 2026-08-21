@@ -27,7 +27,7 @@ Tabela completa produzida por varredura do repositório (backend Go em `services
 | 3 | Tipos de item | `internal/questiongen`, coleção `questions` | **Um único tipo: `multiple_choice`**, gabarito único, 4 alternativas | Zero itens divergentes; zero listening/speaking/matching/drag |
 | 4 | Sessão de prática | Mongo `practice_sessions` | 1 sessão = 1 lição, fila de perguntas aprovadas, TTL 30min, idempotência por resposta | Sem revisão SRS acionável, sem retomar sessão expirada |
 | 5 | Progresso | Mongo `user_progress` | Status por lição + `srs_state` (SM-2 simplificado) calculado | Sem gate real de sequência (backend não bloqueia pular lição) |
-| 6 | XP | `internal/gamification/algorithms.go` | Base por dificuldade (10/20/30/40) + bônus velocidade (+5) + 1ª conclusão (+10), VIP ×1.25, teto diário 500 (1000 VIP) | Sem diferenciação convergente/divergente (não existe ainda a própria classificação) |
+| 6 | XP | `internal/gamification/algorithms.go` | Base por dificuldade (10/20/30/40) + bônus combo (até +5) + 1ª conclusão (+10), VIP ×1.25, teto diário 500 (1000 VIP), XP Boost ×2 por 15min via baú (21/08/2026) | Sem diferenciação convergente/divergente (não existe ainda a própria classificação) |
 | 7 | Meta diária | Só frontend, `DAILY_GOAL_XP = 50` hardcoded | Comparação visual na Home | **Não existe no backend** — sem coluna, sem endpoint, sem efeito em streak |
 | 8 | Streak | `algorithms.go` (`AtualizarStreak`), `cmd/notify-streak-risk` | Expiração preguiçosa, freeze automático se disponível, aviso proativo | Sem pausa programada, sem streak compartilhada |
 | 9 | Vidas | `hearts_current` (0–5) | Regenera 1/36min (VIP 0.3×), decresce **só em erro** (já é o modelo "Corações", não "Energia") | Nenhum — já compatível com RX-02 |
@@ -222,13 +222,13 @@ Cada spec segue as 10 seções pedidas pelo prompt. Onde um sistema já existe a
 
 1. **Nome e propósito** — Sistema de baú diário/semanal já existe e funciona bem; objetivo é rename + RE-04 (boost nunca em item divergente).
 2. **Modelo de dados** — Nenhuma mudança estrutural; só rótulo de exibição.
-3. **Regras e fórmulas** — Manter os gates atuais (10 acertos/dia, 50/ciclo de 7 dias) e as proporções de sorteio (75/25 diário, 60/40 semanal). Adicionar regra: XP Boost obtido em caixa **nunca se aplica** a item divergente (RE-04) — hoje não existe boost no sistema, então esta regra só precisa ser respeitada quando (e se) um boost for introduzido.
+3. **Regras e fórmulas** — Manter os gates atuais (10 acertos/dia, 50/ciclo de 7 dias) e as proporções de sorteio (75/25 diário, 60/40 semanal, pool de item agora dividido em 3 — freeze/recarga/boost — desde 21/08/2026, ver adendo). Adicionar regra: XP Boost obtido em caixa **nunca se aplica** a item divergente (RE-04) — **o boost já existe** (implementado 21/08/2026), mas item divergente continua não existindo (Fase 3), então RE-04 continua **não-aplicável na prática** (nada ainda pra excluir) — não confundir "boost existe" com "RE-04 implementada".
 4. **Máquina de estados** — Sem mudança.
 5. **Eventos emitidos** — `caixa_aberta` (novo, hoje não instrumentado).
 6. **Superfície de UI** — Rename de "Baú" para "Caixa" em todas as telas (paridade mobile/web).
 7. **Feature flag** — Não precisa; é rename sobre sistema já em produção — mudança de string, não de comportamento.
 8. **Critérios de aceite** — Dado 10 respostas certas no dia, quando a 10ª é registrada, então a Caixa Diária fica disponível (comportamento já existente, só re-testar sob o novo nome).
-9. **Verificação de anti-padrão** — RE-04 (checagem futura, não aplicável hoje por não existir boost ainda).
+9. **Verificação de anti-padrão** — RE-04 (checagem futura, não aplicável hoje — boost já existe desde 21/08/2026, mas item divergente pra excluir dele ainda não).
 10. **Métrica de sucesso** — Sem regressão na taxa de abertura de caixa após o rename (teste A/B de nome, se necessário).
 
 ### 2.4 Notificações
@@ -563,3 +563,49 @@ tem mais níveis que os 5 atuais de `streak_dias`) também ficou de fora: `tierX
 `tierGemsRewards` (`internal/gamification/achievements.go`) são arrays `[5]int` compartilhados
 entre TODAS as famílias de conquista, não só streak — estender uma família só exigiria reestruturar
 o sistema de conquistas inteiro, desproporcional a este pedido.
+
+---
+
+## Adendo (21/08/2026) — XP Boost implementado fora da ordem
+
+Decisão explícita do usuário, mesmo precedente dos três adendos acima: implementar o sistema de
+XP/nível agora, deliberadamente fora da ordem original (item 6/"XP" acima, Fase 2 ainda não
+aprovada) — não é descoberta silenciosa de divergência.
+
+**Achado ao pesquisar**: a maior parte do sistema de XP/nível do Duolingo já tinha equivalente
+implementado no ArqLearn sob outro nome — bônus de combo (já entregue na v1.4, item 6 acima),
+multiplicador sempre-ativo por assinatura (`VIPXPMultiplier`, item VIP), curva de nível
+progressiva/quadrática (`Nivel`), teto diário não-bloqueante (`DailyXPCap`). O único gap genuíno
+era um **XP Boost discreto, de curta duração, empilhável** — não existia em nenhuma forma, confirmado
+por grep exaustivo.
+
+**XP Boost** — mecânica nova: multiplicador temporário (2x por 15min), concedido como recompensa de
+sorteio do Baú Diário/Semanal (pool de item dividido em 3 partes iguais agora — antes era 50/50 só
+entre Bloqueio de Ofensiva/Recarga de Vidas). Empilha com um boost já em vigor (soma duração a
+partir do fim do atual) e com o multiplicador VIP (multiplicadores combinados num único
+arredondamento, TDD §3.3) — sem afetar o teto diário de XP, só a velocidade de ganho. Documentado em
+`Docs/ArqLearn_TDD_Technical_Design_Document.md` §3.3 e `Docs/ArqLearn_Database_Design.md`
+(`xp_boost_active_until`, migrations/0020).
+
+**RE-04 (linhas 223/225/231/320 acima) — corrigida a premissa, mas NÃO marcada como concluída.** A
+regra é especificamente "XP Boost obtido em caixa nunca se aplica a item divergente" — construir o
+boost **não** implementa RE-04, porque item divergente continua não existindo (Fase 3, fora de
+escopo desta entrega). O texto que dizia "hoje não existe boost no sistema" foi corrigido (o boost
+existe desde agora), mas RE-04 em si permanece pendente/não-aplicável — não há ainda nada pra
+excluir do boost.
+
+**Fora de escopo, deliberado (não esquecido):** nível por trilha/curso ("crown levels" do Duolingo —
+ArqLearn não tem estrutura de conteúdo análoga por skill, nível global já é a decisão correta pro
+domínio); modo Legendary/maestria (já nomeado-mas-não-especificado no backlog como "Entrega", Fase
+3.3, item 4.4 — depende da classificação de item divergente ainda não construída); evento global de
+bônus tipo "Weekend Happy Hour" do Duolingo (nenhuma infraestrutura de agendamento/campanha existe
+no projeto — é uma alavanca de marketing sem campanha ativa pra rodar, desproporcional construir
+especulativamente nesta fase bootstrap).
+
+**Frontend, mínimo mas real** (diferente do bandit de notificação e do reparo de streak, que
+ficaram backend-only): o momento de revelação do baú (`bau/page.tsx` web + `bau.tsx` mobile) já
+tinha `REWARD_ICON`/`REWARD_LABEL` genéricos por `reward_type` — adicionar `"xp_boost"` ao tipo
+força (erro de compilação TS) preencher as duas entradas, tornando o boost visível no momento de
+maior valor ("aproveita agora") sem nenhuma decisão de design nova. Sem badge persistente/contador
+regressivo na Home — seria um padrão de UI novo (nenhum estado tipo-VIP aparece lá hoje) e, sem um
+componente de timer de verdade, ficaria confuso pra uma mecânica cuja premissa é pressão de tempo.
