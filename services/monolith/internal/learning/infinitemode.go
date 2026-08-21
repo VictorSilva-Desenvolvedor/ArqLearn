@@ -29,10 +29,14 @@ const infiniteModeSessionTTL = 30 * time.Minute
 // infiniteModeSession espelha a coleção "infinite_mode_sessions" (nova — Modo Infinito nunca
 // teve estado persistido antes, era 100% stub). shownQuestionIDs evita repetir pergunta na mesma
 // sessão; TotalTimeMs acumula pra calcular avg_time_ms no fim (API Spec §6.1).
+// IsReview (TDD §10.3): sessão de "Revisar agora" — Topic fica vazio ("" — sem tópico único, a
+// fila cruza todos os tópicos já praticados) e o pool de perguntas vem de dueLessonIDsForUser em
+// vez de lessonIDsForTopic.
 type infiniteModeSession struct {
 	ID                string    `bson:"_id"`
 	UserID            string    `bson:"user_id"`
 	Topic             string    `bson:"topic"`
+	IsReview          bool      `bson:"is_review,omitempty"`
 	ShownQuestionIDs  []string  `bson:"shown_question_ids"`
 	QuestionsAnswered int       `bson:"questions_answered"`
 	CorrectCount      int       `bson:"correct_count"`
@@ -59,6 +63,35 @@ func lessonIDsForTopic(ctx context.Context, mongoDB *mongo.Database, topic strin
 	var ids []string
 	for _, t := range tracks {
 		ids = append(ids, t.orderedLessonIDs()...)
+	}
+	return ids, nil
+}
+
+// dueLessonIDsForUser (TDD §10.3, "Revisar agora") coleta as lições cujo SRS já calculado
+// (user_progress.srs_state.next_review_at, TDD §4 — atualizado a cada resposta de lição em
+// answers.go, nunca consumido por nenhum código até esta mudança) está vencido — sem filtro de
+// tópico: revisar é entre todos os tópicos já praticados, não só o tema selecionado no momento.
+// Só existe user_progress pra lição já respondida ao menos uma vez em modo Lição — lição nunca
+// tentada nunca aparece como "vencida", correto por definição, não é bug.
+func dueLessonIDsForUser(ctx context.Context, mongoDB *mongo.Database, userID string) ([]string, error) {
+	cur, err := mongoDB.Collection("user_progress").Find(ctx, bson.M{
+		"user_id":                  userID,
+		"srs_state.next_review_at": bson.M{"$lte": time.Now().UTC()},
+	})
+	if err != nil {
+		return nil, err
+	}
+	defer cur.Close(ctx)
+
+	var docs []struct {
+		LessonID string `bson:"lesson_id"`
+	}
+	if err := cur.All(ctx, &docs); err != nil {
+		return nil, err
+	}
+	ids := make([]string, 0, len(docs))
+	for _, d := range docs {
+		ids = append(ids, d.LessonID)
 	}
 	return ids, nil
 }
@@ -92,10 +125,12 @@ func bandByExpectedDifficulty(candidates []sessionQuestion, skillScore float64) 
 // pickNextQuestion sorteia uma pergunta aprovada do pool de lessonIDs, excluindo as já mostradas
 // nesta sessão — nil (sem erro) quando o pool se esgota, que o chamador trata como fim natural da
 // sessão (API Spec §6.1: "next_question ausente quando o banco de perguntas do tópico se esgota").
-// skillScore (TDD §10) direciona a escolha pra perto do ponto Goldilocks quando
-// gamification.AdaptiveDifficultyEnabled estiver ligado; ignorado (seleção uniforme, como antes
-// desta mudança) quando desligado.
-func pickNextQuestion(ctx context.Context, mongoDB *mongo.Database, lessonIDs, excludeIDs []string, skillScore float64) (*sessionQuestion, error) {
+// skillScore (TDD §10) direciona a escolha pra perto do ponto Goldilocks quando adaptive e
+// gamification.AdaptiveDifficultyEnabled estiverem ligados; adaptive=false (usado pela fila de
+// revisão do SRS, TDD §10.3) ignora skillScore e sorteia uniforme no pool inteiro — o vencimento
+// do SRS já é o sinal relevante ali, misturar com a banda Goldilocks seria complexidade sem
+// ganho claro.
+func pickNextQuestion(ctx context.Context, mongoDB *mongo.Database, lessonIDs, excludeIDs []string, skillScore float64, adaptive bool) (*sessionQuestion, error) {
 	if len(lessonIDs) == 0 {
 		return nil, nil
 	}
@@ -121,7 +156,7 @@ func pickNextQuestion(ctx context.Context, mongoDB *mongo.Database, lessonIDs, e
 	}
 
 	pool := candidates
-	if gamification.AdaptiveDifficultyEnabled {
+	if adaptive && gamification.AdaptiveDifficultyEnabled {
 		if banded := bandByExpectedDifficulty(candidates, skillScore); len(banded) >= minBandedCandidates {
 			pool = banded
 		}
@@ -130,8 +165,11 @@ func pickNextQuestion(ctx context.Context, mongoDB *mongo.Database, lessonIDs, e
 	return &q, nil
 }
 
+// startInfiniteModeRequest: Topic e Review (TDD §10.3) são mutuamente exclusivos — Review=true
+// ignora Topic e monta o pool a partir de dueLessonIDsForUser (todos os tópicos já praticados).
 type startInfiniteModeRequest struct {
-	Topic string `json:"topic"`
+	Topic  string `json:"topic"`
+	Review bool   `json:"review"`
 }
 
 func handleStartInfiniteMode(pool *pgxpool.Pool, mongoDB *mongo.Database) http.HandlerFunc {
@@ -147,30 +185,54 @@ func handleStartInfiniteMode(pool *pgxpool.Pool, mongoDB *mongo.Database) http.H
 		}
 
 		var req startInfiniteModeRequest
-		if err := json.NewDecoder(r.Body).Decode(&req); err != nil || req.Topic == "" {
+		if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+			apierror.Write(w, http.StatusUnprocessableEntity, "VALIDATION_ERROR", "Corpo da requisição inválido.")
+			return
+		}
+		if !req.Review && req.Topic == "" {
 			apierror.Write(w, http.StatusUnprocessableEntity, "VALIDATION_ERROR", "Corpo da requisição inválido.")
 			return
 		}
 
-		lessonIDs, err := lessonIDsForTopic(r.Context(), mongoDB, req.Topic)
-		if err != nil {
-			apierror.Write(w, http.StatusInternalServerError, "INTERNAL_ERROR", "Falha ao consultar trilhas do tópico.")
-			return
+		var lessonIDs []string
+		var skillScore float64
+		var err error
+		if req.Review {
+			lessonIDs, err = dueLessonIDsForUser(r.Context(), mongoDB, userID)
+			if err != nil {
+				apierror.Write(w, http.StatusInternalServerError, "INTERNAL_ERROR", "Falha ao consultar fila de revisão.")
+				return
+			}
+			if len(lessonIDs) == 0 {
+				apierror.Write(w, http.StatusNotFound, "REVIEW_QUEUE_EMPTY", "Nenhum item vencido pra revisar agora.")
+				return
+			}
+		} else {
+			lessonIDs, err = lessonIDsForTopic(r.Context(), mongoDB, req.Topic)
+			if err != nil {
+				apierror.Write(w, http.StatusInternalServerError, "INTERNAL_ERROR", "Falha ao consultar trilhas do tópico.")
+				return
+			}
+			// Best-effort (TDD §10): sem habilidade registrada ainda pro tópico, LoadTopicSkill
+			// devolve (0, 0) — skillScore=0 é o âncora neutra de ProbabilidadeAcerto, então a
+			// primeira pergunta da sessão já sai razoavelmente calibrada mesmo sem histórico.
+			skillScore, _, err = gamification.LoadTopicSkill(r.Context(), pool, userID, req.Topic)
+			if err != nil {
+				log.Printf("aviso: falha ao carregar habilidade adaptativa (user_id=%s, topic=%s): %v", userID, req.Topic, err)
+			}
 		}
-		// Best-effort (TDD §10): sem habilidade registrada ainda pro tópico, LoadTopicSkill devolve
-		// (0, 0) — skillScore=0 é o âncora neutra de ProbabilidadeAcerto, então a primeira pergunta
-		// da sessão já sai razoavelmente calibrada mesmo sem histórico.
-		skillScore, _, err := gamification.LoadTopicSkill(r.Context(), pool, userID, req.Topic)
-		if err != nil {
-			log.Printf("aviso: falha ao carregar habilidade adaptativa (user_id=%s, topic=%s): %v", userID, req.Topic, err)
-		}
-		question, err := pickNextQuestion(r.Context(), mongoDB, lessonIDs, nil, skillScore)
+
+		question, err := pickNextQuestion(r.Context(), mongoDB, lessonIDs, nil, skillScore, !req.Review)
 		if err != nil {
 			apierror.Write(w, http.StatusInternalServerError, "INTERNAL_ERROR", "Falha ao sortear pergunta.")
 			return
 		}
 		if question == nil {
-			apierror.Write(w, http.StatusNotFound, "TOPIC_HAS_NO_QUESTIONS", "Nenhuma pergunta aprovada disponível para este tópico ainda.")
+			if req.Review {
+				apierror.Write(w, http.StatusNotFound, "REVIEW_QUEUE_EMPTY", "Nenhum item vencido pra revisar agora.")
+			} else {
+				apierror.Write(w, http.StatusNotFound, "TOPIC_HAS_NO_QUESTIONS", "Nenhuma pergunta aprovada disponível para este tópico ainda.")
+			}
 			return
 		}
 
@@ -179,6 +241,7 @@ func handleStartInfiniteMode(pool *pgxpool.Pool, mongoDB *mongo.Database) http.H
 			ID:               uuid.NewString(),
 			UserID:           userID,
 			Topic:            req.Topic,
+			IsReview:         req.Review,
 			ShownQuestionIDs: []string{question.ID},
 			CreatedAt:        now,
 			ExpiresAt:        now.Add(infiniteModeSessionTTL),
@@ -191,6 +254,7 @@ func handleStartInfiniteMode(pool *pgxpool.Pool, mongoDB *mongo.Database) http.H
 		writeJSON(w, http.StatusCreated, map[string]any{
 			"session_id": sess.ID,
 			"topic":      sess.Topic,
+			"is_review":  sess.IsReview,
 			"question":   toWireQuestion(*question),
 		})
 	}
@@ -313,22 +377,32 @@ func handleInfiniteModeAnswer(pool *pgxpool.Pool, mongoDB *mongo.Database, gemin
 
 		hojeLocalDate, _ := time.Parse("2006-01-02", hojeLocal)
 
-		// Habilidade adaptativa (TDD §10): atualizada ANTES de escolher a próxima pergunta, pra
-		// next_question desta mesma resposta já refletir o novo skill_score — por isso roda aqui
-		// (não "depois do tx.Commit()" como AddWeeklyXP/RecordEvent mais abaixo, que não afetam o
-		// corpo da resposta). Best-effort de qualquer forma: uma falha aqui não derruba a resposta
-		// nem impede a próxima pergunta, só mantém a seleção com o skill anterior daquela vez.
-		skillScore, err := gamification.UpdateTopicSkill(r.Context(), pool, userID, sess.Topic, q.Difficulty, correct)
-		if err != nil {
-			log.Printf("aviso: falha ao atualizar habilidade adaptativa (user_id=%s, topic=%s): %v", userID, sess.Topic, err)
+		// Habilidade adaptativa (TDD §10): não se aplica à fila de revisão (TDD §10.3) — sem
+		// tópico único pra atualizar, e o vencimento do SRS já é o sinal relevante ali. Atualizada
+		// ANTES de escolher a próxima pergunta, pra next_question desta mesma resposta já refletir
+		// o novo skill_score — por isso roda aqui (não "depois do tx.Commit()" como
+		// AddWeeklyXP/RecordEvent mais abaixo, que não afetam o corpo da resposta). Best-effort de
+		// qualquer forma: uma falha aqui não derruba a resposta nem impede a próxima pergunta, só
+		// mantém a seleção com o skill anterior daquela vez.
+		var skillScore float64
+		if !sess.IsReview {
+			skillScore, err = gamification.UpdateTopicSkill(r.Context(), pool, userID, sess.Topic, q.Difficulty, correct)
+			if err != nil {
+				log.Printf("aviso: falha ao atualizar habilidade adaptativa (user_id=%s, topic=%s): %v", userID, sess.Topic, err)
+			}
 		}
 
-		lessonIDs, err := lessonIDsForTopic(r.Context(), mongoDB, sess.Topic)
+		var lessonIDs []string
+		if sess.IsReview {
+			lessonIDs, err = dueLessonIDsForUser(r.Context(), mongoDB, userID)
+		} else {
+			lessonIDs, err = lessonIDsForTopic(r.Context(), mongoDB, sess.Topic)
+		}
 		if err != nil {
-			apierror.Write(w, http.StatusInternalServerError, "INTERNAL_ERROR", "Falha ao consultar trilhas do tópico.")
+			apierror.Write(w, http.StatusInternalServerError, "INTERNAL_ERROR", "Falha ao consultar próximas perguntas.")
 			return
 		}
-		nextQuestion, err := pickNextQuestion(r.Context(), mongoDB, lessonIDs, sess.ShownQuestionIDs, skillScore)
+		nextQuestion, err := pickNextQuestion(r.Context(), mongoDB, lessonIDs, sess.ShownQuestionIDs, skillScore, !sess.IsReview)
 		if err != nil {
 			apierror.Write(w, http.StatusInternalServerError, "INTERNAL_ERROR", "Falha ao sortear próxima pergunta.")
 			return
@@ -354,7 +428,11 @@ func handleInfiniteModeAnswer(pool *pgxpool.Pool, mongoDB *mongo.Database, gemin
 		}
 
 		newQuestionsAnswered := sess.QuestionsAnswered + 1
-		maybeTriggerGeneration(mongoDB, gemini, sess.Topic, newQuestionsAnswered)
+		// Sessão de revisão não tem tópico único (TDD §10.3) — não faz sentido disparar geração
+		// de lote pra um tópico específico ali.
+		if !sess.IsReview {
+			maybeTriggerGeneration(mongoDB, gemini, sess.Topic, newQuestionsAnswered)
+		}
 
 		// Conquistas do Modo Infinito (sequência sem errar, total de perguntas) — best-effort,
 		// mesmo padrão de AddWeeklyXP acima.
@@ -443,11 +521,11 @@ func handleInfiniteModeAnswer(pool *pgxpool.Pool, mongoDB *mongo.Database, gemin
 		// prática solta, ver comentário do handler acima).
 		gamification.RecordEvent(r.Context(), pool, userID, gamification.EventItemRespondido, nil, map[string]any{
 			"topic": sess.Topic, "question_id": req.QuestionID, "correct": correct,
-			"difficulty": q.Difficulty, "time_ms": req.TimeMs, "modo_infinito": true,
+			"difficulty": q.Difficulty, "time_ms": req.TimeMs, "modo_infinito": true, "is_review": sess.IsReview,
 		})
 		if xpResult.XPConcedido > 0 {
 			gamification.RecordEvent(r.Context(), pool, userID, gamification.EventXPCreditado, gamification.IntPtr(xpResult.XPConcedido), map[string]any{
-				"topic": sess.Topic, "daily_cap_reached": xpResult.DailyCapReached, "modo_infinito": true,
+				"topic": sess.Topic, "daily_cap_reached": xpResult.DailyCapReached, "modo_infinito": true, "is_review": sess.IsReview,
 			})
 		}
 
@@ -505,6 +583,35 @@ func handleEndInfiniteMode(pool *pgxpool.Pool, mongoDB *mongo.Database) http.Han
 			"xp_earned":          sess.TotalXPEarned,
 			"avg_time_ms":        avgTimeMs,
 		})
+	}
+}
+
+// handleReviewSummary implementa GET /v1/review/summary (TDD §10.3): quantos itens estão vencidos
+// agora pro usuário autenticado, entre todos os tópicos — alimenta o cliente decidir se mostra o
+// card "Revisar agora" ANTES de tentar abrir uma sessão, mesmo padrão de daily_chest_available/
+// weekly_chest_available (gamification.go).
+func handleReviewSummary(mongoDB *mongo.Database) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		if mongoDB == nil {
+			apierror.Write(w, http.StatusServiceUnavailable, "SERVICE_UNAVAILABLE", "Serviço indisponível.")
+			return
+		}
+		userID, ok := authmiddleware.UserID(r.Context())
+		if !ok {
+			apierror.Write(w, http.StatusUnauthorized, "UNAUTHENTICATED", "Token inválido.")
+			return
+		}
+
+		dueCount, err := mongoDB.Collection("user_progress").CountDocuments(r.Context(), bson.M{
+			"user_id":                  userID,
+			"srs_state.next_review_at": bson.M{"$lte": time.Now().UTC()},
+		})
+		if err != nil {
+			apierror.Write(w, http.StatusInternalServerError, "INTERNAL_ERROR", "Falha ao consultar fila de revisão.")
+			return
+		}
+
+		writeJSON(w, http.StatusOK, map[string]any{"due_count": dueCount})
 	}
 }
 

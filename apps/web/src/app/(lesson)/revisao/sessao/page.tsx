@@ -1,24 +1,24 @@
 "use client";
 
 import { useEffect } from "react";
-import { useParams, useRouter } from "next/navigation";
+import { useRouter } from "next/navigation";
 import { InfiniteModeHeader } from "@/components/features/infiniteMode/InfiniteModeHeader";
 import { InfiniteModeActionBar } from "@/components/features/infiniteMode/InfiniteModeActionBar";
 import { QuestionCard } from "@/components/features/quiz/QuestionCard";
 import { useInfiniteModeSession } from "@/components/features/infiniteMode/useInfiniteModeSession";
 import { useQuizKeyboardShortcuts } from "@/components/features/quiz/useQuizKeyboardShortcuts";
-import { getThemeByTopic } from "@/lib/api/mocks/fixtures/themes";
 import { Icon } from "@/components/ui/Icon";
 import { Button } from "@/components/ui/Button";
 import { ErrorBanner } from "@/components/ui/ErrorBanner";
 import { LoadingBlueprint } from "@/components/ui/LoadingBlueprint";
 import { useToast } from "@/hooks/useToast";
 
-export default function InfiniteModeSessionPage() {
+// "Revisar agora" (TDD §10.3) — reaproveita o mesmo hook/loop de resposta do Modo Infinito por
+// tópico (useInfiniteModeSession), só trocando o parâmetro pra { review: true }. Sem [topic] na
+// rota: a fila cruza todos os tópicos já praticados, não é de um tema só.
+export default function ReviewSessionPage() {
   const router = useRouter();
-  const { topic } = useParams<{ topic: string }>();
-  const infinite = useInfiniteModeSession({ topic });
-  const themeLabel = getThemeByTopic(topic).label;
+  const infinite = useInfiniteModeSession({ review: true });
   const { showToast } = useToast();
 
   useEffect(() => {
@@ -44,13 +44,13 @@ export default function InfiniteModeSessionPage() {
   if (infinite.notAvailable) {
     return (
       <div className="flex-1 flex flex-col items-center justify-center text-center gap-md px-md py-lg">
-        <Icon name="construction" className="text-5xl text-outline" />
+        <Icon name="task_alt" className="text-5xl text-outline" />
         <div>
           <h1 className="font-display text-headline-md font-bold text-on-surface">
-            Modo Infinito de {themeLabel} ainda não está pronto
+            Nada pra revisar agora
           </h1>
           <p className="font-body-md text-body-md text-on-surface-variant mt-1">
-            Estamos preparando as perguntas deste tema. Escolha outro tema ou tente de novo mais tarde.
+            Você está em dia com tudo que já praticou. Volte mais tarde ou pratique um tema novo.
           </p>
         </div>
         <Button variant="primary" onClick={() => router.push("/explorar")}>
@@ -60,24 +60,24 @@ export default function InfiniteModeSessionPage() {
     );
   }
 
-  // P1 do /impeccable critique (18/08/2026): mesmo achado do trilhas/.../sessao/page.tsx.
   if (infinite.sessionError) {
     return (
       <ErrorBanner
-        message="Não foi possível carregar o Modo Infinito. Verifique sua conexão e tente novamente."
+        message="Não foi possível carregar a revisão. Verifique sua conexão e tente novamente."
         onRetry={infinite.retrySession}
       />
     );
   }
 
   if (infinite.loading || !infinite.question) {
-    return <LoadingBlueprint variant="fullscreen" size={160} label="Carregando desafio…" />;
+    return <LoadingBlueprint variant="fullscreen" size={160} label="Carregando revisão…" />;
   }
 
   return (
     <>
       <InfiniteModeHeader
-        topicLabel={themeLabel}
+        variant="review"
+        topicLabel=""
         current={infinite.levelProgress}
         total={infinite.levelProgressTotal}
         level={infinite.level}

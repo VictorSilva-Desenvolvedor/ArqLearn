@@ -2,6 +2,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { ScrollView, StyleSheet, Text, View } from "react-native";
 import { useRouter } from "expo-router";
 import { InfiniteModePromptCard } from "@/components/features/explore/InfiniteModePromptCard";
+import { ReviewPromptCard } from "@/components/features/explore/ReviewPromptCard";
 import { SearchBar } from "@/components/features/explore/SearchBar";
 import { TrackCard } from "@/components/features/explore/TrackCard";
 import { UploadedContentItem } from "@/components/features/explore/UploadedContentItem";
@@ -11,6 +12,7 @@ import { useTheme } from "@/hooks/useTheme";
 import { useToast } from "@/hooks/useToast";
 import { ApiError } from "@/lib/api/http";
 import { mockRecommendedTracks } from "@/lib/api/mocks/fixtures/exploreTracks";
+import { getReviewSummary } from "@/lib/api/resources/review";
 import {
   completeUpload,
   fileTypeFromMime,
@@ -35,6 +37,7 @@ export default function ExplorarScreen() {
   const [query, setQuery] = useState("");
   const [uploads, setUploads] = useState<UploadedContent[]>([]);
   const [uploadError, setUploadError] = useState<string | null>(null);
+  const [reviewDueCount, setReviewDueCount] = useState(0);
   const { theme, setTopic } = useTheme();
   const { showToast } = useToast();
   const activePolls = useRef(new Set<string>());
@@ -43,6 +46,10 @@ export default function ExplorarScreen() {
     listMyUploads().then(setUploads);
     const polls = activePolls.current;
     return () => polls.clear();
+  }, []);
+
+  useEffect(() => {
+    getReviewSummary().then((summary) => setReviewDueCount(summary.due_count));
   }, []);
 
   const filteredTracks = useMemo(() => {
@@ -126,6 +133,7 @@ export default function ExplorarScreen() {
         </View>
 
         <InfiniteModePromptCard topic={theme.topic} themeLabel={theme.label} hasContent={theme.hasContent} />
+        <ReviewPromptCard dueCount={reviewDueCount} />
 
         <View style={styles.section}>
           <Text style={[type.headlineMd, styles.sectionTitle]}>Trilhas Recomendadas</Text>

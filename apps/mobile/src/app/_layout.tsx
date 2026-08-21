@@ -76,6 +76,8 @@ function RootNavigator() {
         <Stack.Screen name="bau" />
         <Stack.Screen name="infinito/[topic]/sessao" />
         <Stack.Screen name="infinito/[topic]/resumo" />
+        <Stack.Screen name="revisao/sessao" />
+        <Stack.Screen name="revisao/resumo" />
         <Stack.Screen name="materiais/[uploadId]/resumo" />
         <Stack.Screen name="materiais/[uploadId]/chat" />
         <Stack.Screen name="perfil/configuracoes" />

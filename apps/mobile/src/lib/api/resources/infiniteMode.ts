@@ -5,17 +5,26 @@ import {
   answerInfiniteModeSessionMock,
   endInfiniteModeSessionMock,
   startInfiniteModeSessionMock,
+  startReviewSessionMock,
 } from "../mocks/fixtures/infiniteModeSessions";
 import type { InfiniteModeAnswerResult, InfiniteModeEndResult, InfiniteModeSession } from "@/types/api";
 
-export async function startInfiniteModeSession(topic: string): Promise<InfiniteModeSession> {
+// { topic } inicia uma sessão por tópico; { review: true } inicia a fila de revisão do SRS
+// ("Revisar agora", TDD §10.3) — mutuamente exclusivos, mesmo contrato do backend
+// (POST /v1/infinite-mode/sessions, API Spec §6.1 v1.24).
+export type StartInfiniteModeParams = { topic: string } | { review: true };
+
+export async function startInfiniteModeSession(params: StartInfiniteModeParams): Promise<InfiniteModeSession> {
   if (isResourceReal("infinite-mode")) {
     return apiFetch<InfiniteModeSession>("/v1/infinite-mode/sessions", {
       method: "POST",
-      body: JSON.stringify({ topic }),
+      body: JSON.stringify(params),
     });
   }
-  return mockDelay(startInfiniteModeSessionMock(topic), 300);
+  if ("review" in params) {
+    return mockDelay(startReviewSessionMock(), 300);
+  }
+  return mockDelay(startInfiniteModeSessionMock(params.topic), 300);
 }
 
 export interface InfiniteModeAnswerPayload {

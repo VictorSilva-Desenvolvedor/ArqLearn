@@ -491,7 +491,11 @@ Duas entregas relacionadas, mas distintas:
    dentro de uma unidade por dificuldade ascendente (`lesson.difficulty`, existente desde sempre,
    nunca consumido até aqui).
 2. **Fila de revisão do SRS ("Revisar agora")** — item "3.1 Ateliê"/"3.2 Repetição Espaçada" acima,
-   entrega separada (ainda não implementada nesta mudança): consome `srs_state.next_review_at`
-   (já calculado a cada resposta de lição, nunca lido de volta) via endpoint e entrada visível
-   dedicados, fiel ao desenho original acima (não misturado silenciosamente no Modo Infinito por
-   tópico).
+   **entregue** (21/08/2026, entrega separada da habilidade adaptativa): consome
+   `srs_state.next_review_at` (já calculado a cada resposta de lição, nunca lido de volta antes
+   disso) via `GET /v1/review/summary` + `POST /v1/infinite-mode/sessions` com `review: true`, com
+   entrada visível dedicada (`ReviewPromptCard`, "Revisar agora") e rota própria
+   (`/revisao/sessao`, `/revisao/resumo`) em vez de misturado silenciosamente no Modo Infinito por
+   tópico — fiel ao desenho original acima. Cruza todos os tópicos já praticados (não filtrado por
+   tema); sem a camada de habilidade adaptativa (Goldilocks) dentro da fila — o vencimento do SRS
+   já é o sinal relevante ali, ver TDD §10.3.
