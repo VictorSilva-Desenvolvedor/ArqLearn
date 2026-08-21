@@ -473,3 +473,10 @@ const banks: Record<ThemeTopic, InfiniteModeQuestionEntry[]> = {
 export function getInfiniteModeBank(topic: string): InfiniteModeQuestionEntry[] | null {
   return banks[topic as ThemeTopic] ?? null;
 }
+
+// Pool combinado de todos os tópicos — usado só pela fila de revisão do SRS (mock de
+// "Revisar agora", TDD §10.3), que no backend real cruza todos os tópicos já praticados em vez de
+// um só.
+export function getAllInfiniteModeEntries(): InfiniteModeQuestionEntry[] {
+  return Object.values(banks).flat();
+}

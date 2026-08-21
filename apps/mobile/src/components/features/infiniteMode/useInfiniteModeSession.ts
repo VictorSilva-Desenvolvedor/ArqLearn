@@ -16,9 +16,15 @@ import type { InfiniteModeAnswerResult, InfiniteModeQuestion } from "@/types/api
 // apps/web/src/components/features/infiniteMode/useInfiniteModeSession.ts.
 const LEVEL_BATCH_SIZE = 20;
 
-export function useInfiniteModeSession(topic: string) {
+// { topic } é o modo por tópico de sempre; { review: true } é a fila de revisão do SRS
+// ("Revisar agora", TDD §10.3) — sem tópico único, cruza tudo que já foi praticado.
+export type InfiniteModeSessionParams = { topic: string } | { review: true };
+
+export function useInfiniteModeSession(params: InfiniteModeSessionParams) {
   const router = useRouter();
   const { updateGamification } = useAuth();
+  const isReview = "review" in params;
+  const topic = "topic" in params ? params.topic : "";
 
   const [sessionId, setSessionId] = useState<string | null>(null);
   const [question, setQuestion] = useState<InfiniteModeQuestion | null>(null);
@@ -45,7 +51,7 @@ export function useInfiniteModeSession(topic: string) {
   useEffect(() => {
     let cancelled = false;
     setSessionError(false);
-    startInfiniteModeSession(topic)
+    startInfiniteModeSession(isReview ? { review: true } : { topic })
       .then((session) => {
         if (cancelled) return;
         setSessionId(session.session_id);
@@ -55,7 +61,9 @@ export function useInfiniteModeSession(topic: string) {
       })
       .catch((err) => {
         if (cancelled) return;
-        if (err instanceof ApiError && err.error_code === "TOPIC_NOT_AVAILABLE") {
+        // REVIEW_QUEUE_EMPTY (fila de revisão vazia) reaproveita o mesmo estado "notAvailable" de
+        // TOPIC_NOT_AVAILABLE — as duas telas já tratam esse branch como "nada aqui agora".
+        if (err instanceof ApiError && (err.error_code === "TOPIC_NOT_AVAILABLE" || err.error_code === "REVIEW_QUEUE_EMPTY")) {
           setNotAvailable(true);
           return;
         }
@@ -65,7 +73,7 @@ export function useInfiniteModeSession(topic: string) {
       cancelled = true;
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [topic, sessionRetryToken]);
+  }, [isReview, topic, sessionRetryToken]);
 
   const retrySession = useCallback(() => setSessionRetryToken((t) => t + 1), []);
 
@@ -118,19 +126,23 @@ export function useInfiniteModeSession(topic: string) {
   const finishAndGoToSummary = useCallback(async () => {
     if (!sessionId) return;
     const end = await endInfiniteModeSession(sessionId);
+    const summaryParams = {
+      questions: String(end.questions_answered),
+      correct: String(end.correct_count),
+      accuracy: String(end.accuracy_rate),
+      xp: String(end.xp_earned),
+      avgTime: String(end.avg_time_ms),
+      chest: String(lastResult?.daily_chest_available ?? false),
+    };
+    if (isReview) {
+      router.push({ pathname: "/revisao/resumo", params: summaryParams });
+      return;
+    }
     router.push({
       pathname: "/infinito/[topic]/resumo",
-      params: {
-        topic,
-        questions: String(end.questions_answered),
-        correct: String(end.correct_count),
-        accuracy: String(end.accuracy_rate),
-        xp: String(end.xp_earned),
-        avgTime: String(end.avg_time_ms),
-        chest: String(lastResult?.daily_chest_available ?? false),
-      },
+      params: { topic, ...summaryParams },
     });
-  }, [sessionId, router, topic, lastResult]);
+  }, [sessionId, router, topic, isReview, lastResult]);
 
   const giveUp = useCallback(() => {
     finishAndGoToSummary();

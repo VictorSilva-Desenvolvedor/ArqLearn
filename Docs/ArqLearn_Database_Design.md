@@ -3,7 +3,7 @@
 
 Modelo de dados detalhado: esquema relacional, documentos, vetores, cache e estratégias de persistência.
 
-Versão 1.22 | Agosto de 2026
+Versão 1.23 | Agosto de 2026
 Documento complementar ao SAD e ao TDD do ArqLearn v1.0
 
 > **Sobre esta versão:** versão em Markdown, mantida como fonte da verdade a partir de agora (ver
@@ -37,6 +37,7 @@ Documento complementar ao SAD e ao TDD do ArqLearn v1.0
 | 1.20 | 20/08/2026 | Equipe de Engenharia / Dados | §3.4: `gamification_events` nunca recebeu nenhum `INSERT` desde a v1.0 — só tinha a partição de agosto/2026 (a de setembro quebraria em ~10 dias, achado do porte de gamificação, `Docs/ArqLearn_Backlog_Gamificacao_Atelie.md`). Migration 0016 cria set/out/nov como colchão; `cmd/ensure-event-partitions` (cron mensal) garante as próximas daqui pra frente — documentado abaixo. Tabela passa a ser escrita de verdade por `internal/gamification.RecordEvent` |
 | 1.21 | 20/08/2026 | Equipe de Engenharia / Dados | §4.4.1: adiciona `combo_atual`/`combo_maximo` a `practice_sessions` (TDD §3.0.1) — bônus de combo substitui o antigo bônus de velocidade no cálculo de XP (achado do porte de gamificação, `Docs/ArqLearn_Backlog_Gamificacao_Atelie.md`: premiar velocidade cria incentivo a responder apressado) |
 | 1.22 | 21/08/2026 | Equipe de Engenharia / Dados | Adiciona a tabela `user_topic_skill` (§3.2 DDL, §3.3 dicionário, migrations/0017) — habilidade adaptativa por tópico (TDD §10), usada pelo Modo Infinito pra escolher a próxima pergunta perto do ponto Goldilocks pro usuário. Implementado antecipadamente e fora da ordem original de `Docs/ArqLearn_Backlog_Gamificacao_Atelie.md` (decisão explícita do usuário). §4.4.1 ganha nota sobre a nova ordenação por dificuldade da fila de sessão de lição |
+| 1.23 | 21/08/2026 | Equipe de Engenharia / Dados | §4.4: `srs_state.next_review_at` (calculado desde sempre, nunca consumido) passa a ser lido de verdade por `GET /v1/review/summary` e `POST /v1/infinite-mode/sessions` com `review: true` (TDD §10.3, "Revisar agora") — fila de revisão entre todos os tópicos já praticados. Sem tabela/coleção nova; reaproveita o campo e o índice já documentados desde a v1.1/v1.5. Implementado fora da ordem original de `Docs/ArqLearn_Backlog_Gamificacao_Atelie.md` (mesma decisão explícita do usuário da v1.22) |
 
 ---
 
@@ -473,6 +474,18 @@ CREATE TABLE user_topic_skill (
   "updated_at": "datetime"
 }
 ```
+
+*(v1.23)* `srs_state.next_review_at` — calculado a cada resposta de lição desde sempre (TDD §4),
+mas nunca lido de volta por nenhum código até esta versão: `GET /v1/review/summary` e
+`POST /v1/infinite-mode/sessions` com `{"review": true}` (TDD §10.3, "Revisar agora") agora
+consultam `{"user_id": ..., "srs_state.next_review_at": {"$lte": now}}` — sem filtro de tópico,
+entre todas as lições já praticadas em modo Lição — pra montar a fila de itens vencidos. O índice
+`{user_id: 1, "srs_state.next_review_at": 1}` já listado em §4.5 desde a v1.1 finalmente ganha um
+consumidor de verdade — **nota:** nenhum código do repositório cria esse índice
+programaticamente (sem `CreateIndex`/`IndexModel` em lugar nenhum), então ele é uma decisão de
+schema documentada aqui, não uma garantia de que já existe no cluster Atlas real; confirmar/criar
+manualmente lá antes de depender dele para performance. Cardinalidade é pequena na fase bootstrap
+(poucos `user_progress` por usuário), então uma varredura sem índice não é um problema imediato.
 
 ### 4.4.1 Coleção: `practice_sessions` *(v1.6)*
 

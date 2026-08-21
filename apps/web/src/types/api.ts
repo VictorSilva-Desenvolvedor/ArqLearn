@@ -283,7 +283,16 @@ export interface InfiniteModeQuestion {
 export interface InfiniteModeSession {
   session_id: string;
   topic: string;
+  // is_review (v1.24, TDD §10.3): sessão da fila de revisão do SRS ("Revisar agora") — topic vem
+  // vazio nesse caso, a fila cruza todos os tópicos já praticados.
+  is_review: boolean;
   question: InfiniteModeQuestion;
+}
+
+// GET /v1/review/summary (v1.24, TDD §10.3) — quantos itens estão vencidos agora, entre todos os
+// tópicos. Alimenta o card "Revisar agora" decidir se aparece antes de tentar abrir a sessão.
+export interface ReviewSummary {
+  due_count: number;
 }
 
 export interface InfiniteModeAnswerResult {

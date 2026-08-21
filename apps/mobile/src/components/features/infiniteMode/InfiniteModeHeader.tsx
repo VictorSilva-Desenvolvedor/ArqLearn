@@ -13,28 +13,33 @@ interface InfiniteModeHeaderProps {
   current: number;
   total: number;
   level: number;
+  // variant (TDD §10.3): "review" troca título/selo/rótulo de saída pra refletir a fila de
+  // revisão do SRS ("Revisar agora") em vez do Modo Infinito por tópico — mesmo componente, sem
+  // duplicar a tela inteira.
+  variant?: "infinite" | "review";
 }
 
 // Espelha apps/web/src/components/features/infiniteMode/InfiniteModeHeader.tsx — mais simples que
 // QuizHeader: sem hearts, sem gems, sem toggle de download.
-export function InfiniteModeHeader({ topicLabel, current, total, level }: InfiniteModeHeaderProps) {
+export function InfiniteModeHeader({ topicLabel, current, total, level, variant = "infinite" }: InfiniteModeHeaderProps) {
   const router = useRouter();
   const colors = useColors();
   const styles = createStyles(colors);
+  const isReview = variant === "review";
 
   return (
     <View style={styles.header}>
       <View style={styles.topRow}>
         <IconButton
           icon={<Icon name="close" />}
-          label="Sair do Modo Infinito"
+          label={isReview ? "Sair da Revisão" : "Sair do Modo Infinito"}
           onPress={() => router.push("/explorar")}
         />
         <Text style={[type.questionSm, styles.title]} numberOfLines={1}>
-          Modo Infinito: {topicLabel}
+          {isReview ? "Revisão" : `Modo Infinito: ${topicLabel}`}
         </Text>
         <Badge tone="primary">{`Nível ${level}`}</Badge>
-        <Badge tone="error">Dificuldade Elevada</Badge>
+        <Badge tone="error">{isReview ? "Revisão" : "Dificuldade Elevada"}</Badge>
       </View>
       <View style={styles.progressRow}>
         <ProgressBar value={current} max={total} variant="thin" tone="secondary" style={styles.progress} />

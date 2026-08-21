@@ -11,9 +11,11 @@ import {
 } from "@/lib/api/resources/uploads";
 import { ApiError } from "@/lib/api/http";
 import { mockRecommendedTracks } from "@/lib/api/mocks/fixtures/exploreTracks";
+import { getReviewSummary } from "@/lib/api/resources/review";
 import { SearchBar } from "@/components/features/explore/SearchBar";
 import { UploadPromptCard } from "@/components/features/explore/UploadPromptCard";
 import { InfiniteModePromptCard } from "@/components/features/explore/InfiniteModePromptCard";
+import { ReviewPromptCard } from "@/components/features/explore/ReviewPromptCard";
 import { TrackCard } from "@/components/features/explore/TrackCard";
 import { UploadedContentItem } from "@/components/features/explore/UploadedContentItem";
 import { useTheme } from "@/hooks/useTheme";
@@ -28,6 +30,7 @@ export default function ExplorePage() {
   const [query, setQuery] = useState("");
   const [uploads, setUploads] = useState<UploadedContent[]>([]);
   const [uploadError, setUploadError] = useState<string | null>(null);
+  const [reviewDueCount, setReviewDueCount] = useState(0);
   const { theme, setTopic } = useTheme();
   const { showToast } = useToast();
   const activePolls = useRef(new Set<string>());
@@ -36,6 +39,10 @@ export default function ExplorePage() {
     listMyUploads().then(setUploads);
     const polls = activePolls.current;
     return () => polls.clear();
+  }, []);
+
+  useEffect(() => {
+    getReviewSummary().then((summary) => setReviewDueCount(summary.due_count));
   }, []);
 
   const filteredTracks = useMemo(() => {
@@ -117,6 +124,7 @@ export default function ExplorePage() {
         )}
       </div>
       <InfiniteModePromptCard topic={theme.topic} themeLabel={theme.label} hasContent={theme.hasContent} />
+      <ReviewPromptCard dueCount={reviewDueCount} />
 
       <section className="flex flex-col gap-sm">
         <h2 className="font-display text-headline-md text-on-surface">Trilhas Recomendadas</h2>
