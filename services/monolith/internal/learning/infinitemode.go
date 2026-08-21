@@ -385,6 +385,19 @@ func handleInfiniteModeAnswer(pool *pgxpool.Pool, mongoDB *mongo.Database, gemin
 			log.Printf("aviso: falha ao somar XP semanal de liga no Modo Infinito (user_id=%s): %v", userID, err)
 		}
 
+		// Eventos de telemetria (Fase 1 — Fundação, RT-02). Sem grafite_consumido/esgotado nem
+		// sessao_concluida aqui: Modo Infinito não toca vidas e não tem "última pergunta" (é
+		// prática solta, ver comentário do handler acima).
+		gamification.RecordEvent(r.Context(), pool, userID, gamification.EventItemRespondido, nil, map[string]any{
+			"topic": sess.Topic, "question_id": req.QuestionID, "correct": correct,
+			"difficulty": q.Difficulty, "time_ms": req.TimeMs, "modo_infinito": true,
+		})
+		if xpResult.XPConcedido > 0 {
+			gamification.RecordEvent(r.Context(), pool, userID, gamification.EventXPCreditado, gamification.IntPtr(xpResult.XPConcedido), map[string]any{
+				"topic": sess.Topic, "daily_cap_reached": xpResult.DailyCapReached, "modo_infinito": true,
+			})
+		}
+
 		writeJSON(w, http.StatusOK, resp)
 	}
 }

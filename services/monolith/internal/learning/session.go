@@ -185,6 +185,10 @@ func handleStartSession(pool *pgxpool.Pool, mongoDB *mongo.Database) http.Handle
 			return
 		}
 
+		// Best-effort, não bloqueia a resposta (RecordEvent já não devolve erro, ver events.go).
+		gamification.RecordEvent(r.Context(), pool, userID, gamification.EventSessaoIniciada, nil,
+			map[string]any{"lesson_id": lessonID, "session_id": sess.ID, "question_count": len(wireQuestions)})
+
 		writeJSON(w, http.StatusCreated, map[string]any{
 			"session_id":       sess.ID,
 			"questions":        wireQuestions,

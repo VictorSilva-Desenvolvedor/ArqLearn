@@ -1,0 +1,30 @@
+name: Ensure event partitions
+
+# Roda cmd/ensure-event-partitions uma vez por mês — garante que gamification_events (particionada
+# por mês, services/monolith/migrations/0001_init) tenha partição pro mês corrente e os próximos 3.
+# Sem isso, INSERT em gamification_events falha assim que um mês sem partição chega (a tabela nasceu
+# só com a partição de agosto/2026). Precisa do secret DATABASE_URL (mesma connection string de
+# produção usada pelas migrations) cadastrado em Settings → Secrets and variables → Actions.
+on:
+  schedule:
+    - cron: "0 6 1 * *" # 06:00 UTC no dia 1 de cada mês
+  workflow_dispatch: {} # permite disparar manualmente pela aba Actions, sem esperar o cron
+
+jobs:
+  ensure-partitions:
+    name: services/monolith — ensure-event-partitions
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: services/monolith
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-go@v5
+        with:
+          go-version-file: services/monolith/go.mod
+
+      - name: go run ./cmd/ensure-event-partitions
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+        run: go run ./cmd/ensure-event-partitions
