@@ -11,14 +11,16 @@ import { TopAppBar } from "@/components/home/TopAppBar";
 import { useAuth } from "@/hooks/useAuth";
 import { getGamificationProfile } from "@/lib/api/resources/gamification";
 import { getProgressSummary } from "@/lib/api/resources/progress";
+import { COMPASSO_DOURADO_ID, SELO_MESTRE_ID } from "@/lib/api/mocks/fixtures/shopCatalog";
 import { spacing } from "@/theme/tokens";
-import type { Achievement, ProgressSummary } from "@/types/api";
+import type { Achievement, OwnedCosmetic, ProgressSummary } from "@/types/api";
 
 // Espelha apps/web/src/app/(shell)/perfil/page.tsx — sem o ramo de professor/admin do web
 // (fora de escopo do mobile, ver Docs/PENDENCIAS_MOBILE.md).
 export default function PerfilScreen() {
   const { user, gamification } = useAuth();
   const [achievements, setAchievements] = useState<Achievement[] | null>(null);
+  const [cosmetics, setCosmetics] = useState<OwnedCosmetic[]>([]);
   const [progress, setProgress] = useState<ProgressSummary | null>(null);
 
   useEffect(() => {
@@ -26,12 +28,15 @@ export default function PerfilScreen() {
     Promise.all([getGamificationProfile(), getProgressSummary()]).then(([gamificationMe, progressSummary]) => {
       if (cancelled) return;
       setAchievements(gamificationMe.achievements);
+      setCosmetics(gamificationMe.cosmetics);
       setProgress(progressSummary);
     });
     return () => {
       cancelled = true;
     };
   }, []);
+
+  const ownedCosmeticIds = new Set(cosmetics.map((c) => c.item_id));
 
   return (
     <View style={styles.screen}>
@@ -42,6 +47,8 @@ export default function PerfilScreen() {
           level={gamification.level}
           xpTotal={gamification.xp_total}
           vip={gamification.is_vip}
+          goldFrame={ownedCosmeticIds.has(COMPASSO_DOURADO_ID)}
+          seloMestre={ownedCosmeticIds.has(SELO_MESTRE_ID)}
         />
         <ProfileStatsGrid
           xpTotal={gamification.xp_total}

@@ -7,15 +7,19 @@ interface AvatarProps {
   className?: string;
   // VIP "Mestre Arquiteto" (a pedido do usuário): borda dourada no lugar da primária.
   vip?: boolean;
+  // Cosmético "Compasso Dourado" da Loja (item_id em shopCatalog.ts): mesma borda dourada do
+  // VIP, mas sem o resto do tratamento VIP (nome em cor, coroa) — são conquistas diferentes,
+  // não deveriam se confundir visualmente além da borda.
+  goldFrame?: boolean;
 }
 
-export function Avatar({ src, name, size = 32, className, vip = false }: AvatarProps) {
+export function Avatar({ src, name, size = 32, className, vip = false, goldFrame = false }: AvatarProps) {
   const initials = name
     .split(" ")
     .slice(0, 2)
     .map((part) => part[0]?.toUpperCase())
     .join("");
-  const borderClass = vip ? "border-secondary" : "border-primary";
+  const borderClass = vip || goldFrame ? "border-secondary" : "border-primary";
 
   if (src) {
     return (

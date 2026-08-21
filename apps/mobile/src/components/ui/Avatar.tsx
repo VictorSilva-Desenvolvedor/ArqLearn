@@ -9,9 +9,13 @@ interface AvatarProps {
   size?: number;
   // VIP "Mestre Arquiteto" (a pedido do usuário): borda dourada no lugar da primária.
   vip?: boolean;
+  // Cosmético "Compasso Dourado" da Loja (item_id em shopCatalog.ts): mesma borda dourada do
+  // VIP, mas sem o resto do tratamento VIP (nome em cor, coroa) — são conquistas diferentes,
+  // não deveriam se confundir visualmente além da borda.
+  goldFrame?: boolean;
 }
 
-export function Avatar({ src, name, size = 32, vip = false }: AvatarProps) {
+export function Avatar({ src, name, size = 32, vip = false, goldFrame = false }: AvatarProps) {
   const colors = useColors();
   const styles = createStyles(colors);
   const initials = name
@@ -21,7 +25,7 @@ export function Avatar({ src, name, size = 32, vip = false }: AvatarProps) {
     .join("");
 
   const dimensions = { width: size, height: size, borderRadius: size / 2 };
-  const borderStyle = vip ? styles.baseVip : styles.base;
+  const borderStyle = vip || goldFrame ? styles.baseVip : styles.base;
 
   if (src) {
     return (

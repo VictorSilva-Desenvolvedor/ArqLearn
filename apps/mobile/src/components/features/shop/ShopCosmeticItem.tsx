@@ -11,16 +11,19 @@ interface ShopCosmeticItemProps {
   item: ShopItem;
   disabled: boolean;
   pending: boolean;
+  // Já está no inventário do usuário (user_cosmetics) — achado do porte de gamificação: antes
+  // disto, comprar de novo era possível sem aviso nenhum de que já tinha o item.
+  owned: boolean;
   onPurchase: () => void;
 }
 
 // Espelha apps/web/src/components/features/shop/ShopCosmeticItem.tsx.
-export function ShopCosmeticItem({ item, disabled, pending, onPurchase }: ShopCosmeticItemProps) {
+export function ShopCosmeticItem({ item, disabled, pending, owned, onPurchase }: ShopCosmeticItemProps) {
   const colors = useColors();
   const styles = createStyles(colors);
   return (
     <Card padding="md" radius="lg" style={[styles.card, item.locked && styles.cardLocked]}>
-      {item.is_new && (
+      {item.is_new && !owned && (
         <View style={styles.badgeWrap}>
           <Badge tone="secondary">Novo</Badge>
         </View>
@@ -29,7 +32,9 @@ export function ShopCosmeticItem({ item, disabled, pending, onPurchase }: ShopCo
       <Text style={[type.bodyMd, styles.name]} numberOfLines={2}>
         {item.name}
       </Text>
-      {item.locked ? (
+      {owned ? (
+        <Badge tone="tertiary">Adquirido</Badge>
+      ) : item.locked ? (
         <Text style={[type.labelCaps, styles.lockedLabel]}>Nível {item.requires_level}</Text>
       ) : (
         <>

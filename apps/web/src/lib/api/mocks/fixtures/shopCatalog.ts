@@ -1,5 +1,12 @@
 import type { ShopItem } from "@/types/api";
 
+// IDs dos cosméticos com efeito visual já wireado (Avatar/ProfileHeader) — precisam bater com os
+// UUIDs de shop_items (migrations/0004_shop_items_seed) igual ao resto deste arquivo. Tablet
+// Noturno fica de fora por ora: "tema escuro alternativo" exigiria um segundo tema de app
+// inteiro, decisão de produto maior que este ajuste (ver Docs/ArqLearn_Backlog_Gamificacao_Atelie.md).
+export const COMPASSO_DOURADO_ID = "41545ee7-29f2-4239-90f4-bc542db8b46a";
+export const SELO_MESTRE_ID = "cd540c6f-fc40-4054-aa1a-0543ec9a5980";
+
 // GET /v1/gamification/shop (catálogo) não existe no contrato — só
 // POST /v1/gamification/shop/purchase, que já é real (ver Docs/PENDENCIAS_WEB_REAL.md). Catálogo
 // fica mock estático até o backend expor um endpoint de listagem — mas os `id` abaixo são os
@@ -21,7 +28,7 @@ export const mockShopCatalog: ShopItem[] = [
     price_gems: 200,
   },
   {
-    id: "41545ee7-29f2-4239-90f4-bc542db8b46a",
+    id: COMPASSO_DOURADO_ID,
     tipo: "cosmetic",
     name: "Compasso Dourado",
     description: "Moldura de avatar exclusiva em dourado.",
@@ -36,7 +43,7 @@ export const mockShopCatalog: ShopItem[] = [
     is_new: true,
   },
   {
-    id: "cd540c6f-fc40-4054-aa1a-0543ec9a5980",
+    id: SELO_MESTRE_ID,
     tipo: "cosmetic",
     name: "Selo de Mestre",
     description: "Distintivo exclusivo para arquitetos de elite.",

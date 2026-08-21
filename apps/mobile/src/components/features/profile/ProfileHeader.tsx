@@ -16,10 +16,14 @@ interface ProfileHeaderProps {
   // VIP "Mestre Arquiteto" (a pedido do usuário): coroa ao lado do nome, nome em tom dourado e
   // selo abaixo do nível — modelado no mockup de Perfil VIP.
   vip?: boolean;
+  // Cosméticos da Loja (achado do porte de gamificação: comprar não tinha efeito visível antes
+  // disto) — independentes de VIP, cada um com seu próprio efeito.
+  goldFrame?: boolean; // Compasso Dourado: borda dourada no avatar
+  seloMestre?: boolean; // Selo de Mestre: distintivo abaixo do nível
 }
 
 // Espelha apps/web/src/components/features/profile/ProfileHeader.tsx.
-export function ProfileHeader({ name, level, xpTotal, vip = false }: ProfileHeaderProps) {
+export function ProfileHeader({ name, level, xpTotal, vip = false, goldFrame = false, seloMestre = false }: ProfileHeaderProps) {
   const colors = useColors();
   const styles = createStyles(colors);
   // xpMinimoDoNivel é a curva REAL (services/monolith/internal/gamification/algorithms.go
@@ -33,7 +37,7 @@ export function ProfileHeader({ name, level, xpTotal, vip = false }: ProfileHead
 
   return (
     <View style={styles.container}>
-      <Avatar name={name} size={96} vip={vip} />
+      <Avatar name={name} size={96} vip={vip} goldFrame={goldFrame} />
       <View style={styles.textBlock}>
         <View style={styles.nameRow}>
           <Text style={[type.headlineMd, vip ? styles.nameVip : styles.name]}>{name}</Text>
@@ -45,6 +49,7 @@ export function ProfileHeader({ name, level, xpTotal, vip = false }: ProfileHead
         {vip && (
           <Badge tone="gold" children="Mestre Arquiteto" />
         )}
+        {seloMestre && <Badge tone="tertiary" children="Selo de Mestre" />}
         <ProgressBar value={xpIntoLevel} max={xpNeededForLevel} variant="thin" tone="secondary" style={styles.progress} />
       </View>
     </View>
