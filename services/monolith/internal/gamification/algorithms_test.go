@@ -66,7 +66,7 @@ func TestCalcularXP_ComboCapadoEmCinco(t *testing.T) {
 
 func TestCalcularXP_PrimeiraConclusao(t *testing.T) {
 	r := CalcularXP("easy", 0, true, true, true, 0, false, false) // sem combo, isola o bônus de primeira conclusão
-	if r.XPConcedido != 20 {                               // base 10 + bônus primeira conclusão 10
+	if r.XPConcedido != 20 {                                      // base 10 + bônus primeira conclusão 10
 		t.Errorf("XPConcedido = %d, esperado 20", r.XPConcedido)
 	}
 }
