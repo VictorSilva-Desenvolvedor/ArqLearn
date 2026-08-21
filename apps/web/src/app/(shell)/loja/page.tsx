@@ -19,6 +19,7 @@ export default function ShopPage() {
 
   const featuredItems = mockShopCatalog.filter((item) => item.tipo !== "cosmetic");
   const cosmeticItems = mockShopCatalog.filter((item) => item.tipo === "cosmetic");
+  const ownedCosmeticIds = new Set(gamification.cosmetics.map((c) => c.item_id));
 
   const handlePurchase = async (itemId: string) => {
     setError(null);
@@ -34,6 +35,14 @@ export default function ShopPage() {
         adjustStreakFreezes(1);
       }
       const purchasedName = mockShopCatalog.find((i) => i.id === result.item.id)?.name ?? "Item";
+      if (result.item.tipo === "cosmetic" && !ownedCosmeticIds.has(result.item.id)) {
+        updateGamification({
+          cosmetics: [
+            ...gamification.cosmetics,
+            { item_id: result.item.id, name: purchasedName, equipped: true, acquired_at: new Date().toISOString() },
+          ],
+        });
+      }
       showToast(`${purchasedName} comprado!`, "success");
     } catch (err) {
       if (err instanceof ApiError) {
@@ -82,6 +91,7 @@ export default function ShopPage() {
               item={item}
               disabled={gamification.gems < item.price_gems}
               pending={pendingItemId === item.id}
+              owned={ownedCosmeticIds.has(item.id)}
               onPurchase={() => handlePurchase(item.id)}
             />
           ))}

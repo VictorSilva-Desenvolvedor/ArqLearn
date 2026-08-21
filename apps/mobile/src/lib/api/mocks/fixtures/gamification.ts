@@ -1,5 +1,6 @@
 import { mockUser } from "./user";
 import { tierDivisionToRank, type LeagueTierName } from "@/lib/gamification/leagueTiers";
+import { COMPASSO_DOURADO_ID } from "./shopCatalog";
 import type { Achievement, GamificationProfile, League, LeagueRankingEntry } from "@/types/api";
 
 export const mockGamificationProfile: GamificationProfile = {
@@ -14,6 +15,11 @@ export const mockGamificationProfile: GamificationProfile = {
   hearts_next_at: null,
   gems: 340,
   league_tier: "bronze",
+  // Compasso Dourado já comprado no mock (moldura de avatar dourada) — demonstra o inventário
+  // de cosméticos sem precisar gastar gemas no fluxo de demonstração.
+  cosmetics: [
+    { item_id: COMPASSO_DOURADO_ID, name: "Compasso Dourado", equipped: true, acquired_at: "2026-07-10T10:00:00Z" },
+  ],
   is_vip: false,
   vip_expires_at: null,
 };

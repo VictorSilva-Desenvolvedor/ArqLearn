@@ -38,19 +38,20 @@ type userMeResponse struct {
 		CreatedAt time.Time `json:"created_at"`
 	} `json:"user"`
 	Gamification struct {
-		XPTotal                int        `json:"xp_total"`
-		XPToday                int        `json:"xp_today"`
-		Level                  int        `json:"level"`
-		StreakCurrent          int        `json:"streak_current"`
-		StreakBest             int        `json:"streak_best"`
-		StreakFreezesAvailable int        `json:"streak_freezes_available"`
-		StreakAtRisk           bool       `json:"streak_at_risk"`
-		HeartsCurrent          int        `json:"hearts_current"`
-		HeartsNextAt           *time.Time `json:"hearts_next_at"`
-		Gems                   int        `json:"gems"`
-		LeagueTier             *string    `json:"league_tier"`
-		IsVIP                  bool       `json:"is_vip"`
-		VIPExpiresAt           *time.Time `json:"vip_expires_at"`
+		XPTotal                int                         `json:"xp_total"`
+		XPToday                int                         `json:"xp_today"`
+		Level                  int                         `json:"level"`
+		StreakCurrent          int                         `json:"streak_current"`
+		StreakBest             int                         `json:"streak_best"`
+		StreakFreezesAvailable int                         `json:"streak_freezes_available"`
+		StreakAtRisk           bool                        `json:"streak_at_risk"`
+		HeartsCurrent          int                         `json:"hearts_current"`
+		HeartsNextAt           *time.Time                  `json:"hearts_next_at"`
+		Gems                   int                         `json:"gems"`
+		LeagueTier             *string                     `json:"league_tier"`
+		Cosmetics              []gamification.CosmeticJSON `json:"cosmetics"`
+		IsVIP                  bool                        `json:"is_vip"`
+		VIPExpiresAt           *time.Time                  `json:"vip_expires_at"`
 	} `json:"gamification"`
 }
 
@@ -116,6 +117,12 @@ func handleGetMe(pool *pgxpool.Pool) http.HandlerFunc {
 		}
 
 		resp.Gamification.IsVIP = gamification.EhVIPAtivo(isVipRaw, resp.Gamification.VIPExpiresAt, time.Now().UTC())
+
+		resp.Gamification.Cosmetics, err = gamification.LoadOwnedCosmetics(r.Context(), pool, resp.User.ID)
+		if err != nil {
+			apierror.Write(w, http.StatusInternalServerError, "INTERNAL_ERROR", "Falha ao consultar cosméticos.")
+			return
+		}
 
 		writeJSON(w, http.StatusOK, resp)
 	}

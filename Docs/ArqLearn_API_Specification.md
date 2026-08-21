@@ -3,7 +3,7 @@
 
 Especificação de referência dos endpoints REST expostos pelo API Gateway.
 
-Versão 1.22 | Agosto de 2026
+Versão 1.23 | Agosto de 2026
 Documento complementar ao SAD e ao TDD do ArqLearn v1.0
 
 > **Sobre esta versão:** versão em Markdown, mantida como fonte da verdade a partir de agora (ver
@@ -37,6 +37,7 @@ Documento complementar ao SAD e ao TDD do ArqLearn v1.0
 | 1.20 | 18/08/2026 | Equipe de Engenharia | §8.1/§8.2: Baú Diário e Semanal passam a contar só respostas **certas** ("acertar N perguntas"), não mais toda resposta certa ou errada — reverte a decisão da v1.18/v1.19 a pedido do usuário, após achado em teste ao vivo em device real (confuso contar erro como progresso). Nenhum contrato/campo mudou, só a regra de quando `chest_questions_today`/`chest_weekly_questions` incrementam |
 | 1.21 | 18/08/2026 | Equipe de Engenharia | §9 (novo): `POST /v1/notifications/push-token` — registra/atualiza o token de push Expo do device atual, a pedido do usuário (infraestrutura de push notification real, antes só a preferência `push_enabled` existia sem nada consumi-la). Primeiro gatilho real: streak em risco, via `cmd/notify-streak-risk` (operacional, sem scheduler nesta fase, mesmo padrão de `cmd/close-league-week`) |
 | 1.22 | 18/08/2026 | Equipe de Engenharia | §6: `POST /v1/lessons/{lesson_id}/answers` passa a exigir o cabeçalho `Idempotency-Key` (mesmo padrão de `POST /v1/gamification/shop/purchase`, §2.6/§8) — achado em `/impeccable critique`: sem isto, um retry de rede reprocessava a resposta inteira (XP, vidas, streak, baú e conquistas contados de novo). Novo erro `IDEMPOTENCY_KEY_REQUIRED` (400). §2.6: nota sobre a janela de 24h mencionada ali não ser de fato implementada em nenhum dos dois endpoints hoje (chave sem expiração) — divergência sinalizada, não corrigida nesta versão |
+| 1.23 | 20/08/2026 | Equipe de Engenharia | §3.2: adiciona `cosmetics` ao `GamificationProfile` (`GET /v1/gamification/me` e `GET /v1/users/me`) — inventário de posse dos itens `category='cosmetic'` da Loja (`user_cosmetics`, Database Design v1.19); achado do porte de gamificação (`Docs/ArqLearn_Backlog_Gamificacao_Atelie.md`): comprar um cosmético não deixava nenhum registro de posse antes disso |
 
 ---
 
@@ -147,6 +148,7 @@ mesma chave retornam a resposta original sem reprocessar.
 | `league_tier` | integer | Tier da liga semanal atual. |
 | `is_vip` | boolean | VIP "Mestre Arquiteto" ativo agora — já reflete a expiração preguiçosa (`EhVIPAtivo`, ver §8.3); nunca `true` com `vip_expires_at` no passado. *(v1.20)* |
 | `vip_expires_at` | datetime \| null | Instante em que o VIP expira. `null` quando não há VIP ativo, **ou** quando é vitalício (concedido sem prazo) — distinguir os dois casos exige olhar `is_vip` junto. *(v1.20)* |
+| `cosmetics` | `{item_id, name, equipped, acquired_at}[]` | Itens `category='cosmetic'` da Loja que o usuário já possui (`user_cosmetics`, Database Design v1.19) — antes disso, comprar um cosmético não deixava nenhum registro de posse. `equipped` sempre `true` por ora (sem tela de "trocar equipado" ainda). *(v1.23)* |
 
 ### 3.3 Track / Lesson / Question
 
@@ -572,6 +574,11 @@ Erros: `409 QUESTION_ALREADY_REVIEWED`
 // Response 200
 { "...GamificationProfile", "achievements": [ {"type", "unlocked_at"} ] }
 ```
+
+> **`cosmetics` também em `GET /v1/users/me` (v1.23):** `GamificationProfile.cosmetics` é
+> compartilhado pelas duas rotas — `LoadOwnedCosmetics` (`internal/gamification`) é chamado por
+> `handleGetGamificationMe` e por `handleGetMe` (`internal/users`), mesmo padrão já usado por
+> `LoadHeartsWithRegen`/`LoadStreakWithExpiration`/`LoadLeagueTierName`.
 
 > **Expiração preguiçosa de streak (TDD §5.2/§5.3, v1.17):** sem job/cron nesta fase bootstrap
 > (mesmo padrão já usado pra regeneração de vidas, TDD §5.4) — `streak_current` é recalculado sob

@@ -8,25 +8,30 @@ interface ShopCosmeticItemProps {
   item: ShopItem;
   disabled: boolean;
   pending: boolean;
+  // Já está no inventário do usuário (user_cosmetics) — achado do porte de gamificação: antes
+  // disto, comprar de novo era possível sem aviso nenhum de que já tinha o item.
+  owned: boolean;
   onPurchase: () => void;
 }
 
-export function ShopCosmeticItem({ item, disabled, pending, onPurchase }: ShopCosmeticItemProps) {
+export function ShopCosmeticItem({ item, disabled, pending, owned, onPurchase }: ShopCosmeticItemProps) {
   return (
     <Card
       padding="md"
       radius="lg"
-      interactive={!item.locked}
+      interactive={!item.locked && !owned}
       className={cn("flex flex-col items-center text-center gap-xs relative", item.locked && "opacity-60")}
     >
-      {item.is_new && (
+      {item.is_new && !owned && (
         <Badge tone="secondary" className="absolute top-2 right-2">
           Novo
         </Badge>
       )}
       <Icon name="styler" filled className="text-4xl text-primary" />
       <p className="font-body-md text-body-md font-bold text-on-surface">{item.name}</p>
-      {item.locked ? (
+      {owned ? (
+        <Badge tone="tertiary">Adquirido</Badge>
+      ) : item.locked ? (
         <span className="font-label text-label-caps text-outline uppercase">
           Nível {item.requires_level}
         </span>
