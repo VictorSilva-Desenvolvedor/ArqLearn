@@ -34,4 +34,22 @@ export const mockTracks: Track[] = [
     topic: "estruturas",
     origin: "curated",
   },
+  // As duas trilhas abaixo (topics já com hasContent:true em themes.ts) são as únicas com
+  // conteúdo real seedado no backend hoje (Construções Sustentáveis, Maquetes — ver
+  // Docs/PENDENCIAS_MOBILE.md/PENDENCIAS_IA.md) — achado ao investigar "Trilhas Recomendadas
+  // sempre vazia" (21/08/2026): os 7 topics acima são todos hasContent:false, então nenhuma
+  // trilha jamais passava no filtro da vitrine. Adicionadas aqui pra vitrine ter pelo menos
+  // algo real pra mostrar, em vez de reativar os 7 topics ainda sem conteúdo de verdade.
+  {
+    id: "track-construcoes-sustentaveis",
+    title: "Construções Sustentáveis",
+    topic: "construcoes_sustentaveis",
+    origin: "curated",
+  },
+  {
+    id: "track-maquetes",
+    title: "Maquetes",
+    topic: "maquetes",
+    origin: "curated",
+  },
 ];

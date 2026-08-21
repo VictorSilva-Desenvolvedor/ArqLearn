@@ -67,6 +67,20 @@ const recommendedTracksBase: Omit<RecommendedTrack, "hasContent">[] = [
     durationMinutes: 55,
     icon: "themeArchitecture",
   },
+  // Únicas duas com hasContent:true hoje — ver comentário em tracks.ts sobre a vitrine estar
+  // sempre vazia antes desta entrega (21/08/2026).
+  {
+    track: trackById("track-construcoes-sustentaveis"),
+    difficulty: "Intermediário",
+    durationMinutes: 40,
+    icon: "themeEco",
+  },
+  {
+    track: trackById("track-maquetes"),
+    difficulty: "Básico",
+    durationMinutes: 35,
+    icon: "themeViewInAr",
+  },
 ];
 
 export const mockRecommendedTracks: RecommendedTrack[] = recommendedTracksBase.map((entry) => ({

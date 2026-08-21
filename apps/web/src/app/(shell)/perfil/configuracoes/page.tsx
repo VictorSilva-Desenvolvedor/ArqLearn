@@ -286,6 +286,18 @@ export default function SettingsPage() {
         </div>
       </Card>
 
+      <Card padding="lg" radius="lg" className="flex flex-col gap-sm">
+        <h2 className="font-display text-headline-md text-on-surface">Sessão</h2>
+        <p className="font-body-md text-body-md text-on-surface-variant">
+          Sair da sua conta neste dispositivo.
+        </p>
+        <div>
+          <Button variant="ghost" onClick={logout}>
+            Sair da conta
+          </Button>
+        </div>
+      </Card>
+
       <Card padding="lg" radius="lg" className="flex flex-col gap-sm border-error">
         <h2 className="font-display text-headline-md text-error">Zona de risco</h2>
         <p className="font-body-md text-body-md text-on-surface-variant">

@@ -104,7 +104,7 @@ export default function VipScreen() {
       <ScrollView contentContainerStyle={styles.content}>
         <View style={styles.hero}>
           <View style={styles.crownBadge}>
-            <Icon name="crown" size={40} color={colors.onSecondary} />
+            <Icon name="crown" size={40} color={colors.onSecondaryContainer} />
           </View>
           <Text style={[typeTokens.displayLg, styles.title]}>Mestre Arquiteto</Text>
           <Text style={[typeTokens.bodyLg, styles.subtitle]}>
@@ -217,15 +217,22 @@ const createStyles = (colors: ColorTokens) =>
     crownBadge: {
       width: 72,
       height: 72,
-      // radius.xl (24px), não full — círculo cheio é a forma reservada pros nós do mapa de
-      // lições (Shapes, DESIGN.md); o resto do app usa 24px como o teto "hero" (botões).
+      // radius.xl (24px), não full — círculo cheio é a forma reservada pra indicadores de
+      // status/pill (Shapes, DESIGN.md); "Hero containers" usam raio grande (Level 3), não
+      // círculo. Preenchimento pastel + anel de 2px (não mais sólido saturado) — achado ao
+      // comparar com o tratamento "VIP" já estabelecido em Avatar.baseVip/ProfileHeader (borda
+      // dourada sobre fundo neutro, não bloco sólido), 21/08/2026.
       borderRadius: radius.xl,
-      backgroundColor: colors.secondary,
+      backgroundColor: colors.secondaryContainer,
+      borderWidth: 2,
+      borderColor: colors.secondary,
       alignItems: "center",
       justifyContent: "center",
     },
     title: {
-      color: colors.secondary,
+      // onSurface, não colors.secondary — a cor de marca fica reservada pro badge/ícone/borda
+      // (mesmo padrão de liga.tsx/ProfileHeader), não pro título "hero" inteiro.
+      color: colors.onSurface,
       fontWeight: "700",
     },
     subtitle: {
