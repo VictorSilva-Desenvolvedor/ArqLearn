@@ -1,7 +1,7 @@
 # DOCUMENTO TÉCNICO DE DESIGN (TDD)
 ## ArqLearn — Algoritmos de Negócio, Contratos de Evento e Fluxos de Sequência
 
-Versão 1.7 | Agosto de 2026
+Versão 1.8 | Agosto de 2026
 Documento complementar ao SAD, ao Database Design e à API Specification do ArqLearn v1.0
 
 > **Nota de nomenclatura:** existe também um `ArqLearn_Documento_Tecnico_Design.docx` na pasta `Docs/`,
@@ -23,6 +23,7 @@ Documento complementar ao SAD, ao Database Design e à API Specification do ArqL
 | 1.5 | 21/08/2026 | Equipe de Arquitetura/Engenharia | Novo §10 (Dificuldade Adaptativa) — habilidade do usuário por tópico, modelo logístico de 1 parâmetro (tipo Rasch/IRT simplificado) usado pelo Modo Infinito, implementado antecipadamente e fora da ordem original de `Docs/ArqLearn_Backlog_Gamificacao_Atelie.md` (decisão explícita do usuário). §10 (Glossário) renumerado para §11 |
 | 1.6 | 21/08/2026 | Equipe de Arquitetura/Engenharia | Novo §11 (Personalização de Notificações) — bandit de template (Thompson Sampling, Beta-Bernoulli) pro gatilho de streak em risco, implementado antecipadamente e fora da ordem original de `Docs/ArqLearn_Backlog_Gamificacao_Atelie.md` (mesmo precedente do §10). Corrige um gap que a própria §5.2 já pedia (job rodando de hora em hora, filtrando pela janela horária local) e nunca tinha sido construído. §11 (Glossário) renumerado para §12 |
 | 1.7 | 21/08/2026 | Equipe de Arquitetura/Engenharia | Novo §5.5 — teto escalonado de bloqueios de ofensiva (RS-03, fecha gap já documentado no backlog) e reparo de streak / grace window de 3 dias (RS-08, mecânica nova inspirada no Duolingo), ambos implementados antecipadamente e fora da ordem original do backlog (mesmo precedente de §10/§11). §5.3 ganha nota de implementação corrigindo a descrição de "job horário" pra "avaliação preguiçosa em dois pontos" (achado ao implementar o reparo — o gap não tinha sido percebido antes por não ter consequência visível até agora) |
+| 1.8 | 21/08/2026 | Equipe de Arquitetura/Engenharia | §3.3 ganha o XP Boost — multiplicador temporário de 2x por 15min, concedido via recompensa de Baú Diário/Semanal, empilhável com o multiplicador VIP num único arredondamento (mecânica nova inspirada no Duolingo, implementada antecipadamente e fora da ordem original do backlog, mesmo precedente de §5.5/§10/§11). Corrige a frase obsoleta do próprio §3.3 ("o teto diário continua 500 XP/dia para todo mundo, VIP ou não") — já falsa desde que §9 dobrou o teto pra VIP (19/08/2026), achado ao revisar este arquivo pra esta entrega |
 
 ---
 
@@ -176,15 +177,39 @@ Não há job separado porque, diferente do streak, o reset do teto não dispara 
 | Efeito ao atingir | Preenche a barra, sem restringir nada | `calcularXP` passa a retornar 0 |
 | Bloqueia prática? | Não | Não |
 
-### 3.3 VIP: Multiplicador de XP *(v1.16, a pedido do usuário)*
+### 3.3 VIP: Multiplicador de XP *(v1.16, a pedido do usuário)* e XP Boost *(v1.8)*
 
 Usuário com VIP "Mestre Arquiteto" ativo (ver §9) recebe `VIP_XP_MULTIPLIER = 1.25` (+25%) sobre o
 XP calculado de cada resposta certa — aplicado **dentro** de `calcularXP`, **antes** do Limite
-Diário de XP (§3.2): `xp_calculado = round((base + bonus_combo + bonus_primeira_conclusao) *
-1.25)` quando VIP ativo, e só então esse valor é capado pelo `DAILY_XP_CAP` como qualquer outro.
-Decisão deliberada: o teto diário continua **500 XP/dia para todo mundo**, VIP ou não — o
-multiplicador só faz o VIP alcançar esse teto mais rápido, não elevar o teto em si. Implementado em
-`internal/gamification.CalcularXP` (parâmetro `vipAtivo`).
+Diário de XP (§3.2). **Nota de correção (v1.8):** ao contrário do que uma versão anterior desta
+seção dizia ("o teto diário continua 500 XP/dia para todo mundo, VIP ou não"), o teto diário **é
+dobrado** pra VIP (`VIP_DAILY_XP_CAP_MULTIPLIER = 2`, 500 → 1000) — decisão revertida em 19/08/2026,
+a pedido do usuário (ver §9, "reverte a decisão original de manter o mesmo teto... pra todo
+mundo"); a frase antiga desta seção ficou obsoleta e não foi corrigida até agora.
+
+**XP Boost** (v1.8, mecânica nova inspirada no Duolingo, implementada fora da ordem original do
+backlog — ver `Docs/ArqLearn_Backlog_Gamificacao_Atelie.md`): multiplicador temporário,
+`XP_BOOST_MULTIPLIER = 2.0` por `XP_BOOST_DURATION = 15min`, concedido como recompensa de sorteio
+do Baú Diário/Semanal (§8.1/§8.2 da API Spec) — diferente do VIP (assinatura sempre-ativa), é um
+item consumível de curta duração, armazenado em `user_gamification.xp_boost_active_until`
+(`nil` = sem boost ativo, nunca "vitalício"). Conceder um boost enquanto outro já está ativo
+**empilha** a duração a partir do fim do boost atual, não desperdiça o que sobrava (mesmo padrão de
+`EstenderVIP` com cupons) — sem teto de empilhamento (baús já são limitados a 1/dia + 1/semana, não
+é vetor de abuso relevante nesta escala).
+
+**Multiplicador combinado, um único arredondamento:** quando VIP e boost estão ativos ao mesmo
+tempo, os dois multiplicadores se combinam ANTES de arredondar — `multiplicador = 1.25 * 2.0 = 2.5`,
+`xp_calculado = round((base + bonus_combo + bonus_primeira_conclusao) * multiplicador)`. Arredondar
+em duas rodadas sequenciais (VIP primeiro, boost depois) produz um resultado diferente e
+dependente da ordem — ex.: `xp_calculado_base=13`: sequencial `round(round(13*1.25)*2)=32`,
+combinado `round(13*2.5)=33`. O teto diário **não** é afetado pelo boost — o boost acelera o ganho
+de XP, não eleva o teto (só `VIP_DAILY_XP_CAP_MULTIPLIER` eleva o teto, decisão independente do
+multiplicador de taxa). Aplica-se igualmente a lição e Modo Infinito (mesma função `CalcularXP`) —
+Modo Infinito já é farm-friendly por natureza (sem bônus de combo, §3.0.1), mas como o teto diário
+não é elevado pelo boost, o farm só alcança o teto existente mais rápido, nunca o ultrapassa.
+
+Implementado em `internal/gamification.CalcularXP` (parâmetros `vipAtivo`, `boostAtivo`),
+`XPBoostAtivo`/`AtivarXPBoost` (mesma vizinhança de `EhVIPAtivo`/`EstenderVIP`).
 
 ## 4. SRS — Repetição Espaçada (variação SM-2)
 

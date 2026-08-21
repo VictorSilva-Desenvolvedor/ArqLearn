@@ -52,12 +52,14 @@ type userMeResponse struct {
 		Cosmetics              []gamification.CosmeticJSON `json:"cosmetics"`
 		IsVIP                  bool                        `json:"is_vip"`
 		VIPExpiresAt           *time.Time                  `json:"vip_expires_at"`
+		XPBoostActive          bool                        `json:"xp_boost_active"`
+		XPBoostActiveUntil     *time.Time                  `json:"xp_boost_active_until"`
 	} `json:"gamification"`
 }
 
 const getMeQuery = `
 	SELECT u.id, u.name, u.email, u.role, u.timezone, u.created_at,
-	       g.xp_total, g.xp_today, g.level, g.gems, g.is_vip, g.vip_expires_at
+	       g.xp_total, g.xp_today, g.level, g.gems, g.is_vip, g.vip_expires_at, g.xp_boost_active_until
 	FROM users u
 	JOIN user_gamification g ON g.user_id = u.id
 	WHERE u.id = $1 AND u.deleted_at IS NULL
@@ -77,7 +79,7 @@ func handleGetMe(pool *pgxpool.Pool) http.HandlerFunc {
 			&resp.User.ID, &resp.User.Name, &resp.User.Email, &resp.User.Role,
 			&resp.User.Timezone, &resp.User.CreatedAt,
 			&resp.Gamification.XPTotal, &resp.Gamification.XPToday, &resp.Gamification.Level, &resp.Gamification.Gems,
-			&isVipRaw, &resp.Gamification.VIPExpiresAt,
+			&isVipRaw, &resp.Gamification.VIPExpiresAt, &resp.Gamification.XPBoostActiveUntil,
 		)
 		if err == pgx.ErrNoRows {
 			// Não deveria acontecer — o trigger on_auth_user_created (Database Design §3.2)
@@ -117,6 +119,7 @@ func handleGetMe(pool *pgxpool.Pool) http.HandlerFunc {
 		}
 
 		resp.Gamification.IsVIP = gamification.EhVIPAtivo(isVipRaw, resp.Gamification.VIPExpiresAt, time.Now().UTC())
+		resp.Gamification.XPBoostActive = gamification.XPBoostAtivo(resp.Gamification.XPBoostActiveUntil, time.Now().UTC())
 
 		resp.Gamification.Cosmetics, err = gamification.LoadOwnedCosmetics(r.Context(), pool, resp.User.ID)
 		if err != nil {

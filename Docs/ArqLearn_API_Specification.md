@@ -3,7 +3,7 @@
 
 Especificação de referência dos endpoints REST expostos pelo API Gateway.
 
-Versão 1.26 | Agosto de 2026
+Versão 1.27 | Agosto de 2026
 Documento complementar ao SAD e ao TDD do ArqLearn v1.0
 
 > **Sobre esta versão:** versão em Markdown, mantida como fonte da verdade a partir de agora (ver
@@ -41,6 +41,7 @@ Documento complementar ao SAD e ao TDD do ArqLearn v1.0
 | 1.24 | 21/08/2026 | Equipe de Engenharia | §6.1: `POST /v1/infinite-mode/sessions` ganha campo opcional `review` (mutuamente exclusivo com `topic`) — inicia a fila de revisão do SRS ("Revisar agora", TDD §10.3) em vez de uma sessão por tópico; resposta ganha `is_review`. Novo endpoint `GET /v1/review/summary` (`due_count`) e erro `REVIEW_QUEUE_EMPTY` (§12). Implementado fora da ordem original de `Docs/ArqLearn_Backlog_Gamificacao_Atelie.md` (decisão explícita do usuário, ver adendo no próprio documento) |
 | 1.25 | 21/08/2026 | Equipe de Engenharia | §9: corrige o parágrafo do gatilho de streak em risco — `cmd/notify-decide` (substitui `cmd/notify-streak-risk`) roda de hora em hora implementando de fato a janela horária local que a TDD §5.2 já pedia, e a mensagem passa a ser escolhida entre 4 variações por um bandit de Thompson Sampling (TDD §11) em vez de um texto fixo único, respeitando cooldown de 3 dias e teto de 2 notificações/dia (`RX-05`). Sem endpoint novo — é lógica de job em segundo plano, mas o parágrafo antigo tinha virado factualmente incorreto. Implementado fora da ordem original de `Docs/ArqLearn_Backlog_Gamificacao_Atelie.md` (mesma decisão explícita do usuário da v1.24) |
 | 1.26 | 21/08/2026 | Equipe de Engenharia | §3.2/§8: `streak_freezes_available` passa a respeitar um teto escalonado (RS-03, TDD §5.5) — novo erro `STREAK_FREEZE_CAP_REACHED` (§12) em `POST /v1/gamification/shop/purchase`. §9: novo gatilho síncrono de reparo de streak (RS-08) — notificação `type: "streak_repaired"` quando uma sequência recém-perdida é restaurada dentro de 3 dias. Sem endpoint novo pro reparo em si (automático, dentro de `POST /v1/lessons/{lesson_id}/answers`). Implementado fora da ordem original de `Docs/ArqLearn_Backlog_Gamificacao_Atelie.md` (mesma decisão explícita do usuário das v1.22–v1.25) |
+| 1.27 | 21/08/2026 | Equipe de Engenharia | §3.2: adiciona `xp_boost_active`/`xp_boost_active_until` ao `GamificationProfile` — XP Boost, multiplicador temporário de 2x por 15min (TDD §3.3). §8.1/§8.2: `reward_type` do Baú Diário/Semanal ganha o valor `"xp_boost"` (com `xp_boost_active_until` na resposta). §6/§6.1: `POST .../answers` e `POST /v1/infinite-mode/{session_id}/answers` ganham `xp_boost_active` na resposta. Sem endpoint novo — concessão é automática via sorteio de baú. Implementado fora da ordem original de `Docs/ArqLearn_Backlog_Gamificacao_Atelie.md` (mesma decisão explícita do usuário das v1.22–v1.26) |
 
 ---
 
@@ -152,6 +153,8 @@ mesma chave retornam a resposta original sem reprocessar.
 | `is_vip` | boolean | VIP "Mestre Arquiteto" ativo agora — já reflete a expiração preguiçosa (`EhVIPAtivo`, ver §8.3); nunca `true` com `vip_expires_at` no passado. *(v1.20)* |
 | `vip_expires_at` | datetime \| null | Instante em que o VIP expira. `null` quando não há VIP ativo, **ou** quando é vitalício (concedido sem prazo) — distinguir os dois casos exige olhar `is_vip` junto. *(v1.20)* |
 | `cosmetics` | `{item_id, name, equipped, acquired_at}[]` | Itens `category='cosmetic'` da Loja que o usuário já possui (`user_cosmetics`, Database Design v1.19) — antes disso, comprar um cosmético não deixava nenhum registro de posse. `equipped` sempre `true` por ora (sem tela de "trocar equipado" ainda). *(v1.23)* |
+| `xp_boost_active` | boolean | `true` quando um XP Boost está em vigor agora — dobra o XP ganho por resposta (TDD §3.3). Mesmo padrão de `is_vip`: já reflete a expiração, calculado a partir de `xp_boost_active_until`. *(v1.27)* |
+| `xp_boost_active_until` | datetime \| null | Instante em que o boost atual expira. `null` sempre significa "sem boost ativo" (diferente de `vip_expires_at`, sem o caso especial "vitalício"). *(v1.27)* |
 
 ### 3.3 Track / Lesson / Question
 
@@ -307,6 +310,7 @@ ativa. Requer cabeçalho `Idempotency-Key` *(v1.22 — ver §2.6)*.
   "correct": boolean,
   "xp_ganho": integer,
   "xp_daily_cap_reached": boolean,
+  "xp_boost_active": boolean,
   "vidas_restantes": integer,
   "streak_atual": integer,
   "explicacao": "string",
@@ -316,7 +320,10 @@ ativa. Requer cabeçalho `Idempotency-Key` *(v1.22 — ver §2.6)*.
 ```
 `xp_ganho` já vem líquido do limite diário de XP (TDD §3.2) — quando `xp_daily_cap_reached` é `true`,
 `xp_ganho` pode ser `0` mesmo com `correct: true`. *(campo `xp_daily_cap_reached` adicionado na v1.2)*
-`daily_chest_available`/`daily_chest_questions` *(v1.18)* — ver §8.1 Baú Diário.
+`xp_boost_active` *(v1.27)* — `true` quando o XP Boost estava em vigor nesta resposta (já refletido
+em `xp_ganho`, TDD §3.3); sinal mais granular que `GamificationProfile.xp_boost_active` (§3.2), útil
+durante a lição sem esperar uma nova leitura do perfil. `daily_chest_available`/
+`daily_chest_questions` *(v1.18)* — ver §8.1 Baú Diário.
 
 > **v1.5 — `answer` é id, não texto.** O corpo aceita o `id` da opção escolhida (ex.: `"b"`), não o
 > texto da resposta. Decisão tomada ao integrar com o app: comparar texto literal é frágil (acento,
@@ -406,6 +413,7 @@ próxima questão do modo infinito. Requer cabeçalho `Idempotency-Key` *(v1.22 
   "correct": boolean,
   "xp_ganho": integer,
   "xp_daily_cap_reached": boolean,
+  "xp_boost_active": boolean,
   "questions_answered": integer,
   "correct_count": integer,
   "level": integer,
@@ -414,7 +422,9 @@ próxima questão do modo infinito. Requer cabeçalho `Idempotency-Key` *(v1.22 
   "daily_chest_questions": integer
 }
 ```
-`next_question` ausente quando o banco de perguntas do tópico se esgota — cliente deve tratar como fim
+`xp_boost_active` *(v1.27)* — mesmo campo/semântica de `POST /v1/lessons/{lesson_id}/answers` (§6,
+TDD §3.3); Modo Infinito recebe o boost igual à lição (mesma `CalcularXP`), mesmo continuando sem
+bônus de combo (TDD §3.0.1, farm-friendly por design). `next_question` ausente quando o banco de perguntas do tópico se esgota — cliente deve tratar como fim
 de sessão nesse caso. Campo `xp_daily_cap_reached` adicionado na v1.2, mesmo comportamento de §6.
 `level` adicionado na v1.3 = `floor(questions_answered / 20) + 1`, calculado pro cliente exibir "Nível
 N" sem duplicar a conta — todo tópico ganha esse número, mas só `"maquetes"` de fato gera lição nova a
@@ -725,19 +735,23 @@ quando a resposta que acabou de mandar foi a 10ª do dia.
 
 **`POST /v1/gamification/daily-chest/open`** — Abre o Baú Diário disponível e sorteia a
 recompensa (`internal/gamification.RolarRecompensaBau`): **75%** gemas (1 a 5, uniforme), **25%**
-um item consumível grátis do sistema (metade Bloqueio de Ofensiva, metade Recarga de Vidas — os
-dois itens consumíveis reais da Loja, `migrations/0004_shop_items_seed`; cosméticos ficam de fora
-do pool). Sem `Idempotency-Key`: a trava de "1 por dia" já é o `chest_claimed_date` em si, gravado
-atomicamente com a aplicação do prêmio.
+um item grátis do sistema, dividido em 3 partes iguais entre Bloqueio de Ofensiva, Recarga de
+Vidas e XP Boost *(3ª opção desde v1.27, TDD §3.3 — antes era 50/50 só entre os dois primeiros)* —
+cosméticos ficam de fora do pool. Sem `Idempotency-Key`: a trava de "1 por dia" já é o
+`chest_claimed_date` em si, gravado atomicamente com a aplicação do prêmio.
 
 ```json
 // Response 200 — reward_type: "gems"
 { "reward_type": "gems", "gems_earned": integer, "gems": integer }
 // Response 200 — reward_type: "streak_freeze" | "hearts_refill"
 { "reward_type": "streak_freeze", "gems": integer }
+// Response 200 — reward_type: "xp_boost" (v1.27)
+{ "reward_type": "xp_boost", "gems": integer, "xp_boost_active_until": datetime }
 ```
 `gems` é sempre o saldo total após a abertura (igual ao padrão de `gems_restantes` da compra na
-Loja), não o quanto foi ganho — `gems_earned` só existe quando `reward_type` é `"gems"`. Erros:
+Loja), não o quanto foi ganho — `gems_earned` só existe quando `reward_type` é `"gems"`;
+`xp_boost_active_until` só existe quando `reward_type` é `"xp_boost"` (empilha com um boost já em
+vigor — soma a duração a partir do fim do boost atual, ver TDD §3.3). Erros:
 `409 CHEST_NOT_AVAILABLE` (ainda não bateu as 10 perguntas do dia, ou já foi aberto hoje —
 reconsultado no servidor, nunca confiado no que o cliente mandou).
 
@@ -776,8 +790,8 @@ Diário precisa).
 **`POST /v1/gamification/weekly-chest/open`** — Abre o Baú Semanal disponível e sorteia a
 recompensa (`internal/gamification.RolarRecompensaBauSemanal`) — **maior** que a do Baú Diário,
 reflete o esforço extra de 50 perguntas em até 7 dias: **60%** gemas (5 a 15, uniforme, contra 1 a
-5 do diário), **40%** um item consumível grátis do sistema (mesmos dois itens do §8.1, metade
-Bloqueio de Ofensiva, metade Recarga de Vidas). Trava de "1 por ciclo": grava
+5 do diário), **40%** um item grátis do sistema, mesmo split de 3 partes iguais do §8.1
+(Bloqueio de Ofensiva, Recarga de Vidas, XP Boost — v1.27). Trava de "1 por ciclo": grava
 `chest_weekly_claimed_cycle_start` = `chest_weekly_cycle_start` vigente no momento da abertura —
 comparar os dois valores (em vez de um boolean solto) já resolve sozinho o "desclaim" automático
 quando o ciclo vira, sem precisar zerar essa coluna em lugar nenhum.
@@ -787,8 +801,11 @@ quando o ciclo vira, sem precisar zerar essa coluna em lugar nenhum.
 { "reward_type": "gems", "gems_earned": integer, "gems": integer }
 // Response 200 — reward_type: "streak_freeze" | "hearts_refill"
 { "reward_type": "streak_freeze", "gems": integer }
+// Response 200 — reward_type: "xp_boost" (v1.27)
+{ "reward_type": "xp_boost", "gems": integer, "xp_boost_active_until": datetime }
 ```
-Mesmo formato de resposta do §8.1 (`gems` é sempre o saldo total, não o ganho). Erros:
+Mesmo formato de resposta do §8.1 (`gems` é sempre o saldo total, não o ganho;
+`xp_boost_active_until` só existe quando `reward_type` é `"xp_boost"`). Erros:
 `409 CHEST_NOT_AVAILABLE` (ainda não bateu as 50 perguntas do ciclo, ou já foi aberto neste ciclo —
 reconsultado no servidor).
 

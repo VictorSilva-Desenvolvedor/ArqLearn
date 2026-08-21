@@ -330,15 +330,18 @@ func handleInfiniteModeAnswer(pool *pgxpool.Pool, mongoDB *mongo.Database, gemin
 		var xpTodayDate, chestQuestionsDate, chestClaimedDate, chestWeeklyCycleStart *time.Time
 		var isVip bool
 		var vipExpiresAt *time.Time
+		var xpBoostActiveUntil *time.Time
 		if err := pool.QueryRow(r.Context(), `
 			SELECT u.timezone, g.xp_total, g.xp_today, g.xp_today_date,
 			       g.chest_questions_today, g.chest_questions_date, g.chest_claimed_date,
-			       g.chest_weekly_questions, g.chest_weekly_cycle_start, g.is_vip, g.vip_expires_at
+			       g.chest_weekly_questions, g.chest_weekly_cycle_start, g.is_vip, g.vip_expires_at,
+			       g.xp_boost_active_until
 			FROM users u JOIN user_gamification g ON g.user_id = u.id
 			WHERE u.id = $1
 		`, userID).Scan(&timezone, &xpTotal, &xpToday, &xpTodayDate,
 			&chestQuestionsToday, &chestQuestionsDate, &chestClaimedDate,
-			&chestWeeklyQuestions, &chestWeeklyCycleStart, &isVip, &vipExpiresAt); err != nil {
+			&chestWeeklyQuestions, &chestWeeklyCycleStart, &isVip, &vipExpiresAt,
+			&xpBoostActiveUntil); err != nil {
 			apierror.Write(w, http.StatusInternalServerError, "INTERNAL_ERROR", "Falha ao consultar perfil.")
 			return
 		}
@@ -370,7 +373,11 @@ func handleInfiniteModeAnswer(pool *pgxpool.Pool, mongoDB *mongo.Database, gemin
 		// antigo por resposta rápida; perde esse bônus e não ganha um substituto — Modo Infinito
 		// é farm-friendly por natureza (repetível, sem vidas/streak em jogo), então não faz
 		// sentido também lhe dar o bônus de topo de sessão.
-		xpResult := gamification.CalcularXP(q.Difficulty, 0, false, false, correct, xpToday, vipAtivo)
+		// boostAtivo (TDD §3.3), diferente do combo acima, APLICA aqui igual a vipAtivo: o teto
+		// diário não é elevado por boost, só alcançado mais rápido — mesma blindagem que já vale
+		// pro VIP, farm ilimitado não vira XP ilimitado.
+		boostAtivo := gamification.XPBoostAtivo(xpBoostActiveUntil, now)
+		xpResult := gamification.CalcularXP(q.Difficulty, 0, false, false, correct, xpToday, vipAtivo, boostAtivo)
 		newXPTotal := xpTotal + xpResult.XPConcedido
 		newXPToday := xpToday + xpResult.XPConcedido
 		newLevel := gamification.Nivel(newXPTotal)
@@ -449,6 +456,7 @@ func handleInfiniteModeAnswer(pool *pgxpool.Pool, mongoDB *mongo.Database, gemin
 			"correct":               correct,
 			"xp_ganho":              xpResult.XPConcedido,
 			"xp_daily_cap_reached":  xpResult.DailyCapReached,
+			"xp_boost_active":       boostAtivo,
 			"questions_answered":    newQuestionsAnswered,
 			"correct_count":         sess.CorrectCount + boolToInt(correct),
 			"level":                 newQuestionsAnswered/genBatchSize + 1,

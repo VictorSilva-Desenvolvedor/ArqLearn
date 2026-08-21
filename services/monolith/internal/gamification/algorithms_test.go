@@ -38,7 +38,7 @@ func TestNivel_TabelaDoTDD(t *testing.T) {
 func TestCalcularXP_ComBonusDeCombo(t *testing.T) {
 	// combo_maximo=3 na última pergunta -> bônus 3 (TDD §3.0.1, v1.4 — substitui o antigo bônus
 	// de velocidade).
-	r := CalcularXP("medium", 3, true, false, true, 0, false)
+	r := CalcularXP("medium", 3, true, false, true, 0, false, false)
 	if r.XPConcedido != 23 { // base 20 + bônus combo 3
 		t.Errorf("XPConcedido = %d, esperado 23", r.XPConcedido)
 	}
@@ -50,7 +50,7 @@ func TestCalcularXP_ComBonusDeCombo(t *testing.T) {
 func TestCalcularXP_ComboSoAplicaNaUltimaPergunta(t *testing.T) {
 	// Mesmo combo_maximo de 3, mas não é a última pergunta da sessão -> sem bônus ainda (o pico
 	// só é premiado quando a sessão termina, mesmo que o combo atual já esteja alto).
-	r := CalcularXP("medium", 3, false, false, true, 0, false)
+	r := CalcularXP("medium", 3, false, false, true, 0, false, false)
 	if r.XPConcedido != 20 { // só a base, sem bônus de combo
 		t.Errorf("XPConcedido = %d, esperado 20 (sem bônus fora da última pergunta)", r.XPConcedido)
 	}
@@ -58,21 +58,21 @@ func TestCalcularXP_ComboSoAplicaNaUltimaPergunta(t *testing.T) {
 
 func TestCalcularXP_ComboCapadoEmCinco(t *testing.T) {
 	// combo_maximo=12 (sessão longa e perfeita) -> bônus capado em ComboBonusMax (5), não 12.
-	r := CalcularXP("easy", 12, true, false, true, 0, false)
+	r := CalcularXP("easy", 12, true, false, true, 0, false, false)
 	if r.XPConcedido != 15 { // base 10 + bônus combo capado em 5
 		t.Errorf("XPConcedido = %d, esperado 15 (bônus capado em 5)", r.XPConcedido)
 	}
 }
 
 func TestCalcularXP_PrimeiraConclusao(t *testing.T) {
-	r := CalcularXP("easy", 0, true, true, true, 0, false) // sem combo, isola o bônus de primeira conclusão
+	r := CalcularXP("easy", 0, true, true, true, 0, false, false) // sem combo, isola o bônus de primeira conclusão
 	if r.XPConcedido != 20 {                               // base 10 + bônus primeira conclusão 10
 		t.Errorf("XPConcedido = %d, esperado 20", r.XPConcedido)
 	}
 }
 
 func TestCalcularXP_Errado(t *testing.T) {
-	r := CalcularXP("hard", 5, true, true, false, 0, false)
+	r := CalcularXP("hard", 5, true, true, false, 0, false, false)
 	if r.XPConcedido != 0 {
 		t.Errorf("XPConcedido = %d, esperado 0 (resposta errada nunca dá XP)", r.XPConcedido)
 	}
@@ -80,7 +80,7 @@ func TestCalcularXP_Errado(t *testing.T) {
 
 func TestCalcularXP_TetoDiario(t *testing.T) {
 	// 490 já ganhos hoje, resposta valeria 30 (hard, sem bônus) — só cabem 10.
-	r := CalcularXP("hard", 0, false, false, true, 490, false)
+	r := CalcularXP("hard", 0, false, false, true, 490, false, false)
 	if r.XPConcedido != 10 {
 		t.Errorf("XPConcedido = %d, esperado 10 (teto de 500)", r.XPConcedido)
 	}
@@ -90,7 +90,7 @@ func TestCalcularXP_TetoDiario(t *testing.T) {
 }
 
 func TestCalcularXP_TetoJaEstourado(t *testing.T) {
-	r := CalcularXP("easy", 0, false, false, true, 500, false)
+	r := CalcularXP("easy", 0, false, false, true, 500, false, false)
 	if r.XPConcedido != 0 {
 		t.Errorf("XPConcedido = %d, esperado 0 (teto já no limite)", r.XPConcedido)
 	}
@@ -101,7 +101,7 @@ func TestCalcularXP_TetoJaEstourado(t *testing.T) {
 
 func TestCalcularXP_VIPAplicaMultiplicadorAntesDoTeto(t *testing.T) {
 	// medium sem bônus = 20 base; VIP: round(20 * 1.25) = 25.
-	r := CalcularXP("medium", 0, false, false, true, 0, true)
+	r := CalcularXP("medium", 0, false, false, true, 0, true, false)
 	if r.XPConcedido != 25 {
 		t.Errorf("XPConcedido = %d, esperado 25 (base 20 * 1.25)", r.XPConcedido)
 	}
@@ -112,7 +112,7 @@ func TestCalcularXP_VIPTemTetoDiarioDobrado(t *testing.T) {
 	// — antes o VIP só chegava no mesmo teto mais rápido, sem ganhar um teto maior; agora ganha.
 	// 490 já ganhos hoje (menos da metade do teto VIP de 1000) — hard com bônus de combo máximo
 	// (5) = 35 base, VIP eleva pra round(35*1.25)=44, cabe inteiro, sem capar.
-	r := CalcularXP("hard", 5, true, false, true, 490, true)
+	r := CalcularXP("hard", 5, true, false, true, 490, true, false)
 	if r.XPConcedido != 44 {
 		t.Errorf("XPConcedido = %d, esperado 44 (teto VIP de 1000 não capou)", r.XPConcedido)
 	}
@@ -123,7 +123,7 @@ func TestCalcularXP_VIPTemTetoDiarioDobrado(t *testing.T) {
 
 func TestCalcularXP_VIPCapaNoTetoDobrado(t *testing.T) {
 	// 990 já ganhos hoje (perto do teto VIP de 1000, não do teto normal de 500) — só cabem 10.
-	r := CalcularXP("hard", 5, true, false, true, 990, true)
+	r := CalcularXP("hard", 5, true, false, true, 990, true, false)
 	if r.XPConcedido != 10 {
 		t.Errorf("XPConcedido = %d, esperado 10 (capado pelo teto VIP de 1000)", r.XPConcedido)
 	}
@@ -135,13 +135,78 @@ func TestCalcularXP_VIPCapaNoTetoDobrado(t *testing.T) {
 func TestCalcularXP_NaoVIPUsaTetoNormal(t *testing.T) {
 	// Mesmo cenário do teste VIP acima (490 já ganhos, 44 calculado), mas sem VIP — o teto
 	// continua 500, então 490+44 ultrapassaria; só cabem 10.
-	r := CalcularXP("hard", 5, true, false, true, 490, false)
+	r := CalcularXP("hard", 5, true, false, true, 490, false, false)
 	if r.XPConcedido != 10 {
 		t.Errorf("XPConcedido = %d, esperado 10 (teto normal de 500, sem VIP)", r.XPConcedido)
 	}
 	if !r.DailyCapReached {
 		t.Error("DailyCapReached deveria ser true")
 	}
+}
+
+func TestCalcularXP_XPBoostSozinho(t *testing.T) {
+	// medium sem bônus = 20 base; boost sozinho: round(20 * 2.0) = 40.
+	r := CalcularXP("medium", 0, false, false, true, 0, false, true)
+	if r.XPConcedido != 40 {
+		t.Errorf("XPConcedido = %d, esperado 40 (base 20 * 2.0)", r.XPConcedido)
+	}
+}
+
+func TestCalcularXP_XPBoostComVIPMultiplicadorCombinado(t *testing.T) {
+	// easy(10) + bônus combo 3 (isLastQuestion) = 13 base. VIP*boost = 1.25*2.0 = 2.5.
+	// Combinado (correto): round(13*2.5) = round(32.5) = 33. Se alguém reintroduzir arredondamento
+	// sequencial (VIP primeiro, depois boost), o resultado vira round(round(13*1.25)*2) =
+	// round(16*2) = 32 — este teste falha nesse caso, é guarda de regressão pro TDD §3.3.
+	r := CalcularXP("easy", 3, true, false, true, 0, true, true)
+	if r.XPConcedido != 33 {
+		t.Errorf("XPConcedido = %d, esperado 33 (multiplicador combinado 2.5x, não arredondamento sequencial)", r.XPConcedido)
+	}
+}
+
+func TestXPBoostAtivo(t *testing.T) {
+	base := time.Date(2026, 8, 15, 12, 0, 0, 0, time.UTC)
+	futuro := base.Add(10 * time.Minute)
+	passado := base.Add(-10 * time.Minute)
+
+	if XPBoostAtivo(nil, base) {
+		t.Error("nil deveria significar sem boost ativo, nunca vitalício")
+	}
+	if !XPBoostAtivo(&futuro, base) {
+		t.Error("prazo futuro deveria estar ativo")
+	}
+	if XPBoostAtivo(&passado, base) {
+		t.Error("prazo passado não deveria estar ativo")
+	}
+}
+
+func TestAtivarXPBoost(t *testing.T) {
+	base := time.Date(2026, 8, 15, 12, 0, 0, 0, time.UTC)
+
+	t.Run("sem boost ativo: conta a partir de agora", func(t *testing.T) {
+		got := AtivarXPBoost(nil, base)
+		esperado := base.Add(XPBoostDuration)
+		if !got.Equal(esperado) {
+			t.Errorf("AtivarXPBoost = %v, esperado %v", got, esperado)
+		}
+	})
+
+	t.Run("boost expirado: conta a partir de agora, não da expiração antiga", func(t *testing.T) {
+		expirado := base.Add(-10 * time.Minute)
+		got := AtivarXPBoost(&expirado, base)
+		esperado := base.Add(XPBoostDuration)
+		if !got.Equal(esperado) {
+			t.Errorf("AtivarXPBoost = %v, esperado %v", got, esperado)
+		}
+	})
+
+	t.Run("boost ainda ativo: empilha a partir do fim do boost atual", func(t *testing.T) {
+		ativoAte := base.Add(5 * time.Minute)
+		got := AtivarXPBoost(&ativoAte, base)
+		esperado := ativoAte.Add(XPBoostDuration)
+		if !got.Equal(esperado) {
+			t.Errorf("AtivarXPBoost = %v, esperado %v (empilhado, não a partir de agora)", got, esperado)
+		}
+	})
 }
 
 func TestXPHojeAposReset(t *testing.T) {
@@ -601,8 +666,9 @@ func TestRolarRecompensaBau(t *testing.T) {
 		{"abaixo do corte de gemas, detalhe 0 -> 1 gema (mínimo)", 0.0, 0.0, ChestRewardGems, 1},
 		{"abaixo do corte de gemas, detalhe alto -> 5 gemas (teto)", 0.5, 0.999, ChestRewardGems, 5},
 		{"exatamente no corte de gemas (0.75) já cai pro pool de item", 0.75, 0.0, ChestRewardStreakFreeze, 0},
-		{"acima do corte, detalhe baixo -> bloqueio de ofensiva", 0.9, 0.0, ChestRewardStreakFreeze, 0},
-		{"acima do corte, detalhe alto -> recarga de vidas", 0.9, 0.999, ChestRewardHeartsRefill, 0},
+		{"acima do corte, detalhe baixo (1º terço) -> bloqueio de ofensiva", 0.9, 0.0, ChestRewardStreakFreeze, 0},
+		{"acima do corte, detalhe no meio (2º terço) -> recarga de vidas", 0.9, 0.5, ChestRewardHeartsRefill, 0},
+		{"acima do corte, detalhe alto (3º terço) -> XP boost", 0.9, 0.999, ChestRewardXPBoost, 0},
 	}
 	for _, c := range casos {
 		t.Run(c.nome, func(t *testing.T) {
@@ -656,8 +722,9 @@ func TestRolarRecompensaBauSemanal(t *testing.T) {
 		{"abaixo do corte de gemas, detalhe 0 -> 5 gemas (mínimo)", 0.0, 0.0, ChestRewardGems, 5},
 		{"abaixo do corte de gemas, detalhe alto -> 15 gemas (teto)", 0.5, 0.999, ChestRewardGems, 15},
 		{"exatamente no corte de gemas (0.60) já cai pro pool de item", 0.60, 0.0, ChestRewardStreakFreeze, 0},
-		{"acima do corte, detalhe baixo -> bloqueio de ofensiva", 0.9, 0.0, ChestRewardStreakFreeze, 0},
-		{"acima do corte, detalhe alto -> recarga de vidas", 0.9, 0.999, ChestRewardHeartsRefill, 0},
+		{"acima do corte, detalhe baixo (1º terço) -> bloqueio de ofensiva", 0.9, 0.0, ChestRewardStreakFreeze, 0},
+		{"acima do corte, detalhe no meio (2º terço) -> recarga de vidas", 0.9, 0.5, ChestRewardHeartsRefill, 0},
+		{"acima do corte, detalhe alto (3º terço) -> XP boost", 0.9, 0.999, ChestRewardXPBoost, 0},
 	}
 	for _, c := range casos {
 		t.Run(c.nome, func(t *testing.T) {

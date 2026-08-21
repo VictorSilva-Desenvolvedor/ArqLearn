@@ -3,7 +3,7 @@
 
 Modelo de dados detalhado: esquema relacional, documentos, vetores, cache e estratégias de persistência.
 
-Versão 1.25 | Agosto de 2026
+Versão 1.26 | Agosto de 2026
 Documento complementar ao SAD e ao TDD do ArqLearn v1.0
 
 > **Sobre esta versão:** versão em Markdown, mantida como fonte da verdade a partir de agora (ver
@@ -40,6 +40,7 @@ Documento complementar ao SAD e ao TDD do ArqLearn v1.0
 | 1.23 | 21/08/2026 | Equipe de Engenharia / Dados | §4.4: `srs_state.next_review_at` (calculado desde sempre, nunca consumido) passa a ser lido de verdade por `GET /v1/review/summary` e `POST /v1/infinite-mode/sessions` com `review: true` (TDD §10.3, "Revisar agora") — fila de revisão entre todos os tópicos já praticados. Sem tabela/coleção nova; reaproveita o campo e o índice já documentados desde a v1.1/v1.5. Implementado fora da ordem original de `Docs/ArqLearn_Backlog_Gamificacao_Atelie.md` (mesma decisão explícita do usuário da v1.22) |
 | 1.24 | 21/08/2026 | Equipe de Engenharia / Dados | Adiciona `notification_template_stats`/`notification_sends` (§3.2 DDL, §3.3 dicionário, migrations/0018) — bandit de template (TDD §11) pro gatilho de streak em risco. §4.4.4 corrigido: `streak_at_risk` agora é gatilho real (`cmd/notify-decide`, hora em hora), mensagem escolhida por Thompson Sampling em vez de texto fixo único. Implementado fora da ordem original de `Docs/ArqLearn_Backlog_Gamificacao_Atelie.md` (mesma decisão explícita do usuário das v1.22/v1.23) |
 | 1.25 | 21/08/2026 | Equipe de Engenharia / Dados | `user_gamification` ganha `streak_repair_value`/`streak_repair_deadline` (migrations/0019, TDD §5.5) — reparo de streak (RS-08, mecânica nova). Sem coluna/CHECK novo pro teto escalonado de freezes (RS-03): aplicado no código a cada escrita, não em CHECK de coluna, pra não quebrar quem já tinha mais freezes que o teto atual (grandfathering). Implementado fora da ordem original de `Docs/ArqLearn_Backlog_Gamificacao_Atelie.md` (mesma decisão explícita do usuário das v1.22–v1.24) |
+| 1.26 | 21/08/2026 | Equipe de Engenharia / Dados | `user_gamification` ganha `xp_boost_active_until` (migrations/0020, TDD §3.3) — XP Boost, multiplicador temporário de 2x por 15min concedido via recompensa de Baú Diário/Semanal (mecânica nova inspirada no Duolingo). Sem CHECK — timestamp único, `NULL` sempre significa "sem boost ativo" (diferente de `vip_expires_at`, que tem o caso especial "vitalício" pareado com `is_vip`). Implementado fora da ordem original de `Docs/ArqLearn_Backlog_Gamificacao_Atelie.md` (mesma decisão explícita do usuário das v1.22–v1.25) |
 
 ---
 
@@ -169,6 +170,11 @@ CREATE TABLE user_gamification (
   -- não quebrar quem já tinha mais freezes que o teto atual (grandfathering deliberado).
   streak_repair_value INTEGER,
   streak_repair_deadline DATE,
+  -- XP Boost (migrations/0020, v1.26, TDD §3.3): multiplicador temporário de 2x por 15min
+  -- concedido via recompensa de Baú Diário/Semanal. Sem CHECK — timestamp único, NULL sempre
+  -- significa "sem boost ativo" (diferente de vip_expires_at, que tem o caso especial
+  -- "vitalício" pareado com is_vip).
+  xp_boost_active_until TIMESTAMPTZ,
   -- Contadores vitalícios (migrations/0006, v1.15) — usados só pra avaliar condição de
   -- desbloqueio de conquistas (tabela `achievements` abaixo); nenhum outro lugar do produto lê
   -- estas colunas. Nunca resetam (diferente de xp_today), cada um incrementado no handler da
