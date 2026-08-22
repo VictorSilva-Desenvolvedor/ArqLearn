@@ -561,6 +561,15 @@ func handleSubmitAnswer(pool *pgxpool.Pool, mongoDB *mongo.Database) http.Handle
 			}
 		}
 
+		// Double or Nothing (TDD §16) — best-effort, mesmo bloco acima. streakAdvanced reaproveita
+		// o mesmo sinal que a streak já decidiu nesta requisição (streakCurrent é o valor pós-
+		// expiração, pré-atualização; streak.Current já reflete AtualizarStreak/reparo) — não
+		// introduz uma fonte de verdade nova, só observa. streakJustReset já existe acima.
+		streakAdvanced := streak.Current > streakCurrent
+		if err := gamification.ResolveActiveBet(r.Context(), pool, userID, streakAdvanced, streakJustReset); err != nil {
+			log.Printf("aviso: falha ao resolver aposta Double or Nothing (user_id=%s): %v", userID, err)
+		}
+
 		writeJSON(w, http.StatusOK, responseBody)
 	}
 }

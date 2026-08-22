@@ -152,6 +152,15 @@ estrutura real já criada no repositório, não um plano:**
                               substitui o gatilho fixo de 10 perguntas do Baú Diário por um alvo
                               escolhido pelo usuário entre 4 presets — GET/PATCH
                               /v1/gamification/daily-goal são reais desde a v1.30 da API Spec.
+                              gemledger.go (livro-razão de gemas — TDD §15.1, migrations/0023:
+                              gem_transactions, append-only, retrofitado nos pontos que já mexiam
+                              em gems antes desta versão) + gempackages.go (pacotes de gemas —
+                              catálogo real, checkout por cartão mockup atrás de
+                              GemPackagePurchasesEnabled=false, cupom admin como caminho
+                              funcional hoje, mesmo molde de vip.go) + gembets.go (Double or
+                              Nothing — aposta de streak resolvida nos mesmos 3 pontos que já
+                              leem/expiram o streak, sem sinal novo) são reais desde a v1.31 da
+                              API Spec.
                             - notifications, analytics: stub.
                           Toda rota sem menção acima é stub 501 NOT_IMPLEMENTED via
                           internal/apierror — ver ArqLearn_API_Specification.md para o contrato

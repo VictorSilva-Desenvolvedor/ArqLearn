@@ -645,6 +645,13 @@ func handleInfiniteModeAnswer(pool *pgxpool.Pool, mongoDB *mongo.Database, gemin
 			}
 		}
 
+		// Double or Nothing (TDD §16) — mesmo bloco best-effort de answers.go, mesmo sinal
+		// reaproveitado (streakCurrent pós-expiração/pré-atualização vs. streak.Current final).
+		streakAdvanced := streak.Current > streakCurrent
+		if err := gamification.ResolveActiveBet(r.Context(), pool, userID, streakAdvanced, streakJustReset); err != nil {
+			log.Printf("aviso: falha ao resolver aposta Double or Nothing (user_id=%s): %v", userID, err)
+		}
+
 		writeJSON(w, http.StatusOK, resp)
 	}
 }

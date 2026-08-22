@@ -3,7 +3,7 @@
 
 Especificação de referência dos endpoints REST expostos pelo API Gateway.
 
-Versão 1.30 | Agosto de 2026
+Versão 1.31 | Agosto de 2026
 Documento complementar ao SAD e ao TDD do ArqLearn v1.0
 
 > **Sobre esta versão:** versão em Markdown, mantida como fonte da verdade a partir de agora (ver
@@ -45,6 +45,7 @@ Documento complementar ao SAD e ao TDD do ArqLearn v1.0
 | 1.28 | 21/08/2026 | Equipe de Engenharia | §6.1: `POST /v1/infinite-mode/sessions/{session_id}/answers` ganha `streak_atual` na resposta — Modo Infinito passa a contar pra sequência diária (TDD §5.1, revisado a pedido do usuário depois de um caso relatado: streak não subia porque a regra exigia terminar a lição inteira). `POST /v1/lessons/{lesson_id}/answers` (§6) mantém o campo já existente, só muda quando ele é atualizado — qualquer resposta certa, não mais só a conclusão da lição |
 | 1.29 | 21/08/2026 | Equipe de Engenharia | §3.2/§8: adiciona `personal_records` ao `GamificationProfile` — segunda categoria de conquista (TDD §12, nova seção), distinta de `achievements`: compara a métrica atual contra o próprio recorde do usuário, não um limiar fixo. §6/§6.1: `POST /v1/lessons/{lesson_id}/answers` e `POST /v1/infinite-mode/sessions/{session_id}/answers` ganham `achievements_unlocked`/`personal_records_broken` — achado ao implementar: o backend já calculava conquistas desbloqueadas por resposta desde a v1.16, mas o dado nunca saía da resposta; o cliente tinha que adivinhar quando celebrar |
 | 1.30 | 22/08/2026 | Equipe de Engenharia | §8.1 (renomeado "Meta Diária e Baú Diário", TDD §13 nova seção): Baú Diário deixa de exigir um número fixo de 10 perguntas pra todo mundo — o gatilho agora é a Meta Diária, nível de intensidade escolhido pelo usuário entre 4 presets, medida em perguntas certas OU minutos estudados no dia. Dois endpoints novos, `GET`/`PATCH /v1/gamification/daily-goal`. `GET .../daily-chest` ganha `study_minutes_today`/`study_minutes_required` (e `questions_required` passa a ser dinâmico por usuário, antes sempre `10`). §6/§6.1 ganham `daily_chest_study_minutes`. Reconcilia (não segue à letra) `Docs/ArqLearn_Backlog_Gamificacao_Atelie.md` §1.4/RS-01 — ver TDD §13 pro racional completo de por que streak continua desacoplado da meta |
+| 1.31 | 22/08/2026 | Equipe de Engenharia | §8.4 (novo, "Moeda: Livro-Razão, Pacotes de Gemas e Double or Nothing", TDD §15 nova seção): `GET /v1/gamification/gem-transactions` (extrato paginado, retrofitado nos pontos que já mexiam em `gems` antes desta versão). Pacotes de gemas — `GET .../gem-packages`, `POST .../gem-packages/{id}/checkout` (mockup, `501 GEM_PACKAGE_PURCHASE_UNAVAILABLE`, mesmo padrão de `POST /v1/vip/subscribe`), `POST`/`.../gem-coupons` e `.../gem-coupons/redeem` (caminho funcional hoje). Double or Nothing — `POST`/`GET /v1/gamification/bets`/`bets/active`, aposta de streak resolvida automaticamente nos mesmos pontos que já leem/expiram o streak. Novos erros `GEM_PACKAGE_PURCHASE_UNAVAILABLE`, `GEM_PACKAGE_NOT_FOUND`, `BET_ALREADY_ACTIVE`. Reconcilia (não segue à letra) RE-06 (`Docs/ignorar/Duolingo/REGRAS-gamificacao.md`) — decisão discutida e confirmada com o usuário |
 
 ---
 
@@ -1004,6 +1005,98 @@ pros dois casos, pra não confirmar a existência de um código a quem não tem 
 { "error_code": "VIP_SUBSCRIPTION_UNAVAILABLE", "message": "..." }
 ```
 
+### 8.4 Moeda: Livro-Razão, Pacotes de Gemas e Double or Nothing *(v1.31, TDD §15)*
+
+**Livro-razão.** Antes desta versão, `gems` era só um saldo corrente, sem histórico auditável de
+nenhuma movimentação (compra, conquista, baú, recompensa de bug report). `GET
+/v1/gamification/gem-transactions` expõe o extrato completo, retrofitado nos pontos que já mexiam
+em `gems` antes desta versão e não só nos novos — omitir movimentações antigas seria enganoso, não
+só incompleto.
+
+**`GET /v1/gamification/gem-transactions`** — Extrato paginado (mesmo esquema de cursor de `GET
+/v1/tracks`, §2.4), mais recente primeiro.
+
+```json
+// Query: ?cursor=string&limit=integer (default 20, máx 100)
+// Response 200
+{
+  "data": [ { "id", "delta": integer, "reason": "string", "reference_id": "string | null",
+              "balance_after": integer, "created_at": "datetime" } ],
+  "next_cursor": "string | null"
+}
+```
+`reason` é um de: `achievement` · `daily_chest` · `weekly_chest` · `shop_purchase` ·
+`bug_report_reward` · `gem_coupon` · `bet_stake` · `bet_payout`.
+
+**Pacotes de gemas — mesmo padrão de mockup do VIP (§8.3).** Catálogo real; compra por cartão é um
+endpoint real e documentado, travado atrás de `501` até um gateway de pagamento existir. Cupom
+gerado por admin é o caminho funcional hoje — mesmo fluxo do cupom VIP, tabela própria
+(`gem_coupons`), sem `VIPGemsMultiplier` (um pacote pago credita exatamente o que foi pago, não é
+"ganho" sujeito ao bônus VIP).
+
+**`GET /v1/gamification/gem-packages`** — Catálogo de pacotes disponíveis.
+
+```json
+// Response 200
+{ "data": [ { "id", "name", "gems_amount": integer, "price_brl_cents": integer } ] }
+```
+
+**`POST /v1/gamification/gem-packages/{package_id}/checkout`** — Desabilitado nesta fase
+(`internal/gamification.GemPackagePurchasesEnabled = false`, mesmo padrão de `POST /v1/vip/subscribe`).
+Sempre responde:
+
+```json
+// Response 501
+{ "error_code": "GEM_PACKAGE_PURCHASE_UNAVAILABLE", "message": "..." }
+```
+
+**`POST /v1/gamification/gem-coupons`** — Gera um cupom de gemas. Requer `role = admin`.
+
+```json
+// Request body
+{ "gems_amount": integer }
+// Response 201
+{ "code": "string (10 dígitos)", "gems_amount": integer }
+```
+Erros: `400 INVALID_BODY` (`gems_amount` ausente ou ≤ 0) · `403 ADMIN_REQUIRED`.
+
+**`POST /v1/gamification/gem-coupons/redeem`** — Resgata um cupom e credita `gems_amount` na hora.
+
+```json
+// Request body
+{ "code": "string" }
+// Response 200
+{ "gems_credited": integer, "gems": integer }
+```
+Erros: `400 INVALID_BODY` · `409 COUPON_INVALID` (não existe ou já foi resgatado — mesma mensagem
+pros dois casos, mesmo motivo do cupom VIP).
+
+**Double or Nothing.** Aposta gemas, compromete-se a manter o streak por 7 dias corridos, dobra ou
+perde — sem estorno em caso de perda. Resolvida automaticamente nos mesmos pontos que já leem/expiram
+o streak hoje (`POST /v1/lessons/{lesson_id}/answers`, `POST
+/v1/infinite-mode/sessions/{session_id}/answers`, e a expiração preguiçosa de `GET
+/v1/gamification/me`/`GET /v1/users/me` — TDD §15.3); nenhum desses três endpoints ganhou campo novo
+na resposta — o cliente consulta o progresso separadamente por `GET .../bets/active`.
+
+**`POST /v1/gamification/bets`** — Inicia uma aposta Double or Nothing. Requer não ter nenhuma
+aposta `active` em andamento.
+
+```json
+// Request body
+{ "stake_gems": integer }
+// Response 201
+{ "stake_gems": integer, "days_required": 7, "days_completed": 0, "status": "active" }
+```
+Erros: `400 INVALID_BODY` (`stake_gems` abaixo do mínimo de 50) · `402 INSUFFICIENT_GEMS` ·
+`409 BET_ALREADY_ACTIVE`.
+
+**`GET /v1/gamification/bets/active`** — Aposta ativa do usuário autenticado, ou `null` se não houver.
+
+```json
+// Response 200
+{ "stake_gems": integer, "days_required": integer, "days_completed": integer, "status": "active" } | null
+```
+
 ## 9. Notifications Service
 
 > **v1.11 — os três endpoints abaixo são reais** (implementados contra a coleção `notifications`,
@@ -1122,6 +1215,9 @@ completos a detalhar no TDD quando a implementação desses três recursos come�
 | `VIP_SUBSCRIPTION_UNAVAILABLE` | 501 | Assinatura VIP por cartão ainda não integrada a um gateway de pagamento. *(v1.20)* |
 | `REVIEW_QUEUE_EMPTY` | 404 | Nenhum item vencido pra revisar agora (`POST /v1/infinite-mode/sessions` com `review: true`). *(v1.24)* |
 | `STREAK_FREEZE_CAP_REACHED` | 409 | Usuário já está no teto escalonado de bloqueios de ofensiva (2, ou 5 acima de `streak_best >= 100` — RS-03, TDD §5.5). *(v1.26)* |
+| `GEM_PACKAGE_PURCHASE_UNAVAILABLE` | 501 | Compra de pacote de gemas por cartão ainda não integrada a um gateway de pagamento — use um cupom. *(v1.31)* |
+| `GEM_PACKAGE_NOT_FOUND` | 404 | Pacote de gemas inexistente. *(v1.31)* |
+| `BET_ALREADY_ACTIVE` | 409 | Usuário já tem uma aposta Double or Nothing em andamento. *(v1.31)* |
 
 *Tabela — Catálogo consolidado de códigos de erro da API.*
 

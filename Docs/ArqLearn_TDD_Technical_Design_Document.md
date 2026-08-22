@@ -1,7 +1,7 @@
 # DOCUMENTO TÉCNICO DE DESIGN (TDD)
 ## ArqLearn — Algoritmos de Negócio, Contratos de Evento e Fluxos de Sequência
 
-Versão 1.11 | Agosto de 2026
+Versão 1.12 | Agosto de 2026
 Documento complementar ao SAD, ao Database Design e à API Specification do ArqLearn v1.0
 
 > **Nota de nomenclatura:** existe também um `ArqLearn_Documento_Tecnico_Design.docx` na pasta `Docs/`,
@@ -27,6 +27,7 @@ Documento complementar ao SAD, ao Database Design e à API Specification do ArqL
 | 1.9 | 21/08/2026 | Equipe de Arquitetura/Engenharia | §5.1 revisado — streak avança em qualquer resposta certa (não só ao concluir a lição inteira pela primeira vez), e o Modo Infinito passa a contar também (antes não tocava streak) — decisão explícita do usuário, motivada por um caso real reportado ("respondi um item e a streak continuou em 0"). §5.5 atualizado pra refletir o novo gatilho no reparo de streak |
 | 1.10 | 21/08/2026 | Equipe de Arquitetura/Engenharia | Novo §12 (Conquistas — Awards e Personal Records): Awards (`achievements.go`, catálogo de ~44 tipos) nunca tinha sido formalizado aqui, apesar de real desde a v1.16 da API Specification — gap, não divergência. Personal Records (`personalrecords.go`, migrations/0021) é a mecânica nova desta versão — segunda categoria de conquista, inspirada no redesign de 2023 do sistema de Achievements do Duolingo, que compara contra o próprio recorde do usuário em vez de um limiar fixo. §12 (Glossário) renumerado para §13 |
 | 1.11 | 22/08/2026 | Equipe de Arquitetura/Engenharia | Novo §13 (Meta Diária): reconcilia (não segue à letra) `Docs/ArqLearn_Backlog_Gamificacao_Atelie.md` §1.4 e as regras RS-01/RS-02 (`Docs/ignorar/Duolingo/REGRAS-gamificacao.md`) — decisão discutida e confirmada com o usuário, não uma divergência silenciosa. Nível de intensidade escolhido pelo usuário (4 presets) substitui o gatilho fixo de 10 perguntas do Baú Diário. §13 (Glossário) renumerado para §14 |
+| 1.12 | 22/08/2026 | Equipe de Arquitetura/Engenharia | Novo §15 (Moeda e Loja): livro-razão de gemas (`gem_transactions`, retrofitado nos 5 pontos que já mexiam em `gems` antes desta versão, não só nos novos), pacotes de gemas com compra real mockada atrás de `GemPackagePurchasesEnabled = false` + cupom admin como caminho funcional hoje (mesmo padrão do VIP, §9), e Double or Nothing (aposta de streak, `gem_bets`) — reconcilia (não segue à letra) RE-06 (`Docs/ignorar/Duolingo/REGRAS-gamificacao.md`), decisão discutida e confirmada com o usuário. §15 (Glossário) renumerado para §16 |
 
 ---
 
@@ -981,7 +982,87 @@ proteção contra o mesmo tipo de gaming trivial que os Personal Records já tra
 sozinho bater uma meta de minutos. Reset preguiçoso por igualdade de data local, mesmo padrão sem
 job/cron de `xp_today`/`chest_questions_today` (§3.2/§8.1).
 
-## 14. Glossário
+## 15. Moeda e Loja — Livro-Razão, Pacotes de Gemas e Double or Nothing *(v1.12, 22/08/2026)*
+
+Terceira mecânica do porte de gamificação inspirada no Duolingo aplicada nesta fase (mesmo precedente
+de §12/§13), sobre um sistema de gemas/loja que já existia e funcionava (`user_gamification.gems`,
+`shop_items`, `purchases`, cosméticos com inventário). Três peças novas, `migrations/0023`:
+
+**15.1 Livro-razão (`gem_transactions`, `internal/gamification/gemledger.go`).** Antes desta versão,
+`gems` era só um saldo corrente — nenhum histórico auditável de compra, conquista, baú ou recompensa de
+bug report. `RecordGemTransaction(ctx, db, userID, delta, reason, referenceID, balanceAfter)` grava uma
+linha append-only (`delta` positivo = crédito, negativo = débito; `balanceAfter` é o saldo já resultante
+— a função nunca recalcula saldo, só registra o que quem chama já decidiu). Aceita tanto `*pgxpool.Pool`
+quanto `pgx.Tx` (interface mínima local `gemLedgerExecer`), pra poder rodar dentro de uma transação já
+aberta sem precisar de uma segunda conexão. Best-effort do ponto de vista de quem chama (mesmo padrão de
+`RecordEvent`/`EvaluateAndUnlock`) — uma falha aqui não deve derrubar uma ação que já concedeu/debitou
+gemas de verdade, mas devolve o erro em vez de engolir silenciosamente.
+
+Retrofitado nos **5 pontos que já mexiam em `gems` antes desta versão**, não só nos 3 novos — um extrato
+que omitisse silenciosamente movimentações antigas seria enganoso, não só incompleto:
+`handleShopPurchase` (débito, `shop_purchase`), `AwardGems` (crédito, `bug_report_reward`),
+`EvaluateAndUnlock` (crédito, `achievement`), `handleOpenDailyChest`/`handleOpenWeeklyChest` (crédito,
+`daily_chest`/`weekly_chest`) — mais os 3 novos desta versão (`gem_coupon`, `bet_stake`, `bet_payout`,
+§15.2/§15.3). `GET /v1/gamification/gem-transactions` (API Specification §8) expõe o extrato paginado,
+só leitura, mais recente primeiro.
+
+**15.2 Pacotes de gemas — mockup funcional, mesmo padrão do VIP (§9).** `GET
+/v1/gamification/gem-packages` lista o catálogo (`gem_packages`, sempre real). `POST
+.../gem-packages/{id}/checkout` é um endpoint real e documentado, travado atrás de
+`GemPackagePurchasesEnabled = false` (501 até um gateway de pagamento existir — mesmo gatilho de
+graduação do VIP), com um cupom gerado por admin (`POST .../gem-coupons`, reaproveita `gerarCodigoCupom`
+de `vip.go`) como caminho 100% funcional hoje: `POST .../gem-coupons/redeem` credita `gems_amount`
+direto, sem `VIPGemsMultiplier` — um pacote pago credita exatamente o que foi pago, não é "ganho" sujeito
+ao bônus VIP.
+
+Catálogo inicial (calibrado contra o único preço real em produção, VIP R$29,90/mês — valor por gema
+melhora nos pacotes maiores, decisão de produto a revisitar com dados reais depois de estar no ar):
+
+| Pacote | Gemas | Preço | R$/100 gemas |
+|---|---|---|---|
+| Terracota | 300 | R$ 4,90 | R$ 1,63 |
+| Bronze | 800 | R$ 11,90 | R$ 1,49 |
+| Mármore | 2.000 | R$ 24,90 | R$ 1,25 |
+| Ouro | 5.000 | R$ 49,90 | R$ 1,00 |
+
+**Reconciliação com `RE-05`/`RE-06`** (`Docs/ignorar/Duolingo/REGRAS-gamificacao.md`) — discutida e
+decidida com o usuário nesta entrega, não uma divergência silenciosa: `RE-05` ("a moeda compra
+conveniência e cosmético apenas, proibido vender conteúdo/XP/avanço") é seguida à risca — pacotes de
+gemas nunca vendem progresso, só o meio de troca já sujeito às mesmas regras de gasto de sempre.
+`RE-06` ("sem conversão para dinheiro, economia fechada") **não** é seguida à letra — mas o precedente já
+tinha sido aberto pelo VIP (assinatura paga real, mesmo documento não previa) antes desta entrega; pacotes
+de gemas só reproduzem o mesmo padrão já aceito, documentado aqui como decisão consciente.
+
+**15.3 Double or Nothing (`gem_bets`, `internal/gamification/gembets.go`).** Aposta gemas, compromete-se
+a manter o streak por `GemBetDaysRequired` dias (fixo em 7 — simplificação deliberada do parâmetro
+genérico do documento original, mesmo espírito de "Regular" ser o preset central da Meta Diária, §13),
+dobra ou perde. `POST /v1/gamification/bets` (mínimo `GemBetMinStake` = 50 gemas, no máximo 1 aposta
+`active` por usuário — checado no handler E por índice único parcial no banco, `gem_bets_one_active_per_user_idx`)
+debita e grava `bet_stake`. Sem estorno em caso de perda — mesma regra do pseudocódigo original.
+
+Resolvida nos **3 pontos onde o streak já é lido/expirado hoje** (mesma duplicação já documentada em
+§5.3 pra streak em si) — não introduz um sinal novo, só observa o que o streak já decide:
+`internal/learning/answers.go`, `internal/learning/infinitemode.go` (streak avança) e
+`LoadStreakWithExpiration` em `gamification.go` (streak expira, só pode sinalizar perda — este call site
+nunca chama `AtualizarStreak`). A regra de negócio real é pura e testada isoladamente
+(`ResolveBetProgress`, `gembets_test.go`):
+
+```
+ResolveBetProgress(daysCompleted, daysRequired, streakAdvanced, streakReset):
+    se streakReset:
+        retorna (daysCompleted, 'lost')          # perde sempre tem prioridade, sem estorno
+    se streakAdvanced:
+        daysCompleted += 1
+        se daysCompleted >= daysRequired:
+            retorna (daysCompleted, 'won')        # paga stake*2, RecordGemTransaction bet_payout
+    retorna (daysCompleted, 'active')
+```
+
+`streakAdvanced` e `streakReset` nunca vêm `true` juntos na prática (ramos mutuamente exclusivos da
+mesma requisição), mas `streakReset` tem prioridade se algum dia vierem — perder a sequência sempre
+encerra a aposta.
+
+## 16. Glossário
 
 - **SM-2**: algoritmo clássico de repetição espaçada (Wozniak, 1987), adaptado aqui para entrada
   binária correto/incorreto + tempo de resposta.

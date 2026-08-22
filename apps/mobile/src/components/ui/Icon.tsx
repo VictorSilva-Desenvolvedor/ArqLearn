@@ -143,6 +143,9 @@ const glyphs = {
   ticketPercent: "ticket-percent-outline",
   // --- Conquistas/Personal Records: compartilhar ---
   share: "share-variant",
+  // --- Moeda: Livro-Razão e Double or Nothing (TDD §15) ---
+  receipt: "receipt-text-outline",
+  dice: "dice-multiple-outline",
 } as const;
 
 export type IconName = keyof typeof glyphs;

@@ -1,10 +1,11 @@
 import { useState } from "react";
 import * as Crypto from "expo-crypto";
 import { useRouter } from "expo-router";
-import { ScrollView, StyleSheet, Text, View } from "react-native";
+import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { IconButton } from "@/components/ui/IconButton";
 import { Icon } from "@/components/ui/Icon";
+import { Card } from "@/components/ui/Card";
 import { ShopCosmeticItem } from "@/components/features/shop/ShopCosmeticItem";
 import { ShopFeatureCard } from "@/components/features/shop/ShopFeatureCard";
 import { useAuth } from "@/hooks/useAuth";
@@ -68,10 +69,31 @@ export default function LojaScreen() {
         <View style={styles.header}>
           <IconButton icon={<Icon name="back" size={22} color={colors.onSurface} />} label="Voltar" onPress={() => router.back()} />
           <Text style={[type.displayLg, styles.headerTitle]}>Loja da Arquiteta</Text>
-          <View style={styles.gemsRow}>
+          <Pressable style={styles.gemsRow} onPress={() => router.push("/loja/extrato")} accessibilityLabel="Ver extrato de gemas">
             <Icon name="gems" size={20} color={colors.primary} />
             <Text style={[type.statsNum, styles.gemsValue]}>{gamification.gems}</Text>
-          </View>
+          </Pressable>
+        </View>
+
+        <View style={styles.quickLinks}>
+          <Pressable style={styles.quickLinkCell} onPress={() => router.push("/loja/gemas")}>
+            <Card padding="md" style={styles.quickLinkCard}>
+              <Icon name="gems" size={24} color={colors.primary} />
+              <View style={styles.quickLinkText}>
+                <Text style={[type.bodyMd, styles.quickLinkTitle]}>Comprar Gemas</Text>
+                <Text style={[type.bodySm, styles.muted]}>Pacotes e cupons</Text>
+              </View>
+            </Card>
+          </Pressable>
+          <Pressable style={styles.quickLinkCell} onPress={() => router.push("/loja/aposta")}>
+            <Card padding="md" style={styles.quickLinkCard}>
+              <Icon name="dice" size={24} color={colors.tertiary} />
+              <View style={styles.quickLinkText}>
+                <Text style={[type.bodyMd, styles.quickLinkTitle]}>Double or Nothing</Text>
+                <Text style={[type.bodySm, styles.muted]}>Aposte no seu streak</Text>
+              </View>
+            </Card>
+          </Pressable>
         </View>
 
         {error && <Text style={[type.bodySm, styles.error]}>{error}</Text>}
@@ -137,6 +159,29 @@ const createStyles = (colors: ColorTokens) =>
     },
     gemsValue: {
       color: colors.primary,
+    },
+    quickLinks: {
+      flexDirection: "row",
+      marginHorizontal: -spacing.xs / 2,
+    },
+    quickLinkCell: {
+      width: "50%",
+      paddingHorizontal: spacing.xs / 2,
+    },
+    quickLinkCard: {
+      flexDirection: "row",
+      alignItems: "center",
+      gap: spacing.xs,
+    },
+    quickLinkText: {
+      flex: 1,
+    },
+    quickLinkTitle: {
+      color: colors.onSurface,
+      fontWeight: "600",
+    },
+    muted: {
+      color: colors.onSurfaceVariant,
     },
     error: {
       color: colors.error,
