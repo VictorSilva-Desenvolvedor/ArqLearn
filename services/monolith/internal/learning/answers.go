@@ -136,19 +136,24 @@ func handleSubmitAnswer(pool *pgxpool.Pool, mongoDB *mongo.Database) http.Handle
 		var streakRepairValue *int
 		var streakRepairDeadline *time.Time
 		var xpBoostActiveUntil *time.Time
+		var dailyGoalLevel gamification.DailyGoalLevel
+		var studySecondsToday int
+		var studySecondsTodayDate *time.Time
 		err = pool.QueryRow(r.Context(), `
 			SELECT u.timezone, g.xp_total, g.xp_today, g.xp_today_date, g.xp_day_best, g.hearts_current, g.hearts_updated_at,
 			       g.streak_current, g.streak_best, g.streak_last_active_date, g.streak_freezes_available,
 			       g.chest_questions_today, g.chest_questions_date, g.chest_claimed_date,
 			       g.chest_weekly_questions, g.chest_weekly_cycle_start, g.is_vip, g.vip_expires_at,
-			       g.streak_repair_value, g.streak_repair_deadline, g.xp_boost_active_until
+			       g.streak_repair_value, g.streak_repair_deadline, g.xp_boost_active_until,
+			       g.daily_goal_level, g.study_seconds_today, g.study_seconds_today_date
 			FROM users u JOIN user_gamification g ON g.user_id = u.id
 			WHERE u.id = $1
 		`, userID).Scan(&timezone, &xpTotal, &xpToday, &xpTodayDate, &xpDayBest, &heartsCurrent, &heartsUpdatedAt,
 			&streakCurrent, &streakBest, &streakLastActiveDate, &streakFreezesAvailable,
 			&chestQuestionsToday, &chestQuestionsDate, &chestClaimedDate,
 			&chestWeeklyQuestions, &chestWeeklyCycleStart, &isVip, &vipExpiresAt,
-			&streakRepairValue, &streakRepairDeadline, &xpBoostActiveUntil)
+			&streakRepairValue, &streakRepairDeadline, &xpBoostActiveUntil,
+			&dailyGoalLevel, &studySecondsToday, &studySecondsTodayDate)
 		if err != nil {
 			apierror.Write(w, http.StatusInternalServerError, "INTERNAL_ERROR", "Falha ao consultar perfil.")
 			return
@@ -180,6 +185,17 @@ func handleSubmitAnswer(pool *pgxpool.Pool, mongoDB *mongo.Database) http.Handle
 		chestQuestionsToday = gamification.QuestoesHojeAposReset(chestQuestionsToday, dateOrEmpty(chestQuestionsDate), hojeLocal)
 		if correct {
 			chestQuestionsToday++
+		}
+
+		// Meta Diária (TDD §13): tempo de estudo soma em TODA resposta, certa ou errada — tempo
+		// estudando não depende de acertar, diferente do contador de perguntas acima (só acerto).
+		// ClampAnswerStudyMs protege contra um time_ms absurdo (app aberto numa pergunta por
+		// horas) sozinho bater a meta de minutos.
+		studySecondsToday = gamification.EstudoHojeAposReset(studySecondsToday, dateOrEmpty(studySecondsTodayDate), hojeLocal)
+		studySecondsToday += gamification.ClampAnswerStudyMs(req.TimeMs) / 1000
+		dailyGoalTarget, ok := gamification.TargetForDailyGoalLevel(dailyGoalLevel)
+		if !ok {
+			dailyGoalTarget, _ = gamification.TargetForDailyGoalLevel(gamification.DefaultDailyGoalLevel)
 		}
 
 		// Baú Semanal: mesma regra do Baú Diário acima (só acertos) — QuestoesSemanaAposReset
@@ -302,17 +318,18 @@ func handleSubmitAnswer(pool *pgxpool.Pool, mongoDB *mongo.Database) http.Handle
 		// Resposta final montada aqui — nada do que falta calcular (Mongo/conquistas abaixo)
 		// altera estes campos, então já dá pra gravar como o payload cacheado da idempotency key.
 		chestClaimedToday := dateOrEmpty(chestClaimedDate) == hojeLocal
-		dailyChestAvailable := chestQuestionsToday >= gamification.ChestQuestionsRequired && !chestClaimedToday
+		dailyChestAvailable := gamification.MetaDiariaAtingida(chestQuestionsToday, studySecondsToday, dailyGoalTarget) && !chestClaimedToday
 		responseBody := map[string]any{
-			"correct":               correct,
-			"xp_ganho":              xpResult.XPConcedido,
-			"xp_daily_cap_reached":  xpResult.DailyCapReached,
-			"xp_boost_active":       boostAtivo,
-			"vidas_restantes":       newHearts,
-			"streak_atual":          streak.Current,
-			"explicacao":            q.Explanation,
-			"daily_chest_available": dailyChestAvailable,
-			"daily_chest_questions": chestQuestionsToday,
+			"correct":                   correct,
+			"xp_ganho":                  xpResult.XPConcedido,
+			"xp_daily_cap_reached":      xpResult.DailyCapReached,
+			"xp_boost_active":           boostAtivo,
+			"vidas_restantes":           newHearts,
+			"streak_atual":              streak.Current,
+			"explicacao":                q.Explanation,
+			"daily_chest_available":     dailyChestAvailable,
+			"daily_chest_questions":     chestQuestionsToday,
+			"daily_chest_study_minutes": studySecondsToday / 60,
 		}
 		responseJSON, err := json.Marshal(responseBody)
 		if err != nil {
@@ -338,13 +355,15 @@ func handleSubmitAnswer(pool *pgxpool.Pool, mongoDB *mongo.Database) http.Handle
 			    streak_last_active_date = $9, streak_freezes_available = $10,
 			    chest_questions_today = $11, chest_questions_date = $12,
 			    chest_weekly_questions = $13, chest_weekly_cycle_start = $14,
-			    streak_repair_value = $15, streak_repair_deadline = $16, xp_day_best = $17
-			WHERE user_id = $18
+			    streak_repair_value = $15, streak_repair_deadline = $16, xp_day_best = $17,
+			    study_seconds_today = $18, study_seconds_today_date = $19
+			WHERE user_id = $20
 		`, newXPTotal, newXPToday, hojeLocalDate, newLevel, newHearts, newHeartsUpdatedAt,
 			streak.Current, streak.Best, streakLastActiveParam, streakFreezesAvailable,
 			chestQuestionsToday, hojeLocalDate,
 			chestWeeklyQuestions, chestWeeklyCycleStartDate,
-			streakRepairValue, streakRepairDeadline, newXPDayBest, userID)
+			streakRepairValue, streakRepairDeadline, newXPDayBest,
+			studySecondsToday, hojeLocalDate, userID)
 		if err != nil {
 			apierror.Write(w, http.StatusInternalServerError, "INTERNAL_ERROR", "Falha ao atualizar gamificação.")
 			return

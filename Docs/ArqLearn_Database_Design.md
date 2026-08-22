@@ -3,7 +3,7 @@
 
 Modelo de dados detalhado: esquema relacional, documentos, vetores, cache e estratégias de persistência.
 
-Versão 1.27 | Agosto de 2026
+Versão 1.28 | Agosto de 2026
 Documento complementar ao SAD e ao TDD do ArqLearn v1.0
 
 > **Sobre esta versão:** versão em Markdown, mantida como fonte da verdade a partir de agora (ver
@@ -42,6 +42,7 @@ Documento complementar ao SAD e ao TDD do ArqLearn v1.0
 | 1.25 | 21/08/2026 | Equipe de Engenharia / Dados | `user_gamification` ganha `streak_repair_value`/`streak_repair_deadline` (migrations/0019, TDD §5.5) — reparo de streak (RS-08, mecânica nova). Sem coluna/CHECK novo pro teto escalonado de freezes (RS-03): aplicado no código a cada escrita, não em CHECK de coluna, pra não quebrar quem já tinha mais freezes que o teto atual (grandfathering). Implementado fora da ordem original de `Docs/ArqLearn_Backlog_Gamificacao_Atelie.md` (mesma decisão explícita do usuário das v1.22–v1.24) |
 | 1.26 | 21/08/2026 | Equipe de Engenharia / Dados | `user_gamification` ganha `xp_boost_active_until` (migrations/0020, TDD §3.3) — XP Boost, multiplicador temporário de 2x por 15min concedido via recompensa de Baú Diário/Semanal (mecânica nova inspirada no Duolingo). Sem CHECK — timestamp único, `NULL` sempre significa "sem boost ativo" (diferente de `vip_expires_at`, que tem o caso especial "vitalício" pareado com `is_vip`). Implementado fora da ordem original de `Docs/ArqLearn_Backlog_Gamificacao_Atelie.md` (mesma decisão explícita do usuário das v1.22–v1.25) |
 | 1.27 | 21/08/2026 | Equipe de Engenharia / Dados | `user_gamification` ganha `xp_day_best`/`league_best_tier` (migrations/0021, TDD §12 nova seção) — Personal Records, segunda categoria de conquista. Documenta também `current_tier` (§3.2 DDL) — coluna real desde migrations/0007/0008 que nunca tinha sido documentada nesta tabela; achado ao adicionar `league_best_tier` ao lado dela, mesmo tipo de lacuna já corrigida antes pras colunas de baú (ver nota junto de VIP na v1.16) |
+| 1.28 | 22/08/2026 | Equipe de Engenharia / Dados | `user_gamification` ganha `daily_goal_level`/`study_seconds_today`/`study_seconds_today_date` (migrations/0022, TDD §13 nova seção) — Meta Diária personalizável, substitui o gatilho fixo de 10 perguntas do Baú Diário por um alvo escolhido pelo usuário (perguntas certas OU minutos estudados). `chest_questions_today` (já existente, migrations/0009) é reaproveitada como a métrica de perguntas, sem coluna nova |
 
 ---
 
@@ -232,6 +233,18 @@ CREATE TABLE user_gamification (
   -- como recorde sem coluna nova — só estas duas métricas não tinham nenhum rastro persistido.
   xp_day_best INTEGER NOT NULL DEFAULT 0 CHECK (xp_day_best >= 0),
   league_best_tier SMALLINT NOT NULL DEFAULT 1 CHECK (league_best_tier BETWEEN 1 AND 30),
+  -- Meta Diária (migrations/0022, v1.28 — TDD §13): nível de intensidade escolhido pelo usuário
+  -- entre 4 presets (internal/gamification/dailygoal.go), medida em perguntas certas (reaproveita
+  -- chest_questions_today acima, sem coluna nova) OU minutos estudados no dia — nunca só em XP,
+  -- reconcilia (não segue à letra) a regra RS-01 do backlog de gamificação. daily_goal_level
+  -- substitui o gatilho fixo de 10 perguntas do Baú Diário por um alvo dinâmico por usuário;
+  -- 'regular' (DEFAULT) preserva o comportamento de antes da v1.30 pra quem nunca trocou de
+  -- nível. study_seconds_today/_date seguem o mesmo padrão de reset preguiçoso por igualdade de
+  -- data já usado por xp_today/chest_questions_today (sem job/cron).
+  daily_goal_level TEXT NOT NULL DEFAULT 'regular'
+    CHECK (daily_goal_level IN ('leve', 'regular', 'consistente', 'intensa')),
+  study_seconds_today INTEGER NOT NULL DEFAULT 0 CHECK (study_seconds_today >= 0),
+  study_seconds_today_date DATE,
   CONSTRAINT streak_repair_pair_check
     CHECK ((streak_repair_value IS NULL) = (streak_repair_deadline IS NULL))
 );

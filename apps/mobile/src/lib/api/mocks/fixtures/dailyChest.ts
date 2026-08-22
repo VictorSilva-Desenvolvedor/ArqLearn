@@ -1,31 +1,74 @@
-import type { ChestOpenResult, ChestRewardType, DailyChestStatus } from "@/types/api";
+import type { ChestOpenResult, ChestRewardType, DailyChestStatus, DailyGoalLevel, DailyGoalStatus } from "@/types/api";
+import { dailyGoalCatalog, metaDiariaAtingida } from "@/lib/gamification/dailyGoalCatalog";
 
-// Baú Diário (v1.18) simulado em modo mock: sem conceito de "dia" aqui (não há backend real),
-// então é só um contador em memória que soma toda resposta (bumpMockChestQuestions, chamado por
-// quizSessions.ts e mockInfiniteMode.ts — o contador real também soma lição + Modo Infinito
-// juntos) até bater 10, sem reset diário (não faz sentido simular isso sem um relógio de
-// verdade). Espelha apps/web/.../fixtures/dailyChest.ts.
+// Baú Diário (v1.18) + Meta Diária (v1.30, TDD §13) simulados em modo mock: sem conceito de "dia"
+// aqui (não há backend real), então é só estado em memória que soma toda resposta
+// (bumpMockChestQuestions/bumpMockStudySeconds, chamados por quizSessions.ts e
+// infiniteModeSessions.ts — os contadores reais também somam lição + Modo Infinito juntos), sem
+// reset diário (não faz sentido simular isso sem um relógio de verdade). As duas rotas reais
+// (GET .../daily-chest e GET/PATCH .../daily-goal) resolvem o alvo pela mesma fonte no backend
+// (internal/gamification.LoadDailyChestStatus) — este arquivo espelha essa mesma junção em vez de
+// duplicar o estado em dois arquivos de mock (evita import circular entre eles também). Espelha
+// apps/web/.../fixtures/dailyChest.ts.
 let questionsToday = 0;
+let studySecondsToday = 0;
+let level: DailyGoalLevel = "regular";
 let claimedToday = false;
 
 export function bumpMockChestQuestions(): void {
   questionsToday += 1;
 }
 
-export function mockChestAvailable(): boolean {
-  return questionsToday >= 10 && !claimedToday;
+// timeMs opcional (default 60s) — o mock de sessão de quiz não tem um relógio real por trás de
+// cada resposta; um valor fixo plausível é honesto o suficiente pra demonstrar a lógica OU sem
+// inventar uma simulação de cronômetro que ninguém vai olhar.
+export function bumpMockStudySeconds(timeMs = 60_000): void {
+  studySecondsToday += Math.max(0, Math.round(timeMs / 1000));
+}
+
+function target() {
+  return dailyGoalCatalog[level];
 }
 
 export function mockChestQuestionsToday(): number {
   return questionsToday;
 }
 
+export function mockStudyMinutesToday(): number {
+  return Math.floor(studySecondsToday / 60);
+}
+
+export function mockChestAvailable(): boolean {
+  return metaDiariaAtingida(questionsToday, mockStudyMinutesToday(), level) && !claimedToday;
+}
+
 export function getMockDailyChestStatus(): DailyChestStatus {
   return {
     questions_today: questionsToday,
-    questions_required: 10,
+    questions_required: target().questionsTarget,
+    study_minutes_today: mockStudyMinutesToday(),
+    study_minutes_required: target().studyMinutesTarget,
     available: mockChestAvailable(),
     claimed_today: claimedToday,
+  };
+}
+
+export function getMockDailyGoalLevel(): DailyGoalLevel {
+  return level;
+}
+
+export function setMockDailyGoalLevel(newLevel: DailyGoalLevel): void {
+  level = newLevel;
+}
+
+export function getMockDailyGoalStatus(): DailyGoalStatus {
+  return {
+    level,
+    questions_target: target().questionsTarget,
+    study_minutes_target: target().studyMinutesTarget,
+    questions_today: questionsToday,
+    study_minutes_today: mockStudyMinutesToday(),
+    achieved: metaDiariaAtingida(questionsToday, mockStudyMinutesToday(), level),
   };
 }
 

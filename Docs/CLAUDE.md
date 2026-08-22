@@ -146,6 +146,12 @@ estrutura real já criada no repositório, não um plano:**
                               /v1/vip/status e POST /v1/vip/coupons*/subscribe são todos reais
                               (gamification.go), implementados incrementalmente entre as v1.16 e
                               v1.28 da API Spec sem que esta seção fosse atualizada junto.
+                              dailygoal.go (Meta Diária — TDD §13, migrations/0022:
+                              daily_goal_level/study_seconds_today[_date] novas, reaproveitando
+                              chest_questions_today já existente como a métrica de perguntas)
+                              substitui o gatilho fixo de 10 perguntas do Baú Diário por um alvo
+                              escolhido pelo usuário entre 4 presets — GET/PATCH
+                              /v1/gamification/daily-goal são reais desde a v1.30 da API Spec.
                             - notifications, analytics: stub.
                           Toda rota sem menção acima é stub 501 NOT_IMPLEMENTED via
                           internal/apierror — ver ArqLearn_API_Specification.md para o contrato

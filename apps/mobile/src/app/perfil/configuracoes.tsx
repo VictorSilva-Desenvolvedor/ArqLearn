@@ -10,6 +10,7 @@ import { Icon } from "@/components/ui/Icon";
 import { IconButton } from "@/components/ui/IconButton";
 import { Modal } from "@/components/ui/Modal";
 import { NotificationPreferencesPanel } from "@/components/features/notifications/NotificationPreferencesPanel";
+import { DailyGoalSettingsPanel } from "@/components/features/profile/DailyGoalSettingsPanel";
 import { ThemeSelector } from "@/components/home/ThemeSelector";
 import { Toggle } from "@/components/ui/Toggle";
 import { useAppearance } from "@/hooks/useAppearance";
@@ -274,6 +275,8 @@ export default function ConfiguracoesScreen() {
           <Text style={[type.bodySm, styles.cardCaption]}>Qual assunto você está estudando agora.</Text>
           <ThemeSelector />
         </Card>
+
+        <DailyGoalSettingsPanel />
 
         <NotificationPreferencesPanel />
 

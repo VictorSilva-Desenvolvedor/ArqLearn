@@ -1,7 +1,7 @@
 # DOCUMENTO TÉCNICO DE DESIGN (TDD)
 ## ArqLearn — Algoritmos de Negócio, Contratos de Evento e Fluxos de Sequência
 
-Versão 1.10 | Agosto de 2026
+Versão 1.11 | Agosto de 2026
 Documento complementar ao SAD, ao Database Design e à API Specification do ArqLearn v1.0
 
 > **Nota de nomenclatura:** existe também um `ArqLearn_Documento_Tecnico_Design.docx` na pasta `Docs/`,
@@ -26,6 +26,7 @@ Documento complementar ao SAD, ao Database Design e à API Specification do ArqL
 | 1.8 | 21/08/2026 | Equipe de Arquitetura/Engenharia | §3.3 ganha o XP Boost — multiplicador temporário de 2x por 15min, concedido via recompensa de Baú Diário/Semanal, empilhável com o multiplicador VIP num único arredondamento (mecânica nova inspirada no Duolingo, implementada antecipadamente e fora da ordem original do backlog, mesmo precedente de §5.5/§10/§11). Corrige a frase obsoleta do próprio §3.3 ("o teto diário continua 500 XP/dia para todo mundo, VIP ou não") — já falsa desde que §9 dobrou o teto pra VIP (19/08/2026), achado ao revisar este arquivo pra esta entrega |
 | 1.9 | 21/08/2026 | Equipe de Arquitetura/Engenharia | §5.1 revisado — streak avança em qualquer resposta certa (não só ao concluir a lição inteira pela primeira vez), e o Modo Infinito passa a contar também (antes não tocava streak) — decisão explícita do usuário, motivada por um caso real reportado ("respondi um item e a streak continuou em 0"). §5.5 atualizado pra refletir o novo gatilho no reparo de streak |
 | 1.10 | 21/08/2026 | Equipe de Arquitetura/Engenharia | Novo §12 (Conquistas — Awards e Personal Records): Awards (`achievements.go`, catálogo de ~44 tipos) nunca tinha sido formalizado aqui, apesar de real desde a v1.16 da API Specification — gap, não divergência. Personal Records (`personalrecords.go`, migrations/0021) é a mecânica nova desta versão — segunda categoria de conquista, inspirada no redesign de 2023 do sistema de Achievements do Duolingo, que compara contra o próprio recorde do usuário em vez de um limiar fixo. §12 (Glossário) renumerado para §13 |
+| 1.11 | 22/08/2026 | Equipe de Arquitetura/Engenharia | Novo §13 (Meta Diária): reconcilia (não segue à letra) `Docs/ArqLearn_Backlog_Gamificacao_Atelie.md` §1.4 e as regras RS-01/RS-02 (`Docs/ignorar/Duolingo/REGRAS-gamificacao.md`) — decisão discutida e confirmada com o usuário, não uma divergência silenciosa. Nível de intensidade escolhido pelo usuário (4 presets) substitui o gatilho fixo de 10 perguntas do Baú Diário. §13 (Glossário) renumerado para §14 |
 
 ---
 
@@ -924,7 +925,63 @@ posição atual da liga, caindo de novo em caso de rebaixamento.
 > (`achievementCatalog.ts`/`personalRecordCatalog.ts`, API Specification §8) — nenhum dos dois
 > catálogos é duplicado neste documento.
 
-## 13. Glossário
+## 13. Meta Diária *(v1.11, 22/08/2026)*
+
+Nível de intensidade escolhido pelo usuário entre 4 presets, medido em **perguntas certas OU
+minutos estudados no dia** — o que vier primeiro, nunca os dois ao mesmo tempo e nunca só em XP.
+Substitui o gatilho fixo de 10 perguntas que o Baú Diário (§8.1 API Specification) usava pra todo
+mundo até a v1.29 — o nível escolhido agora decide o alvo de quem abre o baú, mas o **prêmio
+continua o mesmo**, qualquer nível.
+
+**Reconciliação com `Docs/ArqLearn_Backlog_Gamificacao_Atelie.md` §1.4 e RS-01/RS-02** (`Docs/
+ignorar/Duolingo/REGRAS-gamificacao.md`) — discutida e decidida com o usuário nesta entrega, não
+uma divergência silenciosa:
+
+- **Unidade — minutos ou perguntas, nunca XP: seguida, e estendida.** `RS-01` já pedia "minutos
+  ou sessões, nunca só em XP, para não premiar o farm". Esta implementação vai além do texto
+  literal: em vez de escolher UMA das duas unidades, usa as DUAS ao mesmo tempo com **OU** — a
+  meta bate assim que qualquer uma das duas atinge o alvo do nível. Motivo: perguntas certas e
+  minutos estudados são correlacionados neste app (responder mais perguntas naturalmente significa
+  mais tempo estudando) — diferente de mover/exercitar/ficar em pé do Apple Watch, que são
+  comportamentos genuinamente independentes. Exigir as duas ao mesmo tempo (E) dobraria a exigência
+  sem nenhum sinal novo real; permitir qualquer uma delas (OU) dá liberdade genuína (uma sessão
+  rápida de Modo Infinito bate por perguntas; uma sessão mais lenta e cuidadosa bate por minutos)
+  sem inventar uma fórmula de peso arbitrária entre as duas métricas.
+- **Streak dependendo da meta inteira — deliberadamente NÃO seguido.** `RS-02` original queria "a
+  sequência conta dias de meta cumprida", isto é, só avançar o streak quando o usuário batesse a
+  meta escolhida inteira. Isso reabriria a decisão da v1.9 deste documento (§5.1: streak avança em
+  **qualquer** resposta certa, não mais ao completar uma lição inteira) — que já foi suavizada
+  justamente porque a exigência mais rígida "confundiu em teste ao vivo em device real". Amarrar o
+  streak a uma meta ainda maior (até 25 perguntas ou 35min no nível Intensa) seria uma exigência
+  **mais** rígida que a que acabou de ser corrigida, contra o próprio princípio de "piso mínimo
+  genuinamente alcançável" que motivou a v1.9. O streak continua exatamente como está: `RS-02` não
+  foi implementado como escrito.
+
+**Presets** (`internal/gamification/dailygoal.go`, catálogo completo só no código — mesma decisão
+de não duplicar catálogo já tomada pra Awards/Personal Records, §12):
+
+| Nível | Perguntas certas | Minutos | Observação |
+|---|---|---|---|
+| `leve` | 3 | 5 | Piso mínimo — alcançável mesmo em dia ruim |
+| `regular` | 10 | 12 | Default da coluna — igual ao comportamento fixo de antes da v1.30 (API Spec) |
+| `consistente` | 15 | 20 | |
+| `intensa` | 25 | 35 | |
+
+Calibração inicial, não telemetria real — mesma ressalva que a fonte original recomenda (revisitar
+com dados de conclusão depois de estar no ar).
+
+**Tempo de estudo — instrumentação nova.** Diferente de perguntas certas (`chest_questions_today`,
+já existia desde o Baú Diário original), minutos estudados não tinha nenhum rastro persistido —
+`study_seconds_today`/`study_seconds_today_date` (migrations/0022) somam o `time_ms` já enviado em
+toda resposta de exercício (lição e Modo Infinito), **certa ou errada** — tempo estudando não
+depende de acertar, diferente do contador de perguntas, que só soma acerto (regra própria do Baú
+Diário desde a v1.20). `ClampAnswerStudyMs` capa a contribuição de uma única resposta em 5min —
+proteção contra o mesmo tipo de gaming trivial que os Personal Records já tratam (§12): um
+`time_ms` isolado e absurdo (ex.: app aberto numa pergunta por horas sem interação real) não pode
+sozinho bater uma meta de minutos. Reset preguiçoso por igualdade de data local, mesmo padrão sem
+job/cron de `xp_today`/`chest_questions_today` (§3.2/§8.1).
+
+## 14. Glossário
 
 - **SM-2**: algoritmo clássico de repetição espaçada (Wozniak, 1987), adaptado aqui para entrada
   binária correto/incorreto + tempo de resposta.

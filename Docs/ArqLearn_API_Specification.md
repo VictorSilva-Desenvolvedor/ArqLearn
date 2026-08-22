@@ -3,7 +3,7 @@
 
 Especificação de referência dos endpoints REST expostos pelo API Gateway.
 
-Versão 1.29 | Agosto de 2026
+Versão 1.30 | Agosto de 2026
 Documento complementar ao SAD e ao TDD do ArqLearn v1.0
 
 > **Sobre esta versão:** versão em Markdown, mantida como fonte da verdade a partir de agora (ver
@@ -44,6 +44,7 @@ Documento complementar ao SAD e ao TDD do ArqLearn v1.0
 | 1.27 | 21/08/2026 | Equipe de Engenharia | §3.2: adiciona `xp_boost_active`/`xp_boost_active_until` ao `GamificationProfile` — XP Boost, multiplicador temporário de 2x por 15min (TDD §3.3). §8.1/§8.2: `reward_type` do Baú Diário/Semanal ganha o valor `"xp_boost"` (com `xp_boost_active_until` na resposta). §6/§6.1: `POST .../answers` e `POST /v1/infinite-mode/{session_id}/answers` ganham `xp_boost_active` na resposta. Sem endpoint novo — concessão é automática via sorteio de baú. Implementado fora da ordem original de `Docs/ArqLearn_Backlog_Gamificacao_Atelie.md` (mesma decisão explícita do usuário das v1.22–v1.26) |
 | 1.28 | 21/08/2026 | Equipe de Engenharia | §6.1: `POST /v1/infinite-mode/sessions/{session_id}/answers` ganha `streak_atual` na resposta — Modo Infinito passa a contar pra sequência diária (TDD §5.1, revisado a pedido do usuário depois de um caso relatado: streak não subia porque a regra exigia terminar a lição inteira). `POST /v1/lessons/{lesson_id}/answers` (§6) mantém o campo já existente, só muda quando ele é atualizado — qualquer resposta certa, não mais só a conclusão da lição |
 | 1.29 | 21/08/2026 | Equipe de Engenharia | §3.2/§8: adiciona `personal_records` ao `GamificationProfile` — segunda categoria de conquista (TDD §12, nova seção), distinta de `achievements`: compara a métrica atual contra o próprio recorde do usuário, não um limiar fixo. §6/§6.1: `POST /v1/lessons/{lesson_id}/answers` e `POST /v1/infinite-mode/sessions/{session_id}/answers` ganham `achievements_unlocked`/`personal_records_broken` — achado ao implementar: o backend já calculava conquistas desbloqueadas por resposta desde a v1.16, mas o dado nunca saía da resposta; o cliente tinha que adivinhar quando celebrar |
+| 1.30 | 22/08/2026 | Equipe de Engenharia | §8.1 (renomeado "Meta Diária e Baú Diário", TDD §13 nova seção): Baú Diário deixa de exigir um número fixo de 10 perguntas pra todo mundo — o gatilho agora é a Meta Diária, nível de intensidade escolhido pelo usuário entre 4 presets, medida em perguntas certas OU minutos estudados no dia. Dois endpoints novos, `GET`/`PATCH /v1/gamification/daily-goal`. `GET .../daily-chest` ganha `study_minutes_today`/`study_minutes_required` (e `questions_required` passa a ser dinâmico por usuário, antes sempre `10`). §6/§6.1 ganham `daily_chest_study_minutes`. Reconcilia (não segue à letra) `Docs/ArqLearn_Backlog_Gamificacao_Atelie.md` §1.4/RS-01 — ver TDD §13 pro racional completo de por que streak continua desacoplado da meta |
 
 ---
 
@@ -319,6 +320,7 @@ ativa. Requer cabeçalho `Idempotency-Key` *(v1.22 — ver §2.6)*.
   "explicacao": "string",
   "daily_chest_available": boolean,
   "daily_chest_questions": integer,
+  "daily_chest_study_minutes": integer,
   "achievements_unlocked": ["string"],
   "personal_records_broken": [ {"metric", "value"} ]
 }
@@ -328,7 +330,8 @@ ativa. Requer cabeçalho `Idempotency-Key` *(v1.22 — ver §2.6)*.
 `xp_boost_active` *(v1.27)* — `true` quando o XP Boost estava em vigor nesta resposta (já refletido
 em `xp_ganho`, TDD §3.3); sinal mais granular que `GamificationProfile.xp_boost_active` (§3.2), útil
 durante a lição sem esperar uma nova leitura do perfil. `daily_chest_available`/
-`daily_chest_questions` *(v1.18)* — ver §8.1 Baú Diário. `achievements_unlocked`/
+`daily_chest_questions`/`daily_chest_study_minutes` *(v1.18; `daily_chest_study_minutes` desde
+v1.30)* — ver §8.1 Meta Diária e Baú Diário. `achievements_unlocked`/
 `personal_records_broken` *(v1.29)* — `type`s de `achievements` desbloqueados e recordes de
 `personal_records` quebrados **por esta resposta específica**, sempre presentes (arrays vazios quando
 nada mudou); antes da v1.29 esse dado era calculado no backend mas nunca saía da resposta, obrigando o
@@ -433,6 +436,7 @@ próxima questão do modo infinito. Requer cabeçalho `Idempotency-Key` *(v1.22 
   "next_question": { "...Question" },
   "daily_chest_available": boolean,
   "daily_chest_questions": integer,
+  "daily_chest_study_minutes": integer,
   "achievements_unlocked": ["string"],
   "personal_records_broken": [ {"metric", "value"} ]
 }
@@ -450,8 +454,9 @@ conquista roda antes do corpo da resposta ser montado, então a mesma resposta c
 `Idempotency-Key` já sai com os dois campos corretos.
 `level` adicionado na v1.3 = `floor(questions_answered / 20) + 1`, calculado pro cliente exibir "Nível
 N" sem duplicar a conta — todo tópico ganha esse número, mas só `"maquetes"` de fato gera lição nova a
-cada nível (ver decisão acima). `daily_chest_available`/`daily_chest_questions` *(v1.18)* — ver §8.1
-Baú Diário; Modo Infinito soma pro mesmo contador acumulado do dia que lição usa.
+cada nível (ver decisão acima). `daily_chest_available`/`daily_chest_questions`/
+`daily_chest_study_minutes` *(v1.18; `daily_chest_study_minutes` desde v1.30)* — ver §8.1 Meta
+Diária e Baú Diário; Modo Infinito soma pros mesmos contadores acumulados do dia que lição usa.
 
 Erros: `400 IDEMPOTENCY_KEY_REQUIRED` *(v1.22)*.
 
@@ -741,26 +746,82 @@ Erros: `402 INSUFFICIENT_GEMS` · `404 ITEM_NOT_FOUND` · `409 STREAK_FREEZE_CAP
 `streak_freeze`, usuário já no teto escalonado — RS-03, TDD §5.5 — checado antes de debitar gemas,
 *v1.26*)
 
-### 8.1 Baú Diário *(v1.18)*
+### 8.1 Meta Diária e Baú Diário *(v1.18; Meta Diária personalizável desde v1.30)*
 
-A pedido do usuário: 1 baú por dia local, liberado ao **acertar** 10 perguntas no dia (lição OU Modo
-Infinito, contagem acumulada, qualquer combinação — não precisa ser na mesma sessão). Só respostas
-certas contam *(regra desde v1.20 — antes contava toda resposta, certa ou errada)*. Sem job/cron
-— expiração/contagem preguiçosa, mesmo padrão de vidas (TDD §5.4) e streak (§5.2/§5.3):
-`internal/gamification.LoadDailyChestStatus` reresolve o contador do dia (`chest_questions_today`/
-`chest_questions_date`, mesmo reset preguiçoso de `xp_today`) a cada leitura. O contador em si é
-incrementado dentro de `POST /v1/lessons/{lesson_id}/answers` e
-`POST /v1/infinite-mode/sessions/{session_id}/answers` (ver §6/§6.1) — as duas respostas ganham
-`daily_chest_available`/`daily_chest_questions` pra o cliente saber na hora, sem round-trip extra,
-quando a resposta que acabou de mandar foi a 10ª do dia.
+1 baú por dia local, liberado quando o usuário bate a **Meta Diária** — nível de intensidade
+escolhido por ele entre 4 presets (§8.1.1), medida em **perguntas certas OU minutos estudados no
+dia** (o que vier primeiro), nunca só em XP (TDD §13 explica o porquê). Até a v1.29 o gatilho era
+fixo — sempre 10 perguntas certas pra todo mundo — sem nenhuma personalização real por trás do
+`DailyGoalCard` do cliente (só um `DAILY_GOAL_XP=50` hardcoded, nunca lido do servidor). O nível
+`"regular"` (10 perguntas / 12 minutos) é o `DEFAULT` da coluna — quem nunca trocou de nível
+continua vendo exatamente o mesmo comportamento de antes da v1.30.
+
+Perguntas: lição OU Modo Infinito, contagem acumulada, qualquer combinação (não precisa ser na
+mesma sessão), só respostas **certas** contam *(regra desde v1.20 — antes contava toda resposta,
+certa ou errada)*. Minutos: soma o `time_ms` de **toda** resposta (certa ou errada — tempo
+estudando não depende de acertar), capado em 5min por resposta
+(`internal/gamification.ClampAnswerStudyMs` — protege contra um `time_ms` isolado e absurdo, ex.:
+app aberto numa pergunta por horas sem interação real, bater a meta de minutos sozinho). Sem
+job/cron — expiração/contagem preguiçosa, mesmo padrão de vidas (TDD §5.4) e streak (§5.2/§5.3):
+`internal/gamification.LoadDailyChestStatus` reresolve os dois contadores do dia
+(`chest_questions_today`/`chest_questions_date`, `study_seconds_today`/`study_seconds_today_date`)
+a cada leitura. Os contadores em si são incrementados dentro de
+`POST /v1/lessons/{lesson_id}/answers` e `POST /v1/infinite-mode/sessions/{session_id}/answers`
+(ver §6/§6.1) — as duas respostas ganham `daily_chest_available`/`daily_chest_questions`/
+`daily_chest_study_minutes` pra o cliente saber na hora, sem round-trip extra, quando a resposta
+que acabou de mandar bateu a meta do dia.
+
+#### 8.1.1 Presets de nível
+
+| Nível | Perguntas certas | Minutos | Observação |
+|---|---|---|---|
+| `leve` | 3 | 5 | Piso mínimo genuinamente alcançável mesmo em dia ruim |
+| `regular` | 10 | 12 | **Default** — igual ao comportamento fixo de antes da v1.30 |
+| `consistente` | 15 | 20 | |
+| `intensa` | 25 | 35 | |
+
+Calibração inicial (não telemetria real ainda) — catálogo completo vive só em
+`internal/gamification/dailygoal.go` (mesma decisão de não duplicar catálogo já tomada pra
+Achievements/Personal Records, v1.16/v1.29).
+
+**`GET /v1/gamification/daily-goal`** *(v1.30)* — Nível escolhido pelo usuário e progresso do dia
+em cada métrica.
+
+```json
+// Response 200
+{
+  "level": "leve" | "regular" | "consistente" | "intensa",
+  "questions_target": integer,
+  "study_minutes_target": integer,
+  "questions_today": integer,
+  "study_minutes_today": integer,
+  "achieved": boolean
+}
+```
+
+**`PATCH /v1/gamification/daily-goal`** *(v1.30)* — Troca o nível escolhido; devolve o mesmo
+formato do GET, já recalculado pro novo alvo.
+
+```json
+// Request body
+{ "level": "leve" | "regular" | "consistente" | "intensa" }
+// Response 200: igual ao GET acima
+```
+Erros: `400 INVALID_DAILY_GOAL_LEVEL` (nível fora do catálogo — validado contra
+`internal/gamification.TargetForDailyGoalLevel` antes de gravar, a CHECK constraint da coluna é só
+a última linha de defesa, não a validação primária).
 
 **`GET /v1/gamification/daily-chest`** — Status do Baú Diário do usuário autenticado.
+`questions_required`/`study_minutes_required` variam por usuário desde a v1.30 (vêm do nível de
+Meta Diária escolhido) — antes `questions_required` era sempre `10`.
 
 ```json
 // Response 200
 {
   "questions_today": integer,
-  "questions_required": 10,
+  "questions_required": integer,
+  "study_minutes_today": integer,
+  "study_minutes_required": integer,
   "available": boolean,
   "claimed_today": boolean
 }
@@ -770,7 +831,8 @@ quando a resposta que acabou de mandar foi a 10ª do dia.
 recompensa (`internal/gamification.RolarRecompensaBau`): **75%** gemas (1 a 5, uniforme), **25%**
 um item grátis do sistema, dividido em 3 partes iguais entre Bloqueio de Ofensiva, Recarga de
 Vidas e XP Boost *(3ª opção desde v1.27, TDD §3.3 — antes era 50/50 só entre os dois primeiros)* —
-cosméticos ficam de fora do pool. Sem `Idempotency-Key`: a trava de "1 por dia" já é o
+cosméticos ficam de fora do pool. Mesmo prêmio, qualquer nível de Meta Diária escolhido — só o
+esforço pra chegar lá muda, nunca o prêmio. Sem `Idempotency-Key`: a trava de "1 por dia" já é o
 `chest_claimed_date` em si, gravado atomicamente com a aplicação do prêmio.
 
 ```json
@@ -785,7 +847,7 @@ cosméticos ficam de fora do pool. Sem `Idempotency-Key`: a trava de "1 por dia"
 Loja), não o quanto foi ganho — `gems_earned` só existe quando `reward_type` é `"gems"`;
 `xp_boost_active_until` só existe quando `reward_type` é `"xp_boost"` (empilha com um boost já em
 vigor — soma a duração a partir do fim do boost atual, ver TDD §3.3). Erros:
-`409 CHEST_NOT_AVAILABLE` (ainda não bateu as 10 perguntas do dia, ou já foi aberto hoje —
+`409 CHEST_NOT_AVAILABLE` (ainda não bateu a Meta Diária escolhida, ou já foi aberto hoje —
 reconsultado no servidor, nunca confiado no que o cliente mandou).
 
 ### 8.2 Baú Semanal *(v1.19)*

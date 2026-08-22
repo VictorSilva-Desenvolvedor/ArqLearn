@@ -3,7 +3,7 @@ import { getServerAccessToken } from "@/lib/supabase/server";
 import { listTracks } from "@/lib/api/resources/tracks";
 import { listTrackLessons } from "@/lib/api/resources/lessons";
 import { getMe } from "@/lib/api/resources/users";
-import { getDailyChestStatus, getWeeklyChestStatus } from "@/lib/api/resources/gamification";
+import { getDailyChestStatus, getDailyGoalStatus, getWeeklyChestStatus } from "@/lib/api/resources/gamification";
 import { lessonNodePresentation } from "@/lib/api/mocks/fixtures/lessons";
 import { getThemeByTopic } from "@/lib/api/mocks/fixtures/themes";
 import { THEME_COOKIE } from "@/lib/theme/constants";
@@ -18,7 +18,6 @@ import type { LessonNodeVariant } from "@/components/features/home/LessonNode";
 import type { TrackLesson } from "@/types/api";
 import type { UnitStatus } from "@/components/features/home/UnitSection";
 
-const DAILY_GOAL_XP = 50;
 // Só a trilha em destaque (tema selecionado) — mostrar outras trilhas junto no mapa não fazia
 // mais sentido com a tela de Explorar já madura (busca, seletor de tema); ver ExploreMoreCard.
 const MAX_UNITS_SHOWN = 1;
@@ -64,11 +63,12 @@ export default async function HomePage() {
   const featuredTopic = selectedTheme.topic;
 
   const accessToken = await getServerAccessToken();
-  const [{ gamification }, tracksResponse, dailyChest, weeklyChest] = await Promise.all([
+  const [{ gamification }, tracksResponse, dailyChest, weeklyChest, dailyGoal] = await Promise.all([
     getMe(accessToken),
     listTracks({}, accessToken),
     getDailyChestStatus(accessToken),
     getWeeklyChestStatus(accessToken),
+    getDailyGoalStatus(accessToken),
   ]);
 
   const featuredTrack = tracksResponse.data.find((track) => track.topic === featuredTopic);
@@ -117,7 +117,7 @@ export default async function HomePage() {
           cabeçalhos via a marca "ArqLearn" (repetida em toda rota) e não tem como confirmar que
           está na Home. */}
       <h1 className="sr-only">Início</h1>
-      <DailyGoalCard xpToday={gamification.xp_today} goal={DAILY_GOAL_XP} />
+      <DailyGoalCard status={dailyGoal} />
       <LevelProgressCard level={gamification.level} xpTotal={gamification.xp_total} />
       <div className="grid grid-cols-2 gap-md mb-section">
         <ChestProgressCard
