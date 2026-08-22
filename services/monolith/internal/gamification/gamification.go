@@ -97,9 +97,13 @@ type gamificationMeResponse struct {
 	Gems          int               `json:"gems"`
 	LeagueTier    *string           `json:"league_tier"`
 	Achievements  []achievementJSON `json:"achievements"`
-	Cosmetics     []CosmeticJSON    `json:"cosmetics"`
-	IsVIP         bool              `json:"is_vip"`
-	VIPExpiresAt  *time.Time        `json:"vip_expires_at"`
+	// PersonalRecords: segunda categoria de conquista (TDD §12), distinta de Achievements —
+	// compara contra o próprio recorde do usuário, não um limiar fixo do catálogo (ver
+	// personalrecords.go). Sempre 4 entradas, uma por PersonalRecordMetric.
+	PersonalRecords []PersonalRecord `json:"personal_records"`
+	Cosmetics       []CosmeticJSON   `json:"cosmetics"`
+	IsVIP           bool             `json:"is_vip"`
+	VIPExpiresAt    *time.Time       `json:"vip_expires_at"`
 	// XPBoostActive/XPBoostActiveUntil (TDD §3.3) — mesmo par de is_vip/vip_expires_at, mas
 	// XPBoostActiveUntil=nil sempre significa "sem boost ativo" (nunca "vitalício").
 	XPBoostActive      bool       `json:"xp_boost_active"`
@@ -286,6 +290,12 @@ func handleGetGamificationMe(pool *pgxpool.Pool) http.HandlerFunc {
 				return
 			}
 			resp.Achievements = append(resp.Achievements, a)
+		}
+
+		resp.PersonalRecords, err = LoadPersonalRecords(r.Context(), pool, userID)
+		if err != nil {
+			apierror.Write(w, http.StatusInternalServerError, "INTERNAL_ERROR", "Falha ao consultar recordes pessoais.")
+			return
 		}
 
 		resp.Cosmetics, err = LoadOwnedCosmetics(r.Context(), pool, userID)
@@ -745,8 +755,10 @@ func CloseLeagueWeek(ctx context.Context, pool *pgxpool.Pool, week time.Time) er
 			if newTier == l.tier {
 				continue
 			}
+			// league_best_tier (Personal Record, ver personalrecords.go) sobe junto via GREATEST
+			// — nunca decresce sozinho no caso de rebaixamento (newTier < l.tier).
 			if _, err := pool.Exec(ctx,
-				`UPDATE user_gamification SET current_tier = $1 WHERE user_id = $2`,
+				`UPDATE user_gamification SET current_tier = $1, league_best_tier = GREATEST(league_best_tier, $1) WHERE user_id = $2`,
 				newTier, entry.UserID,
 			); err != nil {
 				return err

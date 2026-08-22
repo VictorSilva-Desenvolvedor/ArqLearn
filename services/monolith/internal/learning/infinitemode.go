@@ -330,7 +330,7 @@ func handleInfiniteModeAnswer(pool *pgxpool.Pool, mongoDB *mongo.Database, gemin
 		correct := req.Answer == q.correctOptionID()
 
 		var timezone string
-		var xpTotal, xpToday, chestQuestionsToday, chestWeeklyQuestions int
+		var xpTotal, xpToday, xpDayBest, chestQuestionsToday, chestWeeklyQuestions int
 		var xpTodayDate, chestQuestionsDate, chestClaimedDate, chestWeeklyCycleStart *time.Time
 		var isVip bool
 		var vipExpiresAt *time.Time
@@ -340,7 +340,7 @@ func handleInfiniteModeAnswer(pool *pgxpool.Pool, mongoDB *mongo.Database, gemin
 		var streakRepairValue *int
 		var streakRepairDeadline *time.Time
 		if err := pool.QueryRow(r.Context(), `
-			SELECT u.timezone, g.xp_total, g.xp_today, g.xp_today_date,
+			SELECT u.timezone, g.xp_total, g.xp_today, g.xp_today_date, g.xp_day_best,
 			       g.chest_questions_today, g.chest_questions_date, g.chest_claimed_date,
 			       g.chest_weekly_questions, g.chest_weekly_cycle_start, g.is_vip, g.vip_expires_at,
 			       g.xp_boost_active_until, g.streak_current, g.streak_best,
@@ -348,7 +348,7 @@ func handleInfiniteModeAnswer(pool *pgxpool.Pool, mongoDB *mongo.Database, gemin
 			       g.streak_repair_value, g.streak_repair_deadline
 			FROM users u JOIN user_gamification g ON g.user_id = u.id
 			WHERE u.id = $1
-		`, userID).Scan(&timezone, &xpTotal, &xpToday, &xpTodayDate,
+		`, userID).Scan(&timezone, &xpTotal, &xpToday, &xpTodayDate, &xpDayBest,
 			&chestQuestionsToday, &chestQuestionsDate, &chestClaimedDate,
 			&chestWeeklyQuestions, &chestWeeklyCycleStart, &isVip, &vipExpiresAt,
 			&xpBoostActiveUntil, &streakCurrent, &streakBest,
@@ -436,6 +436,11 @@ func handleInfiniteModeAnswer(pool *pgxpool.Pool, mongoDB *mongo.Database, gemin
 		newXPToday := xpToday + xpResult.XPConcedido
 		newLevel := gamification.Nivel(newXPTotal)
 
+		// Personal Record de "mais XP em um dia" (gamification.PersonalRecordXPDia) — mesmo padrão
+		// de internal/learning/answers.go: calculado aqui pra ir no mesmo UPDATE de xp_total/
+		// xp_today logo abaixo, sem round-trip extra ao banco.
+		newXPDayBest, xpDayRecordBroken := gamification.DetectRecord(xpDayBest, newXPToday)
+
 		hojeLocalDate, _ := time.Parse("2006-01-02", hojeLocal)
 
 		// Habilidade adaptativa (TDD §10): não se aplica à fila de revisão (TDD §10.3) — sem
@@ -496,27 +501,41 @@ func handleInfiniteModeAnswer(pool *pgxpool.Pool, mongoDB *mongo.Database, gemin
 		}
 
 		// Conquistas do Modo Infinito (sequência sem errar, total de perguntas) — best-effort,
-		// mesmo padrão de AddWeeklyXP acima.
+		// mesmo padrão de AddWeeklyXP acima. achievementsUnlocked/personalRecordsBroken alimentam
+		// diretamente o `resp` abaixo (ainda não construído nesta altura da função, diferente de
+		// internal/learning/answers.go) — aqui a resposta cacheada de idempotência já sai com os
+		// dois campos corretos, sem o trade-off documentado lá.
+		achievementsUnlocked := []string{}
+		personalRecordsBroken := []gamification.PersonalRecord{}
+		if xpDayRecordBroken {
+			personalRecordsBroken = append(personalRecordsBroken, gamification.PersonalRecord{
+				Metric: gamification.PersonalRecordXPDia, Value: newXPDayBest,
+			})
+		}
 		if counters, err := gamification.BumpInfiniteAnswerCounters(r.Context(), pool, userID, correct); err != nil {
 			log.Printf("aviso: falha ao atualizar contadores de conquista do Modo Infinito (user_id=%s): %v", userID, err)
-		} else if _, err := gamification.EvaluateAndUnlock(r.Context(), pool, userID, counters); err != nil {
+		} else if unlocked, err := gamification.EvaluateAndUnlock(r.Context(), pool, userID, counters); err != nil {
 			log.Printf("aviso: falha ao avaliar conquistas (user_id=%s): %v", userID, err)
+		} else {
+			achievementsUnlocked = append(achievementsUnlocked, unlocked...)
 		}
 
 		chestClaimedToday := dateOrEmpty(chestClaimedDate) == hojeLocal
 		dailyChestAvailable := chestQuestionsToday >= gamification.ChestQuestionsRequired && !chestClaimedToday
 
 		resp := map[string]any{
-			"correct":               correct,
-			"xp_ganho":              xpResult.XPConcedido,
-			"xp_daily_cap_reached":  xpResult.DailyCapReached,
-			"xp_boost_active":       boostAtivo,
-			"streak_atual":          streak.Current,
-			"questions_answered":    newQuestionsAnswered,
-			"correct_count":         sess.CorrectCount + boolToInt(correct),
-			"level":                 newQuestionsAnswered/genBatchSize + 1,
-			"daily_chest_available": dailyChestAvailable,
-			"daily_chest_questions": chestQuestionsToday,
+			"correct":                 correct,
+			"xp_ganho":                xpResult.XPConcedido,
+			"xp_daily_cap_reached":    xpResult.DailyCapReached,
+			"xp_boost_active":         boostAtivo,
+			"streak_atual":            streak.Current,
+			"questions_answered":      newQuestionsAnswered,
+			"correct_count":           sess.CorrectCount + boolToInt(correct),
+			"level":                   newQuestionsAnswered/genBatchSize + 1,
+			"daily_chest_available":   dailyChestAvailable,
+			"daily_chest_questions":   chestQuestionsToday,
+			"achievements_unlocked":   achievementsUnlocked,
+			"personal_records_broken": personalRecordsBroken,
 		}
 		if nextQuestion != nil {
 			resp["next_question"] = toWireQuestion(*nextQuestion)
@@ -542,12 +561,13 @@ func handleInfiniteModeAnswer(pool *pgxpool.Pool, mongoDB *mongo.Database, gemin
 			    chest_questions_today = $5, chest_questions_date = $6,
 			    chest_weekly_questions = $7, chest_weekly_cycle_start = $8,
 			    streak_current = $9, streak_best = $10, streak_last_active_date = $11,
-			    streak_freezes_available = $12, streak_repair_value = $13, streak_repair_deadline = $14
-			WHERE user_id = $15
+			    streak_freezes_available = $12, streak_repair_value = $13, streak_repair_deadline = $14,
+			    xp_day_best = $15
+			WHERE user_id = $16
 		`, newXPTotal, newXPToday, hojeLocalDate, newLevel, chestQuestionsToday, hojeLocalDate,
 			chestWeeklyQuestions, chestWeeklyCycleStartDate,
 			streak.Current, streak.Best, streakLastActiveParam, streakFreezesAvailable,
-			streakRepairValue, streakRepairDeadline, userID); err != nil {
+			streakRepairValue, streakRepairDeadline, newXPDayBest, userID); err != nil {
 			apierror.Write(w, http.StatusInternalServerError, "INTERNAL_ERROR", "Falha ao atualizar gamificação.")
 			return
 		}

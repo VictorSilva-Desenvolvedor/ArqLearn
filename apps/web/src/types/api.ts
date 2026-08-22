@@ -77,6 +77,10 @@ export interface GamificationProfile {
   // sempre significa "sem boost ativo" (nunca "vitalício").
   xp_boost_active: boolean;
   xp_boost_active_until: string | null;
+  // Personal Records (TDD §12, v1.29) — segunda categoria de conquista, distinta de
+  // `achievements`: compara contra o próprio recorde do usuário, não um limiar fixo do catálogo.
+  // Sempre 4 entradas, uma por PersonalRecordMetric.
+  personal_records: PersonalRecord[];
 }
 
 export type AchievementType = string;
@@ -84,6 +88,15 @@ export type AchievementType = string;
 export interface Achievement {
   type: AchievementType;
   unlocked_at: string;
+}
+
+// PersonalRecordMetric: os 4 valores possíveis de PersonalRecord.metric — precisa bater exatamente
+// com gamification.PersonalRecordMetric (services/monolith/internal/gamification/personalrecords.go).
+export type PersonalRecordMetric = "streak_dias" | "infinito_sem_erros" | "xp_dia" | "liga_alcancada";
+
+export interface PersonalRecord {
+  metric: PersonalRecordMetric;
+  value: number;
 }
 
 export type TrackOrigin = "curated" | "user_generated";
@@ -153,12 +166,20 @@ export interface AnswerResult {
   correct: boolean;
   xp_ganho: number;
   xp_daily_cap_reached: boolean;
+  // xp_boost_active (v1.27) — estava documentado na API Spec desde a v1.27 mas nunca tinha sido
+  // adicionado a este tipo; achado ao integrar Personal Records (v1.29).
+  xp_boost_active: boolean;
   vidas_restantes: number;
   streak_atual: number;
   explicacao: string;
   // Baú Diário (v1.18) — 10 perguntas no dia (lição + Modo Infinito somados) liberam 1 abertura.
   daily_chest_available: boolean;
   daily_chest_questions: number;
+  // achievements_unlocked/personal_records_broken (v1.29) — o que esta resposta específica
+  // desbloqueou/quebrou, sempre presentes (arrays vazios quando nada mudou). Ausentes numa
+  // resposta replayada por retry de rede com a mesma Idempotency-Key — ver API Spec §6.
+  achievements_unlocked: AchievementType[];
+  personal_records_broken: PersonalRecord[];
 }
 
 export interface ProgressSummary {
@@ -303,6 +324,8 @@ export interface InfiniteModeAnswerResult {
   correct: boolean;
   xp_ganho: number;
   xp_daily_cap_reached: boolean;
+  // xp_boost_active (v1.27) — mesmo achado de AnswerResult acima.
+  xp_boost_active: boolean;
   // Modo Infinito passa a contar pra sequência diária (TDD §5.1, revisado 21/08/2026 — antes
   // não tocava streak nenhuma). API Spec v1.28.
   streak_atual: number;
@@ -313,6 +336,10 @@ export interface InfiniteModeAnswerResult {
   // Baú Diário (v1.18) — mesmo contador acumulado do dia de AnswerResult, Modo Infinito soma junto.
   daily_chest_available: boolean;
   daily_chest_questions: number;
+  // achievements_unlocked/personal_records_broken (v1.29) — mesmo contrato de AnswerResult, sem a
+  // exceção do replay idempotente (ver API Spec §6.1).
+  achievements_unlocked: AchievementType[];
+  personal_records_broken: PersonalRecord[];
 }
 
 // --- Baú Diário (v1.18) ---

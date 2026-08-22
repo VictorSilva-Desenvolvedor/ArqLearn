@@ -59,6 +59,17 @@ export function tierDivisionToRank(tier: LeagueTierName, division: number): numb
   return tierIndex * 3 + (3 - division) + 1;
 }
 
+// Inverso de tierDivisionToRank — necessário pra exibir o rank cru devolvido pelo Personal Record
+// "liga_alcancada" (services/monolith/internal/gamification/personalrecords.go), que guarda só um
+// inteiro 1-30, não {tier, division}. Espelha rankDivision/tierName do backend
+// (internal/gamification/gamification.go) e apps/web/.../leagueTiers.ts.
+export function rankToTierDivision(rank: number): { tier: LeagueTierName; division: number } {
+  const clamped = Math.min(Math.max(rank, 1), LEAGUE_TIERS.length * 3);
+  const tierIndex = Math.floor((clamped - 1) / 3);
+  const division = 3 - ((clamped - 1) % 3);
+  return { tier: LEAGUE_TIERS[tierIndex], division };
+}
+
 // Próxima posição na hierarquia (pra "promovido pra X") — null se já está no topo (Diamante 1).
 export function nextTierDivision(tier: LeagueTierName, division: number): { tier: LeagueTierName; division: number } | null {
   const rank = tierDivisionToRank(tier, division);

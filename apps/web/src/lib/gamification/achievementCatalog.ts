@@ -1,11 +1,18 @@
 import type { AchievementType } from "@/types/api";
 
+// AchievementRarity: identidade visual por tier de raridade (framework do documento de brainstorm
+// de conquistas — mapeado a tokens semânticos já existentes no design system, sem paleta nova; ver
+// AchievementBadge.tsx pra qual token cada raridade usa). "comum" é o piso — a maioria dos badges
+// de "primeira vez" — e "lendario" é reservado ao nível 5 de cada família repetível.
+export type AchievementRarity = "comum" | "incomum" | "raro" | "epico" | "lendario";
+
 export interface AchievementCatalogEntry {
   title: string;
   description: string;
   icon: string;
   xp_reward: number;
   gems_reward: number;
+  rarity: AchievementRarity;
 }
 
 // Recompensa por nível de conquista repetível (índice 0 = nível 1) — espelha exatamente
@@ -14,6 +21,10 @@ export interface AchievementCatalogEntry {
 // vs TypeScript), então isso é conferido manualmente por enquanto.
 const tierXP = [20, 40, 80, 150, 300];
 const tierGems = [5, 8, 15, 25, 50];
+
+// tierRarities: nível 1 (limiar mais baixo de cada família) é sempre "comum", nível 5 (o mais
+// difícil) é sempre "lendario" — a raridade sobe junto com o nível, não é uma escolha por família.
+const tierRarities: AchievementRarity[] = ["comum", "incomum", "raro", "epico", "lendario"];
 
 // tier() monta as 5 entradas de uma família repetível (ex.: "infinito_sem_erros_1".."_5") — cada
 // "type" precisa bater exatamente com o gerado por tierFamilies em achievements.go
@@ -33,6 +44,7 @@ function tier(
       icon,
       xp_reward: tierXP[i],
       gems_reward: tierGems[i],
+      rarity: tierRarities[i],
     };
   });
   return entries;
@@ -50,6 +62,7 @@ export const achievementCatalog: Record<AchievementType, AchievementCatalogEntry
     icon: "school",
     xp_reward: 10,
     gems_reward: 2,
+    rarity: "comum",
   },
   licao_perfeita: {
     title: "Precisão Cirúrgica",
@@ -57,6 +70,7 @@ export const achievementCatalog: Record<AchievementType, AchievementCatalogEntry
     icon: "verified",
     xp_reward: 25,
     gems_reward: 5,
+    rarity: "incomum",
   },
   explique_melhor: {
     title: "Curioso(a) de Plantão",
@@ -64,6 +78,7 @@ export const achievementCatalog: Record<AchievementType, AchievementCatalogEntry
     icon: "psychology",
     xp_reward: 15,
     gems_reward: 3,
+    rarity: "comum",
   },
   ...tier(
     "licoes_completas",
@@ -87,6 +102,7 @@ export const achievementCatalog: Record<AchievementType, AchievementCatalogEntry
     icon: "all_inclusive",
     xp_reward: 15,
     gems_reward: 3,
+    rarity: "comum",
   },
   ...tier(
     "infinito_sem_erros",
@@ -119,6 +135,7 @@ export const achievementCatalog: Record<AchievementType, AchievementCatalogEntry
     icon: "storefront",
     xp_reward: 15,
     gems_reward: 3,
+    rarity: "comum",
   },
   ...tier(
     "gemas_gastas",
@@ -135,6 +152,7 @@ export const achievementCatalog: Record<AchievementType, AchievementCatalogEntry
     icon: "upload_file",
     xp_reward: 15,
     gems_reward: 3,
+    rarity: "comum",
   },
   primeiro_resumo: {
     title: "Resumo na Mão",
@@ -142,6 +160,7 @@ export const achievementCatalog: Record<AchievementType, AchievementCatalogEntry
     icon: "summarize",
     xp_reward: 15,
     gems_reward: 3,
+    rarity: "comum",
   },
   ...tier(
     "chat_material",
@@ -158,6 +177,7 @@ export const achievementCatalog: Record<AchievementType, AchievementCatalogEntry
     icon: "bug_report",
     xp_reward: 15,
     gems_reward: 3,
+    rarity: "comum",
   },
   bug_corrigido: {
     title: "Contribuidor",
@@ -165,5 +185,6 @@ export const achievementCatalog: Record<AchievementType, AchievementCatalogEntry
     icon: "task_alt",
     xp_reward: 30,
     gems_reward: 10,
+    rarity: "raro",
   },
 };

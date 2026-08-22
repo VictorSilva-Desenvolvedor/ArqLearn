@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { ScrollView, StyleSheet, View } from "react-native";
 import { AchievementGrid } from "@/components/features/profile/AchievementGrid";
 import { LogoutMenuLink } from "@/components/features/profile/LogoutMenuLink";
+import { PersonalRecordsGrid } from "@/components/features/profile/PersonalRecordsGrid";
 import { ProfileHeader } from "@/components/features/profile/ProfileHeader";
 import { ProfileMenuLink } from "@/components/features/profile/ProfileMenuLink";
 import { ProfileStatsGrid } from "@/components/features/profile/ProfileStatsGrid";
@@ -13,13 +14,14 @@ import { getGamificationProfile } from "@/lib/api/resources/gamification";
 import { getProgressSummary } from "@/lib/api/resources/progress";
 import { COMPASSO_DOURADO_ID, SELO_MESTRE_ID } from "@/lib/api/mocks/fixtures/shopCatalog";
 import { spacing } from "@/theme/tokens";
-import type { Achievement, OwnedCosmetic, ProgressSummary } from "@/types/api";
+import type { Achievement, OwnedCosmetic, PersonalRecord, ProgressSummary } from "@/types/api";
 
 // Espelha apps/web/src/app/(shell)/perfil/page.tsx — sem o ramo de professor/admin do web
 // (fora de escopo do mobile, ver Docs/PENDENCIAS_MOBILE.md).
 export default function PerfilScreen() {
   const { user, gamification } = useAuth();
   const [achievements, setAchievements] = useState<Achievement[] | null>(null);
+  const [personalRecords, setPersonalRecords] = useState<PersonalRecord[] | null>(null);
   const [cosmetics, setCosmetics] = useState<OwnedCosmetic[]>([]);
   const [progress, setProgress] = useState<ProgressSummary | null>(null);
 
@@ -28,6 +30,7 @@ export default function PerfilScreen() {
     Promise.all([getGamificationProfile(), getProgressSummary()]).then(([gamificationMe, progressSummary]) => {
       if (cancelled) return;
       setAchievements(gamificationMe.achievements);
+      setPersonalRecords(gamificationMe.personal_records);
       setCosmetics(gamificationMe.cosmetics);
       setProgress(progressSummary);
     });
@@ -60,6 +63,7 @@ export default function PerfilScreen() {
         {progress && <ProgressSummaryCard summary={progress} />}
         <StreakFreezeCard />
         {achievements && <AchievementGrid unlocked={achievements} />}
+        {personalRecords && <PersonalRecordsGrid records={personalRecords} />}
         <View style={styles.menu}>
           <ProfileMenuLink href="/loja" icon="storefront" label="Loja" />
           <ProfileMenuLink href="/ajuda" icon="help" label="Ajuda e Bugs" />

@@ -1,7 +1,7 @@
 # DOCUMENTO TÉCNICO DE DESIGN (TDD)
 ## ArqLearn — Algoritmos de Negócio, Contratos de Evento e Fluxos de Sequência
 
-Versão 1.9 | Agosto de 2026
+Versão 1.10 | Agosto de 2026
 Documento complementar ao SAD, ao Database Design e à API Specification do ArqLearn v1.0
 
 > **Nota de nomenclatura:** existe também um `ArqLearn_Documento_Tecnico_Design.docx` na pasta `Docs/`,
@@ -25,6 +25,7 @@ Documento complementar ao SAD, ao Database Design e à API Specification do ArqL
 | 1.7 | 21/08/2026 | Equipe de Arquitetura/Engenharia | Novo §5.5 — teto escalonado de bloqueios de ofensiva (RS-03, fecha gap já documentado no backlog) e reparo de streak / grace window de 3 dias (RS-08, mecânica nova inspirada no Duolingo), ambos implementados antecipadamente e fora da ordem original do backlog (mesmo precedente de §10/§11). §5.3 ganha nota de implementação corrigindo a descrição de "job horário" pra "avaliação preguiçosa em dois pontos" (achado ao implementar o reparo — o gap não tinha sido percebido antes por não ter consequência visível até agora) |
 | 1.8 | 21/08/2026 | Equipe de Arquitetura/Engenharia | §3.3 ganha o XP Boost — multiplicador temporário de 2x por 15min, concedido via recompensa de Baú Diário/Semanal, empilhável com o multiplicador VIP num único arredondamento (mecânica nova inspirada no Duolingo, implementada antecipadamente e fora da ordem original do backlog, mesmo precedente de §5.5/§10/§11). Corrige a frase obsoleta do próprio §3.3 ("o teto diário continua 500 XP/dia para todo mundo, VIP ou não") — já falsa desde que §9 dobrou o teto pra VIP (19/08/2026), achado ao revisar este arquivo pra esta entrega |
 | 1.9 | 21/08/2026 | Equipe de Arquitetura/Engenharia | §5.1 revisado — streak avança em qualquer resposta certa (não só ao concluir a lição inteira pela primeira vez), e o Modo Infinito passa a contar também (antes não tocava streak) — decisão explícita do usuário, motivada por um caso real reportado ("respondi um item e a streak continuou em 0"). §5.5 atualizado pra refletir o novo gatilho no reparo de streak |
+| 1.10 | 21/08/2026 | Equipe de Arquitetura/Engenharia | Novo §12 (Conquistas — Awards e Personal Records): Awards (`achievements.go`, catálogo de ~44 tipos) nunca tinha sido formalizado aqui, apesar de real desde a v1.16 da API Specification — gap, não divergência. Personal Records (`personalrecords.go`, migrations/0021) é a mecânica nova desta versão — segunda categoria de conquista, inspirada no redesign de 2023 do sistema de Achievements do Duolingo, que compara contra o próprio recorde do usuário em vez de um limiar fixo. §12 (Glossário) renumerado para §13 |
 
 ---
 
@@ -873,7 +874,57 @@ decide qual MENSAGEM DE NOTIFICAÇÃO enviar e quando. Os dois reaproveitam o me
 telemetria (`item_respondido`) como sinal de "o usuário praticou", mas cada um o consome pro seu
 próprio propósito — não há acoplamento direto entre os dois bandits.
 
-## 12. Glossário
+## 12. Conquistas — Awards e Personal Records *(v1.10, TDD nunca teve esta seção antes — Awards já
+existia no código desde a v1.16 da API Specification sem nunca ter sido formalizado aqui; Personal
+Records é mecânica nova desta versão)*
+
+Duas categorias de conquista, propositalmente distintas — inspirado no redesign de 2023 do sistema de
+Achievements do Duolingo: **Awards** comparam contra um limiar fixo do catálogo; **Personal Records**
+comparam contra o próprio recorde anterior do usuário. Esta seção cobre só a regra de negócio que
+diferencia as duas — o catálogo completo de cada uma vive só no código (ver nota no fim desta seção),
+não duplicado aqui, mesma decisão já tomada pra Awards na v1.16 da API Specification (§8).
+
+**Awards (`internal/gamification/achievements.go`):** catálogo fixo de ~44 tipos, a maioria em
+famílias de 5 níveis com limiar crescente (ex.: `streak_dias_1`..`streak_dias_5`). Cada avaliação
+(`EvaluateAndUnlock`) roda contra os contadores vitalícios atuais e insere só o que ainda não foi
+desbloqueado (`achievements` tem `UNIQUE (user_id, type)` — idempotente por natureza, não precisa
+checar "já existe" antes de tentar inserir). Cada desbloqueio credita XP/gemas uma única vez, nunca de
+novo mesmo que o contador continue subindo depois. Recompensa de Award não passa pelo limite diário de
+XP (§3.2, que é especificamente sobre XP de resposta de exercício) — é um crédito direto em
+`xp_total`/`gems`, sujeito ao `VIPGemsMultiplier` (§9) quando há gema envolvida.
+
+**Personal Records (`internal/gamification/personalrecords.go`):** catálogo fixo de 4 métricas —
+`streak_dias`, `infinito_sem_erros`, `xp_dia`, `liga_alcancada`. Diferente de Award, não existe uma
+tabela de "desbloqueios": cada métrica é um valor que só sobe.
+
+```
+DetectRecord(previousBest, candidate):
+    se candidate > previousBest:
+        retorna (candidate, quebrado=true)
+    retorna (previousBest, quebrado=false)   // candidato igual ou menor NUNCA quebra o recorde
+```
+
+Sem crédito de XP/gemas — Personal Record é reconhecimento, não recompensa (mesma distinção do
+redesign do Duolingo entre Awards e Personal Records). `liga_alcancada` guarda o rank de liga (1-30,
+mesma codificação linear de `current_tier`, §6) já alcançado — sobrevive a um rebaixamento posterior,
+diferente de `current_tier` sozinho.
+
+**Regra de reaproveitamento — não duplicar um contador que já existe:** antes de adicionar uma coluna
+nova pra uma métrica de Personal Record, checar se algum sistema já mantém o valor como efeito
+colateral do que já faz. `streak_dias` e `infinito_sem_erros` reaproveitam `streak_best` (§5) e
+`infinite_correct_streak_best` (contador de Award "Mira Certeira") sem coluna nova. Só `xp_dia` e
+`liga_alcancada` precisaram de coluna nova (`xp_day_best`/`league_best_tier`, Database Design §3.2,
+migrations/0021), porque nenhum sistema existente guardava o PICO dessas duas métricas — `xp_today`
+reseta todo dia local (§3.2) sem guardar o maior valor já alcançado, e `current_tier` reflete só a
+posição atual da liga, caindo de novo em caso de rebaixamento.
+
+> Catálogo completo (tipos/métricas, condições de desbloqueio, níveis, recompensas) de Awards vive em
+> `services/monolith/internal/gamification/achievements.go`; o de Personal Records, em
+> `.../personalrecords.go`. Título/descrição/ícone de exibição de cada um são conteúdo do cliente
+> (`achievementCatalog.ts`/`personalRecordCatalog.ts`, API Specification §8) — nenhum dos dois
+> catálogos é duplicado neste documento.
+
+## 13. Glossário
 
 - **SM-2**: algoritmo clássico de repetição espaçada (Wozniak, 1987), adaptado aqui para entrada
   binária correto/incorreto + tempo de resposta.
