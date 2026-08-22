@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useState } from "react";
 import { mockShopCatalog } from "@/lib/api/mocks/fixtures/shopCatalog";
 import { purchaseShopItem } from "@/lib/api/resources/gamification";
@@ -8,6 +9,8 @@ import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/useToast";
 import { ShopFeatureCard } from "@/components/features/shop/ShopFeatureCard";
 import { ShopCosmeticItem } from "@/components/features/shop/ShopCosmeticItem";
+import { Card } from "@/components/ui/Card";
+import { Icon } from "@/components/ui/Icon";
 
 const HEARTS_MAX = 5;
 
@@ -59,9 +62,31 @@ export default function ShopPage() {
     <div className="max-w-2xl mx-auto px-lg py-section flex flex-col gap-lg">
       <div className="flex items-center justify-between">
         <h1 className="font-display text-display-lg font-bold text-on-surface">Loja da Arquiteta</h1>
-        <span className="flex items-center gap-1 font-label text-stats-num font-bold text-primary">
+        <Link href="/loja/extrato" className="flex items-center gap-1 font-label text-stats-num font-bold text-primary hover:underline">
+          <Icon name="diamond" filled className="text-xl" />
           {gamification.gems}
-        </span>
+        </Link>
+      </div>
+
+      <div className="grid grid-cols-2 gap-sm">
+        <Link href="/loja/gemas">
+          <Card padding="md" interactive className="flex items-center gap-sm h-full">
+            <Icon name="diamond" filled className="text-2xl text-primary" />
+            <div>
+              <p className="font-body-md text-body-md font-semibold text-on-surface">Comprar Gemas</p>
+              <p className="font-body-sm text-body-sm text-on-surface-variant">Pacotes e cupons</p>
+            </div>
+          </Card>
+        </Link>
+        <Link href="/loja/aposta">
+          <Card padding="md" interactive className="flex items-center gap-sm h-full">
+            <Icon name="casino" filled className="text-2xl text-tertiary" />
+            <div>
+              <p className="font-body-md text-body-md font-semibold text-on-surface">Double or Nothing</p>
+              <p className="font-body-sm text-body-sm text-on-surface-variant">Aposte no seu streak</p>
+            </div>
+          </Card>
+        </Link>
       </div>
 
       {error && (

@@ -3,6 +3,7 @@ package gamification
 import (
 	"context"
 	"fmt"
+	"strings"
 	"time"
 
 	"github.com/jackc/pgx/v5/pgxpool"
@@ -187,11 +188,17 @@ func EvaluateAndUnlock(ctx context.Context, pool *pgxpool.Pool, userID string, c
 	}
 
 	if totalXP > 0 || totalGems > 0 {
-		if _, err := pool.Exec(ctx,
-			`UPDATE user_gamification SET xp_total = xp_total + $1, gems = gems + $2 WHERE user_id = $3`,
+		var newGems int
+		if err := pool.QueryRow(ctx,
+			`UPDATE user_gamification SET xp_total = xp_total + $1, gems = gems + $2 WHERE user_id = $3 RETURNING gems`,
 			totalXP, totalGems, userID,
-		); err != nil {
+		).Scan(&newGems); err != nil {
 			return newlyUnlocked, err
+		}
+		if totalGems > 0 {
+			if err := RecordGemTransaction(ctx, pool, userID, totalGems, GemReasonAchievement, strings.Join(newlyUnlocked, ","), newGems); err != nil {
+				return newlyUnlocked, err
+			}
 		}
 	}
 

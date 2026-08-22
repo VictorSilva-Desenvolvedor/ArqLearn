@@ -395,6 +395,53 @@ export interface VipRedeemCouponResult {
   vip_expires_at: string | null;
 }
 
+// --- Moeda: Livro-Razão, Pacotes de Gemas e Double or Nothing (TDD §15) ---
+
+export type GemTransactionReason =
+  | "achievement"
+  | "daily_chest"
+  | "weekly_chest"
+  | "shop_purchase"
+  | "bug_report_reward"
+  | "gem_coupon"
+  | "bet_stake"
+  | "bet_payout";
+
+export interface GemTransaction {
+  id: string;
+  delta: number;
+  reason: GemTransactionReason;
+  reference_id: string | null;
+  balance_after: number;
+  created_at: string;
+}
+
+export interface GemTransactionsPage {
+  data: GemTransaction[];
+  next_cursor: string | null;
+}
+
+export interface GemPackage {
+  id: string;
+  name: string;
+  gems_amount: number;
+  price_brl_cents: number;
+}
+
+export interface GemCouponRedeemResult {
+  gems_credited: number;
+  gems: number;
+}
+
+export type GemBetStatus = "active" | "won" | "lost";
+
+export interface GemBet {
+  stake_gems: number;
+  days_required: number;
+  days_completed: number;
+  status: GemBetStatus;
+}
+
 export interface InfiniteModeEndResult {
   questions_answered: number;
   correct_count: number;

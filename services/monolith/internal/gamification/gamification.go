@@ -30,6 +30,13 @@ func RegisterRoutes(mux *http.ServeMux, pool *pgxpool.Pool, verifier *authmiddle
 	mux.Handle("POST /v1/gamification/daily-chest/open", verifier.Middleware(http.HandlerFunc(handleOpenDailyChest(pool))))
 	mux.Handle("GET /v1/gamification/daily-goal", verifier.Middleware(http.HandlerFunc(handleGetDailyGoal(pool))))
 	mux.Handle("PATCH /v1/gamification/daily-goal", verifier.Middleware(http.HandlerFunc(handleUpdateDailyGoal(pool))))
+	mux.Handle("GET /v1/gamification/gem-transactions", verifier.Middleware(http.HandlerFunc(handleGetGemTransactions(pool))))
+	mux.Handle("GET /v1/gamification/gem-packages", verifier.Middleware(http.HandlerFunc(handleListGemPackages(pool))))
+	mux.Handle("POST /v1/gamification/gem-packages/{package_id}/checkout", verifier.Middleware(http.HandlerFunc(handleCheckoutGemPackage(pool))))
+	mux.Handle("POST /v1/gamification/gem-coupons", verifier.Middleware(http.HandlerFunc(handleCreateGemCoupon(pool))))
+	mux.Handle("POST /v1/gamification/gem-coupons/redeem", verifier.Middleware(http.HandlerFunc(handleRedeemGemCoupon(pool))))
+	mux.Handle("POST /v1/gamification/bets", verifier.Middleware(http.HandlerFunc(handleStartGemBet(pool))))
+	mux.Handle("GET /v1/gamification/bets/active", verifier.Middleware(http.HandlerFunc(handleGetActiveGemBet(pool))))
 	mux.Handle("GET /v1/gamification/weekly-chest", verifier.Middleware(http.HandlerFunc(handleGetWeeklyChestStatus(pool))))
 	mux.Handle("POST /v1/gamification/weekly-chest/open", verifier.Middleware(http.HandlerFunc(handleOpenWeeklyChest(pool))))
 	mux.Handle("POST /v1/gamification/daily-chest/reset", verifier.Middleware(http.HandlerFunc(handleResetDailyChest(pool))))
@@ -203,6 +210,14 @@ func LoadStreakWithExpiration(ctx context.Context, pool *pgxpool.Pool, userID st
 			d, _ := time.Parse("2006-01-02", rd)
 			novoRepairDeadlineParam = d
 			RecordEvent(ctx, pool, userID, EventStreakReset, &currentAntesDaExpiracao, map[string]any{"schema_version": 1})
+			// Double or Nothing (TDD §16) — esta é a ÚNICA das duas chamadas de
+			// AplicarExpiracaoStreak que precisa checar perda de aposta aqui: quem abre o app (GET,
+			// não resposta) depois da streak já ter estourado só descobre isso nesta função, mesmo
+			// motivo do reparo de streak preparado logo acima. Nunca "ganha" aqui — esta função não
+			// chama AtualizarStreak, só expira.
+			if err := ResolveActiveBet(ctx, pool, userID, false, true); err != nil {
+				log.Printf("aviso: falha ao resolver aposta Double or Nothing (user_id=%s): %v", userID, err)
+			}
 		} else if novosFreezes < freezesAvailable {
 			RecordEvent(ctx, pool, userID, EventStreakFreezeConsumed, nil, map[string]any{"schema_version": 1})
 		}
@@ -934,6 +949,10 @@ func handleShopPurchase(pool *pgxpool.Pool) http.HandlerFunc {
 			apierror.Write(w, http.StatusInternalServerError, "INTERNAL_ERROR", "Falha ao debitar gemas.")
 			return
 		}
+		if err := RecordGemTransaction(r.Context(), tx, userID, -priceGems, GemReasonShopPurchase, itemUUID.String(), gemsRestantes); err != nil {
+			apierror.Write(w, http.StatusInternalServerError, "INTERNAL_ERROR", "Falha ao registrar extrato.")
+			return
+		}
 
 		// Efeito de posse imediata: consumíveis mexem em user_gamification; cosméticos entram no
 		// inventário (user_cosmetics, migration 0015) já equipados — sem tela de "trocar
@@ -1044,7 +1063,13 @@ func AwardGems(ctx context.Context, pool *pgxpool.Pool, userID string, amount in
 		`UPDATE user_gamification SET gems = gems + $1 WHERE user_id = $2 RETURNING gems`,
 		awarded, userID,
 	).Scan(&newTotal)
-	return awarded, newTotal, err
+	if err != nil {
+		return awarded, newTotal, err
+	}
+	if err := RecordGemTransaction(ctx, pool, userID, awarded, GemReasonBugReportReward, "", newTotal); err != nil {
+		return awarded, newTotal, err
+	}
+	return awarded, newTotal, nil
 }
 
 // --- Baú Diário (a pedido do usuário) ---
@@ -1317,6 +1342,12 @@ func handleOpenDailyChest(pool *pgxpool.Pool) http.HandlerFunc {
 			apierror.Write(w, http.StatusInternalServerError, "INTERNAL_ERROR", "Falha ao aplicar recompensa do baú.")
 			return
 		}
+		if reward.Type == ChestRewardGems {
+			if err := RecordGemTransaction(r.Context(), tx, userID, reward.GemsAmount, GemReasonDailyChest, "", newGems); err != nil {
+				apierror.Write(w, http.StatusInternalServerError, "INTERNAL_ERROR", "Falha ao registrar extrato.")
+				return
+			}
+		}
 
 		if err := tx.Commit(r.Context()); err != nil {
 			apierror.Write(w, http.StatusInternalServerError, "INTERNAL_ERROR", "Falha ao concluir abertura do baú.")
@@ -1511,6 +1542,12 @@ func handleOpenWeeklyChest(pool *pgxpool.Pool) http.HandlerFunc {
 		if err != nil {
 			apierror.Write(w, http.StatusInternalServerError, "INTERNAL_ERROR", "Falha ao aplicar recompensa do baú.")
 			return
+		}
+		if reward.Type == ChestRewardGems {
+			if err := RecordGemTransaction(r.Context(), tx, userID, reward.GemsAmount, GemReasonWeeklyChest, "", newGems); err != nil {
+				apierror.Write(w, http.StatusInternalServerError, "INTERNAL_ERROR", "Falha ao registrar extrato.")
+				return
+			}
 		}
 
 		if err := tx.Commit(r.Context()); err != nil {

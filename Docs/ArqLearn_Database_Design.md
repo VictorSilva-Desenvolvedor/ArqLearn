@@ -3,7 +3,7 @@
 
 Modelo de dados detalhado: esquema relacional, documentos, vetores, cache e estratégias de persistência.
 
-Versão 1.28 | Agosto de 2026
+Versão 1.29 | Agosto de 2026
 Documento complementar ao SAD e ao TDD do ArqLearn v1.0
 
 > **Sobre esta versão:** versão em Markdown, mantida como fonte da verdade a partir de agora (ver
@@ -43,6 +43,7 @@ Documento complementar ao SAD e ao TDD do ArqLearn v1.0
 | 1.26 | 21/08/2026 | Equipe de Engenharia / Dados | `user_gamification` ganha `xp_boost_active_until` (migrations/0020, TDD §3.3) — XP Boost, multiplicador temporário de 2x por 15min concedido via recompensa de Baú Diário/Semanal (mecânica nova inspirada no Duolingo). Sem CHECK — timestamp único, `NULL` sempre significa "sem boost ativo" (diferente de `vip_expires_at`, que tem o caso especial "vitalício" pareado com `is_vip`). Implementado fora da ordem original de `Docs/ArqLearn_Backlog_Gamificacao_Atelie.md` (mesma decisão explícita do usuário das v1.22–v1.25) |
 | 1.27 | 21/08/2026 | Equipe de Engenharia / Dados | `user_gamification` ganha `xp_day_best`/`league_best_tier` (migrations/0021, TDD §12 nova seção) — Personal Records, segunda categoria de conquista. Documenta também `current_tier` (§3.2 DDL) — coluna real desde migrations/0007/0008 que nunca tinha sido documentada nesta tabela; achado ao adicionar `league_best_tier` ao lado dela, mesmo tipo de lacuna já corrigida antes pras colunas de baú (ver nota junto de VIP na v1.16) |
 | 1.28 | 22/08/2026 | Equipe de Engenharia / Dados | `user_gamification` ganha `daily_goal_level`/`study_seconds_today`/`study_seconds_today_date` (migrations/0022, TDD §13 nova seção) — Meta Diária personalizável, substitui o gatilho fixo de 10 perguntas do Baú Diário por um alvo escolhido pelo usuário (perguntas certas OU minutos estudados). `chest_questions_today` (já existente, migrations/0009) é reaproveitada como a métrica de perguntas, sem coluna nova |
+| 1.29 | 22/08/2026 | Equipe de Engenharia / Dados | 4 tabelas novas (migrations/0023, TDD §15 nova seção): `gem_transactions` (livro-razão append-only, retrofitado nos pontos que já mexiam em `gems` antes desta versão — item #1 do checklist técnico do documento de moeda virtual), `gem_packages` (catálogo de pacotes com preço em R$, seed de 4 linhas), `gem_coupons` (mesmo molde de `vip_coupons`, tabela própria) e `gem_bets` (Double or Nothing — aposta de streak, índice único parcial `gem_bets_one_active_per_user_idx` limitando 1 aposta `active` por usuário no banco, não só no handler) |
 
 ---
 
@@ -337,6 +338,75 @@ CREATE TABLE user_cosmetics (
   PRIMARY KEY (user_id, item_id)
 );
 CREATE INDEX idx_user_cosmetics_user_equipped ON user_cosmetics(user_id) WHERE equipped;
+
+-- Livro-razão de gemas (migrations/0023, v1.29 — TDD §15): antes desta tabela, `gems` acima era só
+-- um saldo corrente, sem nenhum histórico auditável. Append-only, nunca UPDATE/DELETE — quem grava
+-- já fez o UPDATE de gems e sabe o balance_after resultante (RecordGemTransaction nunca recalcula
+-- saldo, só registra). reference_id é string livre sem FK porque aponta pra tabelas diferentes
+-- dependendo de reason (achievement type, shop_items.id, gem_bets.id...).
+CREATE TABLE gem_transactions (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  delta INTEGER NOT NULL, -- positivo = crédito, negativo = débito
+  reason TEXT NOT NULL CHECK (reason IN (
+    'achievement', 'daily_chest', 'weekly_chest', 'shop_purchase',
+    'bug_report_reward', 'gem_coupon', 'bet_stake', 'bet_payout'
+  )),
+  reference_id TEXT,
+  balance_after INTEGER NOT NULL,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+CREATE INDEX idx_gem_transactions_user_created ON gem_transactions(user_id, created_at DESC);
+
+-- Pacotes de gemas compráveis com dinheiro real (migrations/0023, v1.29 — TDD §15). Catálogo real
+-- desde já (GET /v1/gamification/gem-packages); a compra em si (POST .../checkout) fica travada
+-- atrás de GemPackagePurchasesEnabled=false até um gateway de pagamento existir — mesmo padrão do
+-- VIP (vip_coupons abaixo). Preço calibrado contra o único preço real em produção (VIP
+-- R$29,90/mês) — valor por gema melhora nos pacotes maiores, decisão de produto a revisitar com
+-- dados reais depois de estar no ar.
+CREATE TABLE gem_packages (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  name TEXT NOT NULL,
+  gems_amount INTEGER NOT NULL CHECK (gems_amount > 0),
+  price_brl_cents INTEGER NOT NULL CHECK (price_brl_cents > 0),
+  sort_order SMALLINT NOT NULL DEFAULT 0,
+  active BOOLEAN NOT NULL DEFAULT true
+);
+INSERT INTO gem_packages (name, gems_amount, price_brl_cents, sort_order) VALUES
+  ('Pacote Terracota', 300, 490, 1),
+  ('Pacote Bronze', 800, 1190, 2),
+  ('Pacote Mármore', 2000, 2490, 3),
+  ('Pacote Ouro', 5000, 4990, 4);
+
+-- Cupom de gemas (migrations/0023, v1.29) — mesmo molde de vip_coupons acima, tabela própria (não
+-- reaproveita vip_coupons: entidades diferentes, gemas vs. dias de VIP). Caminho 100% funcional de
+-- "compra" hoje, enquanto o checkout por cartão de gem_packages continua mockup.
+CREATE TABLE gem_coupons (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  code TEXT NOT NULL UNIQUE,
+  gems_amount INTEGER NOT NULL CHECK (gems_amount > 0),
+  created_by UUID NOT NULL REFERENCES users(id),
+  redeemed_by UUID REFERENCES users(id),
+  redeemed_at TIMESTAMPTZ,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+
+-- Double or Nothing (migrations/0023, v1.29 — TDD §15.3): aposta gemas, compromete-se a manter o
+-- streak por days_required dias corridos (fixo em 7), dobra ou perde sem estorno. O índice único
+-- parcial abaixo é a defesa de banco contra corrida de duas requisições criando 2 apostas 'active'
+-- pro mesmo usuário ao mesmo tempo — a checagem "já tem aposta ativa?" no handler é só a primeira
+-- linha de defesa, não a única.
+CREATE TABLE gem_bets (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  stake_gems INTEGER NOT NULL CHECK (stake_gems >= 50),
+  days_required SMALLINT NOT NULL DEFAULT 7,
+  days_completed SMALLINT NOT NULL DEFAULT 0,
+  status TEXT NOT NULL DEFAULT 'active' CHECK (status IN ('active', 'won', 'lost')),
+  started_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+  resolved_at TIMESTAMPTZ
+);
+CREATE UNIQUE INDEX gem_bets_one_active_per_user_idx ON gem_bets (user_id) WHERE status = 'active';
 
 -- Idempotência de POST /v1/lessons/{lesson_id}/answers e
 -- POST /v1/infinite-mode/sessions/{session_id}/answers (migrations/0013, v1.22) — mesmo espírito
