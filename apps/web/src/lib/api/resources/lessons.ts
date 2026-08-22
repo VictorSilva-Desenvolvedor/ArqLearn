@@ -59,7 +59,7 @@ export async function submitAnswer(
       body: JSON.stringify(payload),
     });
   }
-  const result = answerMockSession(payload.session_id, payload.question_id, payload.answer);
+  const result = answerMockSession(payload.session_id, payload.question_id, payload.answer, payload.time_ms);
   return mockDelay(result, 300);
 }
 

@@ -12,6 +12,7 @@ import { IconButton } from "@/components/ui/IconButton";
 import { Icon } from "@/components/ui/Icon";
 import { Modal, ModalTitle, ModalDescription } from "@/components/ui/Modal";
 import { NotificationPreferencesPanel } from "@/components/features/notifications/NotificationPreferencesPanel";
+import { DailyGoalSettingsPanel } from "@/components/features/profile/DailyGoalSettingsPanel";
 import { ThemeSelector } from "@/components/layout/ThemeSelector";
 
 const MIN_PASSWORD_LENGTH = 6;
@@ -231,6 +232,8 @@ export default function SettingsPage() {
         <p className="font-body-sm text-body-sm text-on-surface-variant">Qual assunto você está estudando agora.</p>
         <ThemeSelector />
       </Card>
+
+      <DailyGoalSettingsPanel />
 
       <NotificationPreferencesPanel />
 

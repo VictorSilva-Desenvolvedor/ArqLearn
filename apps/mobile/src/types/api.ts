@@ -264,9 +264,11 @@ export interface AnswerResult {
   vidas_restantes: number;
   streak_atual: number;
   explicacao: string;
-  // Baú Diário (v1.18) — 10 perguntas no dia (lição + Modo Infinito somados) liberam 1 abertura.
+  // Baú Diário (v1.18) — libera 1 abertura quando a Meta Diária escolhida é batida (perguntas OU
+  // minutos, TDD §13; antes da v1.30 era sempre "10 perguntas" fixo pra todo mundo).
   daily_chest_available: boolean;
   daily_chest_questions: number;
+  daily_chest_study_minutes: number;
   // achievements_unlocked/personal_records_broken (v1.29) — o que esta resposta específica
   // desbloqueou/quebrou, sempre presentes (arrays vazios quando nada mudou). Ausentes numa
   // resposta replayada por retry de rede com a mesma Idempotency-Key — ver API Spec §6.
@@ -314,6 +316,7 @@ export interface InfiniteModeAnswerResult {
   // Baú Diário (v1.18) — mesmo contador acumulado do dia de AnswerResult, Modo Infinito soma junto.
   daily_chest_available: boolean;
   daily_chest_questions: number;
+  daily_chest_study_minutes: number;
   // achievements_unlocked/personal_records_broken (v1.29) — mesmo contrato de AnswerResult, sem a
   // exceção do replay idempotente (ver API Spec §6.1).
   achievements_unlocked: AchievementType[];
@@ -324,9 +327,27 @@ export interface InfiniteModeAnswerResult {
 
 export interface DailyChestStatus {
   questions_today: number;
+  // Dinâmico por usuário desde a v1.30 (Meta Diária) — antes sempre 10.
   questions_required: number;
+  study_minutes_today: number;
+  study_minutes_required: number;
   available: boolean;
   claimed_today: boolean;
+}
+
+// Meta Diária (TDD §13, v1.30) — nível de intensidade escolhido pelo usuário entre 4 presets
+// (dailyGoalCatalog.ts), medido em perguntas certas OU minutos estudados no dia. É o que decide
+// questions_required/study_minutes_required de DailyChestStatus acima — as duas rotas resolvem o
+// alvo pela mesma fonte no backend (internal/gamification/dailygoal.go).
+export type DailyGoalLevel = "leve" | "regular" | "consistente" | "intensa";
+
+export interface DailyGoalStatus {
+  level: DailyGoalLevel;
+  questions_target: number;
+  study_minutes_target: number;
+  questions_today: number;
+  study_minutes_today: number;
+  achieved: boolean;
 }
 
 export type ChestRewardType = "gems" | "streak_freeze" | "hearts_refill" | "xp_boost";

@@ -17,14 +17,13 @@ import { useAuth } from "@/hooks/useAuth";
 import { useTheme } from "@/hooks/useTheme";
 import { listTrackLessons } from "@/lib/api/resources/lessons";
 import { listTracks } from "@/lib/api/resources/tracks";
-import { getDailyChestStatus, getWeeklyChestStatus } from "@/lib/api/resources/gamification";
+import { getDailyChestStatus, getDailyGoalStatus, getWeeklyChestStatus } from "@/lib/api/resources/gamification";
 import { lessonNodePresentation } from "@/lib/api/mocks/fixtures/lessons";
 import { spacing, type } from "@/theme/tokens";
 import { useColors } from "@/theme/useColors";
 import type { ColorTokens } from "@/theme/tokens";
-import type { DailyChestStatus, Track, TrackLesson, WeeklyChestStatus } from "@/types/api";
+import type { DailyChestStatus, DailyGoalStatus, Track, TrackLesson, WeeklyChestStatus } from "@/types/api";
 
-const DAILY_GOAL_XP = 50;
 // Só a trilha em destaque (tema selecionado) — mostrar outras trilhas junto no mapa não fazia
 // mais sentido com a tela de Explorar já madura (busca, seletor de tema); ver ExploreMoreCard.
 const MAX_UNITS_SHOWN = 1;
@@ -94,6 +93,7 @@ export default function HomeScreen() {
   const [retryToken, setRetryToken] = useState(0);
   const [dailyChest, setDailyChest] = useState<DailyChestStatus | null>(null);
   const [weeklyChest, setWeeklyChest] = useState<WeeklyChestStatus | null>(null);
+  const [dailyGoal, setDailyGoal] = useState<DailyGoalStatus | null>(null);
   const [refreshing, setRefreshing] = useState(false);
 
   // Extraído do useEffect original pra ser reaproveitado pelo pull-to-refresh (onRefresh abaixo)
@@ -120,9 +120,14 @@ export default function HomeScreen() {
   }, [selectedTheme.topic]);
 
   const loadChests = useCallback(async () => {
-    const [daily, weekly] = await Promise.all([getDailyChestStatus(), getWeeklyChestStatus()]);
+    const [daily, weekly, goal] = await Promise.all([
+      getDailyChestStatus(),
+      getWeeklyChestStatus(),
+      getDailyGoalStatus(),
+    ]);
     setDailyChest(daily);
     setWeeklyChest(weekly);
+    setDailyGoal(goal);
   }, []);
 
   useEffect(() => {
@@ -160,7 +165,7 @@ export default function HomeScreen() {
           <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={colors.primary} colors={[colors.primary]} />
         }
       >
-        <DailyGoalCard xpToday={gamification.xp_today} goal={DAILY_GOAL_XP} />
+        {dailyGoal && <DailyGoalCard status={dailyGoal} />}
         <LevelProgressCard level={gamification.level} xpTotal={gamification.xp_total} />
         {dailyChest && weeklyChest && (
           <View style={styles.chestRow}>
