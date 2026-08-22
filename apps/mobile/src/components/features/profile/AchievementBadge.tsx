@@ -3,15 +3,36 @@ import { Pressable, StyleSheet, Text, View } from "react-native";
 import { Icon } from "@/components/ui/Icon";
 import { Button } from "@/components/ui/Button";
 import { Modal } from "@/components/ui/Modal";
+import { shareAchievement } from "@/lib/share";
 import { spacing, type } from "@/theme/tokens";
 import { useColors } from "@/theme/useColors";
 import type { ColorTokens } from "@/theme/tokens";
-import type { AchievementCatalogEntry } from "@/lib/gamification/achievementCatalog";
+import type { AchievementCatalogEntry, AchievementRarity } from "@/lib/gamification/achievementCatalog";
 
 interface AchievementBadgeProps {
   entry: AchievementCatalogEntry;
   unlocked: boolean;
   unlockedAt?: string;
+}
+
+// rarityShapeColors: identidade visual por tier (documento de brainstorm de conquistas §5.2 —
+// materiais de construção como metáfora de raridade), mapeada aos tokens de tema que já existem
+// (theme/tokens.ts) em vez de uma paleta nova. "epico" reaproveita o par secondaryContainer/
+// onSecondaryContainer que era o único usado antes desta mudança (todo unlocked virava a mesma
+// cor); "lendario" ganha um anel dourado extra (ver shapeLendario abaixo), mesmo espírito do
+// Compasso Dourado/VIP (Avatar.tsx). Espelha apps/web/.../AchievementBadge.tsx.
+function rarityShapeColors(colors: ColorTokens, rarity: AchievementRarity) {
+  switch (rarity) {
+    case "comum":
+      return { background: colors.surfaceContainerHigh, icon: colors.onSurface };
+    case "incomum":
+      return { background: colors.tertiaryContainer, icon: colors.onTertiaryContainer };
+    case "raro":
+      return { background: colors.primaryContainer, icon: colors.onPrimaryContainer };
+    case "epico":
+    case "lendario":
+      return { background: colors.secondaryContainer, icon: colors.onSecondaryContainer };
+  }
 }
 
 // Espelha apps/web/src/components/features/profile/AchievementBadge.tsx — a rotação 45° do web é
@@ -22,10 +43,21 @@ export function AchievementBadge({ entry, unlocked, unlockedAt }: AchievementBad
   const colors = useColors();
   const styles = createStyles(colors);
   const [open, setOpen] = useState(false);
+  const rarityColors = rarityShapeColors(colors, entry.rarity);
+
+  function handleShare() {
+    shareAchievement(entry);
+  }
 
   const shape = (
-    <View style={[styles.shape, unlocked ? styles.shapeUnlocked : styles.shapeLocked]}>
-      <Icon name={unlocked ? entry.icon : "lock"} size={24} color={unlocked ? colors.onSecondaryContainer : colors.outline} />
+    <View
+      style={[
+        styles.shape,
+        unlocked ? { backgroundColor: rarityColors.background } : styles.shapeLocked,
+        unlocked && entry.rarity === "lendario" && [styles.shapeLendario, { borderColor: colors.secondary }],
+      ]}
+    >
+      <Icon name={unlocked ? entry.icon : "lock"} size={24} color={unlocked ? rarityColors.icon : colors.outline} />
     </View>
   );
 
@@ -49,8 +81,15 @@ export function AchievementBadge({ entry, unlocked, unlockedAt }: AchievementBad
         </Pressable>
         <Modal open={open} onOpenChange={setOpen}>
           <View style={styles.modalContent}>
-            <View style={[styles.shape, styles.shapeUnlocked, styles.modalShape]}>
-              <Icon name={entry.icon} size={28} color={colors.onSecondaryContainer} />
+            <View
+              style={[
+                styles.shape,
+                styles.modalShape,
+                { backgroundColor: rarityColors.background },
+                entry.rarity === "lendario" && [styles.shapeLendario, { borderColor: colors.secondary }],
+              ]}
+            >
+              <Icon name={entry.icon} size={28} color={rarityColors.icon} />
             </View>
             <View style={styles.modalTextBlock}>
               <Text style={[type.headlineMd, styles.modalTitle]}>{entry.title}</Text>
@@ -71,6 +110,9 @@ export function AchievementBadge({ entry, unlocked, unlockedAt }: AchievementBad
                 <Text style={[type.bodySm, styles.rewardText]}>+{entry.gems_reward} gemas</Text>
               </View>
             </View>
+            <Button variant="primary" fullWidth onPress={handleShare} icon={<Icon name="share" size={18} color={colors.onPrimary} />}>
+              Compartilhar
+            </Button>
             <Button variant="ghost" fullWidth onPress={() => setOpen(false)}>
               Entendi
             </Button>
@@ -136,8 +178,10 @@ const createStyles = (colors: ColorTokens) =>
       justifyContent: "center",
       transform: [{ rotate: "45deg" }],
     },
-    shapeUnlocked: {
-      backgroundColor: colors.secondaryContainer,
+    // shapeLendario: anel dourado extra em volta do losango, mesmo espírito do Compasso
+    // Dourado/VIP (Avatar.tsx) — só a raridade máxima ganha esse destaque.
+    shapeLendario: {
+      borderWidth: 3,
     },
     shapeLocked: {
       backgroundColor: colors.surfaceGray,

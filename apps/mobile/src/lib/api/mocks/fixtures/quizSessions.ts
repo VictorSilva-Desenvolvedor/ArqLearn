@@ -81,10 +81,14 @@ export function answerMockSession(
     correct,
     xp_ganho,
     xp_daily_cap_reached,
+    xp_boost_active: false,
     vidas_restantes: session.heartsRemaining,
     streak_atual: session.streak,
     explicacao: entry.explanation,
     daily_chest_available: mockChestAvailable(),
     daily_chest_questions: mockChestQuestionsToday(),
+    // Mock não simula desbloqueio real de conquista/recorde — sempre vazio.
+    achievements_unlocked: [],
+    personal_records_broken: [],
   };
 }

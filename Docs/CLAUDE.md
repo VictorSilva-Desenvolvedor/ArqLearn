@@ -132,8 +132,20 @@ estrutura real já criada no repositório, não um plano:**
                               sempre (é cálculo local, sem round-trip pro R2).
                             - gamification: algorithms.go tem calcularXP/Nivel/AtualizarSRS/
                               AtualizarStreak como funções puras testadas (algorithms_test.go),
-                              usadas por learning — as rotas HTTP deste pacote (/v1/gamification/*)
-                              continuam stub.
+                              usadas por learning. achievements.go (Awards — catálogo de ~44
+                              conquistas, a maioria em famílias de 5 níveis) e personalrecords.go
+                              (Personal Records — TDD §12, migrations/0021: xp_day_best/
+                              league_best_tier novas, além de streak_best/
+                              infinite_correct_streak_best já existentes e reaproveitados como
+                              recorde) avaliam conquista depois de cada resposta de
+                              lição/Modo Infinito. **Correção de divergência encontrada nesta
+                              entrega:** a frase "as rotas HTTP deste pacote continuam stub" que
+                              existia aqui estava desatualizada havia várias versões — GET
+                              /v1/gamification/me, GET .../league, POST .../streak/freeze, POST
+                              .../shop/purchase, GET/POST .../daily-chest* e .../weekly-chest*, GET
+                              /v1/vip/status e POST /v1/vip/coupons*/subscribe são todos reais
+                              (gamification.go), implementados incrementalmente entre as v1.16 e
+                              v1.28 da API Spec sem que esta seção fosse atualizada junto.
                             - notifications, analytics: stub.
                           Toda rota sem menção acima é stub 501 NOT_IMPLEMENTED via
                           internal/apierror — ver ArqLearn_API_Specification.md para o contrato

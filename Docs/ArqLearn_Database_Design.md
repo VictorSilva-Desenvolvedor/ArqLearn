@@ -3,7 +3,7 @@
 
 Modelo de dados detalhado: esquema relacional, documentos, vetores, cache e estratégias de persistência.
 
-Versão 1.26 | Agosto de 2026
+Versão 1.27 | Agosto de 2026
 Documento complementar ao SAD e ao TDD do ArqLearn v1.0
 
 > **Sobre esta versão:** versão em Markdown, mantida como fonte da verdade a partir de agora (ver
@@ -41,6 +41,7 @@ Documento complementar ao SAD e ao TDD do ArqLearn v1.0
 | 1.24 | 21/08/2026 | Equipe de Engenharia / Dados | Adiciona `notification_template_stats`/`notification_sends` (§3.2 DDL, §3.3 dicionário, migrations/0018) — bandit de template (TDD §11) pro gatilho de streak em risco. §4.4.4 corrigido: `streak_at_risk` agora é gatilho real (`cmd/notify-decide`, hora em hora), mensagem escolhida por Thompson Sampling em vez de texto fixo único. Implementado fora da ordem original de `Docs/ArqLearn_Backlog_Gamificacao_Atelie.md` (mesma decisão explícita do usuário das v1.22/v1.23) |
 | 1.25 | 21/08/2026 | Equipe de Engenharia / Dados | `user_gamification` ganha `streak_repair_value`/`streak_repair_deadline` (migrations/0019, TDD §5.5) — reparo de streak (RS-08, mecânica nova). Sem coluna/CHECK novo pro teto escalonado de freezes (RS-03): aplicado no código a cada escrita, não em CHECK de coluna, pra não quebrar quem já tinha mais freezes que o teto atual (grandfathering). Implementado fora da ordem original de `Docs/ArqLearn_Backlog_Gamificacao_Atelie.md` (mesma decisão explícita do usuário das v1.22–v1.24) |
 | 1.26 | 21/08/2026 | Equipe de Engenharia / Dados | `user_gamification` ganha `xp_boost_active_until` (migrations/0020, TDD §3.3) — XP Boost, multiplicador temporário de 2x por 15min concedido via recompensa de Baú Diário/Semanal (mecânica nova inspirada no Duolingo). Sem CHECK — timestamp único, `NULL` sempre significa "sem boost ativo" (diferente de `vip_expires_at`, que tem o caso especial "vitalício" pareado com `is_vip`). Implementado fora da ordem original de `Docs/ArqLearn_Backlog_Gamificacao_Atelie.md` (mesma decisão explícita do usuário das v1.22–v1.25) |
+| 1.27 | 21/08/2026 | Equipe de Engenharia / Dados | `user_gamification` ganha `xp_day_best`/`league_best_tier` (migrations/0021, TDD §12 nova seção) — Personal Records, segunda categoria de conquista. Documenta também `current_tier` (§3.2 DDL) — coluna real desde migrations/0007/0008 que nunca tinha sido documentada nesta tabela; achado ao adicionar `league_best_tier` ao lado dela, mesmo tipo de lacuna já corrigida antes pras colunas de baú (ver nota junto de VIP na v1.16) |
 
 ---
 
@@ -217,6 +218,20 @@ CREATE TABLE user_gamification (
   vip_weekly_chest_resets_cycle_start DATE,
   vip_subscription_status TEXT NOT NULL DEFAULT 'none'
     CHECK (vip_subscription_status IN ('none', 'pending', 'active', 'canceled')),
+  -- current_tier (migrations/0007, expandido em 0008 pra 1-30 — hierarquia de 10 ligas x 3
+  -- divisões, ver leagueTierNames em internal/gamification/gamification.go): tier de liga
+  -- persistido entre semanas, usado por ensureLeagueMembership/CloseLeagueWeek (TDD §6). Coluna
+  -- real desde a v1.16 do código mas nunca tinha sido documentada aqui até esta versão — mesmo
+  -- tipo de lacuna já corrigida antes pras colunas de baú acima (ver comentário delas).
+  current_tier SMALLINT NOT NULL DEFAULT 1 CHECK (current_tier BETWEEN 1 AND 30),
+  -- Personal Records (migrations/0021, v1.27 — TDD §12, distinto de `achievements` abaixo):
+  -- xp_day_best é o maior xp_today já alcançado num único dia (xp_today reseta todo dia sem
+  -- guardar o pico); league_best_tier é o maior current_tier já alcançado, mesma codificação
+  -- linear 1-30 (sobrevive a um rebaixamento posterior, diferente de current_tier sozinho).
+  -- streak_best e infinite_correct_streak_best (colunas já existentes acima) são reaproveitadas
+  -- como recorde sem coluna nova — só estas duas métricas não tinham nenhum rastro persistido.
+  xp_day_best INTEGER NOT NULL DEFAULT 0 CHECK (xp_day_best >= 0),
+  league_best_tier SMALLINT NOT NULL DEFAULT 1 CHECK (league_best_tier BETWEEN 1 AND 30),
   CONSTRAINT streak_repair_pair_check
     CHECK ((streak_repair_value IS NULL) = (streak_repair_deadline IS NULL))
 );

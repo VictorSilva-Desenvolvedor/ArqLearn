@@ -128,7 +128,7 @@ func handleSubmitAnswer(pool *pgxpool.Pool, mongoDB *mongo.Database) http.Handle
 
 		// --- Postgres: perfil + gamificação atuais ---
 		var timezone string
-		var xpTotal, xpToday, heartsCurrent, streakCurrent, streakBest, streakFreezesAvailable, chestQuestionsToday, chestWeeklyQuestions int
+		var xpTotal, xpToday, xpDayBest, heartsCurrent, streakCurrent, streakBest, streakFreezesAvailable, chestQuestionsToday, chestWeeklyQuestions int
 		var xpTodayDate, streakLastActiveDate, chestQuestionsDate, chestClaimedDate, chestWeeklyCycleStart *time.Time
 		var heartsUpdatedAt time.Time
 		var isVip bool
@@ -137,14 +137,14 @@ func handleSubmitAnswer(pool *pgxpool.Pool, mongoDB *mongo.Database) http.Handle
 		var streakRepairDeadline *time.Time
 		var xpBoostActiveUntil *time.Time
 		err = pool.QueryRow(r.Context(), `
-			SELECT u.timezone, g.xp_total, g.xp_today, g.xp_today_date, g.hearts_current, g.hearts_updated_at,
+			SELECT u.timezone, g.xp_total, g.xp_today, g.xp_today_date, g.xp_day_best, g.hearts_current, g.hearts_updated_at,
 			       g.streak_current, g.streak_best, g.streak_last_active_date, g.streak_freezes_available,
 			       g.chest_questions_today, g.chest_questions_date, g.chest_claimed_date,
 			       g.chest_weekly_questions, g.chest_weekly_cycle_start, g.is_vip, g.vip_expires_at,
 			       g.streak_repair_value, g.streak_repair_deadline, g.xp_boost_active_until
 			FROM users u JOIN user_gamification g ON g.user_id = u.id
 			WHERE u.id = $1
-		`, userID).Scan(&timezone, &xpTotal, &xpToday, &xpTodayDate, &heartsCurrent, &heartsUpdatedAt,
+		`, userID).Scan(&timezone, &xpTotal, &xpToday, &xpTodayDate, &xpDayBest, &heartsCurrent, &heartsUpdatedAt,
 			&streakCurrent, &streakBest, &streakLastActiveDate, &streakFreezesAvailable,
 			&chestQuestionsToday, &chestQuestionsDate, &chestClaimedDate,
 			&chestWeeklyQuestions, &chestWeeklyCycleStart, &isVip, &vipExpiresAt,
@@ -288,6 +288,11 @@ func handleSubmitAnswer(pool *pgxpool.Pool, mongoDB *mongo.Database) http.Handle
 		newXPToday := xpToday + xpResult.XPConcedido
 		newLevel := gamification.Nivel(newXPTotal)
 
+		// Personal Record de "mais XP em um dia" (gamification.PersonalRecordXPDia) — comparado
+		// aqui, não depois, porque newXPDayBest precisa ir no mesmo UPDATE de xp_total/xp_today
+		// logo abaixo (sem round-trip extra ao banco).
+		newXPDayBest, xpDayRecordBroken := gamification.DetectRecord(xpDayBest, newXPToday)
+
 		var streakLastActiveParam any
 		if streak.LastActiveDate != "" {
 			d, _ := time.Parse("2006-01-02", streak.LastActiveDate)
@@ -333,13 +338,13 @@ func handleSubmitAnswer(pool *pgxpool.Pool, mongoDB *mongo.Database) http.Handle
 			    streak_last_active_date = $9, streak_freezes_available = $10,
 			    chest_questions_today = $11, chest_questions_date = $12,
 			    chest_weekly_questions = $13, chest_weekly_cycle_start = $14,
-			    streak_repair_value = $15, streak_repair_deadline = $16
-			WHERE user_id = $17
+			    streak_repair_value = $15, streak_repair_deadline = $16, xp_day_best = $17
+			WHERE user_id = $18
 		`, newXPTotal, newXPToday, hojeLocalDate, newLevel, newHearts, newHeartsUpdatedAt,
 			streak.Current, streak.Best, streakLastActiveParam, streakFreezesAvailable,
 			chestQuestionsToday, hojeLocalDate,
 			chestWeeklyQuestions, chestWeeklyCycleStartDate,
-			streakRepairValue, streakRepairDeadline, userID)
+			streakRepairValue, streakRepairDeadline, newXPDayBest, userID)
 		if err != nil {
 			apierror.Write(w, http.StatusInternalServerError, "INTERNAL_ERROR", "Falha ao atualizar gamificação.")
 			return
@@ -465,6 +470,22 @@ func handleSubmitAnswer(pool *pgxpool.Pool, mongoDB *mongo.Database) http.Handle
 		if correct {
 			answerCorrect = 1
 		}
+		// achievements_unlocked/personal_records_broken: sempre presentes na resposta (mesmo
+		// vazios), preenchidos abaixo se a avaliação der certo. Até esta mudança, EvaluateAndUnlock
+		// rodava mas seu retorno nunca saía desta função — a tela de celebração no cliente tinha
+		// que adivinhar se algo foi desbloqueado. responseBody já foi serializado pro cache de
+		// idempotência (answer_submissions.response, acima) antes deste bloco rodar — mutar o mapa
+		// agora só afeta a resposta HTTP real desta chamada, não o que fica cacheado (json.Marshal
+		// já tirou uma cópia). Uma resposta *replayada* por retry de rede com a mesma
+		// Idempotency-Key não vai carregar estes dois campos — aceitável: a conquista/recorde já
+		// foi persistido de qualquer forma, só a celebração desta chamada específica não repete.
+		achievementsUnlocked := []string{}
+		personalRecordsBroken := []gamification.PersonalRecord{}
+		if xpDayRecordBroken {
+			personalRecordsBroken = append(personalRecordsBroken, gamification.PersonalRecord{
+				Metric: gamification.PersonalRecordXPDia, Value: newXPDayBest,
+			})
+		}
 		counters, err := gamification.BumpCounters(r.Context(), pool, userID, gamification.CounterDeltas{
 			LessonsCompleted: lessonCompleted,
 			AnswersCorrect:   answerCorrect,
@@ -472,9 +493,13 @@ func handleSubmitAnswer(pool *pgxpool.Pool, mongoDB *mongo.Database) http.Handle
 		})
 		if err != nil {
 			log.Printf("aviso: falha ao atualizar contadores de conquista (user_id=%s): %v", userID, err)
-		} else if _, err := gamification.EvaluateAndUnlock(r.Context(), pool, userID, counters); err != nil {
+		} else if unlocked, err := gamification.EvaluateAndUnlock(r.Context(), pool, userID, counters); err != nil {
 			log.Printf("aviso: falha ao avaliar conquistas (user_id=%s): %v", userID, err)
+		} else {
+			achievementsUnlocked = append(achievementsUnlocked, unlocked...)
 		}
+		responseBody["achievements_unlocked"] = achievementsUnlocked
+		responseBody["personal_records_broken"] = personalRecordsBroken
 
 		// Eventos de telemetria (Fase 1 — Fundação, RT-02 do documento de regras): best-effort,
 		// depois de todo o resto já gravado — mesmo padrão de AddWeeklyXP/conquistas acima.

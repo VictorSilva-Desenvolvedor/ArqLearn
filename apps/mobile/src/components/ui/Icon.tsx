@@ -141,6 +141,8 @@ const glyphs = {
   // --- VIP "Mestre Arquiteto" ---
   crown: "crown",
   ticketPercent: "ticket-percent-outline",
+  // --- Conquistas/Personal Records: compartilhar ---
+  share: "share-variant",
 } as const;
 
 export type IconName = keyof typeof glyphs;

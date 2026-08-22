@@ -158,6 +158,7 @@ export function answerInfiniteModeSessionMock(
     correct,
     xp_ganho,
     xp_daily_cap_reached,
+    xp_boost_active: false,
     // Modo Infinito conta pra streak agora (TDD §5.1, revisado) — mock estático, mesmo
     // simplificação já usada em quizSessions.ts (não simula o incremento real de 1x/dia).
     streak_atual: mockGamificationProfile.streak_current,
@@ -167,6 +168,9 @@ export function answerInfiniteModeSessionMock(
     next_question: next?.question,
     daily_chest_available: mockChestAvailable(),
     daily_chest_questions: mockChestQuestionsToday(),
+    // Mock não simula desbloqueio real de conquista/recorde — sempre vazio.
+    achievements_unlocked: [],
+    personal_records_broken: [],
   };
 }
 

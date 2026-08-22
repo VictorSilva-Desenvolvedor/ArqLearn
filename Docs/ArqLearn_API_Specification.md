@@ -3,7 +3,7 @@
 
 Especificação de referência dos endpoints REST expostos pelo API Gateway.
 
-Versão 1.28 | Agosto de 2026
+Versão 1.29 | Agosto de 2026
 Documento complementar ao SAD e ao TDD do ArqLearn v1.0
 
 > **Sobre esta versão:** versão em Markdown, mantida como fonte da verdade a partir de agora (ver
@@ -43,6 +43,7 @@ Documento complementar ao SAD e ao TDD do ArqLearn v1.0
 | 1.26 | 21/08/2026 | Equipe de Engenharia | §3.2/§8: `streak_freezes_available` passa a respeitar um teto escalonado (RS-03, TDD §5.5) — novo erro `STREAK_FREEZE_CAP_REACHED` (§12) em `POST /v1/gamification/shop/purchase`. §9: novo gatilho síncrono de reparo de streak (RS-08) — notificação `type: "streak_repaired"` quando uma sequência recém-perdida é restaurada dentro de 3 dias. Sem endpoint novo pro reparo em si (automático, dentro de `POST /v1/lessons/{lesson_id}/answers`). Implementado fora da ordem original de `Docs/ArqLearn_Backlog_Gamificacao_Atelie.md` (mesma decisão explícita do usuário das v1.22–v1.25) |
 | 1.27 | 21/08/2026 | Equipe de Engenharia | §3.2: adiciona `xp_boost_active`/`xp_boost_active_until` ao `GamificationProfile` — XP Boost, multiplicador temporário de 2x por 15min (TDD §3.3). §8.1/§8.2: `reward_type` do Baú Diário/Semanal ganha o valor `"xp_boost"` (com `xp_boost_active_until` na resposta). §6/§6.1: `POST .../answers` e `POST /v1/infinite-mode/{session_id}/answers` ganham `xp_boost_active` na resposta. Sem endpoint novo — concessão é automática via sorteio de baú. Implementado fora da ordem original de `Docs/ArqLearn_Backlog_Gamificacao_Atelie.md` (mesma decisão explícita do usuário das v1.22–v1.26) |
 | 1.28 | 21/08/2026 | Equipe de Engenharia | §6.1: `POST /v1/infinite-mode/sessions/{session_id}/answers` ganha `streak_atual` na resposta — Modo Infinito passa a contar pra sequência diária (TDD §5.1, revisado a pedido do usuário depois de um caso relatado: streak não subia porque a regra exigia terminar a lição inteira). `POST /v1/lessons/{lesson_id}/answers` (§6) mantém o campo já existente, só muda quando ele é atualizado — qualquer resposta certa, não mais só a conclusão da lição |
+| 1.29 | 21/08/2026 | Equipe de Engenharia | §3.2/§8: adiciona `personal_records` ao `GamificationProfile` — segunda categoria de conquista (TDD §12, nova seção), distinta de `achievements`: compara a métrica atual contra o próprio recorde do usuário, não um limiar fixo. §6/§6.1: `POST /v1/lessons/{lesson_id}/answers` e `POST /v1/infinite-mode/sessions/{session_id}/answers` ganham `achievements_unlocked`/`personal_records_broken` — achado ao implementar: o backend já calculava conquistas desbloqueadas por resposta desde a v1.16, mas o dado nunca saía da resposta; o cliente tinha que adivinhar quando celebrar |
 
 ---
 
@@ -156,6 +157,7 @@ mesma chave retornam a resposta original sem reprocessar.
 | `cosmetics` | `{item_id, name, equipped, acquired_at}[]` | Itens `category='cosmetic'` da Loja que o usuário já possui (`user_cosmetics`, Database Design v1.19) — antes disso, comprar um cosmético não deixava nenhum registro de posse. `equipped` sempre `true` por ora (sem tela de "trocar equipado" ainda). *(v1.23)* |
 | `xp_boost_active` | boolean | `true` quando um XP Boost está em vigor agora — dobra o XP ganho por resposta (TDD §3.3). Mesmo padrão de `is_vip`: já reflete a expiração, calculado a partir de `xp_boost_active_until`. *(v1.27)* |
 | `xp_boost_active_until` | datetime \| null | Instante em que o boost atual expira. `null` sempre significa "sem boost ativo" (diferente de `vip_expires_at`, sem o caso especial "vitalício"). *(v1.27)* |
+| `personal_records` | `{metric, value}[]` | Segunda categoria de conquista (TDD §12), distinta de `achievements` — compara contra o próprio recorde do usuário, não um limiar fixo do catálogo. Sempre 4 entradas: `streak_dias` (mesmo valor de `streak_best`), `infinito_sem_erros` (maior sequência sem errar no Modo Infinito), `xp_dia` (maior `xp_today` já alcançado num único dia — `xp_today` em si reseta todo dia, este não), `liga_alcancada` (maior rank de liga 1-30, mesma codificação de `league_tier`, já alcançado — sobrevive a um rebaixamento posterior). Título/descrição/ícone de exibição são conteúdo do cliente, mesmo padrão de `achievements[].type`. *(v1.29)* |
 
 ### 3.3 Track / Lesson / Question
 
@@ -316,7 +318,9 @@ ativa. Requer cabeçalho `Idempotency-Key` *(v1.22 — ver §2.6)*.
   "streak_atual": integer,
   "explicacao": "string",
   "daily_chest_available": boolean,
-  "daily_chest_questions": integer
+  "daily_chest_questions": integer,
+  "achievements_unlocked": ["string"],
+  "personal_records_broken": [ {"metric", "value"} ]
 }
 ```
 `xp_ganho` já vem líquido do limite diário de XP (TDD §3.2) — quando `xp_daily_cap_reached` é `true`,
@@ -324,7 +328,14 @@ ativa. Requer cabeçalho `Idempotency-Key` *(v1.22 — ver §2.6)*.
 `xp_boost_active` *(v1.27)* — `true` quando o XP Boost estava em vigor nesta resposta (já refletido
 em `xp_ganho`, TDD §3.3); sinal mais granular que `GamificationProfile.xp_boost_active` (§3.2), útil
 durante a lição sem esperar uma nova leitura do perfil. `daily_chest_available`/
-`daily_chest_questions` *(v1.18)* — ver §8.1 Baú Diário.
+`daily_chest_questions` *(v1.18)* — ver §8.1 Baú Diário. `achievements_unlocked`/
+`personal_records_broken` *(v1.29)* — `type`s de `achievements` desbloqueados e recordes de
+`personal_records` quebrados **por esta resposta específica**, sempre presentes (arrays vazios quando
+nada mudou); antes da v1.29 esse dado era calculado no backend mas nunca saía da resposta, obrigando o
+cliente a adivinhar quando celebrar. **Exceção documentada:** numa resposta *replayada* por retry de
+rede com a mesma `Idempotency-Key` (§2.6), estes dois campos vêm vazios mesmo que a conquista/recorde
+tenha sido concedido na chamada original — a conquista já foi persistida de qualquer forma (visível em
+`GET /v1/gamification/me` na próxima leitura), só a celebração específica desta resposta não repete.
 
 > **v1.5 — `answer` é id, não texto.** O corpo aceita o `id` da opção escolhida (ex.: `"b"`), não o
 > texto da resposta. Decisão tomada ao integrar com o app: comparar texto literal é frágil (acento,
@@ -421,7 +432,9 @@ próxima questão do modo infinito. Requer cabeçalho `Idempotency-Key` *(v1.22 
   "level": integer,
   "next_question": { "...Question" },
   "daily_chest_available": boolean,
-  "daily_chest_questions": integer
+  "daily_chest_questions": integer,
+  "achievements_unlocked": ["string"],
+  "personal_records_broken": [ {"metric", "value"} ]
 }
 ```
 `streak_atual` *(v1.28)* — Modo Infinito passa a contar pra sequência diária, igual a uma lição:
@@ -431,6 +444,10 @@ primeira do dia local (TDD §5.1, revisado). Antes desta versão, Modo Infinito 
 TDD §3.3); Modo Infinito recebe o boost igual à lição (mesma `CalcularXP`), mesmo continuando sem
 bônus de combo (TDD §3.0.1, farm-friendly por design). `next_question` ausente quando o banco de perguntas do tópico se esgota — cliente deve tratar como fim
 de sessão nesse caso. Campo `xp_daily_cap_reached` adicionado na v1.2, mesmo comportamento de §6.
+`achievements_unlocked`/`personal_records_broken` *(v1.29)* — mesmo campo/semântica de
+`POST /v1/lessons/{lesson_id}/answers` (§6), sem a exceção do replay idempotente: aqui a avaliação de
+conquista roda antes do corpo da resposta ser montado, então a mesma resposta cacheada por
+`Idempotency-Key` já sai com os dois campos corretos.
 `level` adicionado na v1.3 = `floor(questions_answered / 20) + 1`, calculado pro cliente exibir "Nível
 N" sem duplicar a conta — todo tópico ganha esse número, mas só `"maquetes"` de fato gera lição nova a
 cada nível (ver decisão acima). `daily_chest_available`/`daily_chest_questions` *(v1.18)* — ver §8.1
@@ -606,11 +623,22 @@ Erros: `409 QUESTION_ALREADY_REVIEWED`
 > são conteúdo do cliente (`apps/web/src/lib/gamification/achievementCatalog.ts`), a API só
 > devolve `{type, unlocked_at}` como sempre documentado.
 
+> **v1.29 — `personal_records`, segunda categoria de conquista (TDD §12).** Distinta de
+> `achievements`: em vez de um limiar fixo do catálogo, compara a métrica atual contra o próprio
+> recorde anterior do usuário (`gamification.DetectRecord` — nunca decresce; empatar não conta como
+> quebrar). Catálogo de 4 métricas fixo (não crescente como `achievements`) vive em
+> `services/monolith/internal/gamification/personalrecords.go`; título/descrição/ícone de exibição
+> são conteúdo do cliente (`personalRecordCatalog.ts`), mesmo padrão de `achievementCatalog.ts`.
+
 **`GET /v1/gamification/me`** — Retorna o `GamificationProfile` completo do usuário.
 
 ```json
 // Response 200
-{ "...GamificationProfile", "achievements": [ {"type", "unlocked_at"} ] }
+{
+  "...GamificationProfile",
+  "achievements": [ {"type", "unlocked_at"} ],
+  "personal_records": [ {"metric", "value"} ]
+}
 ```
 
 > **`cosmetics` também em `GET /v1/users/me` (v1.23):** `GamificationProfile.cosmetics` é
