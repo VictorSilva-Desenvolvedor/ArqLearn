@@ -375,27 +375,35 @@ processo automatizado — o `.gitignore` cobre `.env*` e `Docs/ignorar/`, mas n�
 
 ## Verificação ao finalizar uma demanda com mudança de UI
 
-**Regra permanente (desde 08/2026).** Toda demanda que altera a interface visual de `apps/web` ou
-`apps/mobile` (componente novo, mudança de layout/cor/tipografia/espaçamento, tela nova) termina
-perguntando ao usuário se ele quer rodar a verificação completa via Playwright (`e2e/visual/` — ver
-`playwright.config.ts` na raiz). Se a resposta for sim:
+**Regra permanente (desde 08/2026; automatizada em 08/2026).** Toda demanda que altera a interface
+visual de `apps/web` ou `apps/mobile` (componente novo, mudança de layout/cor/tipografia/
+espaçamento, tela nova) termina acionando automaticamente o subagent **ui-reviewer**
+(`.claude/agents/ui-reviewer.md`) — **sem perguntar antes**, diferente da versão anterior desta
+regra. O que ele faz está documentado no próprio arquivo do agente (fonte da verdade operacional,
+não duplicar aqui); em resumo:
 
-1. Subir os serviços necessários (backend `services/monolith`, `apps/web` e/ou o alvo Expo Web de
-   `apps/mobile`, conforme o que a demanda tocou).
-2. Rodar a suíte em `e2e/visual/` (`npm run test:visual`; usar `npm run test:visual:update` em vez de
-   tratar como falha só quando a diferença de screenshot for a mudança pretendida da demanda).
-3. Revisar o resultado com dois papéis separados — nenhum substitui o outro:
-   - **Design** (skill `impeccable`): hierarquia visual, espaçamento, cor, tipografia — a tela
-     resultante combina com a identidade visual do app (tokens de `blueprint_narrative/DESIGN.md`)?
-   - **Qualidade/testes** (skill `code-review`, e/ou um agente que efetivamente clica no fluxo via
-     Playwright): a funcionalidade pedida na demanda está de fato implementada e funcionando — não
-     só "não quebrou visualmente" — cobrindo os casos de borda relevantes?
-4. Regra de paridade web/mobile continua valendo — se a mudança existe nos dois apps, repetir os três
-   passos acima nos dois, não só num deles.
+1. Sobe os serviços necessários (backend `services/monolith`, `apps/web` e/ou o alvo Expo Web de
+   `apps/mobile`, conforme o que a demanda tocou) e roda a suíte em `e2e/visual/` (`npm run
+   test:visual` — ver `playwright.config.ts` na raiz).
+2. Audita com dois critérios separados — nenhum substitui o outro:
+   - **Design**: usa o skill `impeccable` (hook já ativo neste projeto) para o lado genérico
+     (contraste, tipografia, ritmo, drift de design system), e complementa com regras específicas
+     do ArqLearn que o impeccable não conhece — comparação com as telas de alta-fidelidade do
+     Stitch, sync dos três lugares de tokens, paridade web/mobile, "nenhum elemento sem função".
+   - **Qualidade/funcional**: clica de fato no fluxo via Playwright — a funcionalidade pedida na
+     demanda está implementada e funcionando, não só "não quebrou visualmente".
+3. Corrige diretamente o que encontrar (a working tree fica alterada; quem fecha a demanda ainda é
+   responsável por revisar o diff antes de commitar — o agente não commita).
+4. Regra de paridade web/mobile continua valendo — se a mudança existe nos dois apps, ele repete a
+   auditoria nos dois, não só num deles.
+
+Chamar o `ui-reviewer` sob demanda a qualquer momento (não só no fim de uma demanda) também é
+válido — ver seu arquivo de definição para o que ele cobre e o que fica fora do escopo dele.
 
 **Por quê:** o Playwright sozinho só pega regressão pixel-a-pixel contra um baseline salvo — não avalia
-se a tela ficou boa nem se a funcionalidade nova funciona ponta a ponta. As duas revisões cobrem essas
-duas lacunas separadamente, para não misturar critério visual com critério funcional.
+se a tela ficou boa nem se a funcionalidade nova funciona ponta a ponta. As duas auditorias cobrem essas
+duas lacunas separadamente, para não misturar critério visual com critério funcional. Rodar
+automaticamente em vez de perguntar reduz o atrito de repetir essa decisão a cada demanda.
 
 ## Comandos úteis (verificados no scaffold — expandir conforme o projeto cresce)
 
