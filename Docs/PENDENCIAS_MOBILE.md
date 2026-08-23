@@ -1071,13 +1071,15 @@ navegação nativa do SO independente de transparência; no alvo **web** do Expo
 não parece remover/esconder de verdade a tela inativa da árvore de render — com o fundo
 transparente, o que sobrou "por baixo" vaza visualmente.
 
-**Não corrigido nesta sessão** — decisão do usuário foi confirmar primeiro se reproduz num device
-Android/iOS real antes de decidir prioridade (ver `[[project_ui_reviewer_subagent]]`/memória da
-sessão). Hipótese forte de que é exclusivo do alvo web (dev/QA, não uma superfície que usuário
-final acessa — `apps/mobile` não é publicado como app web) e não vale o risco de mexer no
-`sceneStyle` sem confirmar antes, já que isso poderia quebrar o efeito de fundo transparente pedido
-de propósito. **Pendência aberta**: aguardando o usuário testar em device real e reportar se
-reproduz lá.
+**[CONFIRMADO 23/08/2026 — NÃO É BUG, EXCLUSIVO DO ALVO WEB]** Usuário testou em device real e a
+tela funciona corretamente lá — sem vazamento entre abas. Confirma a hipótese: é um artefato do
+alvo web do Expo (React Navigation não escondendo de verdade a tela inativa nesse alvo,
+interagindo com o `sceneStyle` transparente proposital), não reproduz no app nativo real
+(Android/iOS), que é a única superfície que usuário final acessa. **Fechado como não-issue** — não
+mexer no `sceneStyle` para "corrigir" algo que só afeta a ferramenta de dev/QA (`expo start --web`
++ Playwright), risco desnecessário de quebrar o fundo animado pedido de propósito. Deixado
+registrado aqui só para não repetir a investigação numa sessão futura que tropeçar no mesmo sintoma
+testando via `expo start --web`.
 
 Também descoberto no processo: navegar por `page.goto()` direto pra uma rota autenticada após login
 (em vez de clicar como um usuário real) derruba a sessão com `Error: invalid key size` no
