@@ -23,20 +23,35 @@ export default function GemBetPage() {
   const [stake, setStake] = useState(String(MIN_STAKE));
   const [starting, setStarting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [loadError, setLoadError] = useState<string | null>(null);
 
   useEffect(() => {
     let cancelled = false;
-    getActiveGemBet().then((b) => {
-      if (!cancelled) setBet(b);
-    });
+    // `.catch` não é opcional: sem ele a promise rejeitada (401, backend fora do ar, timeout de
+    // 20s do apiFetch) só virava unhandled rejection e `bet` ficava `undefined` pra sempre — a
+    // tela travava em "Carregando…" sem mensagem nem saída. Reproduzido ao vivo na auditoria.
+    getActiveGemBet()
+      .then((b) => {
+        if (!cancelled) setBet(b);
+      })
+      .catch((err) => {
+        if (cancelled) return;
+        setLoadError(err instanceof ApiError ? err.message : "Não foi possível carregar sua aposta agora.");
+      });
     return () => {
       cancelled = true;
     };
   }, []);
 
+  // Único parse do input, compartilhado entre o `disabled` do botão e o handler — antes o botão
+  // usava `parseInt(stake) < MIN_STAKE`, que com o campo vazio dá NaN e toda comparação com NaN é
+  // `false`: o botão ficava HABILITADO e o clique caía no `return` silencioso do handler (achado
+  // ao vivo na auditoria — "Apostar" clicável que não fazia nada).
+  const stakeGems = parseInt(stake, 10);
+  const stakeIsValid = Number.isFinite(stakeGems) && stakeGems >= MIN_STAKE && stakeGems <= gamification.gems;
+
   const handleStart = async () => {
-    const stakeGems = parseInt(stake, 10);
-    if (starting || !Number.isFinite(stakeGems)) return;
+    if (starting || !stakeIsValid) return;
     setError(null);
     setStarting(true);
     try {
@@ -63,7 +78,19 @@ export default function GemBetPage() {
         </p>
       </div>
 
-      {bet === undefined && <p className="font-body-sm text-body-sm text-on-surface-variant text-center">Carregando…</p>}
+      {bet === undefined && !loadError && (
+        <p className="font-body-sm text-body-sm text-on-surface-variant text-center">Carregando…</p>
+      )}
+
+      {loadError && (
+        <Card padding="lg" className="flex flex-col items-center text-center gap-sm">
+          <Icon name="error" className="text-3xl text-error" />
+          <p className="font-body-md text-body-md text-on-surface">{loadError}</p>
+          <Button variant="ghost" onClick={() => window.location.reload()} icon={<Icon name="replay" />}>
+            Tentar de novo
+          </Button>
+        </Card>
+      )}
 
       {bet && (
         <Card padding="lg" className="flex flex-col items-center text-center gap-sm border-tertiary">
@@ -101,7 +128,7 @@ export default function GemBetPage() {
           <Button
             variant="primary"
             fullWidth
-            disabled={starting || parseInt(stake, 10) < MIN_STAKE || parseInt(stake, 10) > gamification.gems}
+            disabled={starting || !stakeIsValid}
             onClick={handleStart}
             icon={<Icon name="casino" />}
           >

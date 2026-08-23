@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { useRouter } from "expo-router";
 import { ScrollView, StyleSheet, Text, TextInput, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
@@ -31,20 +31,36 @@ export default function GemBetScreen() {
   const [stake, setStake] = useState(String(MIN_STAKE));
   const [starting, setStarting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [loadError, setLoadError] = useState<string | null>(null);
 
-  useEffect(() => {
-    let cancelled = false;
-    getActiveGemBet().then((b) => {
-      if (!cancelled) setBet(b);
-    });
-    return () => {
-      cancelled = true;
-    };
+  // `.catch` não é opcional: sem ele a promise rejeitada (401, backend fora do ar, timeout do
+  // apiFetch) só virava unhandled rejection e `bet` ficava `undefined` pra sempre — a tela
+  // travava em "Carregando…" sem mensagem nem saída. Reproduzido ao vivo na auditoria. `load` é
+  // um callback (e não só um efeito) porque o RN não tem `window.location.reload()` — o botão
+  // "Tentar de novo" precisa re-chamar a mesma busca.
+  const load = useCallback(async () => {
+    setLoadError(null);
+    setBet(undefined);
+    try {
+      setBet(await getActiveGemBet());
+    } catch (err) {
+      setLoadError(err instanceof ApiError ? err.message : "Não foi possível carregar sua aposta agora.");
+    }
   }, []);
 
+  useEffect(() => {
+    void load();
+  }, [load]);
+
+  // Único parse do input, compartilhado entre o `disabled` do botão e o handler — antes o botão
+  // usava `stakeGems < MIN_STAKE`, que com o campo vazio dá NaN e toda comparação com NaN é
+  // `false`: o botão ficava HABILITADO e o toque caía no `return` silencioso do handler (achado
+  // ao vivo na auditoria — "Apostar" tocável que não fazia nada).
+  const stakeGems = parseInt(stake, 10);
+  const stakeIsValid = Number.isFinite(stakeGems) && stakeGems >= MIN_STAKE && stakeGems <= gamification.gems;
+
   const handleStart = async () => {
-    const stakeGems = parseInt(stake, 10);
-    if (starting || !Number.isFinite(stakeGems)) return;
+    if (starting || !stakeIsValid) return;
     setError(null);
     setStarting(true);
     try {
@@ -57,8 +73,6 @@ export default function GemBetScreen() {
       setStarting(false);
     }
   };
-
-  const stakeGems = parseInt(stake, 10);
 
   return (
     <SafeAreaView style={styles.screen} edges={["top"]}>
@@ -78,7 +92,17 @@ export default function GemBetScreen() {
           </Text>
         </View>
 
-        {bet === undefined && <Text style={[typeTokens.bodySm, styles.muted]}>Carregando…</Text>}
+        {bet === undefined && !loadError && <Text style={[typeTokens.bodySm, styles.muted]}>Carregando…</Text>}
+
+        {loadError && (
+          <Card padding="lg" style={styles.loadErrorCard}>
+            <Icon name="error" size={28} color={colors.error} />
+            <Text style={[typeTokens.bodyMd, styles.loadErrorText]}>{loadError}</Text>
+            <Button variant="ghost" onPress={load} icon={<Icon name="replay" size={18} color={colors.primary} />}>
+              Tentar de novo
+            </Button>
+          </Card>
+        )}
 
         {bet && (
           <Card padding="lg" style={styles.progressCard}>
@@ -117,7 +141,7 @@ export default function GemBetScreen() {
             <Button
               variant="primary"
               fullWidth
-              disabled={starting || stakeGems < MIN_STAKE || stakeGems > gamification.gems}
+              disabled={starting || !stakeIsValid}
               onPress={handleStart}
               icon={<Icon name="dice" size={18} color={colors.onPrimary} />}
             >
@@ -188,6 +212,14 @@ const createStyles = (colors: ColorTokens) =>
       height: "100%",
       backgroundColor: colors.tertiary,
       borderRadius: 4,
+    },
+    loadErrorCard: {
+      alignItems: "center",
+      gap: spacing.xs,
+    },
+    loadErrorText: {
+      color: colors.onSurface,
+      textAlign: "center",
     },
     startCard: {
       gap: spacing.xs,
