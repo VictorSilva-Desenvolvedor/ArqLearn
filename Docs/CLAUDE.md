@@ -373,6 +373,30 @@ nunca commitar segredo: antes de um `git add` amplo (início de uma demanda que 
 rodar uma varredura por padrões de segredo conhecidos na árvore que será adicionada, mesmo com esse
 processo automatizado — o `.gitignore` cobre `.env*` e `Docs/ignorar/`, mas não substitui a checagem.
 
+## Verificação ao finalizar uma demanda com mudança de UI
+
+**Regra permanente (desde 08/2026).** Toda demanda que altera a interface visual de `apps/web` ou
+`apps/mobile` (componente novo, mudança de layout/cor/tipografia/espaçamento, tela nova) termina
+perguntando ao usuário se ele quer rodar a verificação completa via Playwright (`e2e/visual/` — ver
+`playwright.config.ts` na raiz). Se a resposta for sim:
+
+1. Subir os serviços necessários (backend `services/monolith`, `apps/web` e/ou o alvo Expo Web de
+   `apps/mobile`, conforme o que a demanda tocou).
+2. Rodar a suíte em `e2e/visual/` (`npm run test:visual`; usar `npm run test:visual:update` em vez de
+   tratar como falha só quando a diferença de screenshot for a mudança pretendida da demanda).
+3. Revisar o resultado com dois papéis separados — nenhum substitui o outro:
+   - **Design** (skill `impeccable`): hierarquia visual, espaçamento, cor, tipografia — a tela
+     resultante combina com a identidade visual do app (tokens de `blueprint_narrative/DESIGN.md`)?
+   - **Qualidade/testes** (skill `code-review`, e/ou um agente que efetivamente clica no fluxo via
+     Playwright): a funcionalidade pedida na demanda está de fato implementada e funcionando — não
+     só "não quebrou visualmente" — cobrindo os casos de borda relevantes?
+4. Regra de paridade web/mobile continua valendo — se a mudança existe nos dois apps, repetir os três
+   passos acima nos dois, não só num deles.
+
+**Por quê:** o Playwright sozinho só pega regressão pixel-a-pixel contra um baseline salvo — não avalia
+se a tela ficou boa nem se a funcionalidade nova funciona ponta a ponta. As duas revisões cobrem essas
+duas lacunas separadamente, para não misturar critério visual com critério funcional.
+
 ## Comandos úteis (verificados no scaffold — expandir conforme o projeto cresce)
 
 ```bash
