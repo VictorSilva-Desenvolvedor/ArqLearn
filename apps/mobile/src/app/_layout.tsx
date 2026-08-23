@@ -82,6 +82,14 @@ function RootNavigator() {
         <Stack.Screen name="materiais/[uploadId]/chat" />
         <Stack.Screen name="perfil/configuracoes" />
         <Stack.Screen name="loja" />
+        {/* As três telas de `loja/` (TDD §15) são rotas folha próprias — "loja" sozinho NÃO as
+            cobre (é a regra do comentário acima, e elas ficaram de fora quando foram criadas).
+            Sem registrar aqui, `/loja/gemas` e `/loja/aposta` montavam fora do guard e
+            derrubavam o app com "useAuth chamado sem sessão ativa" (tela branca), e
+            `/loja/extrato` renderizava normalmente pra quem não está logado. */}
+        <Stack.Screen name="loja/gemas" />
+        <Stack.Screen name="loja/extrato" />
+        <Stack.Screen name="loja/aposta" />
         <Stack.Screen name="notificacoes" />
         <Stack.Screen name="ajuda" />
       </Stack.Protected>
