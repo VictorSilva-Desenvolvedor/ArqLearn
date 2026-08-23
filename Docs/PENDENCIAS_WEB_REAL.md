@@ -39,6 +39,20 @@ infinite-mode,uploads-list,notifications,materials`):
 - Perguntas reais existem pra `track_s02_maquetes` (56+ aprovadas) — é a trilha certa pra testar o
   fluxo de prática de ponta a ponta com uma conta real.
 
+## Paridade web/mobile — feature ausente no web (não é backend mockado)
+
+Diferente do resto desta lista (que é sobre endpoint faltando), este item é sobre uma tela que
+simplesmente não existe no lado web:
+
+- **Cadastro de conta (`welcome`/`cadastro`)** — `apps/mobile` ganhou `app/welcome.tsx` e
+  `app/cadastro.tsx` (commit `5c2b6d4`, 21/08/2026): tela de boas-vindas com "Começar agora" →
+  formulário de cadastro chamando `AuthContext.signUp` (Supabase, com tratamento de confirmação de
+  e-mail). `apps/web` não tem equivalente — `AuthContext.tsx` do web nem expõe um método `signUp`,
+  e não existe rota `/cadastro` nem `/welcome`; `/login` é a única porta de entrada, então hoje um
+  usuário novo só consegue criar conta pelo app mobile. Achado numa auditoria retroativa
+  (ui-reviewer) de qualidade de frontend, não construído nesta passada por ser feature de escopo
+  maior que uma correção de polish (precisa de decisão de fluxo/copy, não só réplica mecânica).
+
 ## Fora do escopo desta lista (telas de professor/admin)
 
 Painel do Professor (`/painel`, `/revisao`) e Admin (`/admin`) também estão mockados
