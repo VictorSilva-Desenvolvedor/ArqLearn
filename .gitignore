@@ -27,6 +27,12 @@ npm-debug.log*
 /Docs/ignorar/
 /Docs/DocsFaculdade/
 
+# --- Playwright (e2e/visual) ---
+/e2e/visual/report/
+/test-results/
+/playwright-report/
+/blob-report/
+
 # --- OS / editor ---
 .DS_Store
 Thumbs.db
