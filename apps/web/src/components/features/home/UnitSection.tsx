@@ -28,7 +28,12 @@ interface UnitSectionProps {
 
 const statusBadge: Record<UnitStatus, { label: string; tone: "primary" | "secondary" | "neutral" }> = {
   completed: { label: "CONCLUÍDO", tone: "primary" },
-  current: { label: "EM ANDAMENTO", tone: "secondary" },
+  // Estado de navegação/progresso — azul primário, não laranja (reservado à camada de
+  // gamificação/recompensa; ver DESIGN.md "The One Job Per Color Rule"). O nó atual e o callout
+  // "Continuar lição" desta mesma tela já tinham sido corrigidos pra azul; só o badge e a borda
+  // do card da unidade ficaram pra trás, deixando a Home com dois azuis e um laranja pro MESMO
+  // estado. apps/mobile já usa "primary" aqui — isto também fecha a paridade.
+  current: { label: "EM ANDAMENTO", tone: "primary" },
   available: { label: "DISPONÍVEL", tone: "primary" },
   construction: { label: "EM CONSTRUÇÃO", tone: "neutral" },
 };
@@ -42,25 +47,26 @@ export function UnitSection({ title, subtitle, status, nodes }: UnitSectionProps
         <h3 className="font-display text-headline-md text-on-surface">{title}</h3>
         <Badge tone={badge.tone}>{badge.label}</Badge>
       </div>
-      <Card
-        padding="md"
-        radius="xl"
-        className={cn(
-          "mb-xs",
-          status === "current" && "border-secondary shadow-gamified",
-          status === "completed" && "border-primary bg-surface-gray",
-        )}
-      >
-        <p
+      {/* O card só existe quando há um subtítulo de verdade pra carregar. Antes ele repetia
+          `title` — exatamente a mesma string do <h3> logo acima, 40px de distância, sem nenhuma
+          informação nova (achado da auditoria visual da Home, 24/08/2026). O card do Stitch
+          repete o nome da trilha porque LÁ o heading é genérico ("Unidade 1"); aqui o heading já
+          é o nome da trilha, então a repetição virou ruído. `subtitle` vem de track.description,
+          que hoje NÃO é serializado pela API real (ver Docs/CLAUDE.md) — na prática o card não
+          aparece até alguém decidir o que deve morar nessa caixa. */}
+      {subtitle && (
+        <Card
+          padding="md"
+          radius="xl"
           className={cn(
-            "font-body-md text-body-md font-bold",
-            status === "current" ? "text-secondary" : "text-on-surface-variant",
+            "mb-xs",
+            status === "current" && "border-primary shadow-gamified",
+            status === "completed" && "border-primary bg-surface-gray",
           )}
         >
-          {title}
-        </p>
-        {subtitle && <p className="font-body-sm text-body-sm text-on-surface-variant mt-1">{subtitle}</p>}
-      </Card>
+          <p className="font-body-md text-body-md font-bold text-on-surface-variant">{subtitle}</p>
+        </Card>
+      )}
       <div className="relative flex flex-col items-center gap-8 py-6 overflow-hidden">
         {nodes.length > 1 && <PathConnector dashed={status === "current"} />}
         {nodes.map((node, index) => (

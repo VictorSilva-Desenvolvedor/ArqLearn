@@ -28,7 +28,11 @@ export function DailyGoalCard({ status }: DailyGoalCardProps) {
     >
       <div className="flex-1 w-full">
         <h2 className="font-display text-question-sm text-on-surface mb-xs">Meta Diária</h2>
-        <div className="flex items-center gap-sm w-full">
+        {/* Empilhado até `sm`: o rótulo é whitespace-nowrap e ocupa ~205px, o que espremia a
+            barra num toco de ~90px numa viewport de 390px — tecnicamente sem overflow, mas
+            ilegível como indicador de progresso (achado da auditoria visual da Home, 24/08/2026).
+            Da largura `sm` pra cima volta a ser lado a lado, como na referência do Stitch. */}
+        <div className="flex flex-col items-start gap-xs w-full sm:flex-row sm:items-center sm:gap-sm">
           {/* min-w-0: flex-1 sozinho não basta — o min-width:auto padrão do item flex trava a
               barra na largura do próprio conteúdo em vez de deixar encolher, e ela "empurra" o
               texto ao lado (whitespace-nowrap, não pode quebrar) pra fora da viewport em telas
@@ -38,7 +42,7 @@ export function DailyGoalCard({ status }: DailyGoalCardProps) {
             max={leadingByQuestions ? status.questions_target : status.study_minutes_target}
             variant="tube"
             tone="secondary"
-            className="flex-1 min-w-0"
+            className="w-full sm:flex-1 sm:min-w-0"
           />
           <span className="font-label text-body-sm text-on-surface-variant whitespace-nowrap shrink-0">
             {status.questions_today}/{status.questions_target} perguntas · {status.study_minutes_today}/
