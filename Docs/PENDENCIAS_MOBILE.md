@@ -1089,3 +1089,24 @@ navegação client-side (clique) em vez de `page.goto()` em testes futuros pós-
 
 Nenhum outro bug encontrado nesta passada de revisão visual (Loja, VIP, Perfil renderizaram
 corretamente com dados reais da conta de teste — 620 XP, sequência de 2 dias, 5 gemas, VIP ativo).
+
+### 24. Home — auditoria visual bloqueada por falta de sessão de teste (24/08/2026)
+
+Varredura do `ui-reviewer` pela tela A (Home — Mapa de Aprendizado). O lado web foi inspecionado
+ao vivo com screenshot; o lado mobile **não** — `apps/mobile` só tem sessão real via Supabase Auth
+(sem o modo demonstração por cookie que o web tem), e não há credencial de teste versionada. As
+correções abaixo foram aplicadas por leitura de código + paridade com o web, e passam
+`tsc --noEmit`, mas **nenhuma foi confirmada em imagem**:
+
+- `components/home/UnitSection.tsx` — o card sob o heading repetia o nome da trilha (mesma string
+  do heading, sem informação nova); passou a só renderizar quando existe subtítulo de verdade.
+- `components/home/LessonNode.tsx` — o nó `completed` mostrava o ícone da matéria; agora mostra
+  `check`, como o web e a referência do Stitch.
+- `components/home/DailyGoalCard.tsx` — o card era `flexDirection: "row"` incondicionalmente:
+  numa largura de telefone o botão "Revisar Erros" disputava espaço com o bloco de progresso e a
+  barra colapsava perto de zero. Agora é coluna, com botão `fullWidth`, espelhando o que o web já
+  fazia abaixo de `md`.
+
+**Pendência:** confirmar as três em device/emulador real na próxima sessão com login. A causa raiz
+(sem estratégia de sessão autenticada para QA/Playwright) está registrada em
+`Docs/UI_AUDIT_STATUS.md` §1 e precisa de uma decisão do usuário.

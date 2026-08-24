@@ -45,7 +45,7 @@ export function DailyGoalCard({ status }: DailyGoalCardProps) {
           </Text>
         </View>
       </View>
-      <Button variant="ghost" size="md" onPress={() => router.push("/revisao/sessao")}>
+      <Button variant="ghost" size="md" fullWidth onPress={() => router.push("/revisao/sessao")}>
         Revisar Erros
       </Button>
     </Card>
@@ -55,20 +55,26 @@ export function DailyGoalCard({ status }: DailyGoalCardProps) {
 const styles = StyleSheet.create({
   card: {
     marginBottom: 48,
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
+    // Coluna, não linha: o card só é largo o bastante pra uma coluna num telefone (a Home limita
+    // o conteúdo a 448px). Em `row`, o botão "Revisar Erros" disputava a largura com o bloco de
+    // progresso e sobrava ~210px pro par barra+rótulo — a barra colapsava perto de zero e o
+    // rótulo quebrava em 3 linhas (achado da auditoria visual da Home, 24/08/2026). É o mesmo
+    // arranjo que apps/web já usa abaixo de `md` (flex-col md:flex-row).
+    flexDirection: "column",
+    alignItems: "stretch",
     gap: 16,
   },
   info: {
-    flex: 1,
+    width: "100%",
   },
   progressRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 12,
+    // Empilhado pelo mesmo motivo do web: o rótulo "0/10 perguntas · 0/12 min" não cabe ao lado
+    // da barra numa largura de telefone sem espremer a barra até virar um toco ilegível.
+    flexDirection: "column",
+    alignItems: "stretch",
+    gap: 8,
   },
   progressBar: {
-    flex: 1,
+    width: "100%",
   },
 });

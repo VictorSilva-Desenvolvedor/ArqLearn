@@ -46,7 +46,11 @@ export function LessonNode({ variant, icon, href }: LessonNodeProps) {
         accessibilityLabel="Lição concluída — toque para revisar"
         style={styles.completed}
       >
-        <Icon name={icon} size={28} color={colors.onPrimary} />
+        {/* "completed" sempre mostra check — não depende de nenhum dado mockado atribuir esse
+            ícone à lição; o ícone da matéria (`icon`) só faz sentido pra checkpoint/available.
+            Espelha apps/web/.../LessonNode.tsx e a referência do Stitch
+            (home_mapa_de_aprendizado/screen.png), onde os nós concluídos são checks. */}
+        <Icon name="check" size={28} color={colors.onPrimary} />
       </Pressable>
     );
   }

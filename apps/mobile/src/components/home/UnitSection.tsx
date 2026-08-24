@@ -54,22 +54,22 @@ export function UnitSection({ title, subtitle, status, nodes }: UnitSectionProps
         <Badge tone={badge.tone}>{badge.label}</Badge>
       </View>
       <View style={status === "construction" && styles.dimmed}>
-        <Card
-          padding="md"
-          radius="xl"
-          style={[
-            styles.summaryCard,
-            status === "current" && styles.summaryCardCurrent,
-            status === "completed" && styles.summaryCardCompleted,
-          ]}
-        >
-          <Text style={[type.bodyMdBold, { color: status === "current" ? colors.primary : colors.onSurfaceVariant }]}>
-            {title}
-          </Text>
-          {subtitle && (
-            <Text style={[type.bodySm, { color: colors.onSurfaceVariant, marginTop: 4 }]}>{subtitle}</Text>
-          )}
-        </Card>
+        {/* O card só existe quando há um subtítulo de verdade pra carregar. Antes ele repetia
+            `title` — exatamente a mesma string do heading logo acima, sem informação nova (achado
+            da auditoria visual da Home, 24/08/2026). Espelha apps/web/.../UnitSection.tsx. */}
+        {subtitle && (
+          <Card
+            padding="md"
+            radius="xl"
+            style={[
+              styles.summaryCard,
+              status === "current" && styles.summaryCardCurrent,
+              status === "completed" && styles.summaryCardCompleted,
+            ]}
+          >
+            <Text style={[type.bodyMdBold, { color: colors.onSurfaceVariant }]}>{subtitle}</Text>
+          </Card>
+        )}
         <View style={styles.path}>
           {nodes.length > 1 && <PathConnector dashed={status === "current"} />}
           {nodes.map((node, index) => (
