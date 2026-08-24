@@ -3,7 +3,7 @@
 
 Modelo de dados detalhado: esquema relacional, documentos, vetores, cache e estratégias de persistência.
 
-Versão 1.26 | Agosto de 2026
+Versão 1.29 | Agosto de 2026
 Documento complementar ao SAD e ao TDD do ArqLearn v1.0
 
 > **Sobre esta versão:** versão em Markdown, mantida como fonte da verdade a partir de agora (ver
@@ -41,6 +41,9 @@ Documento complementar ao SAD e ao TDD do ArqLearn v1.0
 | 1.24 | 21/08/2026 | Equipe de Engenharia / Dados | Adiciona `notification_template_stats`/`notification_sends` (§3.2 DDL, §3.3 dicionário, migrations/0018) — bandit de template (TDD §11) pro gatilho de streak em risco. §4.4.4 corrigido: `streak_at_risk` agora é gatilho real (`cmd/notify-decide`, hora em hora), mensagem escolhida por Thompson Sampling em vez de texto fixo único. Implementado fora da ordem original de `Docs/ArqLearn_Backlog_Gamificacao_Atelie.md` (mesma decisão explícita do usuário das v1.22/v1.23) |
 | 1.25 | 21/08/2026 | Equipe de Engenharia / Dados | `user_gamification` ganha `streak_repair_value`/`streak_repair_deadline` (migrations/0019, TDD §5.5) — reparo de streak (RS-08, mecânica nova). Sem coluna/CHECK novo pro teto escalonado de freezes (RS-03): aplicado no código a cada escrita, não em CHECK de coluna, pra não quebrar quem já tinha mais freezes que o teto atual (grandfathering). Implementado fora da ordem original de `Docs/ArqLearn_Backlog_Gamificacao_Atelie.md` (mesma decisão explícita do usuário das v1.22–v1.24) |
 | 1.26 | 21/08/2026 | Equipe de Engenharia / Dados | `user_gamification` ganha `xp_boost_active_until` (migrations/0020, TDD §3.3) — XP Boost, multiplicador temporário de 2x por 15min concedido via recompensa de Baú Diário/Semanal (mecânica nova inspirada no Duolingo). Sem CHECK — timestamp único, `NULL` sempre significa "sem boost ativo" (diferente de `vip_expires_at`, que tem o caso especial "vitalício" pareado com `is_vip`). Implementado fora da ordem original de `Docs/ArqLearn_Backlog_Gamificacao_Atelie.md` (mesma decisão explícita do usuário das v1.22–v1.25) |
+| 1.27 | 21/08/2026 | Equipe de Engenharia / Dados | `user_gamification` ganha `xp_day_best`/`league_best_tier` (migrations/0021, TDD §12 nova seção) — Personal Records, segunda categoria de conquista. Documenta também `current_tier` (§3.2 DDL) — coluna real desde migrations/0007/0008 que nunca tinha sido documentada nesta tabela; achado ao adicionar `league_best_tier` ao lado dela, mesmo tipo de lacuna já corrigida antes pras colunas de baú (ver nota junto de VIP na v1.16) |
+| 1.28 | 22/08/2026 | Equipe de Engenharia / Dados | `user_gamification` ganha `daily_goal_level`/`study_seconds_today`/`study_seconds_today_date` (migrations/0022, TDD §13 nova seção) — Meta Diária personalizável, substitui o gatilho fixo de 10 perguntas do Baú Diário por um alvo escolhido pelo usuário (perguntas certas OU minutos estudados). `chest_questions_today` (já existente, migrations/0009) é reaproveitada como a métrica de perguntas, sem coluna nova |
+| 1.29 | 22/08/2026 | Equipe de Engenharia / Dados | 4 tabelas novas (migrations/0023, TDD §15 nova seção): `gem_transactions` (livro-razão append-only, retrofitado nos pontos que já mexiam em `gems` antes desta versão — item #1 do checklist técnico do documento de moeda virtual), `gem_packages` (catálogo de pacotes com preço em R$, seed de 4 linhas), `gem_coupons` (mesmo molde de `vip_coupons`, tabela própria) e `gem_bets` (Double or Nothing — aposta de streak, índice único parcial `gem_bets_one_active_per_user_idx` limitando 1 aposta `active` por usuário no banco, não só no handler) |
 
 ---
 
@@ -217,6 +220,32 @@ CREATE TABLE user_gamification (
   vip_weekly_chest_resets_cycle_start DATE,
   vip_subscription_status TEXT NOT NULL DEFAULT 'none'
     CHECK (vip_subscription_status IN ('none', 'pending', 'active', 'canceled')),
+  -- current_tier (migrations/0007, expandido em 0008 pra 1-30 — hierarquia de 10 ligas x 3
+  -- divisões, ver leagueTierNames em internal/gamification/gamification.go): tier de liga
+  -- persistido entre semanas, usado por ensureLeagueMembership/CloseLeagueWeek (TDD §6). Coluna
+  -- real desde a v1.16 do código mas nunca tinha sido documentada aqui até esta versão — mesmo
+  -- tipo de lacuna já corrigida antes pras colunas de baú acima (ver comentário delas).
+  current_tier SMALLINT NOT NULL DEFAULT 1 CHECK (current_tier BETWEEN 1 AND 30),
+  -- Personal Records (migrations/0021, v1.27 — TDD §12, distinto de `achievements` abaixo):
+  -- xp_day_best é o maior xp_today já alcançado num único dia (xp_today reseta todo dia sem
+  -- guardar o pico); league_best_tier é o maior current_tier já alcançado, mesma codificação
+  -- linear 1-30 (sobrevive a um rebaixamento posterior, diferente de current_tier sozinho).
+  -- streak_best e infinite_correct_streak_best (colunas já existentes acima) são reaproveitadas
+  -- como recorde sem coluna nova — só estas duas métricas não tinham nenhum rastro persistido.
+  xp_day_best INTEGER NOT NULL DEFAULT 0 CHECK (xp_day_best >= 0),
+  league_best_tier SMALLINT NOT NULL DEFAULT 1 CHECK (league_best_tier BETWEEN 1 AND 30),
+  -- Meta Diária (migrations/0022, v1.28 — TDD §13): nível de intensidade escolhido pelo usuário
+  -- entre 4 presets (internal/gamification/dailygoal.go), medida em perguntas certas (reaproveita
+  -- chest_questions_today acima, sem coluna nova) OU minutos estudados no dia — nunca só em XP,
+  -- reconcilia (não segue à letra) a regra RS-01 do backlog de gamificação. daily_goal_level
+  -- substitui o gatilho fixo de 10 perguntas do Baú Diário por um alvo dinâmico por usuário;
+  -- 'regular' (DEFAULT) preserva o comportamento de antes da v1.30 pra quem nunca trocou de
+  -- nível. study_seconds_today/_date seguem o mesmo padrão de reset preguiçoso por igualdade de
+  -- data já usado por xp_today/chest_questions_today (sem job/cron).
+  daily_goal_level TEXT NOT NULL DEFAULT 'regular'
+    CHECK (daily_goal_level IN ('leve', 'regular', 'consistente', 'intensa')),
+  study_seconds_today INTEGER NOT NULL DEFAULT 0 CHECK (study_seconds_today >= 0),
+  study_seconds_today_date DATE,
   CONSTRAINT streak_repair_pair_check
     CHECK ((streak_repair_value IS NULL) = (streak_repair_deadline IS NULL))
 );
@@ -309,6 +338,75 @@ CREATE TABLE user_cosmetics (
   PRIMARY KEY (user_id, item_id)
 );
 CREATE INDEX idx_user_cosmetics_user_equipped ON user_cosmetics(user_id) WHERE equipped;
+
+-- Livro-razão de gemas (migrations/0023, v1.29 — TDD §15): antes desta tabela, `gems` acima era só
+-- um saldo corrente, sem nenhum histórico auditável. Append-only, nunca UPDATE/DELETE — quem grava
+-- já fez o UPDATE de gems e sabe o balance_after resultante (RecordGemTransaction nunca recalcula
+-- saldo, só registra). reference_id é string livre sem FK porque aponta pra tabelas diferentes
+-- dependendo de reason (achievement type, shop_items.id, gem_bets.id...).
+CREATE TABLE gem_transactions (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  delta INTEGER NOT NULL, -- positivo = crédito, negativo = débito
+  reason TEXT NOT NULL CHECK (reason IN (
+    'achievement', 'daily_chest', 'weekly_chest', 'shop_purchase',
+    'bug_report_reward', 'gem_coupon', 'bet_stake', 'bet_payout'
+  )),
+  reference_id TEXT,
+  balance_after INTEGER NOT NULL,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+CREATE INDEX idx_gem_transactions_user_created ON gem_transactions(user_id, created_at DESC);
+
+-- Pacotes de gemas compráveis com dinheiro real (migrations/0023, v1.29 — TDD §15). Catálogo real
+-- desde já (GET /v1/gamification/gem-packages); a compra em si (POST .../checkout) fica travada
+-- atrás de GemPackagePurchasesEnabled=false até um gateway de pagamento existir — mesmo padrão do
+-- VIP (vip_coupons abaixo). Preço calibrado contra o único preço real em produção (VIP
+-- R$29,90/mês) — valor por gema melhora nos pacotes maiores, decisão de produto a revisitar com
+-- dados reais depois de estar no ar.
+CREATE TABLE gem_packages (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  name TEXT NOT NULL,
+  gems_amount INTEGER NOT NULL CHECK (gems_amount > 0),
+  price_brl_cents INTEGER NOT NULL CHECK (price_brl_cents > 0),
+  sort_order SMALLINT NOT NULL DEFAULT 0,
+  active BOOLEAN NOT NULL DEFAULT true
+);
+INSERT INTO gem_packages (name, gems_amount, price_brl_cents, sort_order) VALUES
+  ('Pacote Terracota', 300, 490, 1),
+  ('Pacote Bronze', 800, 1190, 2),
+  ('Pacote Mármore', 2000, 2490, 3),
+  ('Pacote Ouro', 5000, 4990, 4);
+
+-- Cupom de gemas (migrations/0023, v1.29) — mesmo molde de vip_coupons acima, tabela própria (não
+-- reaproveita vip_coupons: entidades diferentes, gemas vs. dias de VIP). Caminho 100% funcional de
+-- "compra" hoje, enquanto o checkout por cartão de gem_packages continua mockup.
+CREATE TABLE gem_coupons (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  code TEXT NOT NULL UNIQUE,
+  gems_amount INTEGER NOT NULL CHECK (gems_amount > 0),
+  created_by UUID NOT NULL REFERENCES users(id),
+  redeemed_by UUID REFERENCES users(id),
+  redeemed_at TIMESTAMPTZ,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+
+-- Double or Nothing (migrations/0023, v1.29 — TDD §15.3): aposta gemas, compromete-se a manter o
+-- streak por days_required dias corridos (fixo em 7), dobra ou perde sem estorno. O índice único
+-- parcial abaixo é a defesa de banco contra corrida de duas requisições criando 2 apostas 'active'
+-- pro mesmo usuário ao mesmo tempo — a checagem "já tem aposta ativa?" no handler é só a primeira
+-- linha de defesa, não a única.
+CREATE TABLE gem_bets (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  stake_gems INTEGER NOT NULL CHECK (stake_gems >= 50),
+  days_required SMALLINT NOT NULL DEFAULT 7,
+  days_completed SMALLINT NOT NULL DEFAULT 0,
+  status TEXT NOT NULL DEFAULT 'active' CHECK (status IN ('active', 'won', 'lost')),
+  started_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+  resolved_at TIMESTAMPTZ
+);
+CREATE UNIQUE INDEX gem_bets_one_active_per_user_idx ON gem_bets (user_id) WHERE status = 'active';
 
 -- Idempotência de POST /v1/lessons/{lesson_id}/answers e
 -- POST /v1/infinite-mode/sessions/{session_id}/answers (migrations/0013, v1.22) — mesmo espírito

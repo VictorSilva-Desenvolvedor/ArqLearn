@@ -132,8 +132,35 @@ estrutura real já criada no repositório, não um plano:**
                               sempre (é cálculo local, sem round-trip pro R2).
                             - gamification: algorithms.go tem calcularXP/Nivel/AtualizarSRS/
                               AtualizarStreak como funções puras testadas (algorithms_test.go),
-                              usadas por learning — as rotas HTTP deste pacote (/v1/gamification/*)
-                              continuam stub.
+                              usadas por learning. achievements.go (Awards — catálogo de ~44
+                              conquistas, a maioria em famílias de 5 níveis) e personalrecords.go
+                              (Personal Records — TDD §12, migrations/0021: xp_day_best/
+                              league_best_tier novas, além de streak_best/
+                              infinite_correct_streak_best já existentes e reaproveitados como
+                              recorde) avaliam conquista depois de cada resposta de
+                              lição/Modo Infinito. **Correção de divergência encontrada nesta
+                              entrega:** a frase "as rotas HTTP deste pacote continuam stub" que
+                              existia aqui estava desatualizada havia várias versões — GET
+                              /v1/gamification/me, GET .../league, POST .../streak/freeze, POST
+                              .../shop/purchase, GET/POST .../daily-chest* e .../weekly-chest*, GET
+                              /v1/vip/status e POST /v1/vip/coupons*/subscribe são todos reais
+                              (gamification.go), implementados incrementalmente entre as v1.16 e
+                              v1.28 da API Spec sem que esta seção fosse atualizada junto.
+                              dailygoal.go (Meta Diária — TDD §13, migrations/0022:
+                              daily_goal_level/study_seconds_today[_date] novas, reaproveitando
+                              chest_questions_today já existente como a métrica de perguntas)
+                              substitui o gatilho fixo de 10 perguntas do Baú Diário por um alvo
+                              escolhido pelo usuário entre 4 presets — GET/PATCH
+                              /v1/gamification/daily-goal são reais desde a v1.30 da API Spec.
+                              gemledger.go (livro-razão de gemas — TDD §15.1, migrations/0023:
+                              gem_transactions, append-only, retrofitado nos pontos que já mexiam
+                              em gems antes desta versão) + gempackages.go (pacotes de gemas —
+                              catálogo real, checkout por cartão mockup atrás de
+                              GemPackagePurchasesEnabled=false, cupom admin como caminho
+                              funcional hoje, mesmo molde de vip.go) + gembets.go (Double or
+                              Nothing — aposta de streak resolvida nos mesmos 3 pontos que já
+                              leem/expiram o streak, sem sinal novo) são reais desde a v1.31 da
+                              API Spec.
                             - notifications, analytics: stub.
                           Toda rota sem menção acima é stub 501 NOT_IMPLEMENTED via
                           internal/apierror — ver ArqLearn_API_Specification.md para o contrato
@@ -345,6 +372,38 @@ lidar com credenciais reais (Supabase, MongoDB) em `.env` local. Isso reforça, 
 nunca commitar segredo: antes de um `git add` amplo (início de uma demanda que toca muito arquivo),
 rodar uma varredura por padrões de segredo conhecidos na árvore que será adicionada, mesmo com esse
 processo automatizado — o `.gitignore` cobre `.env*` e `Docs/ignorar/`, mas não substitui a checagem.
+
+## Verificação ao finalizar uma demanda com mudança de UI
+
+**Regra permanente (desde 08/2026; automatizada em 08/2026).** Toda demanda que altera a interface
+visual de `apps/web` ou `apps/mobile` (componente novo, mudança de layout/cor/tipografia/
+espaçamento, tela nova) termina acionando automaticamente o subagent **ui-reviewer**
+(`.claude/agents/ui-reviewer.md`) — **sem perguntar antes**, diferente da versão anterior desta
+regra. O que ele faz está documentado no próprio arquivo do agente (fonte da verdade operacional,
+não duplicar aqui); em resumo:
+
+1. Sobe os serviços necessários (backend `services/monolith`, `apps/web` e/ou o alvo Expo Web de
+   `apps/mobile`, conforme o que a demanda tocou) e roda a suíte em `e2e/visual/` (`npm run
+   test:visual` — ver `playwright.config.ts` na raiz).
+2. Audita com dois critérios separados — nenhum substitui o outro:
+   - **Design**: usa o skill `impeccable` (hook já ativo neste projeto) para o lado genérico
+     (contraste, tipografia, ritmo, drift de design system), e complementa com regras específicas
+     do ArqLearn que o impeccable não conhece — comparação com as telas de alta-fidelidade do
+     Stitch, sync dos três lugares de tokens, paridade web/mobile, "nenhum elemento sem função".
+   - **Qualidade/funcional**: clica de fato no fluxo via Playwright — a funcionalidade pedida na
+     demanda está implementada e funcionando, não só "não quebrou visualmente".
+3. Corrige diretamente o que encontrar (a working tree fica alterada; quem fecha a demanda ainda é
+   responsável por revisar o diff antes de commitar — o agente não commita).
+4. Regra de paridade web/mobile continua valendo — se a mudança existe nos dois apps, ele repete a
+   auditoria nos dois, não só num deles.
+
+Chamar o `ui-reviewer` sob demanda a qualquer momento (não só no fim de uma demanda) também é
+válido — ver seu arquivo de definição para o que ele cobre e o que fica fora do escopo dele.
+
+**Por quê:** o Playwright sozinho só pega regressão pixel-a-pixel contra um baseline salvo — não avalia
+se a tela ficou boa nem se a funcionalidade nova funciona ponta a ponta. As duas auditorias cobrem essas
+duas lacunas separadamente, para não misturar critério visual com critério funcional. Rodar
+automaticamente em vez de perguntar reduz o atrito de repetir essa decisão a cada demanda.
 
 ## Comandos úteis (verificados no scaffold — expandir conforme o projeto cresce)
 

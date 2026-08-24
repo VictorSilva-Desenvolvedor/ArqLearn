@@ -42,6 +42,12 @@ export const EMPTY_GAMIFICATION: GamificationProfile = {
   vip_expires_at: null,
   xp_boost_active: false,
   xp_boost_active_until: null,
+  personal_records: [
+    { metric: "streak_dias", value: 0 },
+    { metric: "infinito_sem_erros", value: 0 },
+    { metric: "xp_dia", value: 0 },
+    { metric: "liga_alcancada", value: 1 },
+  ],
 };
 
 export function gamificationForAccount(id: MockAccountId | null | undefined): GamificationProfile {

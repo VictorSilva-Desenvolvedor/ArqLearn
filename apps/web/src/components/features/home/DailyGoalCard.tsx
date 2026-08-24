@@ -1,17 +1,25 @@
+import Link from "next/link";
 import { Card } from "@/components/ui/Card";
 import { ProgressBar } from "@/components/ui/ProgressBar";
 import { Button } from "@/components/ui/Button";
-import { useToast } from "@/hooks/useToast";
+import type { DailyGoalStatus } from "@/types/api";
 
 interface DailyGoalCardProps {
-  xpToday: number;
-  goal: number;
+  status: DailyGoalStatus;
 }
 
-// "Revisar Erros" não tem tela/endpoint próprio ainda (espelha apps/mobile/.../DailyGoalCard.tsx) —
-// ghost + toast informativo em vez de um primary sólido que não fazia nada nem dava feedback.
-export function DailyGoalCard({ xpToday, goal }: DailyGoalCardProps) {
-  const { showToast } = useToast();
+// Meta Diária (TDD §13, v1.30) — antes deste componente lia xpToday/goal (DAILY_GOAL_XP=50
+// hardcoded em (shell)/page.tsx, nunca vindo do servidor); agora consome GET
+// /v1/gamification/daily-goal de verdade. Meta batida assim que QUALQUER UMA das duas métricas
+// (perguntas certas OU minutos estudados) atinge o alvo do nível escolhido — a barra mostra
+// sempre a métrica mais perto de completar, nunca inventa um número só (progresso "inflado"
+// destrói a confiança no indicador, princípio explícito do documento de metas diárias). "Revisar
+// Erros" agora navega de verdade pra fila de revisão espaçada (TDD §10.3, mesmo destino que
+// ReviewPromptCard já usa) — antes só mostrava um toast "em breve", sem nenhuma ação real atrás.
+export function DailyGoalCard({ status }: DailyGoalCardProps) {
+  const questionsProgress = status.questions_target > 0 ? status.questions_today / status.questions_target : 0;
+  const minutesProgress = status.study_minutes_target > 0 ? status.study_minutes_today / status.study_minutes_target : 0;
+  const leadingByQuestions = questionsProgress >= minutesProgress;
 
   return (
     <Card
@@ -23,24 +31,27 @@ export function DailyGoalCard({ xpToday, goal }: DailyGoalCardProps) {
         <div className="flex items-center gap-sm w-full">
           {/* min-w-0: flex-1 sozinho não basta — o min-width:auto padrão do item flex trava a
               barra na largura do próprio conteúdo em vez de deixar encolher, e ela "empurra" o
-              texto de XP (whitespace-nowrap, não pode quebrar) pra fora da viewport em telas
+              texto ao lado (whitespace-nowrap, não pode quebrar) pra fora da viewport em telas
               estreitas ou zoom alto (WCAG 1.4.10 Reflow). */}
-          <ProgressBar value={xpToday} max={goal} variant="tube" tone="secondary" className="flex-1 min-w-0" />
+          <ProgressBar
+            value={leadingByQuestions ? status.questions_today : status.study_minutes_today}
+            max={leadingByQuestions ? status.questions_target : status.study_minutes_target}
+            variant="tube"
+            tone="secondary"
+            className="flex-1 min-w-0"
+          />
           <span className="font-label text-body-sm text-on-surface-variant whitespace-nowrap shrink-0">
-            {xpToday} / {goal} XP
+            {status.questions_today}/{status.questions_target} perguntas · {status.study_minutes_today}/
+            {status.study_minutes_target} min
           </span>
         </div>
       </div>
       <div className="w-full md:w-auto">
-        <Button
-          variant="ghost"
-          size="md"
-          fullWidth
-          className="md:w-auto"
-          onClick={() => showToast("Revisão de erros ainda não está disponível — em breve!")}
-        >
-          Revisar Erros
-        </Button>
+        <Link href="/revisao/sessao">
+          <Button variant="ghost" size="md" fullWidth className="md:w-auto">
+            Revisar Erros
+          </Button>
+        </Link>
       </div>
     </Card>
   );

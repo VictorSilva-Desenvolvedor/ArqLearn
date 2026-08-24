@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
+	"fmt"
 	"log"
 	"math"
 	"math/rand"
@@ -19,6 +20,7 @@ import (
 	"arqlearn/monolith/internal/apierror"
 	"arqlearn/monolith/internal/authmiddleware"
 	"arqlearn/monolith/internal/gamification"
+	"arqlearn/monolith/internal/notifications"
 	"arqlearn/monolith/internal/questiongen"
 )
 
@@ -266,9 +268,11 @@ type infiniteModeAnswerRequest struct {
 	TimeMs     int64  `json:"time_ms"`
 }
 
-// handleInfiniteModeAnswer concede XP igual a uma resposta normal (gamification.CalcularXP),
-// mas sem tocar vidas/streak/SRS/user_progress — Modo Infinito é prática solta, não faz parte do
-// progresso de nenhuma lição específica (API Spec §6.1, resposta não inclui vidas_restantes).
+// handleInfiniteModeAnswer concede XP igual a uma resposta normal (gamification.CalcularXP) e,
+// desde 21/08/2026 (decisão do usuário — Modo Infinito "também é aceito" pra streak), também
+// avança a sequência a cada resposta certa, mesmo padrão de internal/learning/answers.go. Segue
+// sem tocar vidas/SRS/user_progress — Modo Infinito não é lição específica (API Spec §6.1,
+// resposta não inclui vidas_restantes).
 func handleInfiniteModeAnswer(pool *pgxpool.Pool, mongoDB *mongo.Database, gemini *questiongen.Client) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		if pool == nil || mongoDB == nil {
@@ -326,22 +330,35 @@ func handleInfiniteModeAnswer(pool *pgxpool.Pool, mongoDB *mongo.Database, gemin
 		correct := req.Answer == q.correctOptionID()
 
 		var timezone string
-		var xpTotal, xpToday, chestQuestionsToday, chestWeeklyQuestions int
+		var xpTotal, xpToday, xpDayBest, chestQuestionsToday, chestWeeklyQuestions int
 		var xpTodayDate, chestQuestionsDate, chestClaimedDate, chestWeeklyCycleStart *time.Time
 		var isVip bool
 		var vipExpiresAt *time.Time
 		var xpBoostActiveUntil *time.Time
+		var streakCurrent, streakBest, streakFreezesAvailable int
+		var streakLastActiveDate *time.Time
+		var streakRepairValue *int
+		var streakRepairDeadline *time.Time
+		var dailyGoalLevel gamification.DailyGoalLevel
+		var studySecondsToday int
+		var studySecondsTodayDate *time.Time
 		if err := pool.QueryRow(r.Context(), `
-			SELECT u.timezone, g.xp_total, g.xp_today, g.xp_today_date,
+			SELECT u.timezone, g.xp_total, g.xp_today, g.xp_today_date, g.xp_day_best,
 			       g.chest_questions_today, g.chest_questions_date, g.chest_claimed_date,
 			       g.chest_weekly_questions, g.chest_weekly_cycle_start, g.is_vip, g.vip_expires_at,
-			       g.xp_boost_active_until
+			       g.xp_boost_active_until, g.streak_current, g.streak_best,
+			       g.streak_last_active_date, g.streak_freezes_available,
+			       g.streak_repair_value, g.streak_repair_deadline,
+			       g.daily_goal_level, g.study_seconds_today, g.study_seconds_today_date
 			FROM users u JOIN user_gamification g ON g.user_id = u.id
 			WHERE u.id = $1
-		`, userID).Scan(&timezone, &xpTotal, &xpToday, &xpTodayDate,
+		`, userID).Scan(&timezone, &xpTotal, &xpToday, &xpTodayDate, &xpDayBest,
 			&chestQuestionsToday, &chestQuestionsDate, &chestClaimedDate,
 			&chestWeeklyQuestions, &chestWeeklyCycleStart, &isVip, &vipExpiresAt,
-			&xpBoostActiveUntil); err != nil {
+			&xpBoostActiveUntil, &streakCurrent, &streakBest,
+			&streakLastActiveDate, &streakFreezesAvailable,
+			&streakRepairValue, &streakRepairDeadline,
+			&dailyGoalLevel, &studySecondsToday, &studySecondsTodayDate); err != nil {
 			apierror.Write(w, http.StatusInternalServerError, "INTERNAL_ERROR", "Falha ao consultar perfil.")
 			return
 		}
@@ -350,12 +367,63 @@ func handleInfiniteModeAnswer(pool *pgxpool.Pool, mongoDB *mongo.Database, gemin
 		hojeLocal := gamification.HojeLocal(timezone, now)
 		xpToday = gamification.XPHojeAposReset(xpToday, dateOrEmpty(xpTodayDate), hojeLocal)
 
+		// Streak (mesmo padrão de internal/learning/answers.go — expira ANTES de aplicar o
+		// incremento de hoje, repara/avança só em resposta certa; AtualizarStreak é idempotente
+		// por dia, então acertar várias perguntas no mesmo dia não dá streak em dobro).
+		streakBeforeExpiry := streakCurrent
+		freezesBeforeExpiry := streakFreezesAvailable
+		var novaLastActiveStr string
+		var expirou bool
+		streakCurrent, novaLastActiveStr, streakFreezesAvailable, expirou = gamification.AplicarExpiracaoStreak(
+			streakCurrent, dateOrEmpty(streakLastActiveDate), streakFreezesAvailable, hojeLocal)
+
+		streakJustReset := expirou && streakBeforeExpiry > 0
+		freezeJustConsumed := !expirou && streakFreezesAvailable < freezesBeforeExpiry
+		if streakJustReset && !correct {
+			rv, rd := gamification.PrepararReparoStreak(streakBeforeExpiry, hojeLocal)
+			deadline, _ := time.Parse("2006-01-02", rd)
+			streakRepairValue = &rv
+			streakRepairDeadline = &deadline
+		}
+
+		streak := gamification.StreakState{Current: streakCurrent, Best: streakBest, LastActiveDate: novaLastActiveStr}
+		var streakRepaired bool
+		if correct {
+			if streakRepairValue != nil && streakRepairDeadline != nil {
+				deadlineStr := streakRepairDeadline.Format("2006-01-02")
+				if novoStreak, reparado := gamification.AplicarReparoStreak(streak, *streakRepairValue, deadlineStr, hojeLocal); reparado {
+					streak = novoStreak
+					streakRepaired = true
+				} else {
+					streak = gamification.AtualizarStreak(streak, hojeLocal)
+				}
+				streakRepairValue = nil
+				streakRepairDeadline = nil
+			} else {
+				streak = gamification.AtualizarStreak(streak, hojeLocal)
+			}
+		}
+		var streakLastActiveParam any
+		if streak.LastActiveDate != "" {
+			d, _ := time.Parse("2006-01-02", streak.LastActiveDate)
+			streakLastActiveParam = d
+		}
+
 		// Baú Diário: Modo Infinito também conta pro total acumulado do dia (10 acertos em qualquer
 		// combinação de lição/Modo Infinito), mesmo padrão de internal/learning/answers.go — só
 		// respostas certas contam (mudou de "toda resposta" em 18/08/2026, ver comentário lá).
 		chestQuestionsToday = gamification.QuestoesHojeAposReset(chestQuestionsToday, dateOrEmpty(chestQuestionsDate), hojeLocal)
 		if correct {
 			chestQuestionsToday++
+		}
+
+		// Meta Diária (TDD §13): mesmo padrão de internal/learning/answers.go — tempo de estudo
+		// soma em toda resposta, certa ou errada, capado por resposta (ClampAnswerStudyMs).
+		studySecondsToday = gamification.EstudoHojeAposReset(studySecondsToday, dateOrEmpty(studySecondsTodayDate), hojeLocal)
+		studySecondsToday += gamification.ClampAnswerStudyMs(int(req.TimeMs)) / 1000
+		dailyGoalTarget, ok := gamification.TargetForDailyGoalLevel(dailyGoalLevel)
+		if !ok {
+			dailyGoalTarget, _ = gamification.TargetForDailyGoalLevel(gamification.DefaultDailyGoalLevel)
 		}
 
 		// Baú Semanal: mesma regra do Baú Diário acima (só acertos), mesmo padrão de answers.go.
@@ -381,6 +449,11 @@ func handleInfiniteModeAnswer(pool *pgxpool.Pool, mongoDB *mongo.Database, gemin
 		newXPTotal := xpTotal + xpResult.XPConcedido
 		newXPToday := xpToday + xpResult.XPConcedido
 		newLevel := gamification.Nivel(newXPTotal)
+
+		// Personal Record de "mais XP em um dia" (gamification.PersonalRecordXPDia) — mesmo padrão
+		// de internal/learning/answers.go: calculado aqui pra ir no mesmo UPDATE de xp_total/
+		// xp_today logo abaixo, sem round-trip extra ao banco.
+		newXPDayBest, xpDayRecordBroken := gamification.DetectRecord(xpDayBest, newXPToday)
 
 		hojeLocalDate, _ := time.Parse("2006-01-02", hojeLocal)
 
@@ -442,26 +515,42 @@ func handleInfiniteModeAnswer(pool *pgxpool.Pool, mongoDB *mongo.Database, gemin
 		}
 
 		// Conquistas do Modo Infinito (sequência sem errar, total de perguntas) — best-effort,
-		// mesmo padrão de AddWeeklyXP acima.
+		// mesmo padrão de AddWeeklyXP acima. achievementsUnlocked/personalRecordsBroken alimentam
+		// diretamente o `resp` abaixo (ainda não construído nesta altura da função, diferente de
+		// internal/learning/answers.go) — aqui a resposta cacheada de idempotência já sai com os
+		// dois campos corretos, sem o trade-off documentado lá.
+		achievementsUnlocked := []string{}
+		personalRecordsBroken := []gamification.PersonalRecord{}
+		if xpDayRecordBroken {
+			personalRecordsBroken = append(personalRecordsBroken, gamification.PersonalRecord{
+				Metric: gamification.PersonalRecordXPDia, Value: newXPDayBest,
+			})
+		}
 		if counters, err := gamification.BumpInfiniteAnswerCounters(r.Context(), pool, userID, correct); err != nil {
 			log.Printf("aviso: falha ao atualizar contadores de conquista do Modo Infinito (user_id=%s): %v", userID, err)
-		} else if _, err := gamification.EvaluateAndUnlock(r.Context(), pool, userID, counters); err != nil {
+		} else if unlocked, err := gamification.EvaluateAndUnlock(r.Context(), pool, userID, counters); err != nil {
 			log.Printf("aviso: falha ao avaliar conquistas (user_id=%s): %v", userID, err)
+		} else {
+			achievementsUnlocked = append(achievementsUnlocked, unlocked...)
 		}
 
 		chestClaimedToday := dateOrEmpty(chestClaimedDate) == hojeLocal
-		dailyChestAvailable := chestQuestionsToday >= gamification.ChestQuestionsRequired && !chestClaimedToday
+		dailyChestAvailable := gamification.MetaDiariaAtingida(chestQuestionsToday, studySecondsToday, dailyGoalTarget) && !chestClaimedToday
 
 		resp := map[string]any{
-			"correct":               correct,
-			"xp_ganho":              xpResult.XPConcedido,
-			"xp_daily_cap_reached":  xpResult.DailyCapReached,
-			"xp_boost_active":       boostAtivo,
-			"questions_answered":    newQuestionsAnswered,
-			"correct_count":         sess.CorrectCount + boolToInt(correct),
-			"level":                 newQuestionsAnswered/genBatchSize + 1,
-			"daily_chest_available": dailyChestAvailable,
-			"daily_chest_questions": chestQuestionsToday,
+			"correct":                   correct,
+			"xp_ganho":                  xpResult.XPConcedido,
+			"xp_daily_cap_reached":      xpResult.DailyCapReached,
+			"xp_boost_active":           boostAtivo,
+			"streak_atual":              streak.Current,
+			"questions_answered":        newQuestionsAnswered,
+			"correct_count":             sess.CorrectCount + boolToInt(correct),
+			"level":                     newQuestionsAnswered/genBatchSize + 1,
+			"daily_chest_available":     dailyChestAvailable,
+			"daily_chest_questions":     chestQuestionsToday,
+			"daily_chest_study_minutes": studySecondsToday / 60,
+			"achievements_unlocked":     achievementsUnlocked,
+			"personal_records_broken":   personalRecordsBroken,
 		}
 		if nextQuestion != nil {
 			resp["next_question"] = toWireQuestion(*nextQuestion)
@@ -485,10 +574,16 @@ func handleInfiniteModeAnswer(pool *pgxpool.Pool, mongoDB *mongo.Database, gemin
 			UPDATE user_gamification
 			SET xp_total = $1, xp_today = $2, xp_today_date = $3, level = $4,
 			    chest_questions_today = $5, chest_questions_date = $6,
-			    chest_weekly_questions = $7, chest_weekly_cycle_start = $8
-			WHERE user_id = $9
+			    chest_weekly_questions = $7, chest_weekly_cycle_start = $8,
+			    streak_current = $9, streak_best = $10, streak_last_active_date = $11,
+			    streak_freezes_available = $12, streak_repair_value = $13, streak_repair_deadline = $14,
+			    xp_day_best = $15, study_seconds_today = $16, study_seconds_today_date = $17
+			WHERE user_id = $18
 		`, newXPTotal, newXPToday, hojeLocalDate, newLevel, chestQuestionsToday, hojeLocalDate,
-			chestWeeklyQuestions, chestWeeklyCycleStartDate, userID); err != nil {
+			chestWeeklyQuestions, chestWeeklyCycleStartDate,
+			streak.Current, streak.Best, streakLastActiveParam, streakFreezesAvailable,
+			streakRepairValue, streakRepairDeadline, newXPDayBest,
+			studySecondsToday, hojeLocalDate, userID); err != nil {
 			apierror.Write(w, http.StatusInternalServerError, "INTERNAL_ERROR", "Falha ao atualizar gamificação.")
 			return
 		}
@@ -535,6 +630,26 @@ func handleInfiniteModeAnswer(pool *pgxpool.Pool, mongoDB *mongo.Database, gemin
 			gamification.RecordEvent(r.Context(), pool, userID, gamification.EventXPCreditado, gamification.IntPtr(xpResult.XPConcedido), map[string]any{
 				"topic": sess.Topic, "daily_cap_reached": xpResult.DailyCapReached, "modo_infinito": true, "is_review": sess.IsReview,
 			})
+		}
+
+		// Telemetria de streak (RS-08, TDD §5.5) — mesmo bloco best-effort de answers.go.
+		if streakJustReset {
+			gamification.RecordEvent(r.Context(), pool, userID, gamification.EventStreakReset, gamification.IntPtr(streakBeforeExpiry), map[string]any{"topic": sess.Topic, "modo_infinito": true})
+		} else if freezeJustConsumed {
+			gamification.RecordEvent(r.Context(), pool, userID, gamification.EventStreakFreezeConsumed, nil, map[string]any{"topic": sess.Topic, "modo_infinito": true})
+		}
+		if streakRepaired {
+			gamification.RecordEvent(r.Context(), pool, userID, gamification.EventStreakRepaired, gamification.IntPtr(streak.Current), map[string]any{"topic": sess.Topic, "modo_infinito": true})
+			if err := notifications.Create(r.Context(), mongoDB, userID, "streak_repaired", fmt.Sprintf("Sua sequência de %d dias foi restaurada! Continue praticando pra mantê-la viva.", streak.Current)); err != nil {
+				log.Printf("aviso: falha ao registrar notificação de reparo de streak (user_id=%s): %v", userID, err)
+			}
+		}
+
+		// Double or Nothing (TDD §16) — mesmo bloco best-effort de answers.go, mesmo sinal
+		// reaproveitado (streakCurrent pós-expiração/pré-atualização vs. streak.Current final).
+		streakAdvanced := streak.Current > streakCurrent
+		if err := gamification.ResolveActiveBet(r.Context(), pool, userID, streakAdvanced, streakJustReset); err != nil {
+			log.Printf("aviso: falha ao resolver aposta Double or Nothing (user_id=%s): %v", userID, err)
 		}
 
 		writeJSON(w, http.StatusOK, resp)

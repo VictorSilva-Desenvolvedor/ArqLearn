@@ -81,7 +81,11 @@ export function TopAppBar() {
             href="/perfil"
             className="flex items-center gap-xs text-primary font-bold p-1 rounded-md hover:bg-surface-container transition-colors"
           >
-            <span className="flex items-baseline gap-1 whitespace-nowrap">
+            {/* hidden abaixo de sm (achado /impeccable audit, 23/08/2026): em 390px de largura,
+                essa faixa de texto junto do wordmark/avatar/logout empurrava o header 64px além
+                da viewport (WCAG 1.4.10 Reflow) — mesmo princípio já aplicado ao seletor de tema
+                e ao bloco de stats logo acima, que já colapsam progressivamente por breakpoint. */}
+            <span className="hidden sm:flex items-baseline gap-1 whitespace-nowrap">
               <span className="font-label text-label-caps text-primary uppercase">Nível {gamification.level}</span>
               <span className="font-label text-label-caps text-on-surface-variant normal-case">
                 · {xpFaltam} XP p/ próx.

@@ -3,7 +3,7 @@
 
 Especificação de referência dos endpoints REST expostos pelo API Gateway.
 
-Versão 1.27 | Agosto de 2026
+Versão 1.31 | Agosto de 2026
 Documento complementar ao SAD e ao TDD do ArqLearn v1.0
 
 > **Sobre esta versão:** versão em Markdown, mantida como fonte da verdade a partir de agora (ver
@@ -42,6 +42,10 @@ Documento complementar ao SAD e ao TDD do ArqLearn v1.0
 | 1.25 | 21/08/2026 | Equipe de Engenharia | §9: corrige o parágrafo do gatilho de streak em risco — `cmd/notify-decide` (substitui `cmd/notify-streak-risk`) roda de hora em hora implementando de fato a janela horária local que a TDD §5.2 já pedia, e a mensagem passa a ser escolhida entre 4 variações por um bandit de Thompson Sampling (TDD §11) em vez de um texto fixo único, respeitando cooldown de 3 dias e teto de 2 notificações/dia (`RX-05`). Sem endpoint novo — é lógica de job em segundo plano, mas o parágrafo antigo tinha virado factualmente incorreto. Implementado fora da ordem original de `Docs/ArqLearn_Backlog_Gamificacao_Atelie.md` (mesma decisão explícita do usuário da v1.24) |
 | 1.26 | 21/08/2026 | Equipe de Engenharia | §3.2/§8: `streak_freezes_available` passa a respeitar um teto escalonado (RS-03, TDD §5.5) — novo erro `STREAK_FREEZE_CAP_REACHED` (§12) em `POST /v1/gamification/shop/purchase`. §9: novo gatilho síncrono de reparo de streak (RS-08) — notificação `type: "streak_repaired"` quando uma sequência recém-perdida é restaurada dentro de 3 dias. Sem endpoint novo pro reparo em si (automático, dentro de `POST /v1/lessons/{lesson_id}/answers`). Implementado fora da ordem original de `Docs/ArqLearn_Backlog_Gamificacao_Atelie.md` (mesma decisão explícita do usuário das v1.22–v1.25) |
 | 1.27 | 21/08/2026 | Equipe de Engenharia | §3.2: adiciona `xp_boost_active`/`xp_boost_active_until` ao `GamificationProfile` — XP Boost, multiplicador temporário de 2x por 15min (TDD §3.3). §8.1/§8.2: `reward_type` do Baú Diário/Semanal ganha o valor `"xp_boost"` (com `xp_boost_active_until` na resposta). §6/§6.1: `POST .../answers` e `POST /v1/infinite-mode/{session_id}/answers` ganham `xp_boost_active` na resposta. Sem endpoint novo — concessão é automática via sorteio de baú. Implementado fora da ordem original de `Docs/ArqLearn_Backlog_Gamificacao_Atelie.md` (mesma decisão explícita do usuário das v1.22–v1.26) |
+| 1.28 | 21/08/2026 | Equipe de Engenharia | §6.1: `POST /v1/infinite-mode/sessions/{session_id}/answers` ganha `streak_atual` na resposta — Modo Infinito passa a contar pra sequência diária (TDD §5.1, revisado a pedido do usuário depois de um caso relatado: streak não subia porque a regra exigia terminar a lição inteira). `POST /v1/lessons/{lesson_id}/answers` (§6) mantém o campo já existente, só muda quando ele é atualizado — qualquer resposta certa, não mais só a conclusão da lição |
+| 1.29 | 21/08/2026 | Equipe de Engenharia | §3.2/§8: adiciona `personal_records` ao `GamificationProfile` — segunda categoria de conquista (TDD §12, nova seção), distinta de `achievements`: compara a métrica atual contra o próprio recorde do usuário, não um limiar fixo. §6/§6.1: `POST /v1/lessons/{lesson_id}/answers` e `POST /v1/infinite-mode/sessions/{session_id}/answers` ganham `achievements_unlocked`/`personal_records_broken` — achado ao implementar: o backend já calculava conquistas desbloqueadas por resposta desde a v1.16, mas o dado nunca saía da resposta; o cliente tinha que adivinhar quando celebrar |
+| 1.30 | 22/08/2026 | Equipe de Engenharia | §8.1 (renomeado "Meta Diária e Baú Diário", TDD §13 nova seção): Baú Diário deixa de exigir um número fixo de 10 perguntas pra todo mundo — o gatilho agora é a Meta Diária, nível de intensidade escolhido pelo usuário entre 4 presets, medida em perguntas certas OU minutos estudados no dia. Dois endpoints novos, `GET`/`PATCH /v1/gamification/daily-goal`. `GET .../daily-chest` ganha `study_minutes_today`/`study_minutes_required` (e `questions_required` passa a ser dinâmico por usuário, antes sempre `10`). §6/§6.1 ganham `daily_chest_study_minutes`. Reconcilia (não segue à letra) `Docs/ArqLearn_Backlog_Gamificacao_Atelie.md` §1.4/RS-01 — ver TDD §13 pro racional completo de por que streak continua desacoplado da meta |
+| 1.31 | 22/08/2026 | Equipe de Engenharia | §8.4 (novo, "Moeda: Livro-Razão, Pacotes de Gemas e Double or Nothing", TDD §15 nova seção): `GET /v1/gamification/gem-transactions` (extrato paginado, retrofitado nos pontos que já mexiam em `gems` antes desta versão). Pacotes de gemas — `GET .../gem-packages`, `POST .../gem-packages/{id}/checkout` (mockup, `501 GEM_PACKAGE_PURCHASE_UNAVAILABLE`, mesmo padrão de `POST /v1/vip/subscribe`), `POST`/`.../gem-coupons` e `.../gem-coupons/redeem` (caminho funcional hoje). Double or Nothing — `POST`/`GET /v1/gamification/bets`/`bets/active`, aposta de streak resolvida automaticamente nos mesmos pontos que já leem/expiram o streak. Novos erros `GEM_PACKAGE_PURCHASE_UNAVAILABLE`, `GEM_PACKAGE_NOT_FOUND`, `BET_ALREADY_ACTIVE`. Reconcilia (não segue à letra) RE-06 (`Docs/ignorar/Duolingo/REGRAS-gamificacao.md`) — decisão discutida e confirmada com o usuário |
 
 ---
 
@@ -155,6 +159,7 @@ mesma chave retornam a resposta original sem reprocessar.
 | `cosmetics` | `{item_id, name, equipped, acquired_at}[]` | Itens `category='cosmetic'` da Loja que o usuário já possui (`user_cosmetics`, Database Design v1.19) — antes disso, comprar um cosmético não deixava nenhum registro de posse. `equipped` sempre `true` por ora (sem tela de "trocar equipado" ainda). *(v1.23)* |
 | `xp_boost_active` | boolean | `true` quando um XP Boost está em vigor agora — dobra o XP ganho por resposta (TDD §3.3). Mesmo padrão de `is_vip`: já reflete a expiração, calculado a partir de `xp_boost_active_until`. *(v1.27)* |
 | `xp_boost_active_until` | datetime \| null | Instante em que o boost atual expira. `null` sempre significa "sem boost ativo" (diferente de `vip_expires_at`, sem o caso especial "vitalício"). *(v1.27)* |
+| `personal_records` | `{metric, value}[]` | Segunda categoria de conquista (TDD §12), distinta de `achievements` — compara contra o próprio recorde do usuário, não um limiar fixo do catálogo. Sempre 4 entradas: `streak_dias` (mesmo valor de `streak_best`), `infinito_sem_erros` (maior sequência sem errar no Modo Infinito), `xp_dia` (maior `xp_today` já alcançado num único dia — `xp_today` em si reseta todo dia, este não), `liga_alcancada` (maior rank de liga 1-30, mesma codificação de `league_tier`, já alcançado — sobrevive a um rebaixamento posterior). Título/descrição/ícone de exibição são conteúdo do cliente, mesmo padrão de `achievements[].type`. *(v1.29)* |
 
 ### 3.3 Track / Lesson / Question
 
@@ -315,7 +320,10 @@ ativa. Requer cabeçalho `Idempotency-Key` *(v1.22 — ver §2.6)*.
   "streak_atual": integer,
   "explicacao": "string",
   "daily_chest_available": boolean,
-  "daily_chest_questions": integer
+  "daily_chest_questions": integer,
+  "daily_chest_study_minutes": integer,
+  "achievements_unlocked": ["string"],
+  "personal_records_broken": [ {"metric", "value"} ]
 }
 ```
 `xp_ganho` já vem líquido do limite diário de XP (TDD §3.2) — quando `xp_daily_cap_reached` é `true`,
@@ -323,7 +331,15 @@ ativa. Requer cabeçalho `Idempotency-Key` *(v1.22 — ver §2.6)*.
 `xp_boost_active` *(v1.27)* — `true` quando o XP Boost estava em vigor nesta resposta (já refletido
 em `xp_ganho`, TDD §3.3); sinal mais granular que `GamificationProfile.xp_boost_active` (§3.2), útil
 durante a lição sem esperar uma nova leitura do perfil. `daily_chest_available`/
-`daily_chest_questions` *(v1.18)* — ver §8.1 Baú Diário.
+`daily_chest_questions`/`daily_chest_study_minutes` *(v1.18; `daily_chest_study_minutes` desde
+v1.30)* — ver §8.1 Meta Diária e Baú Diário. `achievements_unlocked`/
+`personal_records_broken` *(v1.29)* — `type`s de `achievements` desbloqueados e recordes de
+`personal_records` quebrados **por esta resposta específica**, sempre presentes (arrays vazios quando
+nada mudou); antes da v1.29 esse dado era calculado no backend mas nunca saía da resposta, obrigando o
+cliente a adivinhar quando celebrar. **Exceção documentada:** numa resposta *replayada* por retry de
+rede com a mesma `Idempotency-Key` (§2.6), estes dois campos vêm vazios mesmo que a conquista/recorde
+tenha sido concedido na chamada original — a conquista já foi persistida de qualquer forma (visível em
+`GET /v1/gamification/me` na próxima leitura), só a celebração específica desta resposta não repete.
 
 > **v1.5 — `answer` é id, não texto.** O corpo aceita o `id` da opção escolhida (ex.: `"b"`), não o
 > texto da resposta. Decisão tomada ao integrar com o app: comparar texto literal é frágil (acento,
@@ -414,22 +430,34 @@ próxima questão do modo infinito. Requer cabeçalho `Idempotency-Key` *(v1.22 
   "xp_ganho": integer,
   "xp_daily_cap_reached": boolean,
   "xp_boost_active": boolean,
+  "streak_atual": integer,
   "questions_answered": integer,
   "correct_count": integer,
   "level": integer,
   "next_question": { "...Question" },
   "daily_chest_available": boolean,
-  "daily_chest_questions": integer
+  "daily_chest_questions": integer,
+  "daily_chest_study_minutes": integer,
+  "achievements_unlocked": ["string"],
+  "personal_records_broken": [ {"metric", "value"} ]
 }
 ```
+`streak_atual` *(v1.28)* — Modo Infinito passa a contar pra sequência diária, igual a uma lição:
+qualquer resposta certa (aqui ou em `POST /v1/lessons/{lesson_id}/answers`, §6) avança a streak na
+primeira do dia local (TDD §5.1, revisado). Antes desta versão, Modo Infinito nunca tocava streak.
 `xp_boost_active` *(v1.27)* — mesmo campo/semântica de `POST /v1/lessons/{lesson_id}/answers` (§6,
 TDD §3.3); Modo Infinito recebe o boost igual à lição (mesma `CalcularXP`), mesmo continuando sem
 bônus de combo (TDD §3.0.1, farm-friendly por design). `next_question` ausente quando o banco de perguntas do tópico se esgota — cliente deve tratar como fim
 de sessão nesse caso. Campo `xp_daily_cap_reached` adicionado na v1.2, mesmo comportamento de §6.
+`achievements_unlocked`/`personal_records_broken` *(v1.29)* — mesmo campo/semântica de
+`POST /v1/lessons/{lesson_id}/answers` (§6), sem a exceção do replay idempotente: aqui a avaliação de
+conquista roda antes do corpo da resposta ser montado, então a mesma resposta cacheada por
+`Idempotency-Key` já sai com os dois campos corretos.
 `level` adicionado na v1.3 = `floor(questions_answered / 20) + 1`, calculado pro cliente exibir "Nível
 N" sem duplicar a conta — todo tópico ganha esse número, mas só `"maquetes"` de fato gera lição nova a
-cada nível (ver decisão acima). `daily_chest_available`/`daily_chest_questions` *(v1.18)* — ver §8.1
-Baú Diário; Modo Infinito soma pro mesmo contador acumulado do dia que lição usa.
+cada nível (ver decisão acima). `daily_chest_available`/`daily_chest_questions`/
+`daily_chest_study_minutes` *(v1.18; `daily_chest_study_minutes` desde v1.30)* — ver §8.1 Meta
+Diária e Baú Diário; Modo Infinito soma pros mesmos contadores acumulados do dia que lição usa.
 
 Erros: `400 IDEMPOTENCY_KEY_REQUIRED` *(v1.22)*.
 
@@ -601,11 +629,22 @@ Erros: `409 QUESTION_ALREADY_REVIEWED`
 > são conteúdo do cliente (`apps/web/src/lib/gamification/achievementCatalog.ts`), a API só
 > devolve `{type, unlocked_at}` como sempre documentado.
 
+> **v1.29 — `personal_records`, segunda categoria de conquista (TDD §12).** Distinta de
+> `achievements`: em vez de um limiar fixo do catálogo, compara a métrica atual contra o próprio
+> recorde anterior do usuário (`gamification.DetectRecord` — nunca decresce; empatar não conta como
+> quebrar). Catálogo de 4 métricas fixo (não crescente como `achievements`) vive em
+> `services/monolith/internal/gamification/personalrecords.go`; título/descrição/ícone de exibição
+> são conteúdo do cliente (`personalRecordCatalog.ts`), mesmo padrão de `achievementCatalog.ts`.
+
 **`GET /v1/gamification/me`** — Retorna o `GamificationProfile` completo do usuário.
 
 ```json
 // Response 200
-{ "...GamificationProfile", "achievements": [ {"type", "unlocked_at"} ] }
+{
+  "...GamificationProfile",
+  "achievements": [ {"type", "unlocked_at"} ],
+  "personal_records": [ {"metric", "value"} ]
+}
 ```
 
 > **`cosmetics` também em `GET /v1/users/me` (v1.23):** `GamificationProfile.cosmetics` é
@@ -708,26 +747,82 @@ Erros: `402 INSUFFICIENT_GEMS` · `404 ITEM_NOT_FOUND` · `409 STREAK_FREEZE_CAP
 `streak_freeze`, usuário já no teto escalonado — RS-03, TDD §5.5 — checado antes de debitar gemas,
 *v1.26*)
 
-### 8.1 Baú Diário *(v1.18)*
+### 8.1 Meta Diária e Baú Diário *(v1.18; Meta Diária personalizável desde v1.30)*
 
-A pedido do usuário: 1 baú por dia local, liberado ao **acertar** 10 perguntas no dia (lição OU Modo
-Infinito, contagem acumulada, qualquer combinação — não precisa ser na mesma sessão). Só respostas
-certas contam *(regra desde v1.20 — antes contava toda resposta, certa ou errada)*. Sem job/cron
-— expiração/contagem preguiçosa, mesmo padrão de vidas (TDD §5.4) e streak (§5.2/§5.3):
-`internal/gamification.LoadDailyChestStatus` reresolve o contador do dia (`chest_questions_today`/
-`chest_questions_date`, mesmo reset preguiçoso de `xp_today`) a cada leitura. O contador em si é
-incrementado dentro de `POST /v1/lessons/{lesson_id}/answers` e
-`POST /v1/infinite-mode/sessions/{session_id}/answers` (ver §6/§6.1) — as duas respostas ganham
-`daily_chest_available`/`daily_chest_questions` pra o cliente saber na hora, sem round-trip extra,
-quando a resposta que acabou de mandar foi a 10ª do dia.
+1 baú por dia local, liberado quando o usuário bate a **Meta Diária** — nível de intensidade
+escolhido por ele entre 4 presets (§8.1.1), medida em **perguntas certas OU minutos estudados no
+dia** (o que vier primeiro), nunca só em XP (TDD §13 explica o porquê). Até a v1.29 o gatilho era
+fixo — sempre 10 perguntas certas pra todo mundo — sem nenhuma personalização real por trás do
+`DailyGoalCard` do cliente (só um `DAILY_GOAL_XP=50` hardcoded, nunca lido do servidor). O nível
+`"regular"` (10 perguntas / 12 minutos) é o `DEFAULT` da coluna — quem nunca trocou de nível
+continua vendo exatamente o mesmo comportamento de antes da v1.30.
+
+Perguntas: lição OU Modo Infinito, contagem acumulada, qualquer combinação (não precisa ser na
+mesma sessão), só respostas **certas** contam *(regra desde v1.20 — antes contava toda resposta,
+certa ou errada)*. Minutos: soma o `time_ms` de **toda** resposta (certa ou errada — tempo
+estudando não depende de acertar), capado em 5min por resposta
+(`internal/gamification.ClampAnswerStudyMs` — protege contra um `time_ms` isolado e absurdo, ex.:
+app aberto numa pergunta por horas sem interação real, bater a meta de minutos sozinho). Sem
+job/cron — expiração/contagem preguiçosa, mesmo padrão de vidas (TDD §5.4) e streak (§5.2/§5.3):
+`internal/gamification.LoadDailyChestStatus` reresolve os dois contadores do dia
+(`chest_questions_today`/`chest_questions_date`, `study_seconds_today`/`study_seconds_today_date`)
+a cada leitura. Os contadores em si são incrementados dentro de
+`POST /v1/lessons/{lesson_id}/answers` e `POST /v1/infinite-mode/sessions/{session_id}/answers`
+(ver §6/§6.1) — as duas respostas ganham `daily_chest_available`/`daily_chest_questions`/
+`daily_chest_study_minutes` pra o cliente saber na hora, sem round-trip extra, quando a resposta
+que acabou de mandar bateu a meta do dia.
+
+#### 8.1.1 Presets de nível
+
+| Nível | Perguntas certas | Minutos | Observação |
+|---|---|---|---|
+| `leve` | 3 | 5 | Piso mínimo genuinamente alcançável mesmo em dia ruim |
+| `regular` | 10 | 12 | **Default** — igual ao comportamento fixo de antes da v1.30 |
+| `consistente` | 15 | 20 | |
+| `intensa` | 25 | 35 | |
+
+Calibração inicial (não telemetria real ainda) — catálogo completo vive só em
+`internal/gamification/dailygoal.go` (mesma decisão de não duplicar catálogo já tomada pra
+Achievements/Personal Records, v1.16/v1.29).
+
+**`GET /v1/gamification/daily-goal`** *(v1.30)* — Nível escolhido pelo usuário e progresso do dia
+em cada métrica.
+
+```json
+// Response 200
+{
+  "level": "leve" | "regular" | "consistente" | "intensa",
+  "questions_target": integer,
+  "study_minutes_target": integer,
+  "questions_today": integer,
+  "study_minutes_today": integer,
+  "achieved": boolean
+}
+```
+
+**`PATCH /v1/gamification/daily-goal`** *(v1.30)* — Troca o nível escolhido; devolve o mesmo
+formato do GET, já recalculado pro novo alvo.
+
+```json
+// Request body
+{ "level": "leve" | "regular" | "consistente" | "intensa" }
+// Response 200: igual ao GET acima
+```
+Erros: `400 INVALID_DAILY_GOAL_LEVEL` (nível fora do catálogo — validado contra
+`internal/gamification.TargetForDailyGoalLevel` antes de gravar, a CHECK constraint da coluna é só
+a última linha de defesa, não a validação primária).
 
 **`GET /v1/gamification/daily-chest`** — Status do Baú Diário do usuário autenticado.
+`questions_required`/`study_minutes_required` variam por usuário desde a v1.30 (vêm do nível de
+Meta Diária escolhido) — antes `questions_required` era sempre `10`.
 
 ```json
 // Response 200
 {
   "questions_today": integer,
-  "questions_required": 10,
+  "questions_required": integer,
+  "study_minutes_today": integer,
+  "study_minutes_required": integer,
   "available": boolean,
   "claimed_today": boolean
 }
@@ -737,7 +832,8 @@ quando a resposta que acabou de mandar foi a 10ª do dia.
 recompensa (`internal/gamification.RolarRecompensaBau`): **75%** gemas (1 a 5, uniforme), **25%**
 um item grátis do sistema, dividido em 3 partes iguais entre Bloqueio de Ofensiva, Recarga de
 Vidas e XP Boost *(3ª opção desde v1.27, TDD §3.3 — antes era 50/50 só entre os dois primeiros)* —
-cosméticos ficam de fora do pool. Sem `Idempotency-Key`: a trava de "1 por dia" já é o
+cosméticos ficam de fora do pool. Mesmo prêmio, qualquer nível de Meta Diária escolhido — só o
+esforço pra chegar lá muda, nunca o prêmio. Sem `Idempotency-Key`: a trava de "1 por dia" já é o
 `chest_claimed_date` em si, gravado atomicamente com a aplicação do prêmio.
 
 ```json
@@ -752,7 +848,7 @@ cosméticos ficam de fora do pool. Sem `Idempotency-Key`: a trava de "1 por dia"
 Loja), não o quanto foi ganho — `gems_earned` só existe quando `reward_type` é `"gems"`;
 `xp_boost_active_until` só existe quando `reward_type` é `"xp_boost"` (empilha com um boost já em
 vigor — soma a duração a partir do fim do boost atual, ver TDD §3.3). Erros:
-`409 CHEST_NOT_AVAILABLE` (ainda não bateu as 10 perguntas do dia, ou já foi aberto hoje —
+`409 CHEST_NOT_AVAILABLE` (ainda não bateu a Meta Diária escolhida, ou já foi aberto hoje —
 reconsultado no servidor, nunca confiado no que o cliente mandou).
 
 ### 8.2 Baú Semanal *(v1.19)*
@@ -909,6 +1005,98 @@ pros dois casos, pra não confirmar a existência de um código a quem não tem 
 { "error_code": "VIP_SUBSCRIPTION_UNAVAILABLE", "message": "..." }
 ```
 
+### 8.4 Moeda: Livro-Razão, Pacotes de Gemas e Double or Nothing *(v1.31, TDD §15)*
+
+**Livro-razão.** Antes desta versão, `gems` era só um saldo corrente, sem histórico auditável de
+nenhuma movimentação (compra, conquista, baú, recompensa de bug report). `GET
+/v1/gamification/gem-transactions` expõe o extrato completo, retrofitado nos pontos que já mexiam
+em `gems` antes desta versão e não só nos novos — omitir movimentações antigas seria enganoso, não
+só incompleto.
+
+**`GET /v1/gamification/gem-transactions`** — Extrato paginado (mesmo esquema de cursor de `GET
+/v1/tracks`, §2.4), mais recente primeiro.
+
+```json
+// Query: ?cursor=string&limit=integer (default 20, máx 100)
+// Response 200
+{
+  "data": [ { "id", "delta": integer, "reason": "string", "reference_id": "string | null",
+              "balance_after": integer, "created_at": "datetime" } ],
+  "next_cursor": "string | null"
+}
+```
+`reason` é um de: `achievement` · `daily_chest` · `weekly_chest` · `shop_purchase` ·
+`bug_report_reward` · `gem_coupon` · `bet_stake` · `bet_payout`.
+
+**Pacotes de gemas — mesmo padrão de mockup do VIP (§8.3).** Catálogo real; compra por cartão é um
+endpoint real e documentado, travado atrás de `501` até um gateway de pagamento existir. Cupom
+gerado por admin é o caminho funcional hoje — mesmo fluxo do cupom VIP, tabela própria
+(`gem_coupons`), sem `VIPGemsMultiplier` (um pacote pago credita exatamente o que foi pago, não é
+"ganho" sujeito ao bônus VIP).
+
+**`GET /v1/gamification/gem-packages`** — Catálogo de pacotes disponíveis.
+
+```json
+// Response 200
+{ "data": [ { "id", "name", "gems_amount": integer, "price_brl_cents": integer } ] }
+```
+
+**`POST /v1/gamification/gem-packages/{package_id}/checkout`** — Desabilitado nesta fase
+(`internal/gamification.GemPackagePurchasesEnabled = false`, mesmo padrão de `POST /v1/vip/subscribe`).
+Sempre responde:
+
+```json
+// Response 501
+{ "error_code": "GEM_PACKAGE_PURCHASE_UNAVAILABLE", "message": "..." }
+```
+
+**`POST /v1/gamification/gem-coupons`** — Gera um cupom de gemas. Requer `role = admin`.
+
+```json
+// Request body
+{ "gems_amount": integer }
+// Response 201
+{ "code": "string (10 dígitos)", "gems_amount": integer }
+```
+Erros: `400 INVALID_BODY` (`gems_amount` ausente ou ≤ 0) · `403 ADMIN_REQUIRED`.
+
+**`POST /v1/gamification/gem-coupons/redeem`** — Resgata um cupom e credita `gems_amount` na hora.
+
+```json
+// Request body
+{ "code": "string" }
+// Response 200
+{ "gems_credited": integer, "gems": integer }
+```
+Erros: `400 INVALID_BODY` · `409 COUPON_INVALID` (não existe ou já foi resgatado — mesma mensagem
+pros dois casos, mesmo motivo do cupom VIP).
+
+**Double or Nothing.** Aposta gemas, compromete-se a manter o streak por 7 dias corridos, dobra ou
+perde — sem estorno em caso de perda. Resolvida automaticamente nos mesmos pontos que já leem/expiram
+o streak hoje (`POST /v1/lessons/{lesson_id}/answers`, `POST
+/v1/infinite-mode/sessions/{session_id}/answers`, e a expiração preguiçosa de `GET
+/v1/gamification/me`/`GET /v1/users/me` — TDD §15.3); nenhum desses três endpoints ganhou campo novo
+na resposta — o cliente consulta o progresso separadamente por `GET .../bets/active`.
+
+**`POST /v1/gamification/bets`** — Inicia uma aposta Double or Nothing. Requer não ter nenhuma
+aposta `active` em andamento.
+
+```json
+// Request body
+{ "stake_gems": integer }
+// Response 201
+{ "stake_gems": integer, "days_required": 7, "days_completed": 0, "status": "active" }
+```
+Erros: `400 INVALID_BODY` (`stake_gems` abaixo do mínimo de 50) · `402 INSUFFICIENT_GEMS` ·
+`409 BET_ALREADY_ACTIVE`.
+
+**`GET /v1/gamification/bets/active`** — Aposta ativa do usuário autenticado, ou `null` se não houver.
+
+```json
+// Response 200
+{ "stake_gems": integer, "days_required": integer, "days_completed": integer, "status": "active" } | null
+```
+
 ## 9. Notifications Service
 
 > **v1.11 — os três endpoints abaixo são reais** (implementados contra a coleção `notifications`,
@@ -1027,6 +1215,9 @@ completos a detalhar no TDD quando a implementação desses três recursos come�
 | `VIP_SUBSCRIPTION_UNAVAILABLE` | 501 | Assinatura VIP por cartão ainda não integrada a um gateway de pagamento. *(v1.20)* |
 | `REVIEW_QUEUE_EMPTY` | 404 | Nenhum item vencido pra revisar agora (`POST /v1/infinite-mode/sessions` com `review: true`). *(v1.24)* |
 | `STREAK_FREEZE_CAP_REACHED` | 409 | Usuário já está no teto escalonado de bloqueios de ofensiva (2, ou 5 acima de `streak_best >= 100` — RS-03, TDD §5.5). *(v1.26)* |
+| `GEM_PACKAGE_PURCHASE_UNAVAILABLE` | 501 | Compra de pacote de gemas por cartão ainda não integrada a um gateway de pagamento — use um cupom. *(v1.31)* |
+| `GEM_PACKAGE_NOT_FOUND` | 404 | Pacote de gemas inexistente. *(v1.31)* |
+| `BET_ALREADY_ACTIVE` | 409 | Usuário já tem uma aposta Double or Nothing em andamento. *(v1.31)* |
 
 *Tabela — Catálogo consolidado de códigos de erro da API.*
 

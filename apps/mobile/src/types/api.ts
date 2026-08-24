@@ -78,6 +78,10 @@ export interface GamificationProfile {
   // sempre significa "sem boost ativo" (nunca "vitalício").
   xp_boost_active: boolean;
   xp_boost_active_until: string | null;
+  // Personal Records (TDD §12, v1.29) — segunda categoria de conquista, distinta de
+  // `achievements`: compara contra o próprio recorde do usuário, não um limiar fixo do catálogo.
+  // Sempre 4 entradas, uma por PersonalRecordMetric.
+  personal_records: PersonalRecord[];
 }
 
 export type AchievementType = string;
@@ -85,6 +89,15 @@ export type AchievementType = string;
 export interface Achievement {
   type: AchievementType;
   unlocked_at: string;
+}
+
+// PersonalRecordMetric: os 4 valores possíveis de PersonalRecord.metric — precisa bater exatamente
+// com gamification.PersonalRecordMetric (services/monolith/internal/gamification/personalrecords.go).
+export type PersonalRecordMetric = "streak_dias" | "infinito_sem_erros" | "xp_dia" | "liga_alcancada";
+
+export interface PersonalRecord {
+  metric: PersonalRecordMetric;
+  value: number;
 }
 
 export interface LeagueRankingEntry {
@@ -245,12 +258,22 @@ export interface AnswerResult {
   correct: boolean;
   xp_ganho: number;
   xp_daily_cap_reached: boolean;
+  // xp_boost_active (v1.27) — estava documentado na API Spec desde a v1.27 mas nunca tinha sido
+  // adicionado a este tipo; achado ao integrar Personal Records (v1.29).
+  xp_boost_active: boolean;
   vidas_restantes: number;
   streak_atual: number;
   explicacao: string;
-  // Baú Diário (v1.18) — 10 perguntas no dia (lição + Modo Infinito somados) liberam 1 abertura.
+  // Baú Diário (v1.18) — libera 1 abertura quando a Meta Diária escolhida é batida (perguntas OU
+  // minutos, TDD §13; antes da v1.30 era sempre "10 perguntas" fixo pra todo mundo).
   daily_chest_available: boolean;
   daily_chest_questions: number;
+  daily_chest_study_minutes: number;
+  // achievements_unlocked/personal_records_broken (v1.29) — o que esta resposta específica
+  // desbloqueou/quebrou, sempre presentes (arrays vazios quando nada mudou). Ausentes numa
+  // resposta replayada por retry de rede com a mesma Idempotency-Key — ver API Spec §6.
+  achievements_unlocked: AchievementType[];
+  personal_records_broken: PersonalRecord[];
 }
 
 export interface InfiniteModeQuestion {
@@ -281,6 +304,11 @@ export interface InfiniteModeAnswerResult {
   correct: boolean;
   xp_ganho: number;
   xp_daily_cap_reached: boolean;
+  // xp_boost_active (v1.27) — mesmo achado de AnswerResult acima.
+  xp_boost_active: boolean;
+  // Modo Infinito passa a contar pra sequência diária (TDD §5.1, revisado 21/08/2026 — antes
+  // não tocava streak nenhuma). API Spec v1.28.
+  streak_atual: number;
   questions_answered: number;
   correct_count: number;
   level: number;
@@ -288,15 +316,38 @@ export interface InfiniteModeAnswerResult {
   // Baú Diário (v1.18) — mesmo contador acumulado do dia de AnswerResult, Modo Infinito soma junto.
   daily_chest_available: boolean;
   daily_chest_questions: number;
+  daily_chest_study_minutes: number;
+  // achievements_unlocked/personal_records_broken (v1.29) — mesmo contrato de AnswerResult, sem a
+  // exceção do replay idempotente (ver API Spec §6.1).
+  achievements_unlocked: AchievementType[];
+  personal_records_broken: PersonalRecord[];
 }
 
 // --- Baú Diário (v1.18) ---
 
 export interface DailyChestStatus {
   questions_today: number;
+  // Dinâmico por usuário desde a v1.30 (Meta Diária) — antes sempre 10.
   questions_required: number;
+  study_minutes_today: number;
+  study_minutes_required: number;
   available: boolean;
   claimed_today: boolean;
+}
+
+// Meta Diária (TDD §13, v1.30) — nível de intensidade escolhido pelo usuário entre 4 presets
+// (dailyGoalCatalog.ts), medido em perguntas certas OU minutos estudados no dia. É o que decide
+// questions_required/study_minutes_required de DailyChestStatus acima — as duas rotas resolvem o
+// alvo pela mesma fonte no backend (internal/gamification/dailygoal.go).
+export type DailyGoalLevel = "leve" | "regular" | "consistente" | "intensa";
+
+export interface DailyGoalStatus {
+  level: DailyGoalLevel;
+  questions_target: number;
+  study_minutes_target: number;
+  questions_today: number;
+  study_minutes_today: number;
+  achieved: boolean;
 }
 
 export type ChestRewardType = "gems" | "streak_freeze" | "hearts_refill" | "xp_boost";
@@ -342,6 +393,53 @@ export interface VipChestResetResult {
 export interface VipRedeemCouponResult {
   is_vip: boolean;
   vip_expires_at: string | null;
+}
+
+// --- Moeda: Livro-Razão, Pacotes de Gemas e Double or Nothing (TDD §15) ---
+
+export type GemTransactionReason =
+  | "achievement"
+  | "daily_chest"
+  | "weekly_chest"
+  | "shop_purchase"
+  | "bug_report_reward"
+  | "gem_coupon"
+  | "bet_stake"
+  | "bet_payout";
+
+export interface GemTransaction {
+  id: string;
+  delta: number;
+  reason: GemTransactionReason;
+  reference_id: string | null;
+  balance_after: number;
+  created_at: string;
+}
+
+export interface GemTransactionsPage {
+  data: GemTransaction[];
+  next_cursor: string | null;
+}
+
+export interface GemPackage {
+  id: string;
+  name: string;
+  gems_amount: number;
+  price_brl_cents: number;
+}
+
+export interface GemCouponRedeemResult {
+  gems_credited: number;
+  gems: number;
+}
+
+export type GemBetStatus = "active" | "won" | "lost";
+
+export interface GemBet {
+  stake_gems: number;
+  days_required: number;
+  days_completed: number;
+  status: GemBetStatus;
 }
 
 export interface InfiniteModeEndResult {

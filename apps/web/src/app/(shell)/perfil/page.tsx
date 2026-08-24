@@ -7,6 +7,7 @@ import { ProfileStatsGrid } from "@/components/features/profile/ProfileStatsGrid
 import { ProgressSummaryCard } from "@/components/features/profile/ProgressSummaryCard";
 import { StreakFreezeCard } from "@/components/features/profile/StreakFreezeCard";
 import { AchievementGrid } from "@/components/features/profile/AchievementGrid";
+import { PersonalRecordsGrid } from "@/components/features/profile/PersonalRecordsGrid";
 import { ProfileMenuLink } from "@/components/features/profile/ProfileMenuLink";
 import { Avatar } from "@/components/ui/Avatar";
 import { Badge } from "@/components/ui/Badge";
@@ -71,6 +72,7 @@ export default async function ProfilePage() {
       <ProgressSummaryCard summary={progress} />
       <StreakFreezeCard />
       <AchievementGrid unlocked={gamification.achievements} />
+      <PersonalRecordsGrid records={gamification.personal_records} />
       <div className="flex flex-col gap-sm">
         <ProfileMenuLink href="/loja" icon="storefront" label="Loja" />
         <ProfileMenuLink href="/ajuda" icon="help" label="Ajuda e Bugs" />

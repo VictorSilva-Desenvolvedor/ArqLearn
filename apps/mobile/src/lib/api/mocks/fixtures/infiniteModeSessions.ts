@@ -1,8 +1,9 @@
 import { ApiError } from "../../http";
 import { getAllInfiniteModeEntries, getInfiniteModeBank, type InfiniteModeQuestionEntry } from "./infiniteModeQuestions";
 import { awardXp } from "./dailyXpCap";
-import { bumpMockChestQuestions, mockChestAvailable, mockChestQuestionsToday } from "./dailyChest";
+import { bumpMockChestQuestions, bumpMockStudySeconds, mockChestAvailable, mockChestQuestionsToday, mockStudyMinutesToday } from "./dailyChest";
 import { bumpMockWeeklyChestQuestions } from "./weeklyChest";
+import { mockGamificationProfile } from "./gamification";
 import type { InfiniteModeAnswerResult, InfiniteModeEndResult, InfiniteModeSession } from "@/types/api";
 
 // Sessão de Modo Infinito em memória do lado do cliente — mesmo padrão de quizSessions.ts.
@@ -152,17 +153,26 @@ export function answerInfiniteModeSessionMock(
   const next = nextEntry(state);
   bumpMockChestQuestions();
   bumpMockWeeklyChestQuestions();
+  bumpMockStudySeconds(timeMs);
 
   return {
     correct,
     xp_ganho,
     xp_daily_cap_reached,
+    xp_boost_active: false,
+    // Modo Infinito conta pra streak agora (TDD §5.1, revisado) — mock estático, mesmo
+    // simplificação já usada em quizSessions.ts (não simula o incremento real de 1x/dia).
+    streak_atual: mockGamificationProfile.streak_current,
     questions_answered: state.questionsAnswered,
     correct_count: state.correctCount,
     level: levelFor(state.questionsAnswered),
     next_question: next?.question,
     daily_chest_available: mockChestAvailable(),
     daily_chest_questions: mockChestQuestionsToday(),
+    daily_chest_study_minutes: mockStudyMinutesToday(),
+    // Mock não simula desbloqueio real de conquista/recorde — sempre vazio.
+    achievements_unlocked: [],
+    personal_records_broken: [],
   };
 }
 

@@ -2,14 +2,17 @@ import { isResourceReal } from "../config";
 import { apiFetch, ApiError } from "../http";
 import { mockDelay } from "../mocks/delay";
 import { mockAchievementUnlocks, mockGamificationProfile, mockLeague, mockLeagueByTier } from "../mocks/fixtures/gamification";
-import { getMockDailyChestStatus, mockOpenDailyChest } from "../mocks/fixtures/dailyChest";
+import { getMockDailyChestStatus, getMockDailyGoalStatus, mockOpenDailyChest, setMockDailyGoalLevel } from "../mocks/fixtures/dailyChest";
 import { getMockWeeklyChestStatus, mockOpenWeeklyChest } from "../mocks/fixtures/weeklyChest";
+import { dailyGoalCatalog } from "@/lib/gamification/dailyGoalCatalog";
 import { mockShopCatalog } from "../mocks/fixtures/shopCatalog";
 import type { LeagueTierName } from "@/lib/gamification/leagueTiers";
 import type {
   Achievement,
   ChestOpenResult,
   DailyChestStatus,
+  DailyGoalLevel,
+  DailyGoalStatus,
   GamificationProfile,
   League,
   PurchaseResult,
@@ -89,9 +92,10 @@ export async function freezeStreak(currentFreezesAvailable: number): Promise<Fre
   return mockDelay({ streak_freezes_available: currentFreezesAvailable - 1 }, 300);
 }
 
-// Baú Diário (v1.18, a pedido do usuário) — 1 abertura por dia local ao responder 10 perguntas no
-// dia (lição + Modo Infinito somados, ver AnswerResult/InfiniteModeAnswerResult). Status/abertura
-// são dois endpoints porque o corpo aceita re-consulta livre (GET) sem gastar a abertura em si.
+// Baú Diário (v1.18, a pedido do usuário) — 1 abertura por dia local ao bater a Meta Diária
+// escolhida (v1.30, TDD §13 — perguntas certas OU minutos estudados, lição + Modo Infinito
+// somados, ver AnswerResult/InfiniteModeAnswerResult). Status/abertura são dois endpoints porque
+// o corpo aceita re-consulta livre (GET) sem gastar a abertura em si.
 export async function getDailyChestStatus(): Promise<DailyChestStatus> {
   if (isResourceReal("gamification")) {
     return apiFetch<DailyChestStatus>("/v1/gamification/daily-chest");
@@ -111,6 +115,35 @@ export async function openDailyChest(): Promise<ChestOpenResult> {
     });
   }
   return mockDelay(mockOpenDailyChest(), 400);
+}
+
+// Meta Diária (v1.30, TDD §13) — nível de intensidade escolhido pelo usuário entre 4 presets
+// (dailyGoalCatalog.ts), medido em perguntas certas OU minutos estudados no dia. É o que decide o
+// gatilho do Baú Diário acima (questions_required/study_minutes_required de DailyChestStatus vêm
+// do mesmo nível).
+export async function getDailyGoalStatus(): Promise<DailyGoalStatus> {
+  if (isResourceReal("gamification")) {
+    return apiFetch<DailyGoalStatus>("/v1/gamification/daily-goal");
+  }
+  return mockDelay(getMockDailyGoalStatus());
+}
+
+export async function updateDailyGoalLevel(level: DailyGoalLevel): Promise<DailyGoalStatus> {
+  if (isResourceReal("gamification")) {
+    return apiFetch<DailyGoalStatus>("/v1/gamification/daily-goal", {
+      method: "PATCH",
+      body: JSON.stringify({ level }),
+    });
+  }
+  if (!dailyGoalCatalog[level]) {
+    throw new ApiError(400, {
+      error_code: "INVALID_DAILY_GOAL_LEVEL",
+      message: "Nível de meta diária inválido — use leve, regular, consistente ou intensa.",
+      trace_id: "mock-trace",
+    });
+  }
+  setMockDailyGoalLevel(level);
+  return mockDelay(getMockDailyGoalStatus(), 300);
 }
 
 // Baú Semanal (v1.19, a pedido do usuário) — mesmo padrão do Baú Diário acima, mas 1 abertura por

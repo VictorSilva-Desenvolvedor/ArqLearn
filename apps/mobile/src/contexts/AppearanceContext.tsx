@@ -11,10 +11,14 @@ export interface AppearanceContextValue {
 
 const STORAGE_KEY = "arqlearn_appearance_preference";
 
+// react-native-web não implementa setColorScheme (só existe em RN nativo) — chamar sem checar
+// derruba o módulo inteiro na primeira linha e quebra o app no Expo Web.
+const canSetColorScheme = typeof Appearance.setColorScheme === "function";
+
 // Padrão claro sempre, mesmo antes do AsyncStorage resolver (não dá pra ler storage de forma
 // síncrona no primeiro render do RN) — sem isto, um celular com o sistema em modo escuro
 // piscaria escuro por um instante até a preferência salva (ou o padrão) ser aplicada.
-Appearance.setColorScheme("light");
+if (canSetColorScheme) Appearance.setColorScheme("light");
 
 // Alternância manual claro/escuro (a pedido explícito do usuário, 19/08/2026 — reverte o
 // `userInterfaceStyle: "automatic"` do PR #125, que seguia só o tema do sistema sem opção
@@ -32,7 +36,7 @@ export function AppearanceProvider({ children }: { children: ReactNode }) {
     AsyncStorage.getItem(STORAGE_KEY).then((stored) => {
       if (cancelled || stored !== "dark") return;
       setPreferenceState("dark");
-      Appearance.setColorScheme("dark");
+      if (canSetColorScheme) Appearance.setColorScheme("dark");
     });
     return () => {
       cancelled = true;
@@ -41,7 +45,7 @@ export function AppearanceProvider({ children }: { children: ReactNode }) {
 
   const setPreference = useCallback((next: AppearancePreference) => {
     setPreferenceState(next);
-    Appearance.setColorScheme(next);
+    if (canSetColorScheme) Appearance.setColorScheme(next);
     void AsyncStorage.setItem(STORAGE_KEY, next);
   }, []);
 

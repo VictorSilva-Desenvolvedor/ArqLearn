@@ -28,6 +28,15 @@ func RegisterRoutes(mux *http.ServeMux, pool *pgxpool.Pool, verifier *authmiddle
 	mux.Handle("POST /v1/gamification/shop/purchase", verifier.Middleware(http.HandlerFunc(handleShopPurchase(pool))))
 	mux.Handle("GET /v1/gamification/daily-chest", verifier.Middleware(http.HandlerFunc(handleGetDailyChestStatus(pool))))
 	mux.Handle("POST /v1/gamification/daily-chest/open", verifier.Middleware(http.HandlerFunc(handleOpenDailyChest(pool))))
+	mux.Handle("GET /v1/gamification/daily-goal", verifier.Middleware(http.HandlerFunc(handleGetDailyGoal(pool))))
+	mux.Handle("PATCH /v1/gamification/daily-goal", verifier.Middleware(http.HandlerFunc(handleUpdateDailyGoal(pool))))
+	mux.Handle("GET /v1/gamification/gem-transactions", verifier.Middleware(http.HandlerFunc(handleGetGemTransactions(pool))))
+	mux.Handle("GET /v1/gamification/gem-packages", verifier.Middleware(http.HandlerFunc(handleListGemPackages(pool))))
+	mux.Handle("POST /v1/gamification/gem-packages/{package_id}/checkout", verifier.Middleware(http.HandlerFunc(handleCheckoutGemPackage(pool))))
+	mux.Handle("POST /v1/gamification/gem-coupons", verifier.Middleware(http.HandlerFunc(handleCreateGemCoupon(pool))))
+	mux.Handle("POST /v1/gamification/gem-coupons/redeem", verifier.Middleware(http.HandlerFunc(handleRedeemGemCoupon(pool))))
+	mux.Handle("POST /v1/gamification/bets", verifier.Middleware(http.HandlerFunc(handleStartGemBet(pool))))
+	mux.Handle("GET /v1/gamification/bets/active", verifier.Middleware(http.HandlerFunc(handleGetActiveGemBet(pool))))
 	mux.Handle("GET /v1/gamification/weekly-chest", verifier.Middleware(http.HandlerFunc(handleGetWeeklyChestStatus(pool))))
 	mux.Handle("POST /v1/gamification/weekly-chest/open", verifier.Middleware(http.HandlerFunc(handleOpenWeeklyChest(pool))))
 	mux.Handle("POST /v1/gamification/daily-chest/reset", verifier.Middleware(http.HandlerFunc(handleResetDailyChest(pool))))
@@ -97,9 +106,13 @@ type gamificationMeResponse struct {
 	Gems          int               `json:"gems"`
 	LeagueTier    *string           `json:"league_tier"`
 	Achievements  []achievementJSON `json:"achievements"`
-	Cosmetics     []CosmeticJSON    `json:"cosmetics"`
-	IsVIP         bool              `json:"is_vip"`
-	VIPExpiresAt  *time.Time        `json:"vip_expires_at"`
+	// PersonalRecords: segunda categoria de conquista (TDD §12), distinta de Achievements —
+	// compara contra o próprio recorde do usuário, não um limiar fixo do catálogo (ver
+	// personalrecords.go). Sempre 4 entradas, uma por PersonalRecordMetric.
+	PersonalRecords []PersonalRecord `json:"personal_records"`
+	Cosmetics       []CosmeticJSON   `json:"cosmetics"`
+	IsVIP           bool             `json:"is_vip"`
+	VIPExpiresAt    *time.Time       `json:"vip_expires_at"`
 	// XPBoostActive/XPBoostActiveUntil (TDD §3.3) — mesmo par de is_vip/vip_expires_at, mas
 	// XPBoostActiveUntil=nil sempre significa "sem boost ativo" (nunca "vitalício").
 	XPBoostActive      bool       `json:"xp_boost_active"`
@@ -197,6 +210,14 @@ func LoadStreakWithExpiration(ctx context.Context, pool *pgxpool.Pool, userID st
 			d, _ := time.Parse("2006-01-02", rd)
 			novoRepairDeadlineParam = d
 			RecordEvent(ctx, pool, userID, EventStreakReset, &currentAntesDaExpiracao, map[string]any{"schema_version": 1})
+			// Double or Nothing (TDD §16) — esta é a ÚNICA das duas chamadas de
+			// AplicarExpiracaoStreak que precisa checar perda de aposta aqui: quem abre o app (GET,
+			// não resposta) depois da streak já ter estourado só descobre isso nesta função, mesmo
+			// motivo do reparo de streak preparado logo acima. Nunca "ganha" aqui — esta função não
+			// chama AtualizarStreak, só expira.
+			if err := ResolveActiveBet(ctx, pool, userID, false, true); err != nil {
+				log.Printf("aviso: falha ao resolver aposta Double or Nothing (user_id=%s): %v", userID, err)
+			}
 		} else if novosFreezes < freezesAvailable {
 			RecordEvent(ctx, pool, userID, EventStreakFreezeConsumed, nil, map[string]any{"schema_version": 1})
 		}
@@ -286,6 +307,12 @@ func handleGetGamificationMe(pool *pgxpool.Pool) http.HandlerFunc {
 				return
 			}
 			resp.Achievements = append(resp.Achievements, a)
+		}
+
+		resp.PersonalRecords, err = LoadPersonalRecords(r.Context(), pool, userID)
+		if err != nil {
+			apierror.Write(w, http.StatusInternalServerError, "INTERNAL_ERROR", "Falha ao consultar recordes pessoais.")
+			return
 		}
 
 		resp.Cosmetics, err = LoadOwnedCosmetics(r.Context(), pool, userID)
@@ -745,8 +772,10 @@ func CloseLeagueWeek(ctx context.Context, pool *pgxpool.Pool, week time.Time) er
 			if newTier == l.tier {
 				continue
 			}
+			// league_best_tier (Personal Record, ver personalrecords.go) sobe junto via GREATEST
+			// — nunca decresce sozinho no caso de rebaixamento (newTier < l.tier).
 			if _, err := pool.Exec(ctx,
-				`UPDATE user_gamification SET current_tier = $1 WHERE user_id = $2`,
+				`UPDATE user_gamification SET current_tier = $1, league_best_tier = GREATEST(league_best_tier, $1) WHERE user_id = $2`,
 				newTier, entry.UserID,
 			); err != nil {
 				return err
@@ -920,6 +949,10 @@ func handleShopPurchase(pool *pgxpool.Pool) http.HandlerFunc {
 			apierror.Write(w, http.StatusInternalServerError, "INTERNAL_ERROR", "Falha ao debitar gemas.")
 			return
 		}
+		if err := RecordGemTransaction(r.Context(), tx, userID, -priceGems, GemReasonShopPurchase, itemUUID.String(), gemsRestantes); err != nil {
+			apierror.Write(w, http.StatusInternalServerError, "INTERNAL_ERROR", "Falha ao registrar extrato.")
+			return
+		}
 
 		// Efeito de posse imediata: consumíveis mexem em user_gamification; cosméticos entram no
 		// inventário (user_cosmetics, migration 0015) já equipados — sem tela de "trocar
@@ -1030,33 +1063,52 @@ func AwardGems(ctx context.Context, pool *pgxpool.Pool, userID string, amount in
 		`UPDATE user_gamification SET gems = gems + $1 WHERE user_id = $2 RETURNING gems`,
 		awarded, userID,
 	).Scan(&newTotal)
-	return awarded, newTotal, err
+	if err != nil {
+		return awarded, newTotal, err
+	}
+	if err := RecordGemTransaction(ctx, pool, userID, awarded, GemReasonBugReportReward, "", newTotal); err != nil {
+		return awarded, newTotal, err
+	}
+	return awarded, newTotal, nil
 }
 
 // --- Baú Diário (a pedido do usuário) ---
 
-// DailyChestSnapshot é o retorno de LoadDailyChestStatus.
+// DailyChestSnapshot é o retorno de LoadDailyChestStatus. QuestionsRequired/StudySecondsRequired
+// (Meta Diária, TDD §13) são dinâmicos por usuário desde a v1.30 — antes eram o valor fixo
+// ChestQuestionsRequired (10) pra todo mundo.
 type DailyChestSnapshot struct {
-	QuestionsToday    int
-	QuestionsRequired int
-	Available         bool
-	ClaimedToday      bool
+	Level                DailyGoalLevel
+	QuestionsToday       int
+	QuestionsRequired    int
+	StudySecondsToday    int
+	StudySecondsRequired int
+	Available            bool
+	ClaimedToday         bool
 }
 
-// LoadDailyChestStatus lê chest_questions_today/chest_questions_date e chest_claimed_date, aplica
-// o reset preguiçoso do contador (mesmo padrão de LoadHeartsWithRegen/LoadStreakWithExpiration —
-// sem job/cron nesta fase bootstrap) e devolve se o Baú Diário está disponível pra abrir agora.
-// Chamada por GET /v1/gamification/daily-chest e por POST .../answers e .../infinite-mode/.../
-// answers (internal/learning) antes de incrementar a resposta atual no contador.
+// LoadDailyChestStatus lê chest_questions_today/chest_questions_date, chest_claimed_date e o
+// estado da Meta Diária (daily_goal_level, study_seconds_today/_date), aplica o reset preguiçoso
+// dos dois contadores (mesmo padrão de LoadHeartsWithRegen/LoadStreakWithExpiration — sem job/cron
+// nesta fase bootstrap) e devolve se o Baú Diário está disponível pra abrir agora — disponível
+// assim que QUALQUER UMA das duas métricas da Meta Diária bate o alvo do nível escolhido pelo
+// usuário (MetaDiariaAtingida, dailygoal.go), não mais um número fixo de perguntas. Chamada por
+// GET /v1/gamification/daily-chest e por POST .../answers e .../infinite-mode/.../answers
+// (internal/learning) antes de incrementar a resposta atual nos contadores.
 func LoadDailyChestStatus(ctx context.Context, pool *pgxpool.Pool, userID string) (DailyChestSnapshot, error) {
 	var questionsToday int
 	var questionsDate, claimedDate *time.Time
 	var timezone string
+	var level DailyGoalLevel
+	var studySecondsToday int
+	var studySecondsDate *time.Time
 	if err := pool.QueryRow(ctx, `
-		SELECT g.chest_questions_today, g.chest_questions_date, g.chest_claimed_date, u.timezone
+		SELECT g.chest_questions_today, g.chest_questions_date, g.chest_claimed_date, u.timezone,
+		       g.daily_goal_level, g.study_seconds_today, g.study_seconds_today_date
 		FROM user_gamification g JOIN users u ON u.id = g.user_id
 		WHERE g.user_id = $1
-	`, userID).Scan(&questionsToday, &questionsDate, &claimedDate, &timezone); err != nil {
+	`, userID).Scan(&questionsToday, &questionsDate, &claimedDate, &timezone,
+		&level, &studySecondsToday, &studySecondsDate); err != nil {
 		return DailyChestSnapshot{}, err
 	}
 
@@ -1065,15 +1117,21 @@ func LoadDailyChestStatus(ctx context.Context, pool *pgxpool.Pool, userID string
 	if questionsDate != nil {
 		questionsDateStr = questionsDate.Format("2006-01-02")
 	}
+	studySecondsDateStr := ""
+	if studySecondsDate != nil {
+		studySecondsDateStr = studySecondsDate.Format("2006-01-02")
+	}
 	novoQuestoes := QuestoesHojeAposReset(questionsToday, questionsDateStr, hojeLocal)
-	if novoQuestoes != questionsToday {
+	novoEstudo := EstudoHojeAposReset(studySecondsToday, studySecondsDateStr, hojeLocal)
+	if novoQuestoes != questionsToday || novoEstudo != studySecondsToday {
 		if _, err := pool.Exec(ctx,
-			`UPDATE user_gamification SET chest_questions_today = $1 WHERE user_id = $2`,
-			novoQuestoes, userID,
+			`UPDATE user_gamification SET chest_questions_today = $1, study_seconds_today = $2 WHERE user_id = $3`,
+			novoQuestoes, novoEstudo, userID,
 		); err != nil {
 			return DailyChestSnapshot{}, err
 		}
 		questionsToday = novoQuestoes
+		studySecondsToday = novoEstudo
 	}
 
 	claimedDateStr := ""
@@ -1082,11 +1140,19 @@ func LoadDailyChestStatus(ctx context.Context, pool *pgxpool.Pool, userID string
 	}
 	claimedToday := claimedDateStr == hojeLocal
 
+	target, ok := TargetForDailyGoalLevel(level)
+	if !ok {
+		target, _ = TargetForDailyGoalLevel(DefaultDailyGoalLevel)
+	}
+
 	return DailyChestSnapshot{
-		QuestionsToday:    questionsToday,
-		QuestionsRequired: ChestQuestionsRequired,
-		Available:         questionsToday >= ChestQuestionsRequired && !claimedToday,
-		ClaimedToday:      claimedToday,
+		Level:                level,
+		QuestionsToday:       questionsToday,
+		QuestionsRequired:    target.Questions,
+		StudySecondsToday:    studySecondsToday,
+		StudySecondsRequired: target.StudySeconds,
+		Available:            MetaDiariaAtingida(questionsToday, studySecondsToday, target) && !claimedToday,
+		ClaimedToday:         claimedToday,
 	}, nil
 }
 
@@ -1103,11 +1169,79 @@ func handleGetDailyChestStatus(pool *pgxpool.Pool) http.HandlerFunc {
 			return
 		}
 		writeJSON(w, http.StatusOK, map[string]any{
-			"questions_today":    status.QuestionsToday,
-			"questions_required": status.QuestionsRequired,
-			"available":          status.Available,
-			"claimed_today":      status.ClaimedToday,
+			"questions_today":        status.QuestionsToday,
+			"questions_required":     status.QuestionsRequired,
+			"study_minutes_today":    status.StudySecondsToday / 60,
+			"study_minutes_required": status.StudySecondsRequired / 60,
+			"available":              status.Available,
+			"claimed_today":          status.ClaimedToday,
 		})
+	}
+}
+
+// --- Meta Diária (TDD §13) ---
+
+// handleGetDailyGoal implementa GET /v1/gamification/daily-goal — reaproveita
+// LoadDailyChestStatus (mesmo estado, mesmo reset preguiçoso) em vez de duplicar a leitura; só
+// reformata a resposta no formato próprio da Meta Diária.
+func handleGetDailyGoal(pool *pgxpool.Pool) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		userID, ok := authmiddleware.UserID(r.Context())
+		if !ok {
+			apierror.Write(w, http.StatusUnauthorized, "UNAUTHENTICATED", "Token inválido.")
+			return
+		}
+		status, err := LoadDailyChestStatus(r.Context(), pool, userID)
+		if err != nil {
+			apierror.Write(w, http.StatusInternalServerError, "INTERNAL_ERROR", "Falha ao consultar meta diária.")
+			return
+		}
+		target := DailyGoalTarget{Questions: status.QuestionsRequired, StudySeconds: status.StudySecondsRequired}
+		writeJSON(w, http.StatusOK, buildDailyGoalStatusResponse(status.Level, target, status.QuestionsToday, status.StudySecondsToday))
+	}
+}
+
+type updateDailyGoalRequest struct {
+	Level DailyGoalLevel `json:"level"`
+}
+
+// handleUpdateDailyGoal implementa PATCH /v1/gamification/daily-goal — troca o nível de
+// intensidade escolhido pelo usuário. Valida contra o catálogo antes de gravar (nunca confia em
+// string arbitrária do cliente, mesmo com a CHECK constraint como última linha de defesa no
+// banco) e devolve o status já recalculado pro novo alvo.
+func handleUpdateDailyGoal(pool *pgxpool.Pool) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		userID, ok := authmiddleware.UserID(r.Context())
+		if !ok {
+			apierror.Write(w, http.StatusUnauthorized, "UNAUTHENTICATED", "Token inválido.")
+			return
+		}
+
+		var req updateDailyGoalRequest
+		if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+			apierror.Write(w, http.StatusBadRequest, "INVALID_BODY", "Corpo da requisição inválido.")
+			return
+		}
+		if _, ok := TargetForDailyGoalLevel(req.Level); !ok {
+			apierror.Write(w, http.StatusBadRequest, "INVALID_DAILY_GOAL_LEVEL", "Nível de meta diária inválido — use leve, regular, consistente ou intensa.")
+			return
+		}
+
+		if _, err := pool.Exec(r.Context(),
+			`UPDATE user_gamification SET daily_goal_level = $1 WHERE user_id = $2`,
+			req.Level, userID,
+		); err != nil {
+			apierror.Write(w, http.StatusInternalServerError, "INTERNAL_ERROR", "Falha ao atualizar meta diária.")
+			return
+		}
+
+		status, err := LoadDailyChestStatus(r.Context(), pool, userID)
+		if err != nil {
+			apierror.Write(w, http.StatusInternalServerError, "INTERNAL_ERROR", "Falha ao consultar meta diária.")
+			return
+		}
+		target := DailyGoalTarget{Questions: status.QuestionsRequired, StudySeconds: status.StudySecondsRequired}
+		writeJSON(w, http.StatusOK, buildDailyGoalStatusResponse(status.Level, target, status.QuestionsToday, status.StudySecondsToday))
 	}
 }
 
@@ -1207,6 +1341,12 @@ func handleOpenDailyChest(pool *pgxpool.Pool) http.HandlerFunc {
 		if err != nil {
 			apierror.Write(w, http.StatusInternalServerError, "INTERNAL_ERROR", "Falha ao aplicar recompensa do baú.")
 			return
+		}
+		if reward.Type == ChestRewardGems {
+			if err := RecordGemTransaction(r.Context(), tx, userID, reward.GemsAmount, GemReasonDailyChest, "", newGems); err != nil {
+				apierror.Write(w, http.StatusInternalServerError, "INTERNAL_ERROR", "Falha ao registrar extrato.")
+				return
+			}
 		}
 
 		if err := tx.Commit(r.Context()); err != nil {
@@ -1402,6 +1542,12 @@ func handleOpenWeeklyChest(pool *pgxpool.Pool) http.HandlerFunc {
 		if err != nil {
 			apierror.Write(w, http.StatusInternalServerError, "INTERNAL_ERROR", "Falha ao aplicar recompensa do baú.")
 			return
+		}
+		if reward.Type == ChestRewardGems {
+			if err := RecordGemTransaction(r.Context(), tx, userID, reward.GemsAmount, GemReasonWeeklyChest, "", newGems); err != nil {
+				apierror.Write(w, http.StatusInternalServerError, "INTERNAL_ERROR", "Falha ao registrar extrato.")
+				return
+			}
 		}
 
 		if err := tx.Commit(r.Context()); err != nil {

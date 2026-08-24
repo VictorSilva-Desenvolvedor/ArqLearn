@@ -8,6 +8,12 @@
   ],
   "scripts": {
     "web": "npm run dev --workspace=apps/web",
-    "mobile": "npm run start --workspace=apps/mobile"
+    "mobile": "npm run start --workspace=apps/mobile",
+    "test:visual": "playwright test",
+    "test:visual:update": "playwright test --update-snapshots",
+    "test:visual:report": "playwright show-report e2e/visual/report"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.62.1"
   }
 }

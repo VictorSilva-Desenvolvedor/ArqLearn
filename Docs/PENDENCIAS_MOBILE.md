@@ -1051,3 +1051,41 @@ Verificação: `tsc --noEmit` (mobile e web), `go build`/`vet`/`test` limpos. Mi
 confirmadas via consulta direta. Fix da corrida de idempotência e do timeout **não foram testados
 ao vivo ainda** (a sessão que corrigiu não teve tempo de reconectar o device antes de encerrar) —
 fica pendente confirmar na próxima rodada de teste.
+
+### 24. Auditoria retroativa (ui-reviewer) — vazamento visual entre abas no alvo web (23/08/2026)
+
+Login real (`expo start --web` + Playwright, conta `maria.aluna@arqlearn.test`, shim local do
+`expo-secure-store` revertido ao final — mesmo setup de sempre) usado para revisar visualmente as
+telas de Loja/Explorar/VIP/Perfil já auditadas por código nas rodadas anteriores. **Achado novo,
+não visto em nenhuma rodada anterior porque nenhuma tinha navegado entre abas via clique real**:
+trocar de aba pela barra inferior (Início → Explorar → VIP → Perfil) deixa o conteúdo da aba
+anterior visualmente vazando por trás da nova (texto sobreposto, confirmado persistente após 3.5s
+de espera, não é race de transição). Piora a cada troca de aba adicional. Telas fora do grupo
+`(tabs)` (ex.: `/loja`, alcançada por push navigation) renderizam limpas — o problema é específico
+de trocar entre telas irmãs dentro do `Tabs`.
+
+**Causa provável**: `(tabs)/_layout.tsx` define `sceneStyle: { backgroundColor: "transparent" }`
+de propósito (pra deixar o `AnimatedBlueprintBackground` aparecer atrás do conteúdo — comentário no
+próprio arquivo confirma a intenção). No native, telas de aba inativas são escondidas pela
+navegação nativa do SO independente de transparência; no alvo **web** do Expo, o React Navigation
+não parece remover/esconder de verdade a tela inativa da árvore de render — com o fundo
+transparente, o que sobrou "por baixo" vaza visualmente.
+
+**[CONFIRMADO 23/08/2026 — NÃO É BUG, EXCLUSIVO DO ALVO WEB]** Usuário testou em device real e a
+tela funciona corretamente lá — sem vazamento entre abas. Confirma a hipótese: é um artefato do
+alvo web do Expo (React Navigation não escondendo de verdade a tela inativa nesse alvo,
+interagindo com o `sceneStyle` transparente proposital), não reproduz no app nativo real
+(Android/iOS), que é a única superfície que usuário final acessa. **Fechado como não-issue** — não
+mexer no `sceneStyle` para "corrigir" algo que só afeta a ferramenta de dev/QA (`expo start --web`
++ Playwright), risco desnecessário de quebrar o fundo animado pedido de propósito. Deixado
+registrado aqui só para não repetir a investigação numa sessão futura que tropeçar no mesmo sintoma
+testando via `expo start --web`.
+
+Também descoberto no processo: navegar por `page.goto()` direto pra uma rota autenticada após login
+(em vez de clicar como um usuário real) derruba a sessão com `Error: invalid key size` no
+`LargeSecureStore` (`lib/supabase/client.ts`) — o shim de teste do `SecureStore` não sobrevive a um
+reload completo de forma confiável. Não investigado a fundo (fora do escopo desta auditoria); usar
+navegação client-side (clique) em vez de `page.goto()` em testes futuros pós-login.
+
+Nenhum outro bug encontrado nesta passada de revisão visual (Loja, VIP, Perfil renderizaram
+corretamente com dados reais da conta de teste — 620 XP, sequência de 2 dias, 5 gemas, VIP ativo).

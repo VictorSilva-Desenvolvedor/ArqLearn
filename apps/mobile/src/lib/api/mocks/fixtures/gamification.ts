@@ -1,7 +1,17 @@
 import { mockUser } from "./user";
 import { tierDivisionToRank, type LeagueTierName } from "@/lib/gamification/leagueTiers";
 import { COMPASSO_DOURADO_ID } from "./shopCatalog";
-import type { Achievement, GamificationProfile, League, LeagueRankingEntry } from "@/types/api";
+import type { Achievement, GamificationProfile, League, LeagueRankingEntry, PersonalRecord } from "@/types/api";
+
+// mockPersonalRecords: valores plausíveis, alguns acima do estado atual do mock (streak_current=12
+// mas streak_dias=24 = streak_best; liga_alcancada acima do rank atual de mockGamificationProfile,
+// bronze/2 — melhor liga já alcançada não precisa ser a liga corrente, só >= ela).
+export const mockPersonalRecords: PersonalRecord[] = [
+  { metric: "streak_dias", value: 24 },
+  { metric: "infinito_sem_erros", value: 18 },
+  { metric: "xp_dia", value: 145 },
+  { metric: "liga_alcancada", value: 10 }, // prata/3 — ver rankToTierDivision em leagueTiers.ts
+];
 
 export const mockGamificationProfile: GamificationProfile = {
   xp_total: 520,
@@ -24,6 +34,7 @@ export const mockGamificationProfile: GamificationProfile = {
   vip_expires_at: null,
   xp_boost_active: false,
   xp_boost_active_until: null,
+  personal_records: mockPersonalRecords,
 };
 
 export const mockAchievementUnlocks: Achievement[] = [

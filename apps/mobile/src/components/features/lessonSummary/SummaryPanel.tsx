@@ -71,8 +71,9 @@ export function SummaryPanel({
           <ProgressBar value={moduleProgressPercent} max={100} variant="thin" tone="primary" />
         </View>
 
-        {/* CTA do Baú Diário (v1.18) — só aparece quando as 10 perguntas do dia já foram somadas
-            (lição + Modo Infinito) e o baú de hoje ainda não foi aberto. */}
+        {/* CTA do Baú Diário (v1.18) — só aparece quando a Meta Diária escolhida (TDD §13,
+            perguntas certas OU minutos estudados, lição + Modo Infinito somados) já foi batida e o
+            baú de hoje ainda não foi aberto. */}
         {chestAvailable && (
           <Button
             variant="gamification"

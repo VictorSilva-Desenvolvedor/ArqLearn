@@ -1,7 +1,7 @@
 import { ApiError } from "../../http";
 import { getMockQuestionBank, xpForDifficulty, type MockQuestionEntry } from "./questions";
 import { awardXp } from "./dailyXpCap";
-import { bumpMockChestQuestions, mockChestAvailable, mockChestQuestionsToday } from "./dailyChest";
+import { bumpMockChestQuestions, bumpMockStudySeconds, mockChestAvailable, mockChestQuestionsToday, mockStudyMinutesToday } from "./dailyChest";
 import { bumpMockWeeklyChestQuestions } from "./weeklyChest";
 import type { AnswerResult, LessonSession, QuestionDifficulty } from "@/types/api";
 
@@ -42,6 +42,7 @@ export function answerMockSession(
   sessionId: string,
   questionId: string,
   answerOptionId: string,
+  timeMs: number,
 ): AnswerResult {
   const session = sessions.get(sessionId);
   if (!session) {
@@ -76,15 +77,24 @@ export function answerMockSession(
   const { xp_ganho, xp_daily_cap_reached } = awardXp(baseXp);
   bumpMockChestQuestions();
   bumpMockWeeklyChestQuestions();
+  // Tempo de estudo (TDD §13) soma em toda resposta, certa ou errada — mesma regra do backend
+  // real (ClampAnswerStudyMs); mock não capa porque timeMs aqui já vem de um cronômetro real do
+  // componente de quiz, não de um valor arbitrário do cliente como no backend.
+  bumpMockStudySeconds(timeMs);
 
   return {
     correct,
     xp_ganho,
     xp_daily_cap_reached,
+    xp_boost_active: false,
     vidas_restantes: session.heartsRemaining,
     streak_atual: session.streak,
     explicacao: entry.explanation,
     daily_chest_available: mockChestAvailable(),
     daily_chest_questions: mockChestQuestionsToday(),
+    daily_chest_study_minutes: mockStudyMinutesToday(),
+    // Mock não simula desbloqueio real de conquista/recorde — sempre vazio.
+    achievements_unlocked: [],
+    personal_records_broken: [],
   };
 }
