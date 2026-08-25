@@ -15,6 +15,10 @@ interface ChatInputBarProps {
 
 export function ChatInputBar({ onSend, disabled }: ChatInputBarProps) {
   const [value, setValue] = useState("");
+  // O botão precisa *parecer* o que ele é: antes ele ficava sempre habilitado e o clique com o
+  // campo vazio caía num early-return silencioso — um controle que promete uma ação e não faz nada
+  // (auditoria de 25/08/2026, rodada 4; confirmado com `isDisabled() === false` no Playwright).
+  const canSend = value.trim().length > 0 && !disabled;
 
   const submit = async () => {
     const trimmed = value.trim();
@@ -38,7 +42,7 @@ export function ChatInputBar({ onSend, disabled }: ChatInputBarProps) {
           disabled={disabled}
           className="flex-1 bg-transparent outline-none py-sm font-body-lg text-body-lg text-on-surface placeholder:text-on-surface-variant"
         />
-        <IconButton icon={<Icon name="send" filled />} label="Enviar pergunta" onClick={submit} disabled={disabled} />
+        <IconButton icon={<Icon name="send" filled />} label="Enviar pergunta" onClick={submit} disabled={!canSend} />
       </div>
     </div>
   );

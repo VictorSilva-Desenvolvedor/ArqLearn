@@ -41,8 +41,16 @@ export function QuestionCard({
 }: QuestionCardProps) {
   const difficultyInfo = difficultyPresentation[difficulty];
   return (
-    <div className="max-w-2xl mx-auto w-full px-md py-lg flex flex-col gap-lg flex-1">
-      <div className="flex flex-col gap-xs">
+    // md:justify-center: numa janela de desktop a pergunta ficava colada no topo com ~450px de
+    // vazio até a barra de ação (auditoria de 25/08/2026). No telefone continua no topo, onde a
+    // rolagem natural resolve.
+    <div className="max-w-2xl mx-auto w-full px-md py-lg flex flex-col gap-lg flex-1 md:justify-center">
+      {/* Painel opaco (decisão do usuário, 25/08/2026, pendência #10): sem ele o enunciado — o
+          texto mais importante da tela — ficava direto sobre o fundo blueprint animado, com
+          glifos decorativos cruzando as palavras (medido em screenshot no Modo Infinito, mesmo
+          componente da tela B). Mesma moldura já usada em Conquista/Resumo Inteligente
+          (bg-surface-bright + border-outline-variant), não uma nova. */}
+      <div className="flex flex-col gap-xs bg-surface-bright border-2 border-outline-variant rounded-xl px-md py-md">
         <Badge tone={difficultyInfo.tone} className="self-start">
           {difficultyInfo.label}
         </Badge>

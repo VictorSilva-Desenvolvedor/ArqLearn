@@ -1,4 +1,5 @@
 import type { IconName } from "@/components/ui/Icon";
+import type { ColorTokens } from "@/theme/tokens";
 
 // Hierarquia de 10 ligas (pior -> melhor), cada uma com 3 divisões internas (3 = entrada, 1 =
 // mais avançada) — 30 posições lineares no total. Mesma ordem/numeração de
@@ -44,6 +45,23 @@ export const LEAGUE_TIER_ICONS: Record<LeagueTierName, IconName> = {
   safira: "leagueSafira",
   rubi: "leagueRubi",
   diamante: "leagueDiamante",
+};
+
+// Cor/material por tier (decisão do usuário, 25/08/2026): chaves de @/theme/tokens (mesmos hex de
+// apps/web/globals.css --color-league-*) — cada tier ganha bg/on próprios em vez do mesmo
+// secondaryContainer laranja pra todos. Mapa de chaves (não os valores direto) pra continuar
+// passando por useColors() no ponto de uso, igual a qualquer outra cor do app.
+export const LEAGUE_TIER_COLOR_KEYS: Record<LeagueTierName, { bg: keyof ColorTokens; on: keyof ColorTokens }> = {
+  madeira: { bg: "leagueMadeira", on: "onLeagueMadeira" },
+  pedra: { bg: "leaguePedra", on: "onLeaguePedra" },
+  bronze: { bg: "leagueBronze", on: "onLeagueBronze" },
+  prata: { bg: "leaguePrata", on: "onLeaguePrata" },
+  ouro: { bg: "leagueOuro", on: "onLeagueOuro" },
+  platina: { bg: "leaguePlatina", on: "onLeaguePlatina" },
+  esmeralda: { bg: "leagueEsmeralda", on: "onLeagueEsmeralda" },
+  safira: { bg: "leagueSafira", on: "onLeagueSafira" },
+  rubi: { bg: "leagueRubi", on: "onLeagueRubi" },
+  diamante: { bg: "leagueDiamante", on: "onLeagueDiamante" },
 };
 
 // "Liga Madeira 3" — rótulo completo com liga + divisão, usado no cabeçalho da tela.

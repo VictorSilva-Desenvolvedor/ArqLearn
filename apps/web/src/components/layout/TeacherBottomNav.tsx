@@ -11,7 +11,10 @@ export function TeacherBottomNav() {
         icon={<Icon name="dashboard" />}
         activeIcon={<Icon name="dashboard" filled />}
       />
-      <div className="flex flex-col items-center justify-center px-4 py-1 text-outline opacity-60" aria-disabled="true">
+      {/* Sem opacity-60: text-outline já é o cinza "desativado" do sistema, e a opacidade por cima
+          derrubava o rótulo bem abaixo do piso de contraste — um item que continua sendo texto que
+          alguém precisa conseguir ler pra entender que "Turmas" ainda não existe. */}
+      <div className="flex flex-col items-center justify-center px-4 py-1 text-outline" aria-disabled="true">
         <Icon name="groups" className="mb-1 text-2xl" />
         <span className="font-label text-label-caps">Turmas</span>
         <span className="font-label text-label-caps">Em breve</span>

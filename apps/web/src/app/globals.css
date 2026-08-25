@@ -77,6 +77,35 @@
      tom de vermelho por acaso. */
   --color-error-red: #b00020;
 
+  /* Cores — selo de tier da Liga (decisão do usuário, auditoria de 25/08/2026: cada um dos 10
+     tiers ganha cor/material próprios em vez do mesmo círculo --color-secondary-container laranja
+     pra todos — hoje promover de Bronze pra Prata não mudava nada visualmente além do glifo).
+     Paleta de material/gema, não semântica de status — nunca reusar fora do selo/trilha da Liga
+     (esmeralda/safira/rubi são verde/azul/vermelho só porque são os tiers com esse nome, não
+     porque significam sucesso/navegação/erro). Cada par bg/on já nasce com contraste garantido
+     entre si, então funciona igual nos dois temas sem variante separada — mesmo raciocínio das
+     cores *-fixed do mobile (apps/mobile/src/theme/tokens.ts). */
+  --color-league-madeira: #7c5430;
+  --color-on-league-madeira: #f5e8d8;
+  --color-league-pedra: #667080;
+  --color-on-league-pedra: #f1f3f6;
+  --color-league-bronze: #9c5a2e;
+  --color-on-league-bronze: #fce7d6;
+  --color-league-prata: #a7b0ba;
+  --color-on-league-prata: #202429;
+  --color-league-ouro: #c99a2e;
+  --color-on-league-ouro: #2e2000;
+  --color-league-platina: #c3d0d6;
+  --color-on-league-platina: #1f2c31;
+  --color-league-esmeralda: #1f8f5f;
+  --color-on-league-esmeralda: #e7fbf0;
+  --color-league-safira: #235fa8;
+  --color-on-league-safira: #e8f1ff;
+  --color-league-rubi: #a82236;
+  --color-on-league-rubi: #fce7ea;
+  --color-league-diamante: #4fbfda;
+  --color-on-league-diamante: #082832;
+
   /* Cores — fundo */
   --color-background: #f8f9ff;
   --color-on-background: #121c2a;
@@ -250,13 +279,25 @@ body {
 .falling-path-c {
   animation-name: fall-path-c;
 }
+/*
+ * Opacidades 0.5/0.45/0.4 (auditoria de 25/08/2026, rodada 3) — o mockup de referência
+ * (Docs/stitch_app_visual_identity/fundo-animado-blueprint-v2.html) usa 0.6/0.55/0.5, mas com
+ * cores DESSATURADAS próprias da camada decorativa (#2E5C8A e #C77B3B). A portagem trocou essas
+ * cores pelos tokens de marca em força total (--color-primary #0E4471, --color-secondary
+ * #8F4E0F) e manteve a opacidade do mockup — o resultado ficou mais escuro que a própria
+ * referência. Medido sobre #F8F9FF: azul do mockup a 0.6 = 2.75:1; nosso --color-primary a 0.6 =
+ * 3.34:1, ou seja, a decoração passava do piso de 3:1 que a WCAG usa pra conteúdo NÃO-textual
+ * COM significado — decoração tão forte quanto um elemento que carrega informação, e visível
+ * atrás do enunciado das perguntas (Modo Infinito) e dos títulos de seção (Painel do Professor).
+ * A 0.5, --color-primary volta a 2.64:1, que é o peso que a referência sempre quis.
+ */
 @keyframes fall-path-a {
   0% {
     transform: translate(0, -60px) rotate(0deg);
     opacity: 0;
   }
   8% {
-    opacity: 0.6;
+    opacity: 0.5;
   }
   30% {
     transform: translate(40px, 28vh) rotate(90deg);
@@ -265,7 +306,7 @@ body {
     transform: translate(-25px, 60vh) rotate(200deg);
   }
   92% {
-    opacity: 0.6;
+    opacity: 0.5;
   }
   100% {
     transform: translate(15px, 112vh) rotate(360deg);
@@ -278,7 +319,7 @@ body {
     opacity: 0;
   }
   8% {
-    opacity: 0.55;
+    opacity: 0.45;
   }
   35% {
     transform: translate(-45px, 32vh) rotate(-110deg);
@@ -287,7 +328,7 @@ body {
     transform: translate(30px, 68vh) rotate(-240deg);
   }
   92% {
-    opacity: 0.55;
+    opacity: 0.45;
   }
   100% {
     transform: translate(-20px, 112vh) rotate(-360deg);
@@ -300,7 +341,7 @@ body {
     opacity: 0;
   }
   8% {
-    opacity: 0.5;
+    opacity: 0.4;
   }
   40% {
     transform: translate(20px, 40vh) rotate(60deg);
@@ -309,7 +350,7 @@ body {
     transform: translate(-40px, 75vh) rotate(150deg);
   }
   92% {
-    opacity: 0.5;
+    opacity: 0.4;
   }
   100% {
     transform: translate(35px, 112vh) rotate(300deg);

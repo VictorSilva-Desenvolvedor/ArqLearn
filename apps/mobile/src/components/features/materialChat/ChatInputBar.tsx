@@ -22,6 +22,10 @@ export function ChatInputBar({ onSend, disabled }: ChatInputBarProps) {
   // P1 do /impeccable audit (18/08/2026): mesmo achado do QuizActionBar.tsx — barra ancorada no
   // rodapé sem o inset inferior do Android edge-to-edge.
   const insets = useSafeAreaInsets();
+  // O botão precisa parecer o que ele é: antes ficava sempre habilitado e o toque com o campo
+  // vazio caía num early-return silencioso (auditoria de 25/08/2026, rodada 4 — mesmo achado do
+  // web, onde foi medido com `isDisabled() === false` no Playwright).
+  const canSend = value.trim().length > 0 && !disabled;
 
   const submit = async () => {
     const trimmed = value.trim();
@@ -42,7 +46,12 @@ export function ChatInputBar({ onSend, disabled }: ChatInputBarProps) {
           editable={!disabled}
           style={[type.bodyLg, styles.input]}
         />
-        <IconButton icon={<Icon name="send" color={colors.primary} />} label="Enviar pergunta" onPress={submit} disabled={disabled} />
+        <IconButton
+          icon={<Icon name="send" color={canSend ? colors.primary : colors.outline} />}
+          label="Enviar pergunta"
+          onPress={submit}
+          disabled={!canSend}
+        />
       </View>
     </View>
   );

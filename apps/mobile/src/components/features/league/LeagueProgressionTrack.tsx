@@ -1,7 +1,13 @@
 import { Fragment } from "react";
 import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 import { Icon } from "@/components/ui/Icon";
-import { LEAGUE_TIERS, LEAGUE_TIER_ICONS, LEAGUE_TIER_LABELS, type LeagueTierName } from "@/lib/gamification/leagueTiers";
+import {
+  LEAGUE_TIERS,
+  LEAGUE_TIER_COLOR_KEYS,
+  LEAGUE_TIER_ICONS,
+  LEAGUE_TIER_LABELS,
+  type LeagueTierName,
+} from "@/lib/gamification/leagueTiers";
 import { type } from "@/theme/tokens";
 import { useColors } from "@/theme/useColors";
 import type { ColorTokens } from "@/theme/tokens";
@@ -31,8 +37,26 @@ export function LeagueProgressionTrack({ currentTier, onSelectTier }: LeagueProg
                 accessibilityRole="button"
                 accessibilityLabel={`Ver Liga ${LEAGUE_TIER_LABELS[tier]}`}
               >
-                <View style={[styles.badge, active ? styles.badgeActive : styles.badgeInactive]}>
-                  <Icon name={LEAGUE_TIER_ICONS[tier]} size={20} color={active ? colors.onPrimary : colors.outline} />
+                {/* Cor por tier também aqui, paridade com o mesmo fix no web (auditoria de
+                    25/08/2026): o selo grande logo acima nesta MESMA tela já pinta a liga atual na
+                    cor do próprio tier desde a pendência #8, mas esta trilha continuava em
+                    colors.primary — mesmo tier aparecendo em duas cores na mesma dobra. O rótulo
+                    de texto segue em colors.primary de propósito: a paleta de tier é de material
+                    (prata/platina são claríssimos) e não garante contraste de TEXTO sobre o card
+                    branco — o círculo carrega o material, o rótulo carrega o estado. */}
+                <View
+                  style={[
+                    styles.badge,
+                    active
+                      ? { backgroundColor: colors[LEAGUE_TIER_COLOR_KEYS[tier].bg], borderColor: colors.outlineVariant }
+                      : styles.badgeInactive,
+                  ]}
+                >
+                  <Icon
+                    name={LEAGUE_TIER_ICONS[tier]}
+                    size={20}
+                    color={active ? colors[LEAGUE_TIER_COLOR_KEYS[tier].on] : colors.outline}
+                  />
                 </View>
                 <Text style={[type.labelCaps, styles.label, active && styles.labelActive]} numberOfLines={1}>
                   {LEAGUE_TIER_LABELS[tier]}
@@ -80,10 +104,7 @@ const createStyles = (colors: ColorTokens) =>
       justifyContent: "center",
       borderWidth: 2,
     },
-    badgeActive: {
-      backgroundColor: colors.primary,
-      borderColor: colors.primary,
-    },
+    // (badgeActive removido — a cor do nó ativo agora vem de LEAGUE_TIER_COLOR_KEYS, inline.)
     badgeInactive: {
       backgroundColor: colors.surfaceGray,
       borderColor: colors.outlineVariant,

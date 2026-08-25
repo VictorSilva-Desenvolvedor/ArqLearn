@@ -39,6 +39,10 @@ export function SummaryPanel({
     <SafeAreaView style={styles.screen} edges={["top"]}>
       <View style={styles.panel}>
         <View style={styles.header}>
+          {/* Selo de conclusão do topo (referência Stitch `resumo_da_li_o/screen.png`), mesma
+              adição feita no web na auditoria de 25/08/2026 — único sinal não-textual de "deu
+              certo" no painel. */}
+          <Icon name="success" size={56} color={colors.tertiary} />
           <Text style={[type.displayLg, styles.title]}>Lição Concluída!</Text>
           <Text style={[type.bodyLg, styles.subtitle]}>Excelente progresso, Arquiteto!</Text>
         </View>
@@ -116,6 +120,7 @@ const createStyles = (colors: ColorTokens) =>
     },
     header: {
       alignItems: "center",
+      gap: spacing.sm,
     },
     title: {
       color: colors.primary,

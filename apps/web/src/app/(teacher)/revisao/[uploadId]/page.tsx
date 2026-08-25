@@ -40,8 +40,13 @@ export default function QuestionReviewPage() {
         <h1 className="font-display text-display-lg font-bold text-on-surface">
           {mockReviewTrackTitle[uploadId] ?? "Revisão de Perguntas"}
         </h1>
-        <div className="flex items-center gap-sm mt-xs">
-          <Badge tone="neutral">{questions.length} perguntas na fila</Badge>
+        {/* flex-wrap + whitespace-nowrap: em 390px o primeiro selo quebrava o próprio texto em
+            duas linhas ("12 PERGUNTAS NA / FILA") e ficava com o dobro da altura dos outros dois.
+            Melhor a linha inteira quebrar entre selos do que o texto quebrar dentro do selo. */}
+        <div className="flex items-center gap-sm mt-xs flex-wrap">
+          <Badge tone="neutral" className="whitespace-nowrap">
+            {questions.length} perguntas na fila
+          </Badge>
           <Badge tone="tertiary">{approvedCount} aprovadas</Badge>
           <Badge tone="error">{rejectedCount} rejeitadas</Badge>
         </div>

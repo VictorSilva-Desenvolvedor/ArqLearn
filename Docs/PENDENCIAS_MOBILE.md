@@ -1110,3 +1110,32 @@ correções abaixo foram aplicadas por leitura de código + paridade com o web, 
 **Pendência:** confirmar as três em device/emulador real na próxima sessão com login. A causa raiz
 (sem estratégia de sessão autenticada para QA/Playwright) está registrada em
 `Docs/UI_AUDIT_STATUS.md` §1 e precisa de uma decisão do usuário.
+
+## Progresso do módulo no Resumo da Lição — RESOLVIDO em 2026-08-25
+
+Era `moduleProgressPercent={75}` literal. Decisão do usuário: calcular de verdade — mesmo fix do
+web (`Docs/PENDENCIAS_WEB_REAL.md`), busca `GET /v1/tracks/{trackId}/lessons` e mostra lições
+concluídas / total da trilha. Ver `Docs/UI_AUDIT_STATUS.md` pendência #3 pro detalhe completo.
+
+## Nenhuma tela autenticada do mobile pode ser verificada visualmente (reafirmado em 2026-08-25)
+
+Segunda rodada de varredura consecutiva bloqueada pelo mesmo motivo: `apps/mobile` não tem modo
+demonstração (o `AuthContext` só aceita sessão real do Supabase Auth), então no alvo Expo Web toda
+rota interna — `/trilhas/.../sessao`, `/resumo`, `/conquista`, `/explorar` — redireciona para
+`/welcome`. As telas B–G do mobile desta rodada foram auditadas **só por leitura de código**, em
+paridade com o que foi medido no web. O web tem saída equivalente (cookie `arqlearn_mock_account`),
+o mobile não. Ver `Docs/UI_AUDIT_STATUS.md` §1.
+
+## Cor por tier na LeagueProgressionTrack — corrigido em 2026-08-25 (sem verificação visual)
+
+Auditoria da rodada 5 (`Docs/UI_AUDIT_STATUS.md`). O nó ativo de
+`src/components/features/league/LeagueProgressionTrack.tsx` pintava a liga atual em `colors.primary`
+(azul) enquanto o selo grande de `(tabs)/liga.tsx`, na mesma dobra, já usa a cor do próprio tier
+desde a pendência #8 — mesmo tier em duas cores. Corrigido com `LEAGUE_TIER_COLOR_KEYS` (o
+`badgeActive` do StyleSheet virou código morto e foi removido).
+
+O defeito foi **medido ao vivo no web** (selo `rgb(156,90,46)` vs. nó azul) e a correção **conferida
+por screenshot no web**; no mobile a mudança é a mesma linha a linha, mas **segue sem confirmação
+visual** — `apps/mobile` não tem modo demonstração (pendência #1 do UI_AUDIT_STATUS). O rótulo de
+texto do nó continua em `colors.primary` de propósito: a paleta de tier é de material e
+`prata`/`platina`/`diamante` não passam contraste como texto sobre o card branco.

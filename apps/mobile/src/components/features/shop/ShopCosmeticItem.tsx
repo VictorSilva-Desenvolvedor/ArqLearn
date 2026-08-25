@@ -43,8 +43,10 @@ export function ShopCosmeticItem({ item, disabled, pending, owned, onPurchase }:
               já corrigida em ThemeSelector.tsx/Button.tsx (trava o gesto de arrastar pra rolar). */}
           <Pressable
             onPress={() => !(disabled || pending) && onPurchase()}
+            accessibilityRole="button"
+            accessibilityLabel={`Comprar ${item.name} por ${item.price_gems} gemas`}
             accessibilityState={{ disabled: disabled || pending }}
-            style={styles.purchaseButton}
+            style={[styles.purchaseButton, (disabled || pending) && styles.purchaseButtonDisabled]}
           >
             <Icon name="gems" size={16} color={disabled || pending ? colors.onSurfaceVariant : colors.primary} />
             <Text style={[type.bodySm, styles.priceText, (disabled || pending) && styles.priceTextDisabled]}>
@@ -86,10 +88,23 @@ const createStyles = (colors: ColorTokens) =>
     lockedLabel: {
       color: colors.outline,
     },
+    // Pílula contornada, igual à variante ghost do Button (não é o Button de verdade pelo motivo
+    // do comentário acima): é a mesma ação "comprar" dos itens utilitários da mesma tela, e a
+    // referência do Stitch desenha o cosmético com botão contornado, não com preço solto.
     purchaseButton: {
       flexDirection: "row",
       alignItems: "center",
+      justifyContent: "center",
       gap: 4,
+      borderWidth: 2,
+      borderColor: colors.primary,
+      borderRadius: 24,
+      paddingVertical: 8,
+      paddingHorizontal: 16,
+      marginTop: 4,
+    },
+    purchaseButtonDisabled: {
+      borderColor: colors.outlineVariant,
     },
     priceText: {
       color: colors.primary,

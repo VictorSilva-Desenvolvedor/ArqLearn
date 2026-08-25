@@ -8,6 +8,7 @@ import { getLeague } from "@/lib/api/resources/gamification";
 import {
   LEAGUE_DIVISIONS,
   LEAGUE_TIERS,
+  LEAGUE_TIER_COLOR_KEYS,
   LEAGUE_TIER_ICONS,
   LEAGUE_TIER_LABELS,
   leagueFullLabel,
@@ -43,6 +44,7 @@ export function LeagueTiersDialog({ open, onOpenChange, currentUserId, ownLeague
   const [selectedTier, setSelectedTier] = useState<LeagueTierName>(initialTier ?? ownTier);
   const [selectedDivision, setSelectedDivision] = useState<number>(initialTier && initialTier !== ownTier ? 1 : ownLeague.division);
   const [loading, setLoading] = useState(false);
+  const [loadError, setLoadError] = useState(false);
   const [rankingByKey, setRankingByKey] = useState<Partial<Record<CacheKey, LeagueRankingEntry[]>>>({
     [ownKey]: ownLeague.ranking,
   });
@@ -63,10 +65,17 @@ export function LeagueTiersDialog({ open, onOpenChange, currentUserId, ownLeague
     if (!open || rankingByKey[selectedKey]) return;
     let cancelled = false;
     setLoading(true);
+    setLoadError(false);
     getLeague(selectedTier, selectedDivision)
       .then((league) => {
         if (cancelled) return;
         setRankingByKey((prev) => ({ ...prev, [selectedKey]: league.ranking }));
+      })
+      // Sem este catch, uma falha de rede caía no ramo "vazio" do render e a tela afirmava
+      // "Ninguém está na <liga> ainda esta semana" — informação falsa sobre o mundo, não aviso de
+      // erro (auditoria de 25/08/2026, rodada 4; mesmo defeito corrigido no web).
+      .catch(() => {
+        if (!cancelled) setLoadError(true);
       })
       .finally(() => {
         if (!cancelled) setLoading(false);
@@ -121,9 +130,19 @@ export function LeagueTiersDialog({ open, onOpenChange, currentUserId, ownLeague
               accessibilityLabel={LEAGUE_TIER_LABELS[tier]}
               accessibilityState={{ selected: active }}
               hitSlop={{ top: 6, bottom: 6, left: 3, right: 3 }}
-              style={[styles.tierBadge, active && styles.tierBadgeActive]}
+              style={[
+                styles.tierBadge,
+                // Cor por tier só no ativo (decisão do usuário, 25/08/2026) — mesma lógica do web:
+                // o preenchimento continua sendo o sinal de "selecionado", só que na cor do
+                // próprio tier em vez de sempre colors.primary.
+                active && { backgroundColor: colors[LEAGUE_TIER_COLOR_KEYS[tier].bg] },
+              ]}
             >
-              <Icon name={LEAGUE_TIER_ICONS[tier]} size={18} color={active ? colors.onPrimary : colors.onSurfaceVariant} />
+              <Icon
+                name={LEAGUE_TIER_ICONS[tier]}
+                size={18}
+                color={active ? colors[LEAGUE_TIER_COLOR_KEYS[tier].on] : colors.onSurfaceVariant}
+              />
             </Pressable>
           );
         })}
@@ -161,6 +180,11 @@ export function LeagueTiersDialog({ open, onOpenChange, currentUserId, ownLeague
             promotionSlots={ownLeague.promotion_slots}
             demotionSlots={ownLeague.demotion_slots}
           />
+        ) : loadError ? (
+          <Text accessibilityLiveRegion="polite" style={[type.bodySm, styles.loadError]}>
+            Não foi possível carregar o ranking da {leagueFullLabel(selectedTier, selectedDivision)}.
+            Escolha a liga de novo para tentar outra vez.
+          </Text>
         ) : (
           <Text style={[type.bodySm, styles.empty]}>
             Ninguém está na {leagueFullLabel(selectedTier, selectedDivision)} ainda esta semana.
@@ -212,9 +236,6 @@ const createStyles = (colors: ColorTokens) =>
       justifyContent: "center",
       backgroundColor: colors.surfaceGray,
     },
-    tierBadgeActive: {
-      backgroundColor: colors.primary,
-    },
     tierLabel: {
       color: colors.onSurfaceVariant,
       marginBottom: spacing.sm,
@@ -250,6 +271,11 @@ const createStyles = (colors: ColorTokens) =>
     },
     empty: {
       color: colors.onSurfaceVariant,
+      textAlign: "center",
+      marginVertical: spacing.lg,
+    },
+    loadError: {
+      color: colors.error,
       textAlign: "center",
       marginVertical: spacing.lg,
     },

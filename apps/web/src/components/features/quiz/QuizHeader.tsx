@@ -23,9 +23,19 @@ export function QuizHeader({ currentIndex, total, hearts, gems, lessonId }: Quiz
 
   return (
     <header className="sticky top-0 z-40 bg-surface-bright/90 backdrop-blur-md border-b-2 border-outline-variant px-md py-sm">
-      <div className="flex items-center gap-md max-w-2xl mx-auto">
+      {/* flex-wrap + basis-full: numa largura de telefone os 5 corações + gemas + download + sair
+          espremiam a barra de progresso até ~10px (medido em 390px na auditoria de 25/08/2026) —
+          o dado mais importante do cabeçalho virava um pontinho cinza. Abaixo de `sm` a barra cai
+          para uma linha própria; de `sm` pra cima o layout de uma linha só continua igual. */}
+      <div className="flex flex-wrap sm:flex-nowrap items-center gap-x-md gap-y-xs max-w-2xl mx-auto">
         <IconButton icon={<Icon name="close" />} label="Sair da lição" onClick={() => router.push("/")} />
-        <ProgressBar value={currentIndex} max={total} variant="thin" tone="primary" className="flex-1" />
+        <ProgressBar
+          value={currentIndex}
+          max={total}
+          variant="thin"
+          tone="primary"
+          className="flex-1 order-last basis-full sm:order-none sm:basis-auto"
+        />
         {lessonId && <LessonDownloadToggle lessonId={lessonId} />}
         <HeartsRow hearts={hearts} />
         <StatPill tone="secondary" icon={<Icon name="diamond" filled className="text-secondary" />} value={gems} />

@@ -29,6 +29,12 @@ export function ChatMessageBubble({ role, message, sourceExcerpt, sourceRef }: C
 
   return (
     <View style={[styles.container, isUser ? styles.userAlign : styles.assistantAlign]}>
+      {/* Autoria explícita (auditoria de 25/08/2026, rodada 4 — mesma correção do web): duas
+          bolhas sem rótulo deixavam a resposta da IA sem sinal de quem falou. */}
+      <View style={styles.authorRow}>
+        {!isUser && <Icon name="lightbulb" size={14} color={colors.secondary} />}
+        <Text style={[type.labelCaps, styles.author]}>{isUser ? "Você" : "Arq"}</Text>
+      </View>
       <View style={[styles.bubble, isUser ? styles.userBubble : styles.assistantBubble]}>
         <Text style={[type.bodyMd, isUser ? styles.userText : styles.assistantText]}>{message}</Text>
       </View>
@@ -80,10 +86,26 @@ const createStyles = (colors: ColorTokens) =>
     assistantText: {
       color: colors.onSurface,
     },
+    authorRow: {
+      flexDirection: "row",
+      alignItems: "center",
+      gap: 4,
+    },
+    author: {
+      color: colors.onSurfaceVariant,
+      textTransform: "uppercase",
+    },
+    // Superfície opaca: a citação ficava direto sobre o fundo blueprint e as linhas da grade
+    // cruzavam o texto em itálico (o Stitch põe o trecho do documento num card branco).
     excerptBlock: {
+      backgroundColor: colors.surfaceBright,
+      borderWidth: 2,
+      borderColor: colors.outlineVariant,
       borderLeftWidth: 4,
-      borderLeftColor: colors.outlineVariant,
-      paddingLeft: 12,
+      borderLeftColor: colors.primary,
+      borderRadius: radius.md,
+      paddingHorizontal: 12,
+      paddingVertical: 8,
     },
     excerpt: {
       color: colors.onSurfaceVariant,

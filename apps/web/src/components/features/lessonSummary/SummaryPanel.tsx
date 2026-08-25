@@ -33,6 +33,17 @@ export function SummaryPanel({
     <div className="flex-1 flex items-center justify-center px-md py-lg">
       <div className="w-full max-w-[28rem] bg-surface-bright border-2 border-outline-variant rounded-xl p-lg flex flex-col gap-lg text-center">
         <div>
+          {/* Selo de conclusão do topo (referência Stitch `resumo_da_li_o/screen.png`): sem ele o
+              painel abre direto no título e perde o único sinal não-textual de "deu certo" —
+              ausência confirmada por comparação com a referência na auditoria de 25/08/2026.
+              `size` em vez de classe de tamanho: ver nota sobre Material Symbols em
+              Docs/PENDENCIAS_WEB_REAL.md. */}
+          <Icon
+            name="check_circle"
+            filled
+            size={56}
+            className="text-tertiary mx-auto block w-fit mb-sm"
+          />
           <h1 className="font-display text-display-lg font-bold text-primary">Lição Concluída!</h1>
           <p className="font-body-lg text-body-lg text-on-surface-variant mt-1">
             Excelente progresso, Arquiteto!

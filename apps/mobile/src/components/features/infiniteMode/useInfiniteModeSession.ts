@@ -32,6 +32,10 @@ export function useInfiniteModeSession(params: InfiniteModeSessionParams) {
   const [revealed, setRevealed] = useState(false);
   const [verifying, setVerifying] = useState(false);
   const [lastResult, setLastResult] = useState<InfiniteModeAnswerResult | null>(null);
+  // Acumuladores da sessão: sobrevivem ao `setLastResult(null)` de `continueNext` (ver comentário
+  // no `return` deste hook).
+  const [answeredCount, setAnsweredCount] = useState(0);
+  const [levelCurrent, setLevelCurrent] = useState(1);
   const [notAvailable, setNotAvailable] = useState(false);
   const [levelUpTo, setLevelUpTo] = useState<number | null>(null);
   // P1 do /impeccable critique (18/08/2026, achado equivalente ao de useQuizSession.ts): a
@@ -106,6 +110,9 @@ export function useInfiniteModeSession(params: InfiniteModeSessionParams) {
         idempotencyKeyRef.current,
       );
       setLastResult(result);
+      // Progresso e nível vivem fora de `lastResult` porque `continueNext` limpa `lastResult`.
+      setAnsweredCount(result.questions_answered);
+      setLevelCurrent(result.level);
       setRevealed(true);
       // Modo Infinito agora também conta pra streak (TDD §5.1, revisado 21/08/2026 — antes não
       // tocava streak nenhuma). xp_total/xp_today também entram aqui: o patch antes era `{}`
@@ -179,10 +186,14 @@ export function useInfiniteModeSession(params: InfiniteModeSessionParams) {
     verifying,
     verifyError,
     lastResult,
-    questionsAnswered: lastResult?.questions_answered ?? 0,
-    levelProgress: (lastResult?.questions_answered ?? 0) % LEVEL_BATCH_SIZE || (lastResult ? LEVEL_BATCH_SIZE : 0),
+    // Derivados de `answeredCount`/`levelCurrent`, NÃO de `lastResult` (auditoria de 25/08/2026,
+    // rodada 4 — bug encontrado no passe funcional do web e idêntico aqui): `continueNext` faz
+    // `setLastResult(null)` ao avançar, então o cabeçalho voltava a "Nível 1" e "0/20" enquanto o
+    // usuário lia a pergunta seguinte, que é quase toda a sessão.
+    questionsAnswered: answeredCount,
+    levelProgress: answeredCount % LEVEL_BATCH_SIZE || (answeredCount > 0 ? LEVEL_BATCH_SIZE : 0),
     levelProgressTotal: LEVEL_BATCH_SIZE,
-    level: lastResult?.level ?? 1,
+    level: levelCurrent,
     levelUpTo,
     dismissLevelUp,
     selectOption,

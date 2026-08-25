@@ -1,5 +1,6 @@
 import { Card } from "@/components/ui/Card";
 import { Badge } from "@/components/ui/Badge";
+import { Button } from "@/components/ui/Button";
 import { Icon } from "@/components/ui/Icon";
 import { cn } from "@/lib/utils/cn";
 import type { ShopItem } from "@/types/api";
@@ -14,12 +15,14 @@ interface ShopCosmeticItemProps {
   onPurchase: () => void;
 }
 
+// O Card não leva `interactive`: ele não tem onClick — quem compra é o botão de preço abaixo. Com
+// `interactive` o card virava um role="button" focável que não fazia nada (dois pontos de
+// tabulação para uma ação só, e o primeiro morto).
 export function ShopCosmeticItem({ item, disabled, pending, owned, onPurchase }: ShopCosmeticItemProps) {
   return (
     <Card
       padding="md"
       radius="lg"
-      interactive={!item.locked && !owned}
       className={cn("flex flex-col items-center text-center gap-xs relative", item.locked && "opacity-60")}
     >
       {item.is_new && !owned && (
@@ -37,14 +40,19 @@ export function ShopCosmeticItem({ item, disabled, pending, owned, onPurchase }:
         </span>
       ) : (
         <>
-          <button
-            type="button"
+          {/* Pílula de verdade, não texto azul: é a mesma ação ("comprar") dos itens utilitários
+              logo acima, que já usam Button — e a referência do Stitch desenha os cosméticos com
+              um botão contornado, não com um preço solto. */}
+          <Button
+            variant="ghost"
+            size="sm"
             disabled={disabled || pending}
             onClick={onPurchase}
-            className="flex items-center gap-1 font-label text-body-sm font-bold text-primary disabled:opacity-50"
+            icon={<Icon name="diamond" filled className="text-base" />}
+            className="font-label"
           >
-            <Icon name="diamond" filled className="text-base" /> {item.price_gems} gemas
-          </button>
+            {item.price_gems} gemas
+          </Button>
           {/* Botão desabilitado sozinho não deixa claro que é "sem gemas" — achado ao vivo no
               mobile, mesmo componente espelhado aqui. */}
           {disabled && !pending && (

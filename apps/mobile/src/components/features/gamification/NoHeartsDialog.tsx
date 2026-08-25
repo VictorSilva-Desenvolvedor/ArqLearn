@@ -37,6 +37,7 @@ export function NoHeartsDialog({ open, onOpenChange }: NoHeartsDialogProps) {
   const styles = createStyles(colors);
   const canRestore = gamification.gems >= HEARTS_REFILL_ITEM.price_gems;
   const blocked = gamification.hearts_current <= 0;
+  const full = gamification.hearts_current >= HEARTS_MAX;
 
   const restoreWithGems = async () => {
     if (!canRestore || pending) return;
@@ -83,9 +84,25 @@ export function NoHeartsDialog({ open, onOpenChange }: NoHeartsDialogProps) {
         <HeartsCountdown />
         {error && <Text style={[type.bodySm, styles.error]}>{error}</Text>}
         <View style={styles.actions}>
-          <Button variant="gamification" fullWidth disabled={!canRestore || pending} onPress={restoreWithGems}>
+          <Button
+            variant="gamification"
+            fullWidth
+            disabled={full || !canRestore || pending}
+            onPress={restoreWithGems}
+            icon={<Icon name="gems" size={20} color={colors.onSecondaryContainer} />}
+          >
             Restaurar com {HEARTS_REFILL_ITEM.price_gems} Gemas
           </Button>
+          {/* Um botão desabilitado sem motivo escrito é adivinhação: antes disto, com vidas cheias
+              OU com gemas de menos, o botão só ficava apagado e nada explicava qual dos dois era o
+              caso. Mesma correção no web (auditoria de 25/08/2026). */}
+          {(full || !canRestore) && (
+            <Text style={[type.bodySm, styles.disabledReason]}>
+              {full
+                ? "Suas vidas já estão cheias — nada a restaurar agora."
+                : `Faltam ${HEARTS_REFILL_ITEM.price_gems - gamification.gems} gemas para restaurar.`}
+            </Text>
+          )}
           {blocked ? (
             <Button variant="ghost" fullWidth onPress={backToHome}>
               Voltar para o Início
@@ -140,5 +157,9 @@ const createStyles = (colors: ColorTokens) =>
     actions: {
       width: "100%",
       gap: spacing.sm,
+    },
+    disabledReason: {
+      color: colors.onSurfaceVariant,
+      textAlign: "center",
     },
   });

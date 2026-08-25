@@ -23,19 +23,25 @@ export function InfiniteModeHeader({ topicLabel, current, total, level, variant 
 
   return (
     <header className="sticky top-0 z-40 bg-surface-bright/90 backdrop-blur-md border-b-2 border-outline-variant px-md py-sm">
-      <div className="flex items-center gap-md max-w-2xl mx-auto mb-xs">
+      {/* Os dois selos descem para uma linha própria abaixo de `sm` (auditoria de 25/08/2026,
+          rodada 4): dividindo a linha com "Nível N" e "Dificuldade Elevada", o título
+          "Modo Infinito: <tema>" quebrava em 3 linhas em 390px e o cabeçalho inteiro triplicava
+          de altura — mesma correção já aplicada à barra de progresso da tela B. */}
+      <div className="flex flex-wrap items-center gap-x-md gap-y-xs max-w-2xl mx-auto mb-xs">
         <IconButton
           icon={<Icon name="close" />}
           label={isReview ? "Sair da Revisão" : "Sair do Modo Infinito"}
           onClick={() => router.push("/explorar")}
         />
-        <div className="flex-1">
+        <div className="flex-1 min-w-0">
           <p className="font-display text-question-sm text-on-surface font-bold">
             {isReview ? "Revisão" : `Modo Infinito: ${topicLabel}`}
           </p>
         </div>
-        <Badge tone="primary">Nível {level}</Badge>
-        <Badge tone="error">{isReview ? "Revisão" : "Dificuldade Elevada"}</Badge>
+        <div className="flex items-center gap-xs w-full sm:w-auto">
+          <Badge tone="primary">Nível {level}</Badge>
+          <Badge tone="error">{isReview ? "Revisão" : "Dificuldade Elevada"}</Badge>
+        </div>
       </div>
       <div className="flex items-center gap-sm max-w-2xl mx-auto">
         <ProgressBar value={current} max={total} variant="thin" tone="secondary" className="flex-1" />

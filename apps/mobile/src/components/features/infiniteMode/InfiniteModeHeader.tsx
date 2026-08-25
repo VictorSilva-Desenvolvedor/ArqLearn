@@ -38,6 +38,13 @@ export function InfiniteModeHeader({ topicLabel, current, total, level, variant 
         <Text style={[type.questionSm, styles.title]} numberOfLines={1}>
           {isReview ? "Revisão" : `Modo Infinito: ${topicLabel}`}
         </Text>
+      </View>
+      {/* Selos em linha própria (auditoria de 25/08/2026, rodada 4). No web o título quebrava em
+          3 linhas ao dividir a linha com os dois selos; aqui o `numberOfLines={1}` transformava o
+          mesmo aperto em truncamento — sobravam ~90px e o nome do tema, que é o assunto da tela,
+          sumia atrás das reticências. Largura de telefone é sempre estreita, então aqui os selos
+          ficam sempre embaixo (o web só faz isso abaixo de `sm`). */}
+      <View style={styles.badgeRow}>
         <Badge tone="primary">{`Nível ${level}`}</Badge>
         <Badge tone="error">{isReview ? "Revisão" : "Dificuldade Elevada"}</Badge>
       </View>
@@ -70,6 +77,12 @@ const createStyles = (colors: ColorTokens) =>
       flex: 1,
       color: colors.onSurface,
       fontWeight: "700",
+    },
+    badgeRow: {
+      flexDirection: "row",
+      alignItems: "center",
+      gap: spacing.xs,
+      flexWrap: "wrap",
     },
     progressRow: {
       flexDirection: "row",

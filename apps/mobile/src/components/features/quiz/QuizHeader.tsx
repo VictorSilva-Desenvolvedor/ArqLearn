@@ -28,15 +28,23 @@ export function QuizHeader({ currentIndex, total, hearts, gems, lessonId }: Quiz
 
   return (
     <View style={styles.header}>
-      <IconButton
-        icon={<Icon name="close" />}
-        label="Sair da lição"
-        onPress={() => router.push("/")}
-      />
-      <ProgressBar value={currentIndex} max={total} variant="thin" tone="primary" style={styles.progress} />
-      {lessonId && <LessonDownloadToggle lessonId={lessonId} />}
-      <HeartsRow hearts={hearts} />
-      <StatPill tone="primary" icon="gems" value={gems} />
+      {/* Barra de progresso numa linha própria: em largura de telefone, sair + download + 5
+          corações + gemas não deixam espaço nenhum pra ela na mesma linha (no web equivalente
+          media 10px — auditoria de 25/08/2026). Mesma correção lá, via flex-wrap. */}
+      <View style={styles.controls}>
+        <IconButton
+          icon={<Icon name="close" />}
+          label="Sair da lição"
+          onPress={() => router.push("/")}
+        />
+        <View style={styles.spacer} />
+        {lessonId && <LessonDownloadToggle lessonId={lessonId} />}
+        <HeartsRow hearts={hearts} />
+        {/* tone secondary: mesma cor de gema do TopAppBar deste app e do QuizHeader do web —
+            estava em `primary` só aqui, único ponto do app que pintava gema de azul. */}
+        <StatPill tone="secondary" icon="gems" value={gems} />
+      </View>
+      <ProgressBar value={currentIndex} max={total} variant="thin" tone="primary" />
     </View>
   );
 }
@@ -56,16 +64,19 @@ function LessonDownloadToggle({ lessonId }: { lessonId: string }) {
 const createStyles = (colors: ColorTokens) =>
   StyleSheet.create({
     header: {
-      flexDirection: "row",
-      alignItems: "center",
-      gap: spacing.md,
+      gap: spacing.xs,
       paddingHorizontal: spacing.md,
       paddingVertical: spacing.sm,
       borderBottomWidth: 2,
       borderBottomColor: colors.outlineVariant,
       backgroundColor: colors.surfaceBright,
     },
-    progress: {
+    controls: {
+      flexDirection: "row",
+      alignItems: "center",
+      gap: spacing.xs,
+    },
+    spacer: {
       flex: 1,
     },
   });

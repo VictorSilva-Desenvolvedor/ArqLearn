@@ -167,6 +167,7 @@ mesma chave retornam a resposta original sem reprocessar.
 |---|---|---|
 | `track.id` | string | Identificador da trilha. |
 | `track.origin` | enum | `curated` \| `user_generated`. |
+| `track.description` | string \| omitido | Subtítulo curto da trilha, mostrado no card da unidade na Home. Opcional — nem toda trilha tem um definido; omitido do JSON quando vazio (`omitempty`), nunca `null`. *(v1.32)* |
 | `lesson.id` | string | Identificador da lição. |
 | `lesson.order` | integer | Posição da lição dentro da trilha (1-based), derivada de `track.units[].lesson_ids` — não é um campo salvo em `lessons`, é calculado a cada resposta. *(v1.5)* |
 | `question.type` | enum | `multiple_choice` \| `true_false` \| `matching` \| `fill_blank` \| `image_identification`. |
