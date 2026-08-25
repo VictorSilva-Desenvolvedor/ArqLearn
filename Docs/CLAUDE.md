@@ -70,15 +70,18 @@ estrutura real já criada no repositório, não um plano:**
                               Spec §3.3/§6 e Database Design §4.3 explicam o porquê; (2)
                               lesson.order não existe no banco, é calculado a partir de
                               track.units (Database Design §4.2) — nunca ordenar lições por _id;
-                              (3) track.description existe em types/api.ts do web/mobile e em
-                              alguns documentos de tracks no MongoDB (ex.: seeds/*.js), mas o
-                              struct `track` em internal/learning/learning.go NÃO tem esse campo
-                              (nem lê, nem serializa) e ele também não está na API Spec nem no
-                              schema documentado de `tracks` (Database Design §4.1) — é só
-                              convenção do mock do frontend. Gravar description no Mongo é
-                              inofensivo (Go ignora campo bson desconhecido), mas não esperar que
-                              apareça em GET /v1/tracks até alguém decidir formalizar o campo nos
-                              três lugares. (4) **[RESOLVIDO]** `review_status` de `questions`
+                              (3) **[RESOLVIDO em 25/08/2026]** track.description era só convenção
+                              do mock do frontend (existia em types/api.ts do web/mobile e em
+                              alguns documentos de tracks no MongoDB, ex.: seeds/*.js, mas não no
+                              struct `track` de internal/learning/learning.go, nem na API Spec, nem
+                              no schema documentado de `tracks`). Foi formalizado nos três lugares:
+                              o struct agora tem o campo (`bson:"description,omitempty"` /
+                              `json:"description,omitempty"`), documentado em API Spec §3.3 e
+                              Database Design §4.1 (*v1.32*). GET /v1/tracks passa a devolvê-lo
+                              quando a trilha tiver um; é **omitido** do JSON quando vazio, nunca
+                              `null` — o consumidor tem que tratar ausência, não string vazia (o
+                              card da unidade na Home é o único ponto que o exibe hoje, atrás de um
+                              `{subtitle && ...}`). (4) **[RESOLVIDO]** `review_status` de `questions`
                               (Database Design §4.3) agora É filtrado —
                               `handleStartSession` só busca `review_status: "approved"`. As 20
                               perguntas de Maquetes seguem `pending` (nunca revisadas) até alguém

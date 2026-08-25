@@ -19,16 +19,28 @@ export function useMaterialChat(uploadId: string) {
   const [messages, setMessages] = useState<ViewMessage[]>([]);
   const [sending, setSending] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [historyLoaded, setHistoryLoaded] = useState(false);
 
   useEffect(() => {
     let cancelled = false;
-    getUploadSummary(uploadId).then((summary) => {
-      if (!cancelled) setTitle(summary.title);
-    });
-    listChatHistory(uploadId).then(({ data }) => {
-      if (cancelled) return;
-      setMessages(data.map((m) => ({ id: m.message_id, role: m.role, message: m.message })));
-    });
+    // `.catch` em ambas (auditoria de 25/08/2026, rodada 4 — mesma correção do web): sem eles uma
+    // falha de rede virava unhandled rejection e a tela ficava vazia sem explicar nada.
+    getUploadSummary(uploadId)
+      .then((summary) => {
+        if (!cancelled) setTitle(summary.title);
+      })
+      .catch(() => undefined);
+    listChatHistory(uploadId)
+      .then(({ data }) => {
+        if (cancelled) return;
+        setMessages(data.map((m) => ({ id: m.message_id, role: m.role, message: m.message })));
+      })
+      .catch(() => {
+        if (!cancelled) setError("Não foi possível carregar a conversa anterior. Você ainda pode perguntar.");
+      })
+      .finally(() => {
+        if (!cancelled) setHistoryLoaded(true);
+      });
     return () => {
       cancelled = true;
     };
@@ -67,5 +79,5 @@ export function useMaterialChat(uploadId: string) {
     [uploadId],
   );
 
-  return { title, messages, sending, error, sendMessage };
+  return { title, messages, sending, error, historyLoaded, sendMessage };
 }

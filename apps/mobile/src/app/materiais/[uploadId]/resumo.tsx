@@ -1,8 +1,10 @@
 import { useEffect, useState } from "react";
 import { useLocalSearchParams, useRouter } from "expo-router";
-import { ScrollView, StyleSheet, Text } from "react-native";
+import { ScrollView, StyleSheet, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Button } from "@/components/ui/Button";
+import { Card } from "@/components/ui/Card";
+import { Icon } from "@/components/ui/Icon";
 import { ArchitectTipCallout } from "@/components/features/materialSummary/ArchitectTipCallout";
 import { DiagramCard } from "@/components/features/materialSummary/DiagramCard";
 import { KeyPointsChecklist } from "@/components/features/materialSummary/KeyPointsChecklist";
@@ -42,13 +44,27 @@ export default function MaterialSummaryScreen() {
     <SafeAreaView style={styles.screen} edges={["top"]}>
       <SummaryHeader title={summary.title} />
       <ScrollView contentContainerStyle={styles.content}>
-        <Text style={[type.bodyLg, styles.synopsis]}>{summary.synopsis}</Text>
+        {/* Superfície opaca pela mesma razão do KeyPointsChecklist (auditoria de 25/08/2026,
+            rodada 4): a sinopse é texto corrido de leitura sobre o fundo blueprint. */}
+        <Card padding="md" radius="lg" bordered={false}>
+          <Text style={[type.bodyLg, styles.synopsis]}>{summary.synopsis}</Text>
+        </Card>
         <DiagramCard caption={`Diagrama técnico — ${summary.title}`} />
         <KeyPointsChecklist points={summary.key_points} />
         {summary.architect_tip && <ArchitectTipCallout tip={summary.architect_tip} />}
-        <Button variant="primary" fullWidth onPress={() => router.push(`/materiais/${uploadId}/chat`)}>
-          Tirar Dúvidas
-        </Button>
+        <View style={styles.ctaBlock}>
+          <Button
+            variant="primary"
+            fullWidth
+            icon={<Icon name="forum" size={20} color={colors.onPrimary} />}
+            onPress={() => router.push(`/materiais/${uploadId}/chat`)}
+          >
+            Tirar Dúvidas
+          </Button>
+          <Text style={[type.labelCaps, styles.ctaCaption]}>
+            Converse com o assistente sobre este documento
+          </Text>
+        </View>
       </ScrollView>
     </SafeAreaView>
   );
@@ -67,5 +83,12 @@ const createStyles = (colors: ColorTokens) =>
     },
     synopsis: {
       color: colors.onSurfaceVariant,
+    },
+    ctaBlock: {
+      gap: spacing.xs,
+    },
+    ctaCaption: {
+      color: colors.onSurfaceVariant,
+      textAlign: "center",
     },
   });

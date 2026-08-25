@@ -52,8 +52,10 @@ export function UnitSection({ title, subtitle, status, nodes }: UnitSectionProps
           informação nova (achado da auditoria visual da Home, 24/08/2026). O card do Stitch
           repete o nome da trilha porque LÁ o heading é genérico ("Unidade 1"); aqui o heading já
           é o nome da trilha, então a repetição virou ruído. `subtitle` vem de track.description,
-          que hoje NÃO é serializado pela API real (ver Docs/CLAUDE.md) — na prática o card não
-          aparece até alguém decidir o que deve morar nessa caixa. */}
+          que desde 25/08/2026 É serializado pela API real (formalizado no struct `track`, na API
+          Spec §3.3 e no Database Design §4.1 — v1.32). O campo é opcional e vem OMITIDO quando
+          vazio, então o `{subtitle && ...}` abaixo é o que decide se a caixa existe: trilha sem
+          descrição não deixa um card vazio na Home. */}
       {subtitle && (
         <Card
           padding="md"

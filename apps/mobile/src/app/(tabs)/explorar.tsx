@@ -155,6 +155,14 @@ export default function ExplorarScreen() {
               </View>
             ))}
           </View>
+          {/* "Meus Materiais" já dizia "Nenhum material encontrado" quando a busca não casava, mas
+              esta seção sumia sem explicação nenhuma — um título seguido de nada. Mesma correção
+              no web (auditoria de 25/08/2026). */}
+          {filteredTracks.length === 0 && (
+            <Text style={[type.bodySm, styles.empty]}>
+              Nenhuma trilha corresponde a “{query}”.
+            </Text>
+          )}
         </View>
 
         <View style={styles.section}>

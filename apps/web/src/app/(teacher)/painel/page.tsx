@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import {
   getClassSummary,
   getReviewQueue,
@@ -23,6 +23,23 @@ export default function TeacherDashboardPage() {
   const [summary, setSummary] = useState<TeacherClassSummary | null>(null);
   const [engagement, setEngagement] = useState<{ day: string; value: number }[]>([]);
   const [queue, setQueue] = useState<ReviewQueueRow[]>([]);
+  // "Revisar Módulo" (decisão do usuário, 25/08/2026, pendência #9): não existe upload_id em
+  // WeakTopic nem tela de detalhe de tópico — a fila de revisão já está na mesma página e já
+  // carrega `topic` em cada linha, então "revisar" combina os dois caminhos que o usuário pediu
+  // (leva à fila de revisão E funciona como um "detalhe do tópico" dentro do próprio painel):
+  // filtra a fila já visível por esse tópico e rola até ela, sem exigir mudança de contrato nem
+  // tela nova.
+  const [reviewQueueTopicFilter, setReviewQueueTopicFilter] = useState<string | null>(null);
+  const reviewQueueRef = useRef<HTMLDivElement>(null);
+
+  const handleReviewTopic = (topic: string) => {
+    setReviewQueueTopicFilter(topic);
+    reviewQueueRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+  };
+
+  const visibleQueue = reviewQueueTopicFilter
+    ? queue.filter((row) => row.topic === reviewQueueTopicFilter)
+    : queue;
 
   useEffect(() => {
     listTeacherClasses().then((result) => {
@@ -36,6 +53,7 @@ export default function TeacherDashboardPage() {
     getClassSummary(selectedClassId).then(setSummary);
     getWeeklyEngagement(selectedClassId).then(setEngagement);
     getReviewQueue(selectedClassId).then(setQueue);
+    setReviewQueueTopicFilter(null);
   }, [selectedClassId]);
 
   // Não há endpoint de exportação no contrato (API Spec) — isto é um CSV gerado 100% no cliente
@@ -97,7 +115,7 @@ export default function TeacherDashboardPage() {
 
       <section className="flex flex-col gap-sm">
         <h2 className="font-display text-headline-md text-on-surface">Tópicos Fracos</h2>
-        <WeakTopicsList topics={summary?.weak_topics ?? []} />
+        <WeakTopicsList topics={summary?.weak_topics ?? []} onReviewTopic={handleReviewTopic} />
       </section>
 
       <section className="flex flex-col gap-sm">
@@ -105,9 +123,28 @@ export default function TeacherDashboardPage() {
         <EngagementBarChart data={engagement} />
       </section>
 
-      <section className="flex flex-col gap-sm">
-        <h2 className="font-display text-headline-md text-on-surface">Fila de Revisão de Questões</h2>
-        <ReviewQueueTable rows={queue} />
+      <section ref={reviewQueueRef} className="flex flex-col gap-sm scroll-mt-sm">
+        <div className="flex items-center justify-between gap-sm flex-wrap">
+          <h2 className="font-display text-headline-md text-on-surface">Fila de Revisão de Questões</h2>
+          {reviewQueueTopicFilter && (
+            <button
+              type="button"
+              onClick={() => setReviewQueueTopicFilter(null)}
+              className="flex items-center gap-1 font-label text-label-caps px-sm py-1 rounded-full bg-primary-container text-on-primary-container"
+            >
+              {reviewQueueTopicFilter}
+              <Icon name="close" className="text-sm" />
+            </button>
+          )}
+        </div>
+        <ReviewQueueTable
+          rows={visibleQueue}
+          emptyMessage={
+            reviewQueueTopicFilter
+              ? `Nenhuma questão pendente de "${reviewQueueTopicFilter}" — as outras questões da turma continuam na fila.`
+              : undefined
+          }
+        />
       </section>
     </div>
   );

@@ -31,6 +31,7 @@ export function NoHeartsDialog({ open, onOpenChange }: NoHeartsDialogProps) {
   const [error, setError] = useState<string | null>(null);
   const canRestore = gamification.gems >= HEARTS_REFILL_ITEM.price_gems;
   const blocked = gamification.hearts_current <= 0;
+  const full = gamification.hearts_current >= HEARTS_MAX;
 
   const restoreWithGems = async () => {
     if (!canRestore || pending) return;
@@ -62,7 +63,9 @@ export function NoHeartsDialog({ open, onOpenChange }: NoHeartsDialogProps) {
     <Modal open={open} onOpenChange={onOpenChange} radius="full" className="w-[min(90vw,24rem)]">
       <div className="flex flex-col items-center text-center gap-md">
         <div className="flex items-center justify-center w-20 h-20 rounded-full bg-error-container">
-          <Icon name={blocked ? "heart_broken" : "favorite"} filled className="text-5xl text-error-red" />
+          {/* size em vez de `text-5xl`: classe de tamanho não pega em Material Symbols (o glifo
+              ficava em 24px dentro de um círculo de 80px) — ver Docs/PENDENCIAS_WEB_REAL.md. */}
+          <Icon name={blocked ? "heart_broken" : "favorite"} filled size={44} className="text-error-red" />
         </div>
         <div>
           <ModalTitle className="font-display text-headline-md font-bold text-on-surface">
@@ -81,9 +84,25 @@ export function NoHeartsDialog({ open, onOpenChange }: NoHeartsDialogProps) {
           </p>
         )}
         <div className="flex flex-col gap-sm w-full">
-          <Button variant="gamification" fullWidth disabled={!canRestore || pending} onClick={restoreWithGems}>
+          <Button
+            variant="gamification"
+            fullWidth
+            disabled={full || !canRestore || pending}
+            onClick={restoreWithGems}
+            icon={<Icon name="diamond" filled size={20} />}
+          >
             Restaurar com {HEARTS_REFILL_ITEM.price_gems} Gemas
           </Button>
+          {/* Um botão desabilitado sem motivo escrito é adivinhação: antes disto, com vidas cheias
+              OU com gemas de menos, o botão só ficava apagado e nada explicava qual dos dois era o
+              caso (auditoria de 25/08/2026). */}
+          {(full || !canRestore) && (
+            <p className="font-body-sm text-body-sm text-on-surface-variant">
+              {full
+                ? "Suas vidas já estão cheias — nada a restaurar agora."
+                : `Faltam ${HEARTS_REFILL_ITEM.price_gems - gamification.gems} gemas para restaurar.`}
+            </p>
+          )}
           {blocked ? (
             <Button variant="ghost" fullWidth onClick={backToHome}>
               Voltar para o Início

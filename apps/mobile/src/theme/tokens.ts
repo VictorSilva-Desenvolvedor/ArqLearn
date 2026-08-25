@@ -78,6 +78,33 @@ export const lightColors = {
   onErrorContainer: "#93000a",
   errorRed: "#b00020",
 
+  // Selo de tier da Liga (decisão do usuário, auditoria de 25/08/2026): cada um dos 10 tiers
+  // ganha cor/material próprios em vez do mesmo círculo secondaryContainer laranja pra todos.
+  // Mesmos hex de apps/web/globals.css (--color-league-*) — paleta de material/gema, não
+  // semântica de status (esmeralda/safira/rubi são verde/azul/vermelho só pelo nome do tier, não
+  // por significarem sucesso/navegação/erro). Cada par bg/on já nasce com contraste garantido
+  // entre si, então (como as variantes *Fixed acima) não muda entre os dois temas.
+  leagueMadeira: "#7c5430",
+  onLeagueMadeira: "#f5e8d8",
+  leaguePedra: "#667080",
+  onLeaguePedra: "#f1f3f6",
+  leagueBronze: "#9c5a2e",
+  onLeagueBronze: "#fce7d6",
+  leaguePrata: "#a7b0ba",
+  onLeaguePrata: "#202429",
+  leagueOuro: "#c99a2e",
+  onLeagueOuro: "#2e2000",
+  leaguePlatina: "#c3d0d6",
+  onLeaguePlatina: "#1f2c31",
+  leagueEsmeralda: "#1f8f5f",
+  onLeagueEsmeralda: "#e7fbf0",
+  leagueSafira: "#235fa8",
+  onLeagueSafira: "#e8f1ff",
+  leagueRubi: "#a82236",
+  onLeagueRubi: "#fce7ea",
+  leagueDiamante: "#4fbfda",
+  onLeagueDiamante: "#082832",
+
   // Fundo e texto muted
   background: "#f8f9ff",
   onBackground: "#121c2a",
@@ -163,6 +190,27 @@ export const darkColors = {
   onErrorContainer: "#f4e1e1",
   errorRed: "#f58499",
 
+  leagueMadeira: lightColors.leagueMadeira,
+  onLeagueMadeira: lightColors.onLeagueMadeira,
+  leaguePedra: lightColors.leaguePedra,
+  onLeaguePedra: lightColors.onLeaguePedra,
+  leagueBronze: lightColors.leagueBronze,
+  onLeagueBronze: lightColors.onLeagueBronze,
+  leaguePrata: lightColors.leaguePrata,
+  onLeaguePrata: lightColors.onLeaguePrata,
+  leagueOuro: lightColors.leagueOuro,
+  onLeagueOuro: lightColors.onLeagueOuro,
+  leaguePlatina: lightColors.leaguePlatina,
+  onLeaguePlatina: lightColors.onLeaguePlatina,
+  leagueEsmeralda: lightColors.leagueEsmeralda,
+  onLeagueEsmeralda: lightColors.onLeagueEsmeralda,
+  leagueSafira: lightColors.leagueSafira,
+  onLeagueSafira: lightColors.onLeagueSafira,
+  leagueRubi: lightColors.leagueRubi,
+  onLeagueRubi: lightColors.onLeagueRubi,
+  leagueDiamante: lightColors.leagueDiamante,
+  onLeagueDiamante: lightColors.onLeagueDiamante,
+
   background: "#16191d",
   onBackground: "#e6eaef",
   mutedText: "#a6abb5",
@@ -210,6 +258,11 @@ export const type: Record<string, TextStyleToken> = {
     letterSpacing: 0.6,
   },
   statsNum: { fontFamily: fontFamily.labelBold, fontSize: 22, lineHeight: 28 },
+  // Equivalente RN da combinação `font-label text-body-sm font-bold` que o web escreve direto em
+  // classes utilitárias: mesmo número "de dados" do `statsNum`, mas no corpo de 14px de uma linha
+  // de tabela (ranking da Liga), onde 22px não cabe. Não é valor de design novo — mesma família e
+  // mesmo tamanho já existentes no sistema; existe porque RN não compõe estilos por utilitário.
+  statsNumSm: { fontFamily: fontFamily.labelBold, fontSize: 14, lineHeight: 20 },
 };
 
 export const radius = {

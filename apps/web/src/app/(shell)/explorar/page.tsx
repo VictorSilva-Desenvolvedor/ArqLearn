@@ -145,6 +145,14 @@ export default function ExplorePage() {
             />
           ))}
         </div>
+        {/* "Meus Materiais" já dizia "Nenhum material encontrado" quando a busca não casava, mas
+            esta seção sumia sem explicação nenhuma — um título seguido de nada (auditoria de
+            25/08/2026). */}
+        {filteredTracks.length === 0 && (
+          <p className="font-body-sm text-body-sm text-on-surface-variant">
+            Nenhuma trilha corresponde a “{query}”.
+          </p>
+        )}
       </section>
 
       <section className="flex flex-col gap-sm">

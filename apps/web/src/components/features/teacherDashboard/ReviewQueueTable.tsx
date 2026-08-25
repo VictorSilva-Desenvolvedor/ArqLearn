@@ -19,7 +19,13 @@ const columns: { key: SortKey; label: string }[] = [
   { key: "status", label: "Status" },
 ];
 
-export function ReviewQueueTable({ rows }: { rows: ReviewQueueRow[] }) {
+export function ReviewQueueTable({
+  rows,
+  emptyMessage = "Nenhuma questão pendente de revisão nesta turma.",
+}: {
+  rows: ReviewQueueRow[];
+  emptyMessage?: string;
+}) {
   const [sortKey, setSortKey] = useState<SortKey>("student_name");
   const [sortDirection, setSortDirection] = useState<SortDirection>("asc");
 
@@ -38,11 +44,7 @@ export function ReviewQueueTable({ rows }: { rows: ReviewQueueRow[] }) {
   };
 
   if (rows.length === 0) {
-    return (
-      <p className="font-body-sm text-body-sm text-on-surface-variant">
-        Nenhuma questão pendente de revisão nesta turma.
-      </p>
-    );
+    return <p className="font-body-sm text-body-sm text-on-surface-variant">{emptyMessage}</p>;
   }
 
   return (

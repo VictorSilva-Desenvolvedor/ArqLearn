@@ -23,6 +23,13 @@ export function ChatMessageBubble({ role, message, sourceExcerpt, sourceRef }: C
 
   return (
     <div className={cn("flex flex-col gap-xs max-w-[85%]", isUser ? "self-end items-end" : "self-start items-start")}>
+      {/* Autoria explícita: duas bolhas sem rótulo (uma azul, uma cinza) deixavam a resposta da IA
+          sem nenhum sinal de quem falou — a referência do Stitch
+          (explica_o_e_perguntas_do_material/screen.png) rotula os dois lados. */}
+      <span className="flex items-center gap-1 font-label text-label-caps uppercase text-on-surface-variant">
+        {!isUser && <Icon name="lightbulb" filled className="text-secondary" size={14} />}
+        {isUser ? "Você" : "Arq"}
+      </span>
       <div
         className={cn(
           "px-md py-sm rounded-lg font-body-md text-body-md",
@@ -34,7 +41,10 @@ export function ChatMessageBubble({ role, message, sourceExcerpt, sourceRef }: C
         {message}
       </div>
       {sourceExcerpt && (
-        <blockquote className="border-l-4 border-outline-variant pl-sm font-body-sm text-body-sm text-on-surface-variant italic">
+        // Superfície opaca (auditoria de 25/08/2026, rodada 4): a citação ficava direto sobre a
+        // grade blueprint animada e as linhas cruzavam o texto em itálico — o Stitch põe o trecho
+        // do documento dentro de um card branco com borda.
+        <blockquote className="bg-surface-bright border-2 border-outline-variant border-l-4 border-l-primary rounded-lg px-sm py-xs font-body-sm text-body-sm text-on-surface-variant italic">
           {sourceExcerpt}
         </blockquote>
       )}

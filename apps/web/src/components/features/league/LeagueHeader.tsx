@@ -4,7 +4,18 @@ import { useState } from "react";
 import { Icon } from "@/components/ui/Icon";
 import { LeagueProgressionTrack } from "./LeagueProgressionTrack";
 import { LeagueTiersDialog } from "./LeagueTiersDialog";
-import { LEAGUE_TIER_ICONS, LEAGUE_TIER_LABELS, nextTierDivision, type LeagueTierName } from "@/lib/gamification/leagueTiers";
+import {
+  LEAGUE_TIER_BG_CLASS,
+  LEAGUE_TIER_ICONS,
+  LEAGUE_TIER_LABELS,
+  LEAGUE_TIER_ON_CLASS,
+  nextTierDivision,
+  weekReferenceEndsAtIso,
+  type LeagueTierName,
+} from "@/lib/gamification/leagueTiers";
+import { cn } from "@/lib/utils/cn";
+import { useCountdownToTimestamp } from "@/hooks/useCountdown";
+import { formatDaysHoursMinutes } from "@/lib/utils/format";
 import type { League } from "@/types/api";
 
 // Espelha apps/mobile/.../liga.tsx (topo da tela) — LeaguePage é Server Component, por isso esse
@@ -17,6 +28,8 @@ export function LeagueHeader({ league, currentUserId }: { league: League; curren
   const tier = (league.tier ?? "madeira") as LeagueTierName;
   const label = LEAGUE_TIER_LABELS[tier];
   const next = nextTierDivision(tier, league.division);
+  const weekEndsAt = weekReferenceEndsAtIso(league.week_reference);
+  const { secondsLeft: weekSecondsLeft, reachedZero } = useCountdownToTimestamp(weekEndsAt);
   const description = next
     ? `Os ${league.promotion_slots} melhores avançam para a Liga ${LEAGUE_TIER_LABELS[next.tier]} ${next.division}. Compita aprendendo!`
     : "Você está na posição mais alta da hierarquia. Compita aprendendo!";
@@ -32,9 +45,16 @@ export function LeagueHeader({ league, currentUserId }: { league: League; curren
         <button
           type="button"
           onClick={() => openDialog(undefined)}
-          className="w-24 h-24 mb-sm rounded-full border-4 border-outline-variant bg-secondary-container flex items-center justify-center"
+          className={cn(
+            "w-24 h-24 mb-sm rounded-full border-4 border-outline-variant flex items-center justify-center",
+            LEAGUE_TIER_BG_CLASS[tier],
+          )}
         >
-          <Icon name={LEAGUE_TIER_ICONS[tier]} filled className="text-secondary text-5xl" />
+          {/* size={48} e não className="text-5xl": no web toda classe de tamanho em <Icon> é
+              engolida pela folha do Material Symbols (fora de cascade layer) e o glifo renderiza
+              em 24px — medido ao vivo aqui, um escudo de 24px dentro de um selo de 96px. Ver
+              Docs/PENDENCIAS_WEB_REAL.md, "Classe de tamanho em <Icon> não tem efeito nenhum". */}
+          <Icon name={LEAGUE_TIER_ICONS[tier]} filled size={48} className={LEAGUE_TIER_ON_CLASS[tier]} />
         </button>
         <h1 className="font-display text-display-lg text-on-surface mb-xs">
           Liga {label} {league.division}
@@ -44,10 +64,21 @@ export function LeagueHeader({ league, currentUserId }: { league: League; curren
             ausência de um --max-width-md próprio — usar max-w-md aqui colapsava o parágrafo pra
             16px de largura (uma palavra por linha). Nenhum outro lugar do app usa max-w-md hoje. */}
         <p className="font-body-md text-body-md text-on-surface-variant w-full max-w-[28rem] mx-auto">{description}</p>
-        <div className="mt-md bg-surface-container rounded-lg px-lg py-sm border border-outline-variant">
-          <span className="font-label text-label-caps text-on-surface-variant block mb-1">Tempo Restante</span>
-          <span className="font-label text-question-lg text-primary">2d 14h 32m</span>
-        </div>
+        {weekEndsAt && (
+          <div className="mt-md bg-surface-container rounded-lg px-lg py-sm border border-outline-variant">
+            {/* reachedZero: `weekReferenceEndsAtIso` é uma aproximação em UTC do fim do ciclo, e o
+                job real de fechamento roda no fuso do usuário — nos minutos/horas entre os dois a
+                conta chega a zero antes de a liga fechar de fato. Sem este caso, a tela mostrava
+                "0m", que lê como "acabou agora" para sempre. Também é o que aparece se o
+                `week_reference` vier atrasado da API. */}
+            <span className="font-label text-label-caps text-on-surface-variant block mb-1">
+              {reachedZero ? "Ciclo" : "Tempo Restante"}
+            </span>
+            <span className="font-label text-question-lg text-primary">
+              {reachedZero ? "Encerrando…" : formatDaysHoursMinutes(weekSecondsLeft)}
+            </span>
+          </div>
+        )}
       </div>
 
       <LeagueProgressionTrack currentTier={tier} onSelectTier={(t) => openDialog(t)} />

@@ -120,8 +120,17 @@ const createStyles = (colors: ColorTokens) =>
       paddingVertical: spacing.lg,
       gap: spacing.lg,
     },
+    // Painel opaco (decisão do usuário, 25/08/2026, pendência #10) — mesma moldura de
+    // Conquista.tsx (surfaceBright + borda outlineVariant), paridade com o fix do web no mesmo
+    // componente compartilhado (Quiz + Modo Infinito).
     promptBlock: {
       gap: spacing.xs,
+      backgroundColor: colors.surfaceBright,
+      borderWidth: 2,
+      borderColor: colors.outlineVariant,
+      borderRadius: radius.xl,
+      paddingHorizontal: spacing.md,
+      paddingVertical: spacing.md,
     },
     prompt: {
       color: colors.onSurface,

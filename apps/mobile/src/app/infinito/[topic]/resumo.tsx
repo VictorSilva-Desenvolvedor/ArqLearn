@@ -1,9 +1,11 @@
 import { useLocalSearchParams } from "expo-router";
 import { InfiniteModeSummaryPanel } from "@/components/features/infiniteMode/InfiniteModeSummaryPanel";
+import { getThemeByTopic } from "@/lib/api/mocks/fixtures/themes";
 
 // Espelha apps/web/src/app/(lesson)/infinito/[topic]/resumo/page.tsx.
 export default function InfiniteModeSummaryScreen() {
-  const { questions, correct, accuracy, xp, avgTime, chest } = useLocalSearchParams<{
+  const { topic, questions, correct, accuracy, xp, avgTime, chest } = useLocalSearchParams<{
+    topic: string;
     questions: string;
     correct: string;
     accuracy: string;
@@ -20,6 +22,7 @@ export default function InfiniteModeSummaryScreen() {
       xpEarned={Number(xp ?? 0)}
       avgTimeMs={Number(avgTime ?? 0)}
       chestAvailable={chest === "true"}
+      subtitle={`Modo Infinito · ${getThemeByTopic(topic).label}`}
     />
   );
 }

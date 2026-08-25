@@ -48,11 +48,12 @@ func RegisterRoutes(mux *http.ServeMux, pool *pgxpool.Pool, mongoDB *mongo.Datab
 
 // track espelha a coleção "tracks" (Database Design §4.1).
 type track struct {
-	ID     string      `bson:"_id" json:"id"`
-	Title  string      `bson:"title" json:"title"`
-	Topic  string      `bson:"topic" json:"topic"`
-	Origin string      `bson:"origin" json:"origin"`
-	Units  []trackUnit `bson:"units" json:"-"` // não serializado em /v1/tracks — só usado internamente para ordenar lições
+	ID          string      `bson:"_id" json:"id"`
+	Title       string      `bson:"title" json:"title"`
+	Topic       string      `bson:"topic" json:"topic"`
+	Origin      string      `bson:"origin" json:"origin"`
+	Description string      `bson:"description,omitempty" json:"description,omitempty"`
+	Units       []trackUnit `bson:"units" json:"-"` // não serializado em /v1/tracks — só usado internamente para ordenar lições
 }
 
 type trackUnit struct {

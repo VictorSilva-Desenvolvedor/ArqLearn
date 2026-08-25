@@ -9,8 +9,10 @@ import { getLeague } from "@/lib/api/resources/gamification";
 import {
   LEAGUE_DIVISIONS,
   LEAGUE_TIERS,
+  LEAGUE_TIER_BG_CLASS,
   LEAGUE_TIER_ICONS,
   LEAGUE_TIER_LABELS,
+  LEAGUE_TIER_ON_CLASS,
   leagueFullLabel,
   type LeagueTierName,
 } from "@/lib/gamification/leagueTiers";
@@ -42,6 +44,7 @@ export function LeagueTiersDialog({ open, onOpenChange, currentUserId, ownLeague
     initialTier && initialTier !== ownTier ? 1 : ownLeague.division,
   );
   const [loading, setLoading] = useState(false);
+  const [loadError, setLoadError] = useState(false);
   const [rankingByKey, setRankingByKey] = useState<Partial<Record<CacheKey, LeagueRankingEntry[]>>>({
     [ownKey]: ownLeague.ranking,
   });
@@ -62,10 +65,17 @@ export function LeagueTiersDialog({ open, onOpenChange, currentUserId, ownLeague
     if (!open || rankingByKey[selectedKey]) return;
     let cancelled = false;
     setLoading(true);
+    setLoadError(false);
     getLeague(undefined, selectedTier, selectedDivision)
       .then((league) => {
         if (cancelled) return;
         setRankingByKey((prev) => ({ ...prev, [selectedKey]: league.ranking }));
+      })
+      // Sem este catch, uma falha de rede caía no ramo "vazio" do render e a tela afirmava
+      // "Ninguém está na <liga> ainda esta semana" — uma informação falsa sobre o mundo, não um
+      // aviso de erro (auditoria de 25/08/2026, rodada 4; defeito idêntico no mobile).
+      .catch(() => {
+        if (!cancelled) setLoadError(true);
       })
       .finally(() => {
         if (!cancelled) setLoading(false);
@@ -121,10 +131,17 @@ export function LeagueTiersDialog({ open, onOpenChange, currentUserId, ownLeague
               }}
               className={cn(
                 "w-11 h-11 rounded-full flex items-center justify-center shrink-0",
-                active ? "bg-primary text-on-primary" : "bg-surface-gray text-on-surface-variant",
+                // Cor por tier só no estado selecionado (decisão do usuário, 25/08/2026) — o
+                // círculo cheio continua sendo o sinal de "selecionado" vs. o cinza neutro dos
+                // outros 9, só que agora cada tier acende na própria cor em vez de sempre azul.
+                active ? LEAGUE_TIER_BG_CLASS[tier] : "bg-surface-gray",
               )}
             >
-              <Icon name={LEAGUE_TIER_ICONS[tier]} filled={active} className="text-base" />
+              <Icon
+                name={LEAGUE_TIER_ICONS[tier]}
+                filled={active}
+                className={cn("text-base", active ? LEAGUE_TIER_ON_CLASS[tier] : "text-on-surface-variant")}
+              />
             </button>
           );
         })}
@@ -162,6 +179,11 @@ export function LeagueTiersDialog({ open, onOpenChange, currentUserId, ownLeague
             promotionSlots={ownLeague.promotion_slots}
             demotionSlots={ownLeague.demotion_slots}
           />
+        ) : loadError ? (
+          <p role="alert" className="font-body-sm text-body-sm text-error text-center my-lg">
+            Não foi possível carregar o ranking da {leagueFullLabel(selectedTier, selectedDivision)}.
+            Escolha a liga de novo para tentar outra vez.
+          </p>
         ) : (
           <p className="font-body-sm text-body-sm text-on-surface-variant text-center my-lg">
             Ninguém está na {leagueFullLabel(selectedTier, selectedDivision)} ainda esta semana.

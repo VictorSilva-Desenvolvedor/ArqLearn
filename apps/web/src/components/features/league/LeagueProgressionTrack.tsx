@@ -1,7 +1,14 @@
 "use client";
 
 import { Icon } from "@/components/ui/Icon";
-import { LEAGUE_TIERS, LEAGUE_TIER_ICONS, LEAGUE_TIER_LABELS, type LeagueTierName } from "@/lib/gamification/leagueTiers";
+import {
+  LEAGUE_TIERS,
+  LEAGUE_TIER_BG_CLASS,
+  LEAGUE_TIER_ICONS,
+  LEAGUE_TIER_LABELS,
+  LEAGUE_TIER_ON_CLASS,
+  type LeagueTierName,
+} from "@/lib/gamification/leagueTiers";
 import { cn } from "@/lib/utils/cn";
 
 interface LeagueProgressionTrackProps {
@@ -26,10 +33,20 @@ export function LeagueProgressionTrack({ currentTier, onSelectTier }: LeagueProg
                 aria-label={`Ver Liga ${LEAGUE_TIER_LABELS[tier]}`}
                 className="flex flex-col items-center gap-1 min-w-[56px]"
               >
+                {/* Cor por tier também aqui (auditoria de 25/08/2026): o selo grande logo acima
+                    nesta MESMA tela já pinta a liga atual na cor do próprio tier desde a
+                    pendência #8, mas esta trilha continuava em bg-primary — medido ao vivo com o
+                    usuário mockado em Bronze, o selo aparecia marrom e o nó "Bronze" da trilha,
+                    200px abaixo, aparecia azul. Mesmo tier, duas cores, na mesma dobra. O rótulo
+                    de texto segue em text-primary de propósito: a paleta de tier é de material
+                    (prata/platina são claríssimos) e não garante contraste de TEXTO sobre o card
+                    branco — o círculo carrega o material, o rótulo carrega o estado. */}
                 <div
                   className={cn(
                     "w-10 h-10 rounded-full flex items-center justify-center border-2",
-                    active ? "bg-primary border-primary text-on-primary" : "bg-surface-gray border-outline-variant text-outline",
+                    active
+                      ? cn(LEAGUE_TIER_BG_CLASS[tier], LEAGUE_TIER_ON_CLASS[tier], "border-outline-variant")
+                      : "bg-surface-gray border-outline-variant text-outline",
                   )}
                 >
                   <Icon name={LEAGUE_TIER_ICONS[tier]} filled={active} className="text-lg" />

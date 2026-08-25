@@ -45,10 +45,14 @@ export default function AchievementScreen() {
     // eslint-disable-next-line react-hooks/exhaustive-deps -- só deve rodar uma vez ao montar; gamification.* mudaria a cada crédito e recriaria o efeito
   }, [entry, updateGamification]);
 
-  if (!entry) {
-    router.replace("/");
-    return null;
-  }
+  // Redirecionar precisa ser efeito, não corpo do render: navegar durante o render dispara
+  // "Cannot update a component while rendering a different component" (erro real observado no
+  // web equivalente ao abrir /conquista sem `type` — auditoria de 25/08/2026).
+  useEffect(() => {
+    if (!entry) router.replace("/");
+  }, [entry, router]);
+
+  if (!entry) return null;
 
   return (
     <SafeAreaView style={styles.screen} edges={["top"]}>
@@ -91,11 +95,19 @@ const createStyles = (colors: ColorTokens) =>
       paddingVertical: spacing.lg,
       backgroundColor: colors.background,
     },
+    // Painel opaco com moldura — paridade com o web (onde ele também resolve a legibilidade
+    // sobre a grade blueprint do <body>) e com a moldura técnica da referência do Stitch.
     content: {
       width: "100%",
       maxWidth: 448,
       alignItems: "center",
       gap: spacing.lg,
+      backgroundColor: colors.surfaceBright,
+      borderWidth: 2,
+      borderColor: colors.outlineVariant,
+      borderRadius: radius.xl,
+      paddingHorizontal: spacing.lg,
+      paddingVertical: spacing.xl,
     },
     badge: {
       width: 112,

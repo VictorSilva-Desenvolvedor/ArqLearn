@@ -1,7 +1,7 @@
 import type { ButtonHTMLAttributes, ReactNode } from "react";
 import { cn } from "@/lib/utils/cn";
 
-type ButtonVariant = "primary" | "gamification" | "ghost" | "danger";
+type ButtonVariant = "primary" | "gamification" | "ghost" | "danger" | "danger-ghost";
 type ButtonSize = "sm" | "md" | "lg";
 
 interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
@@ -19,6 +19,13 @@ const variantClasses: Record<ButtonVariant, string> = {
     "bg-secondary-container text-on-secondary-container border-b-4 border-secondary active:translate-y-1 active:border-b-0",
   ghost: "bg-transparent text-primary border-2 border-primary hover:bg-surface-container",
   danger: "bg-error text-on-error hover:opacity-90 border-2 border-error",
+  // Ação destrutiva que NÃO deve ser a mais pesada da tela — mesmo vocabulário do `ghost` (fundo
+  // transparente + borda 2px), só que na cor de erro. Criado na auditoria de 25/08/2026 (rodada 3)
+  // para a Revisão de Perguntas, onde "Rejeitar" em `danger` sólido era o botão mais chamativo do
+  // card, acima de "Aprovar" — invertendo a hierarquia da ação esperada e divergindo da referência
+  // do Stitch (revis_o_de_perguntas/screen.png), que usa rejeitar contornado. Variante nova: não
+  // altera nenhum botão já existente no app.
+  "danger-ghost": "bg-transparent text-error hover:bg-error-container border-2 border-error",
 };
 
 const sizeClasses: Record<ButtonSize, string> = {

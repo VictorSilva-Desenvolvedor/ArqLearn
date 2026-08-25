@@ -51,13 +51,19 @@ export function UploadedContentItem({ item }: { item: UploadedContent }) {
     <Card padding="sm" radius="md" style={styles.card}>
       <View style={styles.row}>
         <Icon name={fileTypeIcon[item.file_type]} size={24} color={colors.onSurfaceVariant} />
+        {/* O nome do arquivo é o que identifica a linha, mas dividia a largura com um badge de
+            texto longo ("Pronto para revisão") e sobrava quase nada pra ele numa largura de
+            telefone. Badge desce pra segunda linha, junto do tamanho. Mesma correção no web
+            (auditoria de 25/08/2026). */}
         <View style={styles.info}>
           <Text style={[type.bodyMd, styles.filename]} numberOfLines={1}>
             {item.filename}
           </Text>
-          <Text style={[type.bodySm, styles.size]}>{formatBytes(item.size_bytes)}</Text>
+          <View style={styles.metaRow}>
+            <Text style={[type.bodySm, styles.size]}>{formatBytes(item.size_bytes)}</Text>
+            <Badge tone={status.tone}>{status.label}</Badge>
+          </View>
         </View>
-        <Badge tone={status.tone}>{status.label}</Badge>
         {canOpenSummary && <Icon name="chevronRight" size={20} color={colors.onSurfaceVariant} />}
       </View>
       {showProgress && (
@@ -95,6 +101,13 @@ const createStyles = (colors: ColorTokens) =>
     info: {
       flex: 1,
       minWidth: 0,
+      gap: 4,
+    },
+    metaRow: {
+      flexDirection: "row",
+      alignItems: "center",
+      gap: spacing.sm,
+      flexWrap: "wrap",
     },
     filename: {
       color: colors.onSurface,

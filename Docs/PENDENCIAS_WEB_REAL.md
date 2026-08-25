@@ -59,3 +59,71 @@ Painel do Professor (`/painel`, `/revisao`) e Admin (`/admin`) também estão mo
 (`internal/analytics` stub, sem endpoint de diretório de usuários) — não estavam no pedido de
 "telas da Maria", mas seguem o mesmo padrão: contrato documentado, handler faltando. Revisitar
 quando alguém for de fato usar essas contas (Marina/Admin) além de teste manual.
+
+## Classe de tamanho em `<Icon>` não tem efeito nenhum no web (aberto em 2026-08-25, ui-reviewer)
+
+**Medido ao vivo, não inferido:** na tela de Conquista, um `<Icon className="text-6xl">` (60px)
+computa `font-size: 24px`. O mesmo vale para `text-5xl`, `text-3xl`, `text-2xl` e `text-xl` — todo
+ícone do web renderiza em 24px, independentemente da classe.
+
+**Causa:** a folha do Material Symbols (carregada por `<link>` em `src/app/layout.tsx`) define
+`.material-symbols-outlined { font-size: 24px }` **fora de qualquer cascade layer**. No Tailwind v4
+as utilities vivem em `@layer utilities`, e em CSS moderno **estilo não-layered sempre vence estilo
+layered**, independente de especificidade ou ordem. Então a regra do Google ganha de `text-6xl`
+sempre.
+
+**Alcance:** 98 ocorrências em 46 arquivos (`grep -rn "Icon" apps/web/src --include=*.tsx | grep -E
+'className="[^"]*text-(xs|sm|base|lg|xl|2xl|3xl|4xl|5xl|6xl|7xl)'`). É boa parte da diferença de
+"peso visual" entre as telas implementadas e as referências do Stitch.
+
+**Correção recomendada (não aplicada nesta rodada):** trocar o `<link>` do Material Symbols por um
+`@import url(...) layer(vendor);` em `globals.css`, com `@layer vendor, theme, base, components,
+utilities;` declarado antes — isso põe o CSS do Google numa layer de menor prioridade e faz as 98
+ocorrências voltarem a funcionar de uma vez. **Não foi feito aqui de propósito:** a mudança altera o
+tamanho de ícone em ~46 arquivos simultaneamente e exige re-auditoria visual de todas as telas do
+app, o que não cabia no orçamento de uma rodada de varredura. Enquanto isso não acontece, a saída
+local é a prop `size` do próprio componente (`<Icon size={56} />`), que aplica `font-size` inline e
+por isso vence — foi o que se usou nas telas C, D e E.
+
+## Progresso do módulo no Resumo da Lição — RESOLVIDO em 2026-08-25
+
+Era `moduleProgressPercent={75}` literal. Decisão do usuário: calcular de verdade. Agora busca
+`GET /v1/tracks/{track_id}/lessons` e mostra lições concluídas / total da trilha. Detalhe: vira
+progresso da trilha inteira, não de uma "unidade" — a API não expõe unidade por lição. Ver
+`Docs/UI_AUDIT_STATUS.md` pendência #3 pro detalhe completo. Mesmo fix no mobile
+(`Docs/PENDENCIAS_MOBILE.md`).
+
+## Fila de Revisão do Painel: coluna "Ação" fora da tela em 390px (aberta em 2026-08-25)
+
+Achado na auditoria visual da rodada 5 (`Docs/UI_AUDIT_STATUS.md`), ao verificar o novo filtro por
+tópico de "Revisar Módulo".
+
+`ReviewQueueTable.tsx` é uma `<table>` de 5 colunas (Aluno, Questão ID, Tópico, Status, Ação) dentro
+de um wrapper `overflow-x-auto`. Numa viewport de 390px as três primeiras colunas já consomem a
+largura toda: "Status" aparece cortado e a coluna **"Ação" — que contém o link "Revisar", a única
+ação por linha da tela — fica inteiramente fora do campo visível**. O conteúdo é alcançável (o
+wrapper rola de fato na horizontal), mas não há nenhuma affordance de que exista algo à direita:
+sem sombra de borda, sem gradiente, sem indicador.
+
+**Por que piorou agora:** desde que "Revisar Módulo" passa a rolar a página automaticamente até essa
+tabela, ela virou o destino de um fluxo explícito do professor, e não mais uma seção que ele
+encontra rolando. O caminho "vi um tópico fraco → quero revisar as questões dele" termina numa
+tabela cujo botão de revisar não aparece.
+
+**Não corrigido de propósito:** as duas saídas razoáveis (a — virar lista de cards abaixo de `sm`,
+como já se fez em outras telas; b — manter a tabela e adicionar indicador de rolagem) são decisões
+de design com consequências diferentes pro resto do Painel, não uma correção objetiva. Escolha do
+usuário.
+
+## Fila de Revisão do Painel: mock tem um único tópico (aberta em 2026-08-25)
+
+Também da rodada 5. O filtro por tópico foi corrigido no mock pra que o caminho feliz exista (antes,
+nenhum `weak_topic` casava com nenhuma linha da fila e **todo** clique caía no estado vazio — ver
+`Docs/UI_AUDIT_STATUS.md`, rodada 5). Mas as 4 linhas de `mockReviewQueue` continuam sendo todas do
+mesmo tópico ("Introdução ao BIM"), então filtrar por ele mostra a fila inteira: dá pra provar que o
+filtro **exclui** (pelo estado vazio do 2º tópico), não que ele **estreita**.
+
+Fechar isso exige um segundo upload em `mockReviewQuestions` + `mockReviewTrackTitle` (12 perguntas
+novas, no molde do `upload-bim-intro`), porque cada linha da fila leva a `/revisao/{upload_id}` —
+inventar um `upload_id` só pra variar o tópico criaria um link quebrado, que é pior que a limitação
+atual.

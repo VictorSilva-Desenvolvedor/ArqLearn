@@ -534,6 +534,7 @@ CREATE INDEX idx_notification_sends_pending_eval ON notification_sends(evaluated
   "title": "Fundamentos de Urbanismo",
   "topic": "urbanismo",
   "origin": "curated" | "user_generated",
+  "description": "string, opcional — subtítulo curto exibido no card da unidade na Home (v1.32; omitido do JSON quando vazio, nunca null)",
   "author_id": "uuid | null",
   "tenant_id": "uuid | null",
   "units": [

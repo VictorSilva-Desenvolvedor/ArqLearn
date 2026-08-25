@@ -70,11 +70,28 @@ export const mockLeagueRanking: LeagueRankingEntry[] = [
 const promotionCutoffXp = mockLeagueRanking[LEAGUE_PROMOTION_SLOTS - 1].xp_this_week;
 const viewerXp = mockLeagueRanking.find((e) => e.user_id === mockUser.id)!.xp_this_week;
 
+// Semana ISO corrente, calculada na hora. Era a string fixa "2026-W32": como a Liga fecha por
+// semana, um week_reference congelado no passado faz a contagem regressiva do cabeçalho da Liga
+// nascer zerada ("0m" / "Encerrando…") em toda demonstração, para sempre — o mock passava a
+// mentir sobre o estado normal da tela. Achado na auditoria de 25/08/2026 (rodada 3), quando a
+// contagem real substituiu o "2d 14h 32m" hardcoded do web e revelou o mock vencido.
+function currentWeekReference(now: Date = new Date()): string {
+  const d = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate()));
+  // Quinta-feira da semana ISO corrente define o ano ISO (semana 1 = a que contém a 1ª quinta).
+  d.setUTCDate(d.getUTCDate() + 4 - (d.getUTCDay() || 7));
+  const isoYear = d.getUTCFullYear();
+  const yearStart = new Date(Date.UTC(isoYear, 0, 1));
+  const week = Math.ceil(((d.getTime() - yearStart.getTime()) / 86400000 + 1) / 7);
+  return `${isoYear}-W${String(week).padStart(2, "0")}`;
+}
+
+const MOCK_WEEK_REFERENCE = currentWeekReference();
+
 export const mockLeague: League = {
-  league_id: `liga-${MOCK_USER_TIER}-${MOCK_USER_DIVISION}-2026-w32`,
+  league_id: `liga-${MOCK_USER_TIER}-${MOCK_USER_DIVISION}-${MOCK_WEEK_REFERENCE.toLowerCase()}`,
   tier: MOCK_USER_TIER,
   division: MOCK_USER_DIVISION,
-  week_reference: "2026-W32",
+  week_reference: MOCK_WEEK_REFERENCE,
   ranking: mockLeagueRanking,
   promotion_slots: LEAGUE_PROMOTION_SLOTS,
   demotion_slots: LEAGUE_DEMOTION_SLOTS,
@@ -119,10 +136,10 @@ function buildMockRanking(tier: LeagueTierName, division: number): LeagueRanking
 export function mockLeagueByTier(tier: LeagueTierName, division: number): League {
   if (tier === MOCK_USER_TIER && division === MOCK_USER_DIVISION) return mockLeague;
   return {
-    league_id: `liga-${tier}-${division}-2026-w32`,
+    league_id: `liga-${tier}-${division}-${MOCK_WEEK_REFERENCE.toLowerCase()}`,
     tier,
     division,
-    week_reference: "2026-W32",
+    week_reference: MOCK_WEEK_REFERENCE,
     ranking: buildMockRanking(tier, division),
     promotion_slots: LEAGUE_PROMOTION_SLOTS,
     demotion_slots: LEAGUE_DEMOTION_SLOTS,

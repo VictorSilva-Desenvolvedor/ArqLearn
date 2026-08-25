@@ -58,7 +58,10 @@ function generateItems(): FallConfig[] {
 // Waypoints em fração de progresso [0, 0.08|entrada, ...meio, 0.92, 1] → deslocamento X (px),
 // fração vertical percorrida (0 = topo/-60px, 1 = base da tela, 1.12 = um pouco além, espelhando
 // os 112vh do CSS de referência), rotação (deg) e opacidade — mesmos valores de
-// apps/web/src/app/globals.css (@keyframes fall-path-a/b/c).
+// apps/web/src/app/globals.css (@keyframes fall-path-a/b/c). Opacidades baixadas de
+// 0.6/0.55/0.5 para 0.5/0.45/0.4 em 25/08/2026 junto com o web: ver o comentário longo em
+// globals.css (a portagem usava a opacidade do mockup com as cores de marca em força total, o que
+// deixou a decoração acima do piso de 3:1 da WCAG pra conteúdo não-textual com significado).
 const PATH_WAYPOINTS: Record<
   PathName,
   { input: number[]; x: number[]; yFraction: number[]; rotate: number[]; opacity: number[] }
@@ -68,21 +71,21 @@ const PATH_WAYPOINTS: Record<
     x: [0, 0, 40, -25, 15, 15],
     yFraction: [0, 0.06, 0.28, 0.6, 1, 1.12],
     rotate: [0, 0, 90, 200, 340, 360],
-    opacity: [0, 0.6, 0.6, 0.6, 0.6, 0],
+    opacity: [0, 0.5, 0.5, 0.5, 0.5, 0],
   },
   b: {
     input: [0, 0.08, 0.35, 0.65, 0.92, 1],
     x: [0, 0, -45, 30, -20, -20],
     yFraction: [0, 0.06, 0.32, 0.68, 1, 1.12],
     rotate: [0, 0, -110, -240, -340, -360],
-    opacity: [0, 0.55, 0.55, 0.55, 0.55, 0],
+    opacity: [0, 0.45, 0.45, 0.45, 0.45, 0],
   },
   c: {
     input: [0, 0.08, 0.4, 0.7, 0.92, 1],
     x: [0, 0, 20, -40, 30, 35],
     yFraction: [0, 0.06, 0.4, 0.75, 1, 1.12],
     rotate: [0, 0, 60, 150, 280, 300],
-    opacity: [0, 0.5, 0.5, 0.5, 0.5, 0],
+    opacity: [0, 0.4, 0.4, 0.4, 0.4, 0],
   },
 };
 

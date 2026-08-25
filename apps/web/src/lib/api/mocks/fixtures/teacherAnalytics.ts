@@ -12,13 +12,20 @@ export const mockTeacherClasses: TeacherClass[] = [
   { id: "turma-2026-1b", name: "Arquitetura 2026 — Turma B" },
 ];
 
+// `topic` aqui TEM que casar com o `topic` de mockReviewQueue abaixo — é a chave que liga as duas
+// seções desde que "Revisar Módulo" passou a filtrar a fila por tópico (25/08/2026, pendência #9).
+// Antes desta auditoria nenhum dos 4 tópicos fracos existia na fila (todas as linhas eram
+// "Introdução ao BIM"), então TODO clique em "Revisar Módulo" caía no estado vazio e o caminho
+// feliz do recurso era literalmente inalcançável na demonstração. Cada turma agora tem um tópico
+// COM questões na fila (caminho feliz) e um SEM (estado vazio) — os dois casos continuam
+// demonstráveis de propósito.
 export const mockTeacherClassSummary: Record<string, TeacherClassSummary> = {
   "turma-2026-1a": {
     students_count: 142,
     avg_streak: 14,
     avg_accuracy: 78,
     weak_topics: [
-      { topic: "Cálculo de Fundações", accuracy_rate: 55 },
+      { topic: "Introdução ao BIM", accuracy_rate: 55 },
       { topic: "Escala e Proporção", accuracy_rate: 62 },
     ],
   },
@@ -27,7 +34,7 @@ export const mockTeacherClassSummary: Record<string, TeacherClassSummary> = {
     avg_streak: 9,
     avg_accuracy: 71,
     weak_topics: [
-      { topic: "Sistemas Estruturais", accuracy_rate: 58 },
+      { topic: "Introdução ao BIM", accuracy_rate: 58 },
       { topic: "Conforto Térmico", accuracy_rate: 65 },
     ],
   },

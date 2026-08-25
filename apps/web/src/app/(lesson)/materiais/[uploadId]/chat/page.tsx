@@ -7,6 +7,7 @@ import { ApiError } from "@/lib/api/http";
 import { SummaryHeader } from "@/components/features/materialSummary/SummaryHeader";
 import { ChatMessageBubble } from "@/components/features/materialChat/ChatMessageBubble";
 import { ChatInputBar } from "@/components/features/materialChat/ChatInputBar";
+import { ChatEmptyState } from "@/components/features/materialChat/ChatEmptyState";
 import type { ChatSourceRef } from "@/types/api";
 
 interface ViewMessage {
@@ -23,13 +24,21 @@ export default function MaterialChatPage() {
   const [messages, setMessages] = useState<ViewMessage[]>([]);
   const [sending, setSending] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [historyLoaded, setHistoryLoaded] = useState(false);
   const bottomRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    getUploadSummary(uploadId).then((summary) => setTitle(summary.title));
-    listChatHistory(uploadId).then(({ data }) => {
-      setMessages(data.map((m) => ({ id: m.message_id, role: m.role, message: m.message })));
-    });
+    // `.catch` em ambas: sem eles, uma falha de rede virava unhandled rejection e a tela ficava
+    // vazia sem explicar nada (mesma classe de defeito corrigida em Notificações na rodada 2).
+    getUploadSummary(uploadId)
+      .then((summary) => setTitle(summary.title))
+      .catch(() => setTitle("Material"));
+    listChatHistory(uploadId)
+      .then(({ data }) => {
+        setMessages(data.map((m) => ({ id: m.message_id, role: m.role, message: m.message })));
+      })
+      .catch(() => setError("Não foi possível carregar a conversa anterior. Você ainda pode perguntar."))
+      .finally(() => setHistoryLoaded(true));
   }, [uploadId]);
 
   useEffect(() => {
@@ -75,8 +84,16 @@ export default function MaterialChatPage() {
         role="log"
         aria-live="polite"
         aria-label="Conversa com a Arq"
-        className="max-w-2xl mx-auto w-full px-md py-lg flex flex-col gap-md flex-1"
+        // `justify-end`: as mensagens ficam ancoradas na barra de digitação, não no topo — antes
+        // uma conversa curta deixava ~500px de grade blueprint vazia entre a última resposta e o
+        // input, e a decoração virava o elemento dominante da tela.
+        className={`max-w-2xl mx-auto w-full px-md py-lg flex flex-col gap-md flex-1 ${
+          messages.length === 0 ? "justify-center" : "justify-end"
+        }`}
       >
+        {historyLoaded && messages.length === 0 && (
+          <ChatEmptyState title={title} onSuggestion={handleSend} disabled={sending} />
+        )}
         {messages.map((m) => (
           <ChatMessageBubble
             key={m.id}

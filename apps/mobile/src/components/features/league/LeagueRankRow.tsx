@@ -36,7 +36,10 @@ export function LeagueRankRow({ entry, isCurrentUser, inPromotionZone }: LeagueR
         )
       }
     >
-      <Text style={[type.bodySm, styles.position, inPromotionZone && styles.positionPromotion]}>
+      {/* `statsNumSm` (JetBrains Mono), não `bodySm` (Inter): posição e XP da semana são números
+          que o usuário acompanha subir — Mono-Counts Rule do DESIGN.md. O web já renderizava os
+          dois em `font-label` e o mobile tinha ficado para trás (drift achado na rodada 4). */}
+      <Text style={[type.statsNumSm, styles.position, inPromotionZone && styles.positionPromotion]}>
         {entry.position}
       </Text>
       <View style={[styles.avatarWrap, inPromotionZone && styles.avatarWrapPromotion]}>
@@ -45,7 +48,7 @@ export function LeagueRankRow({ entry, isCurrentUser, inPromotionZone }: LeagueR
       <Text style={[type.bodyLg, styles.name]} numberOfLines={1}>
         {isCurrentUser ? "Você" : entry.name}
       </Text>
-      <Text style={[type.bodySm, styles.xp, inPromotionZone && styles.xpPromotion]}>{entry.xp_this_week} XP</Text>
+      <Text style={[type.statsNumSm, styles.xp, inPromotionZone && styles.xpPromotion]}>{entry.xp_this_week} XP</Text>
     </Pressable>
   );
 }
@@ -69,7 +72,6 @@ const createStyles = (colors: ColorTokens) =>
     position: {
       width: 24,
       color: colors.onSurfaceVariant,
-      fontWeight: "700",
       textAlign: "center",
     },
     positionPromotion: {
@@ -88,7 +90,6 @@ const createStyles = (colors: ColorTokens) =>
     },
     xp: {
       color: colors.primary,
-      fontWeight: "700",
     },
     xpPromotion: {
       color: colors.tertiary,

@@ -17,6 +17,24 @@ export function formatDaysHoursMinutes(totalSeconds: number): string {
   return `${minutes}m`;
 }
 
+// "Agora", "2h atrás", "1d atrás", "3 sem" — rótulo de idade de notificação (API Spec §9 devolve
+// created_at). Espelhado em apps/web/src/lib/utils/format.ts.
+export function formatRelativeTime(isoDate: string, now: Date = new Date()): string {
+  const then = new Date(isoDate).getTime();
+  if (Number.isNaN(then)) return "";
+  const seconds = Math.max(0, Math.floor((now.getTime() - then) / 1000));
+  if (seconds < 60) return "Agora";
+  const minutes = Math.floor(seconds / 60);
+  if (minutes < 60) return `${minutes}min atrás`;
+  const hours = Math.floor(minutes / 60);
+  if (hours < 24) return `${hours}h atrás`;
+  const days = Math.floor(hours / 24);
+  if (days < 7) return `${days}d atrás`;
+  const weeks = Math.floor(days / 7);
+  if (weeks < 5) return `${weeks} sem`;
+  return new Intl.DateTimeFormat("pt-BR", { day: "2-digit", month: "2-digit" }).format(then);
+}
+
 export function formatBytes(bytes: number): string {
   if (bytes < 1024) return `${bytes} B`;
   const units = ["KB", "MB", "GB"];

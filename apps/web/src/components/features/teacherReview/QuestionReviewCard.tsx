@@ -4,6 +4,7 @@ import { useState } from "react";
 import { Card } from "@/components/ui/Card";
 import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
+import { Icon } from "@/components/ui/Icon";
 import { cn } from "@/lib/utils/cn";
 import type { QuestionDifficulty, QuestionType, ReviewQuestion } from "@/types/api";
 
@@ -73,19 +74,32 @@ export function QuestionReviewCard({ question, onApprove, onReject, onEdit }: Qu
       )}
 
       <div className="flex flex-col gap-1">
-        {question.opcoes.map((opcao) => (
-          <div
-            key={opcao.id}
-            className={cn(
-              "px-sm py-2 rounded-md border font-body-md text-body-md",
-              opcao.id === question.resposta_correta
-                ? "border-tertiary bg-tertiary-fixed text-on-tertiary-fixed-variant"
-                : "border-outline-variant text-on-surface-variant",
-            )}
-          >
-            {opcao.label}
-          </div>
-        ))}
+        {question.opcoes.map((opcao) => {
+          const isCorrect = opcao.id === question.resposta_correta;
+          return (
+            <div
+              key={opcao.id}
+              className={cn(
+                "px-sm py-2 rounded-md border font-body-md text-body-md flex items-center gap-sm",
+                isCorrect
+                  ? "border-tertiary bg-tertiary-fixed text-on-tertiary-fixed-variant"
+                  : "border-outline-variant text-on-surface-variant",
+              )}
+            >
+              <span className="flex-1">{opcao.label}</span>
+              {/* O verde do preenchimento era o ÚNICO sinal de "esta é a resposta correta" — e o
+                  mesmo verde já era usado no card pelo selo de dificuldade "Fácil" (tone
+                  tertiary), então a cor sozinha nem era um sinal confiável aqui. O check torna o
+                  significado explícito (e legível sem cor), como na referência do Stitch. */}
+              {isCorrect && (
+                <>
+                  <Icon name="check_circle" filled size={20} className="text-tertiary shrink-0" />
+                  <span className="sr-only">Resposta correta</span>
+                </>
+              )}
+            </div>
+          );
+        })}
       </div>
 
       <blockquote className="border-l-4 border-outline-variant pl-sm font-body-sm text-body-sm text-on-surface-variant italic">
@@ -112,7 +126,9 @@ export function QuestionReviewCard({ question, onApprove, onReject, onEdit }: Qu
             </>
           ) : (
             <>
-              <Button variant="danger" size="sm" onClick={onReject}>
+              {/* danger-ghost, não danger sólido: "Aprovar" é a ação esperada da maioria das
+                  perguntas da fila e precisa ser o botão mais pesado do card. Ver Button.tsx. */}
+              <Button variant="danger-ghost" size="sm" onClick={onReject}>
                 Rejeitar
               </Button>
               <Button variant="ghost" size="sm" onClick={() => setEditing(true)}>

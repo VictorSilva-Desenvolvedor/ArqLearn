@@ -43,14 +43,24 @@ export function UploadedContentItem({ item }: { item: UploadedContent }) {
 
   const content = (
     <Card padding="sm" radius="md" interactive={canOpenSummary} className="flex flex-col gap-1">
+      {/* O nome do arquivo é o que identifica a linha, mas dividia a largura com um badge de texto
+          longo ("Pronto para revisão"): em 390px sobravam 77px pro nome de 281px — ficava
+          "Norma_d…" (medido na auditoria de 25/08/2026). Abaixo de `sm` o badge desce pra linha
+          de baixo, junto do tamanho do arquivo; de `sm` pra cima o layout de uma linha continua. */}
       <div className="flex items-center gap-sm">
-        <Icon name={fileTypeIcon[item.file_type]} className="text-2xl text-on-surface-variant" />
-        <div className="flex-1 min-w-0">
-          <p className="font-body-md text-body-md text-on-surface truncate">{item.filename}</p>
-          <p className="font-body-sm text-body-sm text-on-surface-variant">{formatBytes(item.size_bytes)}</p>
+        <Icon name={fileTypeIcon[item.file_type]} className="text-on-surface-variant" size={24} />
+        <div className="flex-1 min-w-0 flex flex-col sm:flex-row sm:items-center gap-x-sm">
+          <p className="font-body-md text-body-md text-on-surface truncate sm:flex-1">{item.filename}</p>
+          <div className="flex items-center gap-sm">
+            <p className="font-body-sm text-body-sm text-on-surface-variant sm:order-first">
+              {formatBytes(item.size_bytes)}
+            </p>
+            <Badge tone={status.tone} className="shrink-0">
+              {status.label}
+            </Badge>
+          </div>
         </div>
-        <Badge tone={status.tone}>{status.label}</Badge>
-        {canOpenSummary && <Icon name="chevron_right" className="text-on-surface-variant" />}
+        {canOpenSummary && <Icon name="chevron_right" className="text-on-surface-variant shrink-0" />}
       </div>
       {showProgress && (
         <div className="flex items-center gap-sm pl-[calc(1.5rem+var(--spacing-sm))]">

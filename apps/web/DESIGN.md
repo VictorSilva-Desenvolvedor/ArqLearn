@@ -152,6 +152,18 @@ form are different concepts that only coincided by sharing a red hue — don't m
 reward, green is exclusively success/validation, and within red specifically: `error-red` = lives,
 `error` = validation.
 
+**The League Palette Exception.** The ten `--color-league-*` / `--color-on-league-*` pairs
+(`globals.css`, mirrored hex-for-hex in `apps/mobile/src/theme/tokens.ts` as `league*`/`onLeague*`)
+are the one sanctioned exception, added 25/08/2026 so that promotion between tiers is visible
+instead of every tier sharing one orange badge. They are a **material palette, not a semantic one**:
+`esmeralda`/`safira`/`rubi` are green/blue/red purely because those are the gem names, and they do
+**not** mean success/navigation/error. Scope is exactly three places — the big tier badge
+(`LeagueHeader.tsx` / `liga.tsx`), the active node of `LeagueProgressionTrack.tsx`, and the selected
+tier in `LeagueTiersDialog.tsx`. Never reuse them anywhere else, and never use a tier colour for
+*text* (`prata`/`platina`/`diamante` are far too light on the white card — the circle carries the
+material, the text label stays `text-primary`). Each bg/on pair is pre-checked for contrast against
+itself, so both themes work without a separate dark variant.
+
 ## Typography
 
 Same three-family pairing as mobile (Hanken Grotesk / Inter / JetBrains Mono), consumed via Tailwind's

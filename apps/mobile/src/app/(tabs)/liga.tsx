@@ -9,6 +9,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { useCountdownToTimestamp } from "@/hooks/useCountdown";
 import { getLeague } from "@/lib/api/resources/gamification";
 import {
+  LEAGUE_TIER_COLOR_KEYS,
   LEAGUE_TIER_ICONS,
   LEAGUE_TIER_LABELS,
   nextTierDivision,
@@ -46,7 +47,7 @@ export default function LigaScreen() {
   const tierLabel = LEAGUE_TIER_LABELS[tier];
   const next = league ? nextTierDivision(tier, league.division) : null;
   const weekEndsAt = league ? weekReferenceEndsAtIso(league.week_reference) : null;
-  const { secondsLeft: weekSecondsLeft } = useCountdownToTimestamp(weekEndsAt);
+  const { secondsLeft: weekSecondsLeft, reachedZero } = useCountdownToTimestamp(weekEndsAt);
 
   const description = next
     ? `Os ${league?.promotion_slots ?? 3} melhores avançam para a Liga ${LEAGUE_TIER_LABELS[next.tier]} ${next.division}. Compita aprendendo!`
@@ -64,20 +65,28 @@ export default function LigaScreen() {
         <View style={styles.header}>
           <Pressable
             onPress={() => openTiersDialog(undefined)}
-            style={styles.badge}
+            style={[styles.badge, { backgroundColor: colors[LEAGUE_TIER_COLOR_KEYS[tier].bg] }]}
             accessibilityRole="button"
             accessibilityLabel="Ver todas as ligas"
           >
-            <Icon name={LEAGUE_TIER_ICONS[tier]} size={44} color={colors.secondary} />
+            <Icon name={LEAGUE_TIER_ICONS[tier]} size={44} color={colors[LEAGUE_TIER_COLOR_KEYS[tier].on]} />
           </Pressable>
           <Text style={[type.displayLg, styles.title]}>
             Liga {tierLabel} {league?.division ?? 3}
           </Text>
           <Text style={[type.bodyMd, styles.caption]}>{description}</Text>
           {weekEndsAt && (
+            /* reachedZero: mesma correção do web (LeagueHeader.tsx). weekReferenceEndsAtIso é uma
+               aproximação em UTC e o job de fechamento roda no fuso do usuário — entre os dois a
+               conta zera antes de a liga fechar, e a tela mostrava "0m" ("acabou agora", para
+               sempre). Também cobre week_reference atrasado vindo da API. */
             <View style={styles.countdown}>
-              <Text style={[type.labelCaps, styles.countdownLabel]}>Tempo Restante</Text>
-              <Text style={[type.questionLg, styles.countdownValue]}>{formatDaysHoursMinutes(weekSecondsLeft)}</Text>
+              <Text style={[type.labelCaps, styles.countdownLabel]}>
+                {reachedZero ? "Ciclo" : "Tempo Restante"}
+              </Text>
+              <Text style={[type.questionLg, styles.countdownValue]}>
+                {reachedZero ? "Encerrando…" : formatDaysHoursMinutes(weekSecondsLeft)}
+              </Text>
             </View>
           )}
         </View>
@@ -128,7 +137,8 @@ const createStyles = (colors: ColorTokens) =>
       width: 96,
       height: 96,
       borderRadius: 48,
-      backgroundColor: colors.secondaryContainer,
+      // backgroundColor real vem inline no JSX — depende do tier, não é fixo. Só a forma mora
+      // aqui, igual ao resto do arquivo.
       borderWidth: 4,
       borderColor: colors.outlineVariant,
       alignItems: "center",
