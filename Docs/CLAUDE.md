@@ -408,6 +408,36 @@ se a tela ficou boa nem se a funcionalidade nova funciona ponta a ponta. As duas
 duas lacunas separadamente, para não misturar critério visual com critério funcional. Rodar
 automaticamente em vez de perguntar reduz o atrito de repetir essa decisão a cada demanda.
 
+## Publicar atualização OTA (EAS Update) ao finalizar uma demanda que mexeu em `apps/mobile`
+
+**Regra permanente (desde 25/08/2026).** Toda demanda que altera código de `apps/mobile` e é só
+JS/TS/assets (nenhum pacote nativo novo, nenhuma mudança em `app.json`/permissão, nenhum bump de
+SDK do Expo) termina publicando um update OTA via EAS Update — **sem perguntar antes**, mesmo
+espírito da regra do `ui-reviewer` acima, depois que a demanda já estiver mergeada em `main`:
+
+```bash
+cd apps/mobile
+EXPO_TOKEN=... npx eas-cli@latest update --branch preview --message "descrição curta da mudança"
+```
+
+- Precisa de `EXPO_TOKEN` (Personal Access Token da conta Expo do usuário) — não fica salvo em
+  nenhum arquivo do repo nem em memória entre sessões, de propósito. Se a sessão não tiver o token
+  disponível como variável de ambiente, **pedir ao usuário antes de publicar** — nunca inventar,
+  nunca pular a etapa silenciosamente, nunca escrever o token em disco.
+- Cobre só mudança de JS/TS/assets. Qualquer mudança em código nativo, pacote nativo novo,
+  permissão em `app.json` ou bump de versão do Expo SDK continua exigindo `eas build` (gera APK
+  novo) — OTA não alcança esse tipo de mudança, e publicar um update OTA pra isso é enganoso: o app
+  já instalado não vai refletir a mudança de jeito nenhum por esse caminho.
+- Usar `--branch production` só quando esse profile existir de verdade em uso. Ver
+  `Docs/PENDENCIAS_MOBILE.md` item #10 pro histórico completo da configuração do EAS Update e a
+  ressalva sobre o primeiro build feito depois dela — instalações mais antigas que aquele primeiro
+  build não têm o runtime nativo do `expo-updates` e não recebem update nenhum via OTA.
+
+**Por quê:** sem isso, o app instalado no device físico do usuário fica desatualizado
+indefinidamente mesmo depois de uma mudança já revisada, mergeada e em `main` — o código no
+repositório e o código rodando no telefone divergem silenciosamente até alguém lembrar de publicar
+manualmente.
+
 ## Comandos úteis (verificados no scaffold — expandir conforme o projeto cresce)
 
 ```bash
