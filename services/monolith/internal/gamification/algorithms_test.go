@@ -510,9 +510,15 @@ func TestAplicarExpiracaoStreak(t *testing.T) {
 		{"sem streak, nada a fazer", 0, "", 0, "2026-08-15", 0, "", 0, false},
 		{"praticou hoje, intacta", 5, "2026-08-15", 0, "2026-08-15", 5, "2026-08-15", 0, false},
 		{"praticou ontem, intacta (ainda não praticou hoje)", 5, "2026-08-14", 0, "2026-08-15", 5, "2026-08-14", 0, false},
-		{"pulou 2 dias, com freeze, consome e preserva streak, avança pra ontem (não hoje)", 5, "2026-08-12", 2, "2026-08-15", 5, "2026-08-14", 1, false},
+		{"pulou 2 dias, com 2 freezes, consome os 2 e avança pra ontem (não hoje)", 5, "2026-08-12", 2, "2026-08-15", 5, "2026-08-14", 0, false},
 		{"pulou 2 dias, sem freeze, zera", 5, "2026-08-12", 0, "2026-08-15", 0, "2026-08-12", 0, true},
 		{"pulou 1 dia inteiro (anteontem), sem freeze, zera", 5, "2026-08-13", 0, "2026-08-15", 0, "2026-08-13", 0, true},
+		{"pulou 1 dia inteiro, com 1 freeze, salva", 5, "2026-08-13", 1, "2026-08-15", 5, "2026-08-14", 0, false},
+		// Bug relatado por usuária: 3 dias sem entrar (12,13,14 perdidos) com 1 freeze não pode
+		// ser perdoado — o gap inteiro é cobrado de uma vez, não um dia por avaliação.
+		{"sumiu 3 dias com só 1 freeze: não cobre o gap, zera e devolve o freeze intacto", 5, "2026-08-11", 1, "2026-08-15", 0, "2026-08-11", 1, true},
+		{"sumiu 3 dias com 3 freezes: cobre o gap inteiro", 5, "2026-08-11", 3, "2026-08-15", 5, "2026-08-14", 0, false},
+		{"data futura (fuso/relógio) não é gap", 5, "2026-08-16", 1, "2026-08-15", 5, "2026-08-16", 1, false},
 	}
 	for _, c := range casos {
 		t.Run(c.nome, func(t *testing.T) {
@@ -525,8 +531,8 @@ func TestAplicarExpiracaoStreak(t *testing.T) {
 		})
 	}
 
-	t.Run("idempotente no mesmo dia: reaplicar após consumir um freeze não consome outro", func(t *testing.T) {
-		streak, lastActive, freezes, _ := AplicarExpiracaoStreak(5, "2026-08-12", 2, "2026-08-15")
+	t.Run("idempotente no mesmo dia: reaplicar após consumir freeze não consome outro", func(t *testing.T) {
+		streak, lastActive, freezes, _ := AplicarExpiracaoStreak(5, "2026-08-13", 2, "2026-08-15")
 		streak2, lastActive2, freezes2, _ := AplicarExpiracaoStreak(streak, lastActive, freezes, "2026-08-15")
 		if streak2 != 5 || freezes2 != 1 || lastActive2 != "2026-08-14" {
 			t.Errorf("segunda avaliação no mesmo dia consumiu freeze de novo: streak=%d freezes=%d lastActive=%q", streak2, freezes2, lastActive2)

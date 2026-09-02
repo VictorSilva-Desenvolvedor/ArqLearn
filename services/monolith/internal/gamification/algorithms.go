@@ -273,21 +273,25 @@ func HojeLocal(timezone string, now time.Time) string {
 //
 // Regra: se a última prática foi hoje ou ontem, a streak está intacta (TDD §5.1 já garante no
 // máximo 1 incremento por dia, então "ontem" é sempre o caso normal de quem ainda não praticou
-// hoje). Se pulou 2+ dias sem prática: consome 1 streak_freeze automaticamente se disponível
-// (streak_current preservado) — um gap de N dias consome até N freezes, um por dia faltante, até
-// acabarem, MAS um por avaliação, não N de uma vez (ver nota abaixo) —, ou zera streak_current se
-// não houver freeze (expirou=true).
+// hoje). Se pulou 2+ dias sem prática: consome automaticamente 1 streak_freeze por dia perdido,
+// se houver freezes suficientes pra cobrir o gap INTEIRO (streak_current preservado); caso
+// contrário zera streak_current (expirou=true) sem consumir freeze nenhum — meio freeze não salva
+// meia streak.
 //
-// novaLastActiveDate avança pra "ontem" quando um freeze é consumido — NÃO pra hoje (o usuário
-// ainda precisa praticar hoje pra manter a sequência viva, TDD §5.3) — só o suficiente pra essa
-// mesma avaliação não se repetir a cada request do resto do dia (chamador persiste esse valor de
-// volta). Sem isso, o caller re-executaria esta função em toda leitura de gamificação do dia
+// novaLastActiveDate avança pra "ontem" quando a streak é salva por freeze — NÃO pra hoje (o
+// usuário ainda precisa praticar hoje pra manter a sequência viva, TDD §5.3) — só o suficiente pra
+// essa mesma avaliação não se repetir a cada request do resto do dia (chamador persiste esse valor
+// de volta). Sem isso, o caller re-executaria esta função em toda leitura de gamificação do dia
 // (GET /v1/gamification/me, GET /v1/users/me, cada pergunta de POST .../answers) e consumiria um
 // freeze por request em vez de um por dia — bug real encontrado ao vivo (Playwright, ver
-// PENDENCIAS_MOBILE.md) antes desta correção. Se o usuário sumir por N dias e só abrir o app uma
-// vez depois, essa única avaliação processa 1 dia do gap (não os N de uma vez); reabrir o app nos
-// dias seguintes sem praticar processa mais um dia por vez, até os freezes acabarem ou a pessoa
-// praticar de novo — simulação lazy do job diário do TDD (que rodaria uma vez por virada de dia).
+// PENDENCIAS_MOBILE.md).
+//
+// O gap inteiro é cobrado de UMA vez, não um dia por avaliação: sumir por N dias exige N freezes
+// disponíveis nesta mesma chamada. A versão anterior processava só 1 dia do gap por avaliação, o
+// que fazia um único freeze perdoar uma ausência de qualquer duração — bug relatado por usuária
+// (3 dias fora, streak não zerou ao responder uma pergunta). Como não existe job diário nesta
+// fase pra processar os dias restantes, cobrar o gap todo na primeira avaliação é o equivalente
+// preguiçoso correto do job do TDD §5.3.
 func AplicarExpiracaoStreak(streakCurrent int, streakLastActiveDate string, freezesAvailable int, hojeLocal string) (novoStreakCurrent int, novaLastActiveDate string, novosFreezes int, expirou bool) {
 	if streakCurrent == 0 || streakLastActiveDate == "" || streakLastActiveDate == hojeLocal {
 		return streakCurrent, streakLastActiveDate, freezesAvailable, false
@@ -297,13 +301,20 @@ func AplicarExpiracaoStreak(streakCurrent int, streakLastActiveDate string, free
 	if err != nil {
 		return streakCurrent, streakLastActiveDate, freezesAvailable, false
 	}
-	ontem := hoje.AddDate(0, 0, -1).Format("2006-01-02")
-	if streakLastActiveDate == ontem {
+	ultima, err := time.Parse("2006-01-02", streakLastActiveDate)
+	if err != nil {
+		return streakCurrent, streakLastActiveDate, freezesAvailable, false
+	}
+	ontem := hoje.AddDate(0, 0, -1)
+	// Última prática em "ontem" (ou numa data futura, por fuso/relógio) não é gap nenhum.
+	if !ultima.Before(ontem) {
 		return streakCurrent, streakLastActiveDate, freezesAvailable, false
 	}
 
-	if freezesAvailable > 0 {
-		return streakCurrent, ontem, freezesAvailable - 1, false
+	// Dias inteiros perdidos entre a última prática e ontem — com última = anteontem, é 1.
+	diasPerdidos := int(ontem.Sub(ultima).Hours() / 24)
+	if freezesAvailable >= diasPerdidos {
+		return streakCurrent, ontem.Format("2006-01-02"), freezesAvailable - diasPerdidos, false
 	}
 	return 0, streakLastActiveDate, freezesAvailable, true
 }

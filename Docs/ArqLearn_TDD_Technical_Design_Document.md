@@ -319,6 +319,17 @@ para cada user com streak_last_active_date != ontem_local(user.timezone) e strea
 > `handleSubmitAnswer` (`POST /v1/lessons/{lesson_id}/answers`) — não um caminho único
 > compartilhado. Os dois eventos acima (`streak_freeze_consumed`/`streak_reset`) são emitidos nos
 > dois pontos, não só num deles — ver §5.5 sobre por que isso importa pro reparo de streak.
+>
+> **Correção 02/09/2026 (bug relatado por usuária: 3 dias sem entrar, streak não zerou ao responder
+> uma pergunta).** O job acima roda uma vez por virada de dia, então uma ausência de N dias custa N
+> execuções — ou seja, N freezes. A versão preguiçosa cobrava só 1 dia do gap por avaliação, e como
+> ela avança `streak_last_active_date` pra "ontem" ao salvar a streak, um único freeze passava a
+> perdoar uma ausência de qualquer duração. `AplicarExpiracaoStreak` agora conta os dias inteiros
+> perdidos entre `streak_last_active_date` e ontem e cobra o gap de uma vez: preserva a streak só
+> se `streak_freezes_available >= dias_perdidos` (consumindo essa quantidade); caso contrário zera
+> `streak_current` e **não** consome freeze nenhum (meio freeze não salva meia streak — os freezes
+> ficam pro usuário usar depois). `streak_freeze_consumed` continua sendo emitido uma vez por
+> avaliação que consome freeze, não uma vez por dia coberto.
 
 ### 5.4 Vidas — Regeneração
 
